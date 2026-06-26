@@ -52,7 +52,7 @@ CREATE TABLE itens(
     id_produto INTEGER,
     descricao VARCHAR(255) NOT NULL,
     preco DECIMAL(10, 2),
-    CONSTRAINT fk_id_produto
+    CONSTRAINT fk_id_produto_itens
                     FOREIGN KEY (id_produto)
                     REFERENCES produtos(id)
 );
@@ -64,7 +64,7 @@ CREATE TABLE itens_pedidos(
     CONSTRAINT fk_id_itens_pedido
                     FOREIGN KEY (id_pedido)
                     REFERENCES pedidos(id),
-    CONSTRAINT fk_id_usuario
+    CONSTRAINT fk_id_produto
                     FOREIGN KEY (id_produto)
                     REFERENCES produtos(id)
 );
