@@ -1,0 +1,50 @@
+package br.com.fourkitchen.ms_usuarios.service;
+
+import br.com.fourkitchen.ms_usuarios.dto.request.CriarUsuarioRequest;
+import br.com.fourkitchen.ms_usuarios.dto.response.UsuarioResponse;
+import br.com.fourkitchen.ms_usuarios.mapper.CriarUsuarioRequestMapper;
+import br.com.fourkitchen.ms_usuarios.mapper.UsuarioResponseMapper;
+import br.com.fourkitchen.ms_usuarios.model.Usuario;
+import br.com.fourkitchen.ms_usuarios.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UsuarioService {
+
+    private final UsuarioRepository usuarioRepository;
+
+    private final UsuarioResponseMapper usuarioResponseMapper;
+
+    private final CriarUsuarioRequestMapper criarUsuarioRequestMapper;
+
+    private final PasswordEncoder passwordEncoder;
+
+    public List<UsuarioResponse> buscarUsuariosAtivos() {
+
+        List<Usuario> usuarios = usuarioRepository.findByAtivoTrue();
+        return usuarios.stream().map(usuarioResponseMapper::map).toList();
+    }
+
+    public UsuarioResponse criarUsuario(CriarUsuarioRequest request) {
+
+        if (usuarioRepository.existsByEmail(request.email())) {
+            throw new RuntimeException("Email já cadastrado");
+        }
+
+        Usuario usuario = criarUsuarioRequestMapper.map(request);
+
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        usuario.setAtivo(true);
+
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+        return usuarioResponseMapper.map(usuarioSalvo);
+
+    }
+
+}
