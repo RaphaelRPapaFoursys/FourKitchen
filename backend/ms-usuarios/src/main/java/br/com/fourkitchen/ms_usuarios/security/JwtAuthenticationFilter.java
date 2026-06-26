@@ -1,8 +1,6 @@
 package br.com.fourkitchen.ms_usuarios.security;
 
-package br.com.fourkitchen.ms_usuarios.security;
-
-import br.com.fourkitchen.ms_usuarios.entity.Usuario;
+import br.com.fourkitchen.ms_usuarios.model.Usuario;
 import br.com.fourkitchen.ms_usuarios.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -42,19 +40,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String token = authHeader.substring(7);
-            String username = jwtService.extrairUsername(token);
+            String email = jwtService.extrairEmail(token);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
+                Usuario usuario = usuarioRepository.findAll()
+                        .stream()
+                        .filter(u -> u.getEmail().equalsIgnoreCase(email))
+                        .findFirst()
+                        .orElse(null);
 
-                if (usuario != null && usuario.getAtivo() && jwtService.validarToken(token, username)) {
+                if (usuario != null
+                        && Boolean.TRUE.equals(usuario.getAtivo())
+                        && jwtService.validarToken(token, email)) {
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     usuario,
                                     null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getPerfil()))
+                                    List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getPerfilUsuario().name()))
                             );
 
                     authentication.setDetails(

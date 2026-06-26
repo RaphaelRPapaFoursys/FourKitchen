@@ -1,9 +1,8 @@
 package br.com.fourkitchen.ms_usuarios.security;
 
-package br.com.fourkitchen.ms_usuarios.security;
-
 import br.com.fourkitchen.ms_usuarios.dto.responseDto.LoginResponse;
-import br.com.fourkitchen.ms_usuarios.entity.Usuario;
+import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
+import br.com.fourkitchen.ms_usuarios.model.Usuario;
 import br.com.fourkitchen.ms_usuarios.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,43 +16,46 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    public void criarUsuario(String username, String password) {
+    public void criarUsuario(String nome, String email, String senha) {
 
-        if (usuarioRepository.existsByUsername(username)) {
-            throw new RuntimeException("Usuário já cadastrado.");
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new RuntimeException("E-mail já cadastrado.");
         }
 
         Usuario usuario = new Usuario();
-        usuario.setUsername(username);
-        usuario.setPassword(passwordEncoder.encode(password));
-        usuario.setNome(username);
-        usuario.setPerfil("CLIENTE");
+        usuario.setNome(nome);
+        usuario.setEmail(email);
+        usuario.setSenha(passwordEncoder.encode(senha));
+        usuario.setPerfilUsuario(PerfilUsuario.ADMIN);
         usuario.setAtivo(true);
 
         usuarioRepository.save(usuario);
     }
 
-    public LoginResponse login(String username, String password) {
+    public LoginResponse login(String email, String senha) {
 
-        Usuario usuario = usuarioRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuário ou senha inválidos."));
+        Usuario usuario = usuarioRepository.findAll()
+                .stream()
+                .filter(u -> u.getEmail().equalsIgnoreCase(email))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("E-mail ou senha inválidos."));
 
-        if (!usuario.getAtivo()) {
+        if (!Boolean.TRUE.equals(usuario.getAtivo())) {
             throw new RuntimeException("Usuário inativo.");
         }
 
-        if (!passwordEncoder.matches(password, usuario.getPassword())) {
-            throw new RuntimeException("Usuário ou senha inválidos.");
+        if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+            throw new RuntimeException("E-mail ou senha inválidos.");
         }
 
         String token = jwtService.gerarToken(usuario);
 
         return new LoginResponse(
                 token,
-                usuario.getId(),
+                usuario.getId().longValue(),
                 usuario.getNome(),
-                usuario.getUsername(),
-                usuario.getPerfil()
+                usuario.getEmail(),
+                usuario.getPerfilUsuario().name()
         );
     }
 }
