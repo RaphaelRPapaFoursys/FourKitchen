@@ -2,6 +2,8 @@ package br.com.fourkitchen.ms_usuarios.service;
 
 import br.com.fourkitchen.ms_usuarios.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.ms_usuarios.dto.response.UsuarioResponse;
+import br.com.fourkitchen.ms_usuarios.exception.BaseException;
+import br.com.fourkitchen.ms_usuarios.exception.ErrorEnum;
 import br.com.fourkitchen.ms_usuarios.mapper.CriarUsuarioRequestMapper;
 import br.com.fourkitchen.ms_usuarios.mapper.UsuarioResponseMapper;
 import br.com.fourkitchen.ms_usuarios.model.Usuario;
@@ -33,7 +35,7 @@ public class UsuarioService {
     public UsuarioResponse criarUsuario(CriarUsuarioRequest request) {
 
         if (usuarioRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email já cadastrado");
+            throw new BaseException(ErrorEnum.EMAIL_JA_CADASTRADO);
         }
 
         Usuario usuario = criarUsuarioRequestMapper.map(request);
