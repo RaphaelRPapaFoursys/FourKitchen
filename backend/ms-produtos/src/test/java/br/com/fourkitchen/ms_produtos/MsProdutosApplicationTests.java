@@ -1,13 +1,16 @@
 package br.com.fourkitchen.ms_produtos;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 class MsProdutosApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void applicationClassDeveExistir() {
+		MsProdutosApplication application = new MsProdutosApplication();
+
+		assertNotNull(application);
 	}
 
 }
