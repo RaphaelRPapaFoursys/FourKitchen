@@ -3,6 +3,8 @@ package br.com.fourkitchen.ms_usuarios.service;
 import br.com.fourkitchen.ms_usuarios.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.ms_usuarios.dto.response.UsuarioResponse;
 import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
+import br.com.fourkitchen.ms_usuarios.exception.BaseException;
+import br.com.fourkitchen.ms_usuarios.exception.ErrorEnum;
 import br.com.fourkitchen.ms_usuarios.mapper.CriarUsuarioRequestMapper;
 import br.com.fourkitchen.ms_usuarios.mapper.UsuarioResponseMapper;
 import br.com.fourkitchen.ms_usuarios.model.Usuario;
@@ -109,7 +111,9 @@ class UsuarioServiceTest {
 
         when(usuarioRepository.existsByEmail(request.email())).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> usuarioService.criarUsuario(request));
+        BaseException exception = assertThrows(BaseException.class, () -> usuarioService.criarUsuario(request));
+
+        assertEquals(ErrorEnum.EMAIL_JA_CADASTRADO, exception.getErrorEnum());
 
         verify(usuarioRepository).existsByEmail(request.email());
         verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
