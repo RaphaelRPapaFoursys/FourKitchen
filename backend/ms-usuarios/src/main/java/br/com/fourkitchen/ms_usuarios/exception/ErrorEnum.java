@@ -12,6 +12,24 @@ public enum ErrorEnum {
             HttpStatus.CONFLICT
     ),
 
+    CREDENCIAIS_INVALIDAS(
+            "002",
+            "Email ou senha invalidos",
+            HttpStatus.UNAUTHORIZED
+    ),
+
+    USUARIO_INATIVO(
+            "003",
+            "Usuario inativo",
+            HttpStatus.FORBIDDEN
+    ),
+
+    TOKEN_INVALIDO(
+            "005",
+            "Token invalido ou expirado",
+            HttpStatus.UNAUTHORIZED
+    ),
+
     DADOS_INVALIDOS(
             "004",
             "Dados invalidos",

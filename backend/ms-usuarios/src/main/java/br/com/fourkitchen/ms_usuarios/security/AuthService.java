@@ -2,6 +2,8 @@ package br.com.fourkitchen.ms_usuarios.security;
 
 import br.com.fourkitchen.ms_usuarios.dto.responseDto.LoginResponse;
 import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
+import br.com.fourkitchen.ms_usuarios.exception.BaseException;
+import br.com.fourkitchen.ms_usuarios.exception.ErrorEnum;
 import br.com.fourkitchen.ms_usuarios.model.Usuario;
 import br.com.fourkitchen.ms_usuarios.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,7 @@ public class AuthService {
 
     public void criarUsuario(String nome, String email, String senha) {
 
-        if (usuarioRepository.existsByEmail(email)) {
+        if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new RuntimeException("E-mail já cadastrado.");
         }
 
@@ -34,18 +36,15 @@ public class AuthService {
 
     public LoginResponse login(String email, String senha) {
 
-        Usuario usuario = usuarioRepository.findAll()
-                .stream()
-                .filter(u -> u.getEmail().equalsIgnoreCase(email))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("E-mail ou senha inválidos."));
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new BaseException(ErrorEnum.CREDENCIAIS_INVALIDAS));
 
         if (!Boolean.TRUE.equals(usuario.getAtivo())) {
-            throw new RuntimeException("Usuário inativo.");
+            throw new BaseException(ErrorEnum.USUARIO_INATIVO);
         }
 
         if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-            throw new RuntimeException("E-mail ou senha inválidos.");
+            throw new BaseException(ErrorEnum.CREDENCIAIS_INVALIDAS);
         }
 
         String token = jwtService.gerarToken(usuario);

@@ -34,7 +34,7 @@ public class UsuarioService {
 
     public UsuarioResponse criarUsuario(CriarUsuarioRequest request) {
 
-        if (usuarioRepository.existsByEmail(request.email())) {
+        if (usuarioRepository.existsByEmailIgnoreCase(request.email())) {
             throw new BaseException(ErrorEnum.EMAIL_JA_CADASTRADO);
         }
 
