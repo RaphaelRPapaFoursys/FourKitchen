@@ -1,0 +1,61 @@
+package br.com.fourkitchen.ms_notificacoes.service;
+
+import br.com.fourkitchen.ms_notificacoes.dto.request.CriarNotificacaoRequest;
+import br.com.fourkitchen.ms_notificacoes.dto.response.NotificacaoResponse;
+import br.com.fourkitchen.ms_notificacoes.enums.DestinoNotificacao;
+import br.com.fourkitchen.ms_notificacoes.exception.BaseException;
+import br.com.fourkitchen.ms_notificacoes.exception.ErrorEnum;
+import br.com.fourkitchen.ms_notificacoes.mapper.NotificacaoResponseMapper;
+import br.com.fourkitchen.ms_notificacoes.model.Notificacao;
+import br.com.fourkitchen.ms_notificacoes.repository.NotificacaoRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class NotificacaoService {
+
+    private final NotificacaoRepository notificacaoRepository;
+
+    private final NotificacaoResponseMapper notificacaoResponseMapper;
+
+    public NotificacaoResponse criarNotificacao(CriarNotificacaoRequest request) {
+        Notificacao notificacao = Notificacao
+                .builder()
+                .tipo(request.tipo())
+                .mensagem(request.mensagem())
+                .destino(request.destino())
+                .lida(false)
+                .data(LocalDateTime.now())
+                .build();
+
+        Notificacao notificacaoSalva = notificacaoRepository.save(notificacao);
+
+        return notificacaoResponseMapper.map(notificacaoSalva);
+    }
+
+    public List<NotificacaoResponse> listarPendentes(DestinoNotificacao destino) {
+        List<Notificacao> notificacoes = destino == null
+                ? notificacaoRepository.findByLidaFalseOrderByDataDesc()
+                : notificacaoRepository.findByDestinoAndLidaFalseOrderByDataDesc(destino);
+
+        return notificacoes
+                .stream()
+                .map(notificacaoResponseMapper::map)
+                .toList();
+    }
+
+    public NotificacaoResponse marcarComoLida(Integer id) {
+        Notificacao notificacao = notificacaoRepository.findById(id)
+                .orElseThrow(() -> new BaseException(ErrorEnum.NOTIFICACAO_NAO_ENCONTRADA));
+
+        notificacao.setLida(true);
+
+        Notificacao notificacaoSalva = notificacaoRepository.save(notificacao);
+
+        return notificacaoResponseMapper.map(notificacaoSalva);
+    }
+}
