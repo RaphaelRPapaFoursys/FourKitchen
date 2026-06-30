@@ -78,7 +78,7 @@ class UsuarioServiceTest {
         Usuario usuarioSalvo = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha-criptografada", true);
         UsuarioResponse response = new UsuarioResponse(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, true);
 
-        when(usuarioRepository.existsByEmail(request.email())).thenReturn(false);
+        when(usuarioRepository.existsByEmailIgnoreCase(request.email())).thenReturn(false);
         when(criarUsuarioRequestMapper.map(request)).thenReturn(usuarioMapeado);
         when(passwordEncoder.encode(usuarioMapeado.getSenha())).thenReturn("senha-criptografada");
         when(usuarioRepository.save(usuarioMapeado)).thenReturn(usuarioSalvo);
@@ -94,7 +94,7 @@ class UsuarioServiceTest {
         Usuario usuarioEnviadoParaSalvar = usuarioCaptor.getValue();
         assertEquals("senha-criptografada", usuarioEnviadoParaSalvar.getSenha());
         assertEquals(true, usuarioEnviadoParaSalvar.getAtivo());
-        verify(usuarioRepository).existsByEmail(request.email());
+        verify(usuarioRepository).existsByEmailIgnoreCase(request.email());
         verify(criarUsuarioRequestMapper).map(request);
         verify(passwordEncoder).encode("Senha123");
         verify(usuarioResponseMapper).map(usuarioSalvo);
@@ -109,13 +109,13 @@ class UsuarioServiceTest {
                 PerfilUsuario.ADMIN
         );
 
-        when(usuarioRepository.existsByEmail(request.email())).thenReturn(true);
+        when(usuarioRepository.existsByEmailIgnoreCase(request.email())).thenReturn(true);
 
         BaseException exception = assertThrows(BaseException.class, () -> usuarioService.criarUsuario(request));
 
         assertEquals(ErrorEnum.EMAIL_JA_CADASTRADO, exception.getErrorEnum());
 
-        verify(usuarioRepository).existsByEmail(request.email());
+        verify(usuarioRepository).existsByEmailIgnoreCase(request.email());
         verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
         verifyNoInteractions(criarUsuarioRequestMapper, passwordEncoder, usuarioResponseMapper);
     }
