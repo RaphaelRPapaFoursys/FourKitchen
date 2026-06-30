@@ -1,0 +1,95 @@
+<main class="login-page">
+  <img
+    class="login-page__leaves"
+    src="assets/images/login-leaves.png"
+    alt=""
+    aria-hidden="true"
+  />
+
+  <section class="login-shell" aria-labelledby="login-title">
+    <img
+      class="login-shell__logo"
+      src="assets/images/fourkitchen-logo.png"
+      alt="FourKitchen"
+    />
+
+    <div class="login-card">
+      <header class="login-card__header">
+        <h1 id="login-title">Entrar</h1>
+        <p>Acesse sua conta para gerenciar o restaurante.</p>
+      </header>
+
+      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="login-form__field">
+          <label for="email">E-mail corporativo</label>
+          <div class="login-form__control" [class.login-form__control--invalid]="isFieldInvalid('email')">
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="E-mail corporativo"
+              autocomplete="email"
+              aria-describedby="email-error"
+            />
+            <img src="assets/icons/mail.svg" alt="" aria-hidden="true" />
+          </div>
+          @if (isFieldInvalid('email')) {
+            <p class="login-form__error" id="email-error">Informe um e-mail valido.</p>
+          }
+        </div>
+
+        <div class="login-form__field">
+          <label for="password">Senha</label>
+          <div class="login-form__control" [class.login-form__control--invalid]="isFieldInvalid('password')">
+            <input
+              id="password"
+              [type]="passwordVisible ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Senha"
+              autocomplete="current-password"
+              aria-describedby="password-error"
+            />
+            <button
+              class="login-form__icon-button"
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="passwordVisible ? 'Ocultar senha' : 'Mostrar senha'"
+            >
+              <img
+                [src]="passwordVisible ? 'assets/icons/eye-off.svg' : 'assets/icons/eye.svg'"
+                alt=""
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+          @if (isFieldInvalid('password')) {
+            <p class="login-form__error" id="password-error">Informe sua senha.</p>
+          }
+        </div>
+
+        <a class="login-form__forgot" href="#">Esqueci minha senha</a>
+
+        <button class="login-form__submit" type="submit" [disabled]="loginForm.invalid">
+          <span>Entrar no Sistema</span>
+          <img src="assets/icons/arrow-right.svg" alt="" aria-hidden="true" />
+        </button>
+      </form>
+
+      <div class="login-card__divider" role="separator"></div>
+
+      <p class="login-card__access">
+        Ainda nao possui acesso?
+        <a href="#">Solicite sua conta</a>
+      </p>
+    </div>
+  </section>
+
+  <footer class="login-footer">
+    <span class="login-footer__secure">
+      <img src="assets/icons/shield.svg" alt="" aria-hidden="true" />
+      Ambiente Seguro SSL
+    </span>
+    <span class="login-footer__dot" aria-hidden="true"></span>
+    <span>© 2026 FourKitchen Inc. Todos os direitos reservados.</span>
+  </footer>
+</main>
