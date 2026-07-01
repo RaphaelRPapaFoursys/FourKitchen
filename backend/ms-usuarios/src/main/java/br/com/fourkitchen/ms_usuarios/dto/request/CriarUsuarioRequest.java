@@ -1,25 +1,40 @@
 package br.com.fourkitchen.ms_usuarios.dto.request;
 
 import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
-import jakarta.validation.constraints.*;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
+@Schema(description = "Dados necessarios para cadastrar um usuario.")
 public record CriarUsuarioRequest(
-        @NotBlank(message = "Nome é obrigatório.")
+        @Schema(description = "Nome do usuario", example = "Maria Silva", minLength = 3, maxLength = 120)
+        @NotBlank(message = "Nome e obrigatorio.")
         @Size(min = 3, max = 120, message = "Nome deve ter entre 3 e 120 caracteres.")
         String nome,
 
-        @NotBlank(message = "Email é obrigatório.")
-        @Email(message = "Email inválido")
+        @Schema(description = "Email unico do usuario", example = "maria@fourkitchen.com")
+        @NotBlank(message = "Email e obrigatorio.")
+        @Email(message = "Email invalido")
         String email,
 
-        @NotBlank(message = "Senha é obrigatória.")
+        @Schema(
+                description = "Senha com no minimo 8 caracteres, uma letra maiuscula, uma letra minuscula e um numero",
+                example = "Senha123",
+                pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
+                minLength = 8
+        )
+        @NotBlank(message = "Senha e obrigatoria.")
         @Pattern(
                 regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
-                message = "A senha deve conter no mínimo 8 caracteres, uma letra maiúscula, uma letra minúscula e um número."
+                message = "A senha deve conter no minimo 8 caracteres, uma letra maiuscula, uma letra minuscula e um numero."
         )
         String senha,
 
-        @NotNull(message = "Perfil é obrigatório")
+        @Schema(description = "Perfil de acesso do usuario", example = "GARCOM")
+        @NotNull(message = "Perfil e obrigatorio")
         PerfilUsuario perfilUsuario
 ) {
 }

@@ -1,3 +1,10 @@
 spring:
   application:
     name: bff-restaurante
+
+clients:
+  ms-usuarios:
+    url: ${MS_USUARIOS_URL:http://localhost:8081}
+
+jwt:
+  secret: ${JWT_SECRET:chave-super-secreta-para-jwt-local-fourkitchen-123456789}
