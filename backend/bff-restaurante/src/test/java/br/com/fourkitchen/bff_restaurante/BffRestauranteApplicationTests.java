@@ -33,6 +33,8 @@ class BffRestauranteApplicationTests {
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString("/api/auth/login")))
 				.andExpect(content().string(containsString("/api/auth/me")))
+				.andExpect(content().string(containsString("/api/notificacoes/pendentes")))
+				.andExpect(content().string(containsString("/api/mesa/pedidos")))
 				.andExpect(content().string(containsString("bearerAuth")));
 	}
 

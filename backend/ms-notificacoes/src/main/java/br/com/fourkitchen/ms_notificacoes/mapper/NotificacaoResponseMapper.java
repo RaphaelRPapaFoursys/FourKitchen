@@ -5,8 +5,9 @@ import br.com.fourkitchen.ms_notificacoes.model.Notificacao;
 import org.springframework.stereotype.Component;
 
 @Component
-public class NotificacaoResponseMapper {
+public class NotificacaoResponseMapper implements Mapper<Notificacao, NotificacaoResponse> {
 
+    @Override
     public NotificacaoResponse map(Notificacao notificacao) {
         return new NotificacaoResponse(
                 notificacao.getId(),

@@ -3,6 +3,7 @@ package br.com.fourkitchen.ms_mesas.controller;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
 import br.com.fourkitchen.ms_mesas.service.MesaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,5 +55,13 @@ public class MesaController {
             @RequestBody @Valid AtribuirGarcomRequest request
     ) {
         return ResponseEntity.ok(mesaService.atribuirGarcom(id, request));
+    }
+
+    @GetMapping("/{id}/sessoes/{codigoSessao}/validar")
+    public ResponseEntity<SessaoMesaResponse> validarSessaoMesa(
+            @PathVariable Integer id,
+            @PathVariable Integer codigoSessao
+    ) {
+        return ResponseEntity.ok(mesaService.validarSessaoMesa(id, codigoSessao));
     }
 }
