@@ -119,3 +119,8 @@ surefire-reports/
 
 .cache/
 .tmp/
+
+.github/copilot-instructions.md
+.github/skills/
+agentes_foursys/
+doc_projeto/
