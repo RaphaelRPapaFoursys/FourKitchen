@@ -54,6 +54,12 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    CODIGO_SESSAO_INVALIDO(
+            "009",
+            "Codigo de sessao invalido",
+            HttpStatus.BAD_REQUEST
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

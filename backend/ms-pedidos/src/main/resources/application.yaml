@@ -6,3 +6,6 @@ spring:
     username: root
     password: aluno1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: ${SERVER_PORT:8083}

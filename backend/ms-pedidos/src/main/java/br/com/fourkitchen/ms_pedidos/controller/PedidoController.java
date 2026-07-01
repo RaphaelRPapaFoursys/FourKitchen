@@ -2,11 +2,10 @@ package br.com.fourkitchen.ms_pedidos.controller;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
-import br.com.fourkitchen.ms_pedidos.dto.request.PedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
-import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,7 @@ public class PedidoController {
 
     @PostMapping
     private ResponseEntity<PedidoResponse> criarPedido(
-            @RequestBody CriarPedidoRequest pedidoRequest
+            @RequestBody @Valid CriarPedidoRequest pedidoRequest
     ) {
         PedidoResponse pedidoResponse = pedidoService.createPedido(pedidoRequest);
 
@@ -67,6 +66,18 @@ public class PedidoController {
                     .notFound()
                     .build();
         }
+    }
+
+    @GetMapping("/cozinha")
+    private ResponseEntity<List<PedidoResponse>> buscarPedidosCozinha() {
+        return ResponseEntity.ok(pedidoService.findPedidosCozinha());
+    }
+
+    @GetMapping("/atendimentos/{atendimentoId}/possui-ativos")
+    private ResponseEntity<Boolean> possuiPedidosAtivos(
+            @PathVariable Integer atendimentoId
+    ) {
+        return ResponseEntity.ok(pedidoService.possuiPedidosAtivos(atendimentoId));
     }
 
     @PatchMapping("{id}")

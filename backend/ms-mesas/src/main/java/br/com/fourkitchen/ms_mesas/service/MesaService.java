@@ -4,6 +4,8 @@ import br.com.fourkitchen.ms_mesas.client.PedidosAtivosClient;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
+import br.com.fourkitchen.ms_mesas.enums.StatusMesa;
 import br.com.fourkitchen.ms_mesas.exception.BaseException;
 import br.com.fourkitchen.ms_mesas.exception.ErrorEnum;
 import br.com.fourkitchen.ms_mesas.mapper.CriarMesaRequestMapper;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -117,6 +120,28 @@ public class MesaService {
         mesa.setAtendimento(atendimentoSalvo);
 
         return mesaResponseMapper.map(mesa);
+    }
+
+    public SessaoMesaResponse validarSessaoMesa(Integer idMesa, Integer codigoSessao) {
+        Mesa mesa = buscarPorId(idMesa);
+
+        if (Boolean.TRUE.equals(mesa.getDisponivel())) {
+            throw new BaseException(ErrorEnum.MESA_NAO_OCUPADA);
+        }
+
+        Atendimento atendimento = buscarAtendimentoAberto(mesa);
+
+        if (atendimento.getDataFechamento() != null
+                || !Objects.equals(codigoSessao, atendimento.getCodigoSessao())) {
+            throw new BaseException(ErrorEnum.CODIGO_SESSAO_INVALIDO);
+        }
+
+        return new SessaoMesaResponse(
+                mesa.getId(),
+                atendimento.getId(),
+                atendimento.getCodigoSessao(),
+                StatusMesa.OCUPADA
+        );
     }
 
     private Mesa buscarPorId(Integer id) {
