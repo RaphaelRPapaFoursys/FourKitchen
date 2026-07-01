@@ -35,6 +35,8 @@ class BffRestauranteApplicationTests {
 				.andExpect(content().string(containsString("/api/auth/me")))
 				.andExpect(content().string(containsString("/api/notificacoes/pendentes")))
 				.andExpect(content().string(containsString("/api/mesa/pedidos")))
+				.andExpect(content().string(containsString("/api/totem/pedidos")))
+				.andExpect(content().string(containsString("O preco nao deve ser enviado pelo front")))
 				.andExpect(content().string(containsString("bearerAuth")));
 	}
 

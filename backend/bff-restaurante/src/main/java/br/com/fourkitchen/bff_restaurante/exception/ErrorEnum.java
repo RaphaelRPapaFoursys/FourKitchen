@@ -66,6 +66,18 @@ public enum ErrorEnum {
             HttpStatus.BAD_GATEWAY
     ),
 
+    PRODUTO_INDISPONIVEL(
+            "011",
+            "Produto indisponivel",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    MS_PRODUTOS_INDISPONIVEL(
+            "012",
+            "Servico de produtos indisponivel",
+            HttpStatus.BAD_GATEWAY
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

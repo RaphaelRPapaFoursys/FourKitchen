@@ -253,7 +253,7 @@ class ProdutoServiceTest {
     void verificarDisponibilidadeParaVendaDeveRetornarDisponibilidadeDoProduto() {
         Categoria categoria = criarCategoria(1, "Lanches", true);
         Produto produto = criarProduto(1, "Hamburguer", "Artesanal", "29.90", categoria, false);
-        ProdutoDisponibilidadeResponse response = new ProdutoDisponibilidadeResponse(1, false);
+        ProdutoDisponibilidadeResponse response = new ProdutoDisponibilidadeResponse(1, false, new BigDecimal("29.90"));
 
         when(produtoRepository.findById(1)).thenReturn(Optional.of(produto));
         when(produtoDisponibilidadeResponseMapper.map(produto)).thenReturn(response);
