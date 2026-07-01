@@ -20,6 +20,10 @@
       </header>
 
       <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+        @if (authErrorMessage()) {
+          <p class="login-form__auth-error" role="alert">{{ authErrorMessage() }}</p>
+        }
+
         <div class="login-form__field">
           <label for="email">E-mail corporativo</label>
           <div class="login-form__control" [class.login-form__control--invalid]="isFieldInvalid('email')">
@@ -69,8 +73,8 @@
 
         <a class="login-form__forgot" href="#">Esqueci minha senha</a>
 
-        <button class="login-form__submit" type="submit" [disabled]="loginForm.invalid">
-          <span>Entrar no Sistema</span>
+        <button class="login-form__submit" type="submit" [disabled]="loginForm.invalid || isLoading()">
+          <span>{{ isLoading() ? 'Entrando...' : 'Entrar no Sistema' }}</span>
           <img src="assets/icons/arrow-right.svg" alt="" aria-hidden="true" />
         </button>
       </form>

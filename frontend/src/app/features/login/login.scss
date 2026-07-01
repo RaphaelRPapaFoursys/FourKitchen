@@ -107,6 +107,17 @@
   flex-direction: column;
 }
 
+.login-form__auth-error {
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-error) 28%, transparent);
+  border-radius: var(--radius-input);
+  background: color-mix(in srgb, var(--color-error) 8%, #fff);
+  color: var(--color-error);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
 .login-form__field {
   display: flex;
   flex-direction: column;
@@ -161,6 +172,11 @@
 .login-form__control input::placeholder {
   color: var(--color-text-secondary);
   opacity: 0.95;
+}
+
+.login-form__control input::-ms-reveal,
+.login-form__control input::-ms-clear {
+  display: none;
 }
 
 .login-form__control > img,
