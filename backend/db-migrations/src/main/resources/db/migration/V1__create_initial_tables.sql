@@ -1,5 +1,5 @@
 CREATE TABLE usuarios(
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE,
     senha VARCHAR(255) NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE usuarios(
 );
 
 CREATE TABLE produtos(
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     nome VARCHAR(150) NOT NULL,
     descricao VARCHAR(255),
     preco DECIMAL(10, 2) NOT NULL,
@@ -17,13 +17,13 @@ CREATE TABLE produtos(
 );
 
 CREATE TABLE atendimentos(
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     codigo_sessao INTEGER NOT NULL,
     status_pedido VARCHAR(100)
 );
 
 CREATE TABLE mesas(
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     numero INTEGER NOT NULL,
     disponivel BOOLEAN NOT NULL,
     id_atendimento INTEGER,
@@ -33,7 +33,7 @@ CREATE TABLE mesas(
 );
 
 CREATE TABLE pedidos(
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     codigo INTEGER NOT NULL,
     canal VARCHAR(50) NOT NULL,
     status VARCHAR(50),
@@ -48,7 +48,7 @@ CREATE TABLE pedidos(
 );
 
 CREATE TABLE itens(
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     id_produto INTEGER,
     descricao VARCHAR(255) NOT NULL,
     preco DECIMAL(10, 2),
@@ -58,7 +58,7 @@ CREATE TABLE itens(
 );
 
 CREATE TABLE itens_pedidos(
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     id_pedido INTEGER,
     id_produto INTEGER,
     CONSTRAINT fk_id_itens_pedido

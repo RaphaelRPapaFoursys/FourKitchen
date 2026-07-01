@@ -12,5 +12,8 @@ clients:
   ms-notificacoes:
     url: ${MS_NOTIFICACOES_URL:http://localhost:8085}
 
+server:
+  port: ${SERVER_PORT:8080}
+
 jwt:
-  secret: ${JWT_SECRET:chave-super-secreta-para-jwt-local-fourkitchen-123456789}
+  secret: ${JWT_SECRET}

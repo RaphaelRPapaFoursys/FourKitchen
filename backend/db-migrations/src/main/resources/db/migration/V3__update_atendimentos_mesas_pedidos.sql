@@ -4,8 +4,8 @@ ALTER TABLE mesas
 ALTER TABLE atendimentos
     ADD COLUMN id_mesa INTEGER,
     ADD COLUMN id_garcom INTEGER,
-    ADD COLUMN data_abertura DATETIME,
-    ADD COLUMN data_fechamento DATETIME;
+    ADD COLUMN data_abertura TIMESTAMP,
+    ADD COLUMN data_fechamento TIMESTAMP;
 
 ALTER TABLE atendimentos
     ADD CONSTRAINT fk_atendimentos_mesa

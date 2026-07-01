@@ -2,10 +2,10 @@ DROP TABLE IF EXISTS itens;
 DROP TABLE IF EXISTS itens_pedidos;
 
 CREATE TABLE produtos_pedidos(
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    quantidade INT NOT NULL,
-    id_pedido INT NOT NULL,
-	id_produto INT NOT NULL,
+	id SERIAL PRIMARY KEY,
+    quantidade INTEGER NOT NULL,
+    id_pedido INTEGER NOT NULL,
+	id_produto INTEGER NOT NULL,
     preco_unitario DECIMAL(10, 2) NOT NULL,
     observacao VARCHAR(255),
 
