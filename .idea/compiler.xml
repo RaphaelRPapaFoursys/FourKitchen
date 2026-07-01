@@ -9,7 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="db-migrations" />
       </profile>
-      <profile name="Annotation profile for ms-produtos" enabled="true">
+      <profile name="Annotation profile for ms-usuarios" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -19,8 +19,8 @@
         <module name="ms-produtos" />
         <module name="ms-notificacoes" />
         <module name="ms-mesas" />
-        <module name="ms-pedidos" />
         <module name="ms-usuarios" />
+        <module name="ms-pedidos" />
         <module name="ms-cozinha" />
       </profile>
     </annotationProcessing>
