@@ -9,6 +9,8 @@ clients:
     url: ${MS_MESAS_URL:http://localhost:8082}
   ms-pedidos:
     url: ${MS_PEDIDOS_URL:http://localhost:8083}
+  ms-produtos:
+    url: ${MS_PRODUTOS_URL:http://localhost:8084}
   ms-notificacoes:
     url: ${MS_NOTIFICACOES_URL:http://localhost:8085}
 

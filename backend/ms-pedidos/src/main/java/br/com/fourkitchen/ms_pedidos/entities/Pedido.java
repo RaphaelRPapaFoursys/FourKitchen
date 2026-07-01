@@ -30,7 +30,7 @@ public class Pedido {
     @Builder.Default
     private StatusPedido status = StatusPedido.ENVIADO_COZINHA;
 
-    @Column(name = "id_mesa", nullable = false)
+    @Column(name = "id_mesa")
     private Integer idMesa;
 
     @Column(name = "id_usuario")

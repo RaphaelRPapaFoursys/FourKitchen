@@ -106,6 +106,61 @@ class PedidoServiceTest {
     }
 
     @Test
+    void createPedidoTotemDevePermitirPedidoSemMesa() {
+        ProdutoPedidoRequest item = new ProdutoPedidoRequest(10, 2, new BigDecimal("29.90"), "Sem cebola");
+        CriarPedidoRequest request = new CriarPedidoRequest(
+                null,
+                null,
+                CanaisPedido.TOTEM,
+                StatusPedido.ENVIADO_COZINHA,
+                null,
+                null,
+                null,
+                List.of(item)
+        );
+        Pedido pedido = Pedido.builder()
+                .canal(CanaisPedido.TOTEM)
+                .build();
+        PedidoResponse response = new PedidoResponse(
+                25,
+                123456,
+                CanaisPedido.TOTEM,
+                StatusPedido.ENVIADO_COZINHA,
+                null,
+                null,
+                null
+        );
+
+        when(criarPedidoRequestMapper.map(request)).thenReturn(pedido);
+        when(pedidoRepository.existsByCodigo(anyInt())).thenReturn(false);
+        when(pedidoRepository.save(pedido)).thenAnswer(invocation -> {
+            pedido.setId(25);
+            return pedido;
+        });
+        when(pedidoResponseMapper.map(pedido)).thenReturn(response);
+
+        PedidoResponse resultado = pedidoService.createPedido(request);
+
+        assertSame(response, resultado);
+        assertNotNull(pedido.getCodigo());
+        assertEquals(CanaisPedido.TOTEM, pedido.getCanal());
+        assertEquals(StatusPedido.ENVIADO_COZINHA, pedido.getStatus());
+        assertEquals(null, pedido.getIdMesa());
+
+        ArgumentCaptor<ProdutoPedido> produtoPedidoCaptor = ArgumentCaptor.forClass(ProdutoPedido.class);
+        verify(produtoPedidoRepository).save(produtoPedidoCaptor.capture());
+
+        ProdutoPedido produtoPedido = produtoPedidoCaptor.getValue();
+        assertEquals(25, produtoPedido.getIdPedido());
+        assertEquals(10, produtoPedido.getIdProduto());
+        assertEquals(2, produtoPedido.getQuantidade());
+        assertEquals(new BigDecimal("29.90"), produtoPedido.getPrecoUnitario());
+        assertEquals("Sem cebola", produtoPedido.getObservacao());
+        verify(pedidoRepository).save(pedido);
+        verify(pedidoResponseMapper).map(pedido);
+    }
+
+    @Test
     void possuiPedidosAtivosDeveConsultarPedidosAtivosDoAtendimento() {
         when(pedidoRepository.existsByIdAtendimentoAndStatusIn(eq(8), anyStatusCollection())).thenReturn(true);
 
