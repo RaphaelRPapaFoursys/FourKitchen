@@ -49,6 +49,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        // Prefixos reservados para rotas de dominio do BFF.
+                        // Mesmo antes dos controllers existirem, a autorizacao por perfil ja fica preparada.
+                        .requestMatchers("/api/garcom/**").hasRole("GARCOM")
+                        .requestMatchers("/api/cozinha/**").hasRole("COZINHA")
+                        .requestMatchers("/api/gestor/**").hasAnyRole("GESTOR", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
