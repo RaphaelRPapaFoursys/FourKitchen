@@ -9,7 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="db-migrations" />
       </profile>
-      <profile name="Annotation profile for ms-usuarios" enabled="true">
+      <profile name="Annotation profile for bff-restaurante" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -20,20 +20,15 @@
         <module name="ms-notificacoes" />
         <module name="ms-mesas" />
         <module name="ms-usuarios" />
-        <module name="ms-pedidos" />
         <module name="ms-cozinha" />
+        <module name="bff-restaurante" />
+        <module name="ms-pedidos" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="ms-mesas" target="21" />
-      <module name="ms-notificacoes" target="21" />
-      <module name="ms-pedidos" target="21" />
-      <module name="ms-produtos" target="21" />
-      <module name="ms-usuarios" target="21" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="bff-restaurante" options="-parameters" />
       <module name="db-migrations" options="-parameters" />
       <module name="ms-cozinha" options="-parameters" />
       <module name="ms-mesas" options="-parameters" />

@@ -1,7 +1,10 @@
 spring:
   application:
     name: ms-mesas
-
+  datasource:
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
 server:
   port: ${SERVER_PORT:8082}
 
