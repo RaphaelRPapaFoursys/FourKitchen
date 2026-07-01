@@ -4,5 +4,10 @@
     <file url="file://$PROJECT_DIR$/backend/db-migrations/db-migrations/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/db-migrations/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/ms-cozinha/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/ms-mesas/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/ms-notificacoes/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/ms-pedidos/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/ms-produtos/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/ms-usuarios/src/main/java" charset="UTF-8" />
   </component>
 </project>

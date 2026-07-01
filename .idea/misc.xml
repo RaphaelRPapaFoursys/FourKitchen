@@ -7,6 +7,11 @@
         <option value="$PROJECT_DIR$/backend/db-migrations/db-migrations/pom.xml" />
         <option value="$PROJECT_DIR$/backend/ms-cozinha/pom.xml" />
         <option value="$PROJECT_DIR$/backend/db-migrations/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/ms-usuarios/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/ms-mesas/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/ms-notificacoes/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/ms-pedidos/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/ms-produtos/pom.xml" />
       </list>
     </option>
   </component>
