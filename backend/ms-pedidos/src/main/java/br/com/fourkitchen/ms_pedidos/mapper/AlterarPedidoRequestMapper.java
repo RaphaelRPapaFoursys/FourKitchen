@@ -14,6 +14,7 @@ public class AlterarPedidoRequestMapper implements Mapper<AlterarPedidoRequest, 
                 .status(alterarPedidoRequest.status())
                 .idMesa(alterarPedidoRequest.idMesa())
                 .idUsuario(alterarPedidoRequest.idUsuario())
+                .idAtendimento(alterarPedidoRequest.idAtendimento())
                 .build();
 
         return pedido;

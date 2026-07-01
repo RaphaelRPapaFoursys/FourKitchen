@@ -14,7 +14,8 @@ public class PedidoResponseMapper implements Mapper<Pedido, PedidoResponse> {
                 pedido.getCanal(),
                 pedido.getStatus(),
                 pedido.getIdMesa(),
-                pedido.getIdUsuario()
+                pedido.getIdUsuario(),
+                pedido.getIdAtendimento()
         );
 
         return pedidoResponse;

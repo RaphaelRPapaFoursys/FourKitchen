@@ -9,6 +9,7 @@ public record PedidoRequest(
         CanaisPedido canal,
         StatusPedido status,
         Integer idMesa,
-        Integer idUsuario
+        Integer idUsuario,
+        Integer idAtendimento
 ) {
 }

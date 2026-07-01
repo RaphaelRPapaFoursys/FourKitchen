@@ -27,11 +27,15 @@ public class Pedido {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 50, nullable = false)
+    @Builder.Default
     private StatusPedido status = StatusPedido.ENVIADO_COZINHA;
 
     @Column(name = "id_mesa", nullable = false)
     private Integer idMesa;
 
-    @Column(name = "id_usuario", nullable = false)
+    @Column(name = "id_usuario")
     private Integer idUsuario;
+
+    @Column(name = "id_atendimento")
+    private Integer idAtendimento;
 }

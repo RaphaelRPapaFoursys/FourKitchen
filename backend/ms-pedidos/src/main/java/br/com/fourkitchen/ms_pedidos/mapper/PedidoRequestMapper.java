@@ -16,6 +16,7 @@ public class PedidoRequestMapper implements Mapper<PedidoRequest, Pedido>{
                 .status(pedidoRequest.status())
                 .idMesa(pedidoRequest.idMesa())
                 .idUsuario(pedidoRequest.idUsuario())
+                .idAtendimento(pedidoRequest.idAtendimento())
                 .build();
 
         return pedido;

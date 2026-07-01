@@ -8,16 +8,15 @@ import java.util.List;
 
 public record CriarPedidoRequest(
         Integer id,
-        @NotNull(message = "O campo codigo não pode ser nulo")
         Integer codigo,
-        @NotNull(message = "O campo canal não pode ser nulo")
+        @NotNull(message = "O campo canal nao pode ser nulo")
         CanaisPedido canal,
-        @NotNull(message = "O campo status não pode ser nulo")
+        @NotNull(message = "O campo status nao pode ser nulo")
         StatusPedido status,
-        @NotNull(message = "O campo idMesa não pode ser nulo")
+        @NotNull(message = "O campo idMesa nao pode ser nulo")
         Integer idMesa,
-        @NotNull(message = "O campo idUsuario não pode ser nulo")
         Integer idUsuario,
+        Integer idAtendimento,
         List<ProdutoPedidoRequest> itens
 ) {
 }

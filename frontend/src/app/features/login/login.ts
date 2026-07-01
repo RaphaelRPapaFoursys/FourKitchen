@@ -66,9 +66,11 @@ export class Login {
   private getRedirectRoute(usuario: UsuarioAutenticadoResponse): string {
     const profileRoutes: Record<string, string> = {
       ADMIN: '/gestor',
-      ADMINISTRADOR: '/gestor',
+      GESTOR: '/gestor',
       COZINHA: '/cozinha',
-      GARCOM: '/garcom'
+      GARCOM: '/garcom',
+      MESA: '/mesa',
+      TOTEM: '/totem'
     };
 
     // TODO: Confirmar regra final de redirecionamento por perfil com o BFF.

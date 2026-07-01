@@ -1,21 +1,29 @@
 package br.com.fourkitchen.ms_mesas.client;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
 @Component
 public class PedidosAtivosClient {
 
+    private final RestClient restClient;
+
+    public PedidosAtivosClient(
+            RestClient.Builder restClientBuilder,
+            @Value("${clients.ms-pedidos.url}") String msPedidosUrl
+    ) {
+        this.restClient = restClientBuilder
+                .baseUrl(msPedidosUrl)
+                .build();
+    }
+
     public boolean possuiPedidosAtivos(Integer atendimentoId) {
-        // TODO Integrar com ms-pedidos.
-        // O ms-mesas nao deve mapear entidade/repository de pedidos, porque pedidos
-        // pertencem ao microsservico ms-pedidos. Quando o ms-pedidos expuser a consulta,
-        // substituir este retorno por uma chamada HTTP/gateway parecida com:
-        //
-        // GET /api/pedidos/atendimentos/{atendimentoId}/possui-ativos
-        //
-        // A resposta deve indicar se existem pedidos ativos para o atendimento atual.
-        // Enquanto essa integracao nao existir, retornamos false para manter o fluxo
-        // de fechamento funcionando no ms-mesas sem assumir responsabilidade do ms-pedidos.
-        return false;
+        Boolean possuiPedidosAtivos = restClient.get()
+                .uri("/pedidos/atendimentos/{atendimentoId}/possui-ativos", atendimentoId)
+                .retrieve()
+                .body(Boolean.class);
+
+        return Boolean.TRUE.equals(possuiPedidosAtivos);
     }
 }
