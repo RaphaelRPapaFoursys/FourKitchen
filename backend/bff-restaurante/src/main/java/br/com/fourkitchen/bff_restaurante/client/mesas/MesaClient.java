@@ -13,4 +13,10 @@ public interface MesaClient {
             @PathVariable Integer idMesa,
             @PathVariable Integer codigoSessao
     );
+
+    @GetMapping("/api/mesas/{idMesa}/garcons/{idGarcom}/validar")
+    SessaoMesaResponse validarMesaAtribuidaGarcom(
+            @PathVariable Integer idMesa,
+            @PathVariable Integer idGarcom
+    );
 }

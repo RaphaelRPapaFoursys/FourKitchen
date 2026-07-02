@@ -3,7 +3,12 @@ package br.com.fourkitchen.bff_restaurante.service;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
+import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
+import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import feign.FeignException;
@@ -23,6 +28,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +38,9 @@ class CozinhaServiceTest {
 
     @Mock
     private PedidoClient pedidoClient;
+
+    @Mock
+    private NotificacaoService notificacaoService;
 
     @InjectMocks
     private CozinhaService cozinhaService;
@@ -55,6 +65,67 @@ class CozinhaServiceTest {
         assertEquals(1, pedido.itens().size());
         assertEquals("Sem cebola", pedido.itens().getFirst().observacao());
         verify(pedidoClient).listarFilaCozinha();
+    }
+
+    @Test
+    void iniciarPreparoDeveAlterarStatusERegistrarEvento() {
+        PedidoResponse response = criarPedidoResponse("EM_PREPARO");
+
+        when(pedidoClient.iniciarPreparo(25)).thenReturn(response);
+
+        PedidoStatusCozinhaResponse resultado = cozinhaService.iniciarPreparo(25);
+
+        assertEquals(25, resultado.id());
+        assertEquals(123456, resultado.codigo());
+        assertEquals("GARCOM", resultado.canal());
+        assertEquals("EM_PREPARO", resultado.status());
+        assertEquals(1, resultado.idMesa());
+        assertEquals(8, resultado.idAtendimento());
+        verify(pedidoClient).iniciarPreparo(25);
+        verify(notificacaoService).criarNotificacao(new CriarNotificacaoRequest(
+                TipoNotificacao.PEDIDO_EM_PREPARO,
+                DestinoNotificacao.COZINHA
+        ));
+    }
+
+    @Test
+    void finalizarPreparoDeveAlterarStatusERegistrarEvento() {
+        PedidoResponse response = criarPedidoResponse("PRONTO");
+
+        when(pedidoClient.finalizarPreparo(25)).thenReturn(response);
+
+        PedidoStatusCozinhaResponse resultado = cozinhaService.finalizarPreparo(25);
+
+        assertEquals(25, resultado.id());
+        assertEquals(123456, resultado.codigo());
+        assertEquals("PRONTO", resultado.status());
+        verify(pedidoClient).finalizarPreparo(25);
+        verify(notificacaoService).criarNotificacao(new CriarNotificacaoRequest(
+                TipoNotificacao.PEDIDO_PRONTO,
+                DestinoNotificacao.GARCOM
+        ));
+    }
+
+    @Test
+    void iniciarPreparoDeveMapearTransicaoInvalidaSemRegistrarEvento() {
+        when(pedidoClient.iniciarPreparo(25)).thenThrow(feignException(400));
+
+        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.iniciarPreparo(25));
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        verify(pedidoClient).iniciarPreparo(25);
+        verify(notificacaoService, never()).criarNotificacao(any());
+    }
+
+    @Test
+    void finalizarPreparoDeveMapearPedidoNaoEncontradoSemRegistrarEvento() {
+        when(pedidoClient.finalizarPreparo(25)).thenThrow(feignException(404));
+
+        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.finalizarPreparo(25));
+
+        assertEquals(ErrorEnum.PEDIDO_NAO_ENCONTRADO, exception.getErrorEnum());
+        verify(pedidoClient).finalizarPreparo(25);
+        verify(notificacaoService, never()).criarNotificacao(any());
     }
 
     @Test
@@ -83,6 +154,18 @@ class CozinhaServiceTest {
                         new BigDecimal("29.90"),
                         "Sem cebola"
                 ))
+        );
+    }
+
+    private PedidoResponse criarPedidoResponse(String status) {
+        return new PedidoResponse(
+                25,
+                123456,
+                "GARCOM",
+                status,
+                1,
+                7,
+                8
         );
     }
 
