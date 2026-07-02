@@ -46,7 +46,7 @@ class MesaPedidoServiceTest {
     @Test
     void criarPedidoDeveValidarSessaoECriarPedidoComoMesa() {
         CriarPedidoMesaRequest request = criarRequest();
-        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, "OCUPADA");
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
         br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse pedidoResponse =
                 new br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse(
                         25,
@@ -100,7 +100,7 @@ class MesaPedidoServiceTest {
     @Test
     void criarPedidoDeveLancarServicoPedidosIndisponivelQuandoMsPedidosFalhar() {
         CriarPedidoMesaRequest request = criarRequest();
-        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, "OCUPADA");
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenThrow(feignException(500));

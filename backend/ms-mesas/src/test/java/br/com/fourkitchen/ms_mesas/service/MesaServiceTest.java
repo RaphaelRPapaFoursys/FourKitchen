@@ -340,6 +340,7 @@ class MesaServiceTest {
         assertEquals(1, response.idMesa());
         assertEquals(8, response.idAtendimento());
         assertEquals(123456, response.codigoSessao());
+        assertEquals(7, response.idGarcom());
         assertEquals(StatusMesa.OCUPADA, response.status());
         verify(mesaRepository).findById(1);
         verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
