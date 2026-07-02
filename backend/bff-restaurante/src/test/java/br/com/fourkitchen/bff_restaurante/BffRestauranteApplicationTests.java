@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-@SpringBootTest
+@SpringBootTest(properties = "jwt.secret=chave-super-secreta-para-testes-fourkitchen-123456789")
 @Import(BffRestauranteApplicationTests.ProtectedRoutesTestController.class)
 class BffRestauranteApplicationTests {
 
@@ -36,6 +36,7 @@ class BffRestauranteApplicationTests {
 				.andExpect(content().string(containsString("/api/notificacoes/pendentes")))
 				.andExpect(content().string(containsString("/api/mesa/pedidos")))
 				.andExpect(content().string(containsString("/api/totem/pedidos")))
+				.andExpect(content().string(containsString("/api/garcom/chamadas/{id}/concluir")))
 				.andExpect(content().string(containsString("O preco nao deve ser enviado pelo front")))
 				.andExpect(content().string(containsString("bearerAuth")));
 	}

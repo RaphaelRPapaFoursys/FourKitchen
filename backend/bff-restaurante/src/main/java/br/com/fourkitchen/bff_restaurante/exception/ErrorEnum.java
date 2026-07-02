@@ -96,6 +96,18 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    CHAMADA_GARCOM_INVALIDA(
+            "017",
+            "Chamada de garcom invalida",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM(
+            "018",
+            "Chamada de garcom nao pertence ao garcom",
+            HttpStatus.FORBIDDEN
+    ),
+
     MESA_SEM_GARCOM(
             "016",
             "Mesa sem garcom responsavel",

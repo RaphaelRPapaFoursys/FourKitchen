@@ -128,6 +128,22 @@ class NotificacaoServiceTest {
     }
 
     @Test
+    void criarNotificacaoDeveLancarExcecaoQuandoChamadaGarcomNaoTiverGarcom() {
+        CriarNotificacaoRequest request = new CriarNotificacaoRequest(
+                TipoNotificacao.CHAMADA_GARCOM,
+                DestinoNotificacao.GARCOM,
+                1,
+                8,
+                null
+        );
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.criarNotificacao(request));
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+        verifyNoInteractions(criarNotificacaoRequestMapper, notificacaoRepository, notificacaoResponseMapper);
+    }
+
+    @Test
     void listarPendentesDeveRetornarTodasAsNotificacoesPendentesQuandoDestinoNaoForInformado() {
         Notificacao notificacao = criarNotificacao(1, false);
         NotificacaoResponse response = criarResponse(notificacao);
@@ -220,6 +236,87 @@ class NotificacaoServiceTest {
         verifyNoInteractions(notificacaoResponseMapper);
     }
 
+    @Test
+    void concluirChamadaGarcomDeveMarcarChamadaComoLidaQuandoForDoGarcomResponsavel() {
+        Notificacao notificacao = criarChamadaGarcom(3, false, 7);
+        Notificacao notificacaoSalva = criarChamadaGarcom(3, true, 7);
+        NotificacaoResponse response = criarResponse(notificacaoSalva);
+
+        when(notificacaoRepository.findById(3)).thenReturn(Optional.of(notificacao));
+        when(notificacaoRepository.save(notificacao)).thenReturn(notificacaoSalva);
+        when(notificacaoResponseMapper.map(notificacaoSalva)).thenReturn(response);
+
+        NotificacaoResponse resultado = notificacaoService.concluirChamadaGarcom(3, 7);
+
+        assertSame(response, resultado);
+        assertTrue(notificacao.getLida());
+        verify(notificacaoRepository).findById(3);
+        verify(notificacaoRepository).save(notificacao);
+        verify(notificacaoResponseMapper).map(notificacaoSalva);
+    }
+
+    @Test
+    void concluirChamadaGarcomDeveBloquearGarcomDiferenteDoResponsavel() {
+        Notificacao notificacao = criarChamadaGarcom(3, false, 7);
+
+        when(notificacaoRepository.findById(3)).thenReturn(Optional.of(notificacao));
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.concluirChamadaGarcom(3, 9));
+
+        assertEquals(ErrorEnum.CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM, exception.getErrorEnum());
+        verify(notificacaoRepository).findById(3);
+        verify(notificacaoRepository, never()).save(any());
+        verifyNoInteractions(notificacaoResponseMapper);
+    }
+
+    @Test
+    void concluirChamadaGarcomDeveBloquearNotificacaoQueNaoForChamadaDeGarcom() {
+        Notificacao notificacao = criarNotificacao(3, false);
+
+        when(notificacaoRepository.findById(3)).thenReturn(Optional.of(notificacao));
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.concluirChamadaGarcom(3, 7));
+
+        assertEquals(ErrorEnum.CHAMADA_GARCOM_INVALIDA, exception.getErrorEnum());
+        verify(notificacaoRepository).findById(3);
+        verify(notificacaoRepository, never()).save(any());
+        verifyNoInteractions(notificacaoResponseMapper);
+    }
+
+    @Test
+    void concluirChamadaGarcomDeveBloquearChamadaJaLida() {
+        Notificacao notificacao = criarChamadaGarcom(3, true, 7);
+
+        when(notificacaoRepository.findById(3)).thenReturn(Optional.of(notificacao));
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.concluirChamadaGarcom(3, 7));
+
+        assertEquals(ErrorEnum.CHAMADA_GARCOM_INVALIDA, exception.getErrorEnum());
+        verify(notificacaoRepository).findById(3);
+        verify(notificacaoRepository, never()).save(any());
+        verifyNoInteractions(notificacaoResponseMapper);
+    }
+
+    @Test
+    void concluirChamadaGarcomDeveLancarExcecaoQuandoNotificacaoNaoExistir() {
+        when(notificacaoRepository.findById(99)).thenReturn(Optional.empty());
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.concluirChamadaGarcom(99, 7));
+
+        assertEquals(ErrorEnum.NOTIFICACAO_NAO_ENCONTRADA, exception.getErrorEnum());
+        verify(notificacaoRepository).findById(99);
+        verify(notificacaoRepository, never()).save(any());
+        verifyNoInteractions(notificacaoResponseMapper);
+    }
+
+    @Test
+    void concluirChamadaGarcomDeveLancarDadosInvalidosQuandoGarcomNaoForInformado() {
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.concluirChamadaGarcom(3, null));
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+        verifyNoInteractions(notificacaoRepository, notificacaoResponseMapper);
+    }
+
     private Notificacao criarNotificacao(Integer id, Boolean lida) {
         return Notificacao
                 .builder()
@@ -232,6 +329,21 @@ class NotificacaoServiceTest {
                 .idMesa(1)
                 .idAtendimento(8)
                 .idGarcom(7)
+                .build();
+    }
+
+    private Notificacao criarChamadaGarcom(Integer id, Boolean lida, Integer idGarcom) {
+        return Notificacao
+                .builder()
+                .id(id)
+                .tipo(TipoNotificacao.CHAMADA_GARCOM.name())
+                .mensagem("Cliente solicitou atendimento")
+                .destino(DestinoNotificacao.GARCOM)
+                .lida(lida)
+                .data(LocalDateTime.of(2026, 7, 2, 10, 15))
+                .idMesa(1)
+                .idAtendimento(8)
+                .idGarcom(idGarcom)
                 .build();
     }
 

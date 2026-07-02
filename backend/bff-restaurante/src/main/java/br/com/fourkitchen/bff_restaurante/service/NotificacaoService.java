@@ -53,4 +53,24 @@ public class NotificacaoService {
             throw new BaseException(ErrorEnum.MS_NOTIFICACOES_INDISPONIVEL);
         }
     }
+
+    public NotificacaoResponse concluirChamadaGarcom(Integer id, Integer idGarcom) {
+        try {
+            return notificacaoClient.concluirChamadaGarcom(id, idGarcom);
+        } catch (FeignException e) {
+            if (e.status() == 404) {
+                throw new BaseException(ErrorEnum.NOTIFICACAO_NAO_ENCONTRADA);
+            }
+
+            if (e.status() == 400) {
+                throw new BaseException(ErrorEnum.CHAMADA_GARCOM_INVALIDA);
+            }
+
+            if (e.status() == 403) {
+                throw new BaseException(ErrorEnum.CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM);
+            }
+
+            throw new BaseException(ErrorEnum.MS_NOTIFICACOES_INDISPONIVEL);
+        }
+    }
 }

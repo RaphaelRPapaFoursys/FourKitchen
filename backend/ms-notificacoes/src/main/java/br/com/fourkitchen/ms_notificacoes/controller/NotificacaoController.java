@@ -52,4 +52,12 @@ public class NotificacaoController {
     public ResponseEntity<NotificacaoResponse> marcarComoLida(@PathVariable Integer id) {
         return ResponseEntity.ok(notificacaoService.marcarComoLida(id));
     }
+
+    @PatchMapping("/chamadas-garcom/{id}/concluir")
+    public ResponseEntity<NotificacaoResponse> concluirChamadaGarcom(
+            @PathVariable Integer id,
+            @RequestParam Integer idGarcom
+    ) {
+        return ResponseEntity.ok(notificacaoService.concluirChamadaGarcom(id, idGarcom));
+    }
 }
