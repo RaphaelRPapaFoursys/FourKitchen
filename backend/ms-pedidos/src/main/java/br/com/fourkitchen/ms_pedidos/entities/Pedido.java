@@ -5,7 +5,6 @@ import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.LocalDateTime;
 
 @Builder
