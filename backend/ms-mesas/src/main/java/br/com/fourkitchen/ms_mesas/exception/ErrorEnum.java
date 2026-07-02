@@ -60,6 +60,12 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    MESA_NAO_ATRIBUIDA_AO_GARCOM(
+            "010",
+            "Mesa nao atribuida ao garcom",
+            HttpStatus.FORBIDDEN
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

@@ -1,13 +1,16 @@
 package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
-import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.AlterarPedidoRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoResponse;
-import br.com.fourkitchen.bff_restaurante.dto.request.AlterarStatusPedidoCozinhaRequest;
+import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
+import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
+import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import feign.FeignException;
@@ -27,7 +30,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,15 +44,18 @@ class CozinhaServiceTest {
     @Mock
     private ProdutoClient produtoClient;
 
+    @Mock
+    private NotificacaoService notificacaoService;
+
     @InjectMocks
     private CozinhaService cozinhaService;
 
     @Test
-    void listarFilaDeveDelegarParaMsPedidosEMapearResponse() {
+    void listarFilaDeveDelegarParaMsPedidosEMapearResponseComNomeDoProduto() {
         PedidoCozinhaResponse response = criarResponse();
 
-        when(produtoClient.listarProdutos()).thenReturn(List.of(criarProdutoResponse()));
         when(pedidoClient.listarFilaCozinha()).thenReturn(List.of(response));
+        when(produtoClient.listarProdutos()).thenReturn(List.of(criarProdutoResponse()));
 
         List<PedidoFilaCozinhaResponse> resultado = cozinhaService.listarFila();
 
@@ -64,19 +71,8 @@ class CozinhaServiceTest {
         assertEquals(1, pedido.itens().size());
         assertEquals("Hamburguer Gourmet Monster", pedido.itens().getFirst().nomeProduto());
         assertEquals("Sem cebola", pedido.itens().getFirst().observacao());
+        verify(pedidoClient).listarFilaCozinha();
         verify(produtoClient).listarProdutos();
-        verify(pedidoClient).listarFilaCozinha();
-    }
-
-    @Test
-    void listarFilaDeveMapearMsPedidosIndisponivel() {
-        when(produtoClient.listarProdutos()).thenReturn(List.of(criarProdutoResponse()));
-        when(pedidoClient.listarFilaCozinha()).thenThrow(feignException(500));
-
-        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.listarFila());
-
-        assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
-        verify(pedidoClient).listarFilaCozinha();
     }
 
     @Test
@@ -95,23 +91,80 @@ class CozinhaServiceTest {
     }
 
     @Test
-    void alterarStatusDeveDelegarParaMsPedidos() {
-        cozinhaService.alterarStatus(25, new AlterarStatusPedidoCozinhaRequest("EM_PREPARO"));
+    void listarFilaDeveMapearMsPedidosIndisponivel() {
+        when(pedidoClient.listarFilaCozinha()).thenThrow(feignException(500));
 
-        verify(pedidoClient).alterarPedido(
-                eq(25),
-                eq(new AlterarPedidoRequest(null, "EM_PREPARO", null, null, null))
-        );
+        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.listarFila());
+
+        assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
+        verify(pedidoClient).listarFilaCozinha();
     }
 
     @Test
-    void alterarStatusDeveRecusarStatusForaDoFluxoDaCozinha() {
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> cozinhaService.alterarStatus(25, new AlterarStatusPedidoCozinhaRequest("FINALIZADO"))
-        );
+    void iniciarPreparoDeveAlterarStatusERegistrarEvento() {
+        PedidoResponse response = criarPedidoResponse("EM_PREPARO");
 
-        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+        when(pedidoClient.iniciarPreparo(25)).thenReturn(response);
+
+        PedidoStatusCozinhaResponse resultado = cozinhaService.iniciarPreparo(25);
+
+        assertEquals(25, resultado.id());
+        assertEquals(123456, resultado.codigo());
+        assertEquals("GARCOM", resultado.canal());
+        assertEquals("EM_PREPARO", resultado.status());
+        assertEquals(1, resultado.idMesa());
+        assertEquals(8, resultado.idAtendimento());
+        verify(pedidoClient).iniciarPreparo(25);
+        verify(notificacaoService).criarNotificacao(new CriarNotificacaoRequest(
+                TipoNotificacao.PEDIDO_EM_PREPARO,
+                DestinoNotificacao.COZINHA,
+                null,
+                null,
+                null
+        ));
+    }
+
+    @Test
+    void finalizarPreparoDeveAlterarStatusERegistrarEvento() {
+        PedidoResponse response = criarPedidoResponse("PRONTO");
+
+        when(pedidoClient.finalizarPreparo(25)).thenReturn(response);
+
+        PedidoStatusCozinhaResponse resultado = cozinhaService.finalizarPreparo(25);
+
+        assertEquals(25, resultado.id());
+        assertEquals(123456, resultado.codigo());
+        assertEquals("PRONTO", resultado.status());
+        verify(pedidoClient).finalizarPreparo(25);
+        verify(notificacaoService).criarNotificacao(new CriarNotificacaoRequest(
+                TipoNotificacao.PEDIDO_PRONTO,
+                DestinoNotificacao.GARCOM,
+                null,
+                null,
+                null
+        ));
+    }
+
+    @Test
+    void iniciarPreparoDeveMapearTransicaoInvalidaSemRegistrarEvento() {
+        when(pedidoClient.iniciarPreparo(25)).thenThrow(feignException(400));
+
+        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.iniciarPreparo(25));
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        verify(pedidoClient).iniciarPreparo(25);
+        verify(notificacaoService, never()).criarNotificacao(any());
+    }
+
+    @Test
+    void finalizarPreparoDeveMapearPedidoNaoEncontradoSemRegistrarEvento() {
+        when(pedidoClient.finalizarPreparo(25)).thenThrow(feignException(404));
+
+        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.finalizarPreparo(25));
+
+        assertEquals(ErrorEnum.PEDIDO_NAO_ENCONTRADO, exception.getErrorEnum());
+        verify(pedidoClient).finalizarPreparo(25);
+        verify(notificacaoService, never()).criarNotificacao(any());
     }
 
     private PedidoCozinhaResponse criarResponse() {
@@ -142,6 +195,18 @@ class CozinhaServiceTest {
                 1,
                 "Lanches",
                 true
+        );
+    }
+
+    private PedidoResponse criarPedidoResponse(String status) {
+        return new PedidoResponse(
+                25,
+                123456,
+                "GARCOM",
+                status,
+                1,
+                7,
+                8
         );
     }
 

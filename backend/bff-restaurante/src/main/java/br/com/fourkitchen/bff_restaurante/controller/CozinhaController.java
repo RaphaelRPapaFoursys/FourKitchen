@@ -1,7 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
-import br.com.fourkitchen.bff_restaurante.dto.request.AlterarStatusPedidoCozinhaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.CozinhaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,14 +13,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -37,7 +35,7 @@ public class CozinhaController {
     @GetMapping("/fila")
     @Operation(
             summary = "Lista fila da cozinha",
-            description = "Retorna pedidos ENVIADO_COZINHA, EM_PREPARO e PRONTO em ordem de chegada. Pedidos ENTREGUE, FINALIZADO e CANCELADO nao aparecem."
+            description = "Retorna pedidos ENVIADO_COZINHA e EM_PREPARO em ordem de chegada. Pedidos PRONTO, ENTREGUE, FINALIZADO e CANCELADO nao aparecem."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -45,7 +43,7 @@ public class CozinhaController {
                     description = "Fila retornada com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = PedidoFilaCozinhaResponse.class)),
-                            examples = @ExampleObject(value = "[{\"id\":25,\"codigo\":100025,\"canal\":\"MESA\",\"status\":\"ENVIADO_COZINHA\",\"idMesa\":1,\"idAtendimento\":8,\"dataCriacao\":\"2026-07-02T10:30:00\",\"itens\":[{\"id\":5,\"idProduto\":10,\"quantidade\":2,\"precoUnitario\":29.90,\"observacao\":\"Sem cebola\"}]}]")
+                            examples = @ExampleObject(value = "[{\"id\":25,\"codigo\":100025,\"canal\":\"MESA\",\"status\":\"ENVIADO_COZINHA\",\"idMesa\":1,\"idAtendimento\":8,\"dataCriacao\":\"2026-07-02T10:30:00\",\"itens\":[{\"id\":5,\"idProduto\":10,\"nomeProduto\":\"Hamburguer\",\"quantidade\":2,\"precoUnitario\":29.90,\"observacao\":\"Sem cebola\"}]}]")
                     )
             ),
             @ApiResponse(
@@ -77,42 +75,65 @@ public class CozinhaController {
         return ResponseEntity.ok(cozinhaService.listarFila());
     }
 
-    @PatchMapping("/pedidos/{id}/status")
+    @PatchMapping("/pedidos/{id}/iniciar")
     @Operation(
-            summary = "Altera status de pedido da cozinha",
-            description = "Permite que a cozinha mova pedidos para EM_PREPARO ou PRONTO."
+            summary = "Inicia preparo do pedido",
+            description = "Altera pedido de ENVIADO_COZINHA para EM_PREPARO e registra evento PEDIDO_EM_PREPARO."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Status alterado com sucesso"),
             @ApiResponse(
-                    responseCode = "400",
-                    description = "Status invalido",
+                    responseCode = "200",
+                    description = "Pedido atualizado com sucesso",
                     content = @Content(
-                            schema = @Schema(implementation = ErrorObject.class),
-                            examples = @ExampleObject(value = "{\"codError\":\"004\",\"msgError\":\"Dados invalidos\"}")
+                            schema = @Schema(implementation = PedidoStatusCozinhaResponse.class),
+                            examples = @ExampleObject(value = "{\"id\":25,\"codigo\":100025,\"canal\":\"GARCOM\",\"status\":\"EM_PREPARO\",\"idMesa\":1,\"idAtendimento\":8}")
                     )
             ),
             @ApiResponse(
-                    responseCode = "401",
-                    description = "Token ausente, invalido ou expirado",
-                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    responseCode = "400",
+                    description = "Transicao de status invalida",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorObject.class),
+                            examples = @ExampleObject(value = "{\"codError\":\"015\",\"msgError\":\"Transicao de status invalida\"}")
+                    )
             ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Usuario sem perfil de cozinha",
-                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
-            ),
-            @ApiResponse(
-                    responseCode = "502",
-                    description = "ms-pedidos indisponivel",
-                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
-            )
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil de cozinha", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Pedido nao encontrado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de pedidos ou notificacoes indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
     })
-    public ResponseEntity<Void> alterarStatus(
-            @PathVariable Integer id,
-            @Valid @RequestBody AlterarStatusPedidoCozinhaRequest request
-    ) {
-        cozinhaService.alterarStatus(id, request);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<PedidoStatusCozinhaResponse> iniciarPreparo(@PathVariable Integer id) {
+        return ResponseEntity.ok(cozinhaService.iniciarPreparo(id));
+    }
+
+    @PatchMapping("/pedidos/{id}/finalizar")
+    @Operation(
+            summary = "Finaliza preparo do pedido",
+            description = "Altera pedido de EM_PREPARO para PRONTO, remove da fila ativa e registra evento PEDIDO_PRONTO."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Pedido atualizado com sucesso",
+                    content = @Content(
+                            schema = @Schema(implementation = PedidoStatusCozinhaResponse.class),
+                            examples = @ExampleObject(value = "{\"id\":25,\"codigo\":100025,\"canal\":\"GARCOM\",\"status\":\"PRONTO\",\"idMesa\":1,\"idAtendimento\":8}")
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Transicao de status invalida",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorObject.class),
+                            examples = @ExampleObject(value = "{\"codError\":\"015\",\"msgError\":\"Transicao de status invalida\"}")
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil de cozinha", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Pedido nao encontrado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de pedidos ou notificacoes indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<PedidoStatusCozinhaResponse> finalizarPreparo(@PathVariable Integer id) {
+        return ResponseEntity.ok(cozinhaService.finalizarPreparo(id));
     }
 }

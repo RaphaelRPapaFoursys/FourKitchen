@@ -78,6 +78,30 @@ public enum ErrorEnum {
             HttpStatus.BAD_GATEWAY
     ),
 
+    MESA_NAO_ATRIBUIDA_AO_GARCOM(
+            "013",
+            "Mesa nao atribuida ao garcom",
+            HttpStatus.FORBIDDEN
+    ),
+
+    PEDIDO_NAO_ENCONTRADO(
+            "014",
+            "Pedido nao encontrado",
+            HttpStatus.NOT_FOUND
+    ),
+
+    TRANSICAO_STATUS_INVALIDA(
+            "015",
+            "Transicao de status invalida",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    MESA_SEM_GARCOM(
+            "016",
+            "Mesa sem garcom responsavel",
+            HttpStatus.BAD_REQUEST
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

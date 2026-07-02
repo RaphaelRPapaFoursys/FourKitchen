@@ -25,7 +25,3 @@ export interface PedidoFilaCozinhaResponse {
   dataCriacao: string;
   itens: ItemFilaCozinhaResponse[];
 }
-
-export interface AlterarStatusPedidoCozinhaRequest {
-  status: StatusPedidoCozinha;
-}

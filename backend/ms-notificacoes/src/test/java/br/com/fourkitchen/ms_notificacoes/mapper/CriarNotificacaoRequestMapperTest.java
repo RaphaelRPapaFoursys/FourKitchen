@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_notificacoes.mapper;
 
 import br.com.fourkitchen.ms_notificacoes.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.ms_notificacoes.enums.DestinoNotificacao;
+import br.com.fourkitchen.ms_notificacoes.enums.TipoNotificacao;
 import br.com.fourkitchen.ms_notificacoes.model.Notificacao;
 import org.junit.jupiter.api.Test;
 
@@ -16,9 +17,11 @@ class CriarNotificacaoRequestMapperTest {
     @Test
     void mapDeveConverterRequestParaNotificacaoNaoLidaComDataAtual() {
         CriarNotificacaoRequest request = new CriarNotificacaoRequest(
-                "PEDIDO_PRONTO",
-                "Pedido pronto para retirada",
-                DestinoNotificacao.GARCOM
+                TipoNotificacao.PEDIDO_PRONTO,
+                DestinoNotificacao.GARCOM,
+                1,
+                8,
+                7
         );
 
         Notificacao notificacao = mapper.map(request);
@@ -26,6 +29,9 @@ class CriarNotificacaoRequestMapperTest {
         assertEquals("PEDIDO_PRONTO", notificacao.getTipo());
         assertEquals("Pedido pronto para retirada", notificacao.getMensagem());
         assertEquals(DestinoNotificacao.GARCOM, notificacao.getDestino());
+        assertEquals(1, notificacao.getIdMesa());
+        assertEquals(8, notificacao.getIdAtendimento());
+        assertEquals(7, notificacao.getIdGarcom());
         assertFalse(notificacao.getLida());
         assertNotNull(notificacao.getData());
     }

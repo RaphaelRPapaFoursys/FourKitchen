@@ -5,11 +5,16 @@ import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
+import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
+import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
+import br.com.fourkitchen.ms_pedidos.exceptions.ErrorEnum;
 import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
@@ -30,13 +35,15 @@ public class PedidoService {
             StatusPedido.ENVIADO_COZINHA,
             StatusPedido.EM_PREPARO,
             StatusPedido.PRONTO,
-            StatusPedido.ENTREGUE
+            StatusPedido.ENTREGUE,
+            StatusPedido.AGUARDANDO_DECISAO
     );
 
     private static final Collection<StatusPedido> STATUS_COZINHA = List.of(
             StatusPedido.ENVIADO_COZINHA,
             StatusPedido.EM_PREPARO,
-            StatusPedido.PRONTO
+            StatusPedido.PRONTO,
+            StatusPedido.AGUARDANDO_DECISAO
     );
 
     @Autowired
@@ -128,6 +135,38 @@ public class PedidoService {
         return pedidoRepository.existsByIdAtendimentoAndStatusIn(atendimentoId, STATUS_ATIVOS);
     }
 
+    public List<PedidoResponse> findPedidosAtivosPorAtendimentos(List<Integer> idsAtendimento) {
+        if (idsAtendimento == null || idsAtendimento.isEmpty()) {
+            return List.of();
+        }
+
+        return pedidoRepository
+                .findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(idsAtendimento, STATUS_ATIVOS)
+                .stream()
+                .map(pedidoResponseMapper::map)
+                .toList();
+    }
+
+    @Transactional
+    public PedidoResponse iniciarPreparo(Integer id) {
+        Pedido pedido = buscarPedido(id);
+
+        validarStatusAtual(pedido, StatusPedido.ENVIADO_COZINHA);
+        pedido.setStatus(StatusPedido.EM_PREPARO);
+
+        return pedidoResponseMapper.map(pedido);
+    }
+
+    @Transactional
+    public PedidoResponse finalizarPreparo(Integer id) {
+        Pedido pedido = buscarPedido(id);
+
+        validarStatusAtual(pedido, StatusPedido.EM_PREPARO);
+        pedido.setStatus(StatusPedido.PRONTO);
+
+        return pedidoResponseMapper.map(pedido);
+    }
+
     @Transactional
     public void patchPedido(Integer id, AlterarPedidoRequest alterarPedidoRequest) {
         Pedido pedido = pedidoRepository.findById(id)
@@ -173,6 +212,17 @@ public class PedidoService {
         return codigo;
     }
 
+    private Pedido buscarPedido(Integer id) {
+        return pedidoRepository.findById(id)
+                .orElseThrow(PedidoInexistenteException::new);
+    }
+
+    private void validarStatusAtual(Pedido pedido, StatusPedido statusEsperado) {
+        if (!statusEsperado.equals(pedido.getStatus())) {
+            throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+        }
+    }
+
     private PedidoCozinhaResponse mapearPedidoCozinha(Pedido pedido, List<ProdutoPedido> itens) {
         return new PedidoCozinhaResponse(
                 pedido.getId(),
@@ -195,6 +245,28 @@ public class PedidoService {
                 item.getQuantidade(),
                 item.getPrecoUnitario(),
                 item.getObservacao()
+        );
+    }
+
+    @Transactional
+    public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
+
+        Pedido pedido = pedidoRepository.findById(request.idPedido()).orElseThrow(PedidoInexistenteException::new);
+
+        ProdutoPedido produtoPedido = produtoPedidoRepository
+                .findByIdPedidoAndId(
+                        request.idPedido(),
+                        request.idProdutoPedido()
+                ).orElseThrow(ProdutoPedidoInexistenteException::new);
+
+        pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
+        produtoPedido.setStatus(request.statusProdutoPedido());
+
+        return new SinalizarProblemaResponse(
+                pedido.getId(),
+                produtoPedido.getId(),
+                pedido.getStatus(),
+                produtoPedido.getStatus()
         );
     }
 }

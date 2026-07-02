@@ -41,6 +41,13 @@ public class NotificacaoController {
         return ResponseEntity.ok(notificacaoService.listarPendentes(destino));
     }
 
+    @GetMapping("/chamadas-pendentes")
+    public ResponseEntity<List<NotificacaoResponse>> listarChamadasPendentesPorAtendimentos(
+            @RequestParam("idsAtendimento") List<Integer> idsAtendimento
+    ) {
+        return ResponseEntity.ok(notificacaoService.listarChamadasPendentesPorAtendimentos(idsAtendimento));
+    }
+
     @PatchMapping("/{id}/lida")
     public ResponseEntity<NotificacaoResponse> marcarComoLida(@PathVariable Integer id) {
         return ResponseEntity.ok(notificacaoService.marcarComoLida(id));

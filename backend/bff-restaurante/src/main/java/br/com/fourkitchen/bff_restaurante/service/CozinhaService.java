@@ -1,14 +1,16 @@
 package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
-import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.AlterarPedidoRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoResponse;
-import br.com.fourkitchen.bff_restaurante.dto.request.AlterarStatusPedidoCozinhaRequest;
+import br.com.fourkitchen.bff_restaurante.dto.EventoPedido;
+import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.ItemFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import feign.FeignException;
@@ -17,17 +19,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CozinhaService {
 
-    private static final Set<String> STATUS_PERMITIDOS = Set.of("EM_PREPARO", "PRONTO");
-
     private final PedidoClient pedidoClient;
     private final ProdutoClient produtoClient;
+    private final NotificacaoService notificacaoService;
 
     public List<PedidoFilaCozinhaResponse> listarFila() {
         try {
@@ -43,20 +43,48 @@ public class CozinhaService {
         }
     }
 
-    public void alterarStatus(Integer id, AlterarStatusPedidoCozinhaRequest request) {
-        String status = request.status().trim().toUpperCase();
+    public PedidoStatusCozinhaResponse iniciarPreparo(Integer id) {
+        PedidoResponse pedido = alterarStatus(id, EventoPedido.PEDIDO_EM_PREPARO);
+        registrarEvento(EventoPedido.PEDIDO_EM_PREPARO);
 
-        if (!STATUS_PERMITIDOS.contains(status)) {
-            throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
-        }
+        return mapearStatus(pedido);
+    }
 
+    public PedidoStatusCozinhaResponse finalizarPreparo(Integer id) {
+        PedidoResponse pedido = alterarStatus(id, EventoPedido.PEDIDO_PRONTO);
+        registrarEvento(EventoPedido.PEDIDO_PRONTO);
+
+        return mapearStatus(pedido);
+    }
+
+    private PedidoResponse alterarStatus(Integer id, EventoPedido eventoPedido) {
         try {
-            pedidoClient.alterarPedido(id, new AlterarPedidoRequest(null, status, null, null, null));
-        } catch (FeignException.BadRequest | FeignException.NotFound e) {
-            throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+            if (EventoPedido.PEDIDO_EM_PREPARO.equals(eventoPedido)) {
+                return pedidoClient.iniciarPreparo(id);
+            }
+
+            return pedidoClient.finalizarPreparo(id);
         } catch (FeignException e) {
+            if (e.status() == 404) {
+                throw new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO);
+            }
+
+            if (e.status() == 400) {
+                throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+            }
+
             throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
         }
+    }
+
+    private void registrarEvento(EventoPedido eventoPedido) {
+        notificacaoService.criarNotificacao(new CriarNotificacaoRequest(
+                eventoPedido.tipoNotificacao(),
+                eventoPedido.destino(),
+                null,
+                null,
+                null
+        ));
     }
 
     private PedidoFilaCozinhaResponse mapearPedido(PedidoCozinhaResponse pedido, Map<Integer, String> nomesProdutos) {
@@ -106,5 +134,16 @@ public class CozinhaService {
         } catch (Exception e) {
             return Map.of();
         }
+    }
+
+    private PedidoStatusCozinhaResponse mapearStatus(PedidoResponse pedido) {
+        return new PedidoStatusCozinhaResponse(
+                pedido.id(),
+                pedido.codigo(),
+                pedido.canal(),
+                pedido.status(),
+                pedido.idMesa(),
+                pedido.idAtendimento()
+        );
     }
 }

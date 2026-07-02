@@ -6,6 +6,7 @@ public record SessaoMesaResponse(
         Integer idMesa,
         Integer idAtendimento,
         Integer codigoSessao,
+        Integer idGarcom,
         StatusMesa status
 ) {
 }

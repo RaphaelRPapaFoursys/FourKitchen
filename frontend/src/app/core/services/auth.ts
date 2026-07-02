@@ -16,12 +16,14 @@ import {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly tokenStorageKey = 'fourkitchen_access_token';
-  private readonly userStorageKey = 'fourkitchen_user';
-  private readonly usuarioSubject = new BehaviorSubject<UsuarioAutenticadoResponse | null>(
-    this.readStoredUser(),
-  );
+  private readonly legacyUserStorageKey = 'fourkitchen_user';
+  private readonly usuarioSubject = new BehaviorSubject<UsuarioAutenticadoResponse | null>(null);
 
   readonly usuario$ = this.usuarioSubject.asObservable();
+
+  constructor() {
+    this.removeStoredValue(this.legacyUserStorageKey);
+  }
 
   login(credentials: LoginFormValue): Observable<LoginResponse> {
     const request: LoginRequest = {
@@ -37,12 +39,12 @@ export class AuthService {
   me(): Observable<UsuarioAutenticadoResponse> {
     return this.http
       .get<UsuarioAutenticadoResponse>(`${environment.apiUrl}/api/auth/me`)
-      .pipe(tap(usuario => this.storeUser(usuario)));
+      .pipe(tap(usuario => this.usuarioSubject.next(usuario)));
   }
 
   logout(): void {
     this.removeStoredValue(this.tokenStorageKey);
-    this.removeStoredValue(this.userStorageKey);
+    this.removeStoredValue(this.legacyUserStorageKey);
     this.usuarioSubject.next(null);
   }
 
@@ -60,27 +62,7 @@ export class AuthService {
 
   private persistSession(response: LoginResponse): void {
     this.storeValue(this.tokenStorageKey, response.accessToken);
-    this.storeUser(response.usuario);
-  }
-
-  private storeUser(usuario: UsuarioAutenticadoResponse): void {
-    this.storeValue(this.userStorageKey, JSON.stringify(usuario));
-    this.usuarioSubject.next(usuario);
-  }
-
-  private readStoredUser(): UsuarioAutenticadoResponse | null {
-    const storedUser = this.readStoredValue(this.userStorageKey);
-
-    if (!storedUser) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(storedUser) as UsuarioAutenticadoResponse;
-    } catch {
-      this.removeStoredValue(this.userStorageKey);
-      return null;
-    }
+    this.usuarioSubject.next(response.usuario);
   }
 
   private readStoredValue(key: string): string | null {

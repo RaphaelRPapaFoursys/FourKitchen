@@ -1,6 +1,11 @@
 spring:
   application:
     name: bff-restaurante
+  cloud:
+    openfeign:
+      httpclient:
+        hc5:
+          enabled: true
 
 clients:
   ms-usuarios:
@@ -18,4 +23,4 @@ server:
   port: ${SERVER_PORT:8080}
 
 jwt:
-  secret: ${JWT_SECRET:fourkitchen-local-development-jwt-secret-32}
+  secret: ${JWT_SECRET}

@@ -10,6 +10,9 @@ public record NotificacaoResponse(
         String mensagem,
         DestinoNotificacao destino,
         Boolean lida,
-        LocalDateTime data
+        LocalDateTime data,
+        Integer idMesa,
+        Integer idAtendimento,
+        Integer idGarcom
 ) {
 }

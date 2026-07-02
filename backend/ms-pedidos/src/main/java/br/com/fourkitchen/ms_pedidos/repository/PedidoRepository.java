@@ -16,4 +16,9 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
     List<Pedido> findByStatusIn(Collection<StatusPedido> status);
 
     List<Pedido> findByStatusInOrderByDataCriacaoAscIdAsc(Collection<StatusPedido> status);
+
+    List<Pedido> findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(
+            Collection<Integer> idsAtendimento,
+            Collection<StatusPedido> status
+    );
 }

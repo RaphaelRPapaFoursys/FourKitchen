@@ -1,7 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
-import br.com.fourkitchen.bff_restaurante.dto.request.AlterarStatusPedidoCozinhaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.service.CozinhaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,12 +49,42 @@ class CozinhaControllerTest {
     }
 
     @Test
-    void alterarStatusDeveRetornarNoContent() {
-        AlterarStatusPedidoCozinhaRequest request = new AlterarStatusPedidoCozinhaRequest("PRONTO");
+    void iniciarPreparoDeveRetornarOk() {
+        PedidoStatusCozinhaResponse pedido = new PedidoStatusCozinhaResponse(
+                25,
+                123456,
+                "GARCOM",
+                "EM_PREPARO",
+                1,
+                8
+        );
 
-        ResponseEntity<Void> response = cozinhaController.alterarStatus(25, request);
+        when(cozinhaService.iniciarPreparo(25)).thenReturn(pedido);
 
-        assertEquals(204, response.getStatusCode().value());
-        verify(cozinhaService).alterarStatus(25, request);
+        ResponseEntity<PedidoStatusCozinhaResponse> response = cozinhaController.iniciarPreparo(25);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(pedido, response.getBody());
+        verify(cozinhaService).iniciarPreparo(25);
+    }
+
+    @Test
+    void finalizarPreparoDeveRetornarOk() {
+        PedidoStatusCozinhaResponse pedido = new PedidoStatusCozinhaResponse(
+                25,
+                123456,
+                "GARCOM",
+                "PRONTO",
+                1,
+                8
+        );
+
+        when(cozinhaService.finalizarPreparo(25)).thenReturn(pedido);
+
+        ResponseEntity<PedidoStatusCozinhaResponse> response = cozinhaController.finalizarPreparo(25);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(pedido, response.getBody());
+        verify(cozinhaService).finalizarPreparo(25);
     }
 }

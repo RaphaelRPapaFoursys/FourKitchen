@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
-  AlterarStatusPedidoCozinhaRequest,
   PedidoFilaCozinhaResponse,
   StatusPedidoCozinha,
 } from '../models/cozinha.models';
@@ -21,8 +20,8 @@ export class CozinhaService {
   }
 
   alterarStatus(id: number, status: StatusPedidoCozinha): Observable<void> {
-    const request: AlterarStatusPedidoCozinhaRequest = { status };
+    const acao = status === 'EM_PREPARO' ? 'iniciar' : 'finalizar';
 
-    return this.http.patch<void>(`${this.baseUrl}/pedidos/${id}/status`, request);
+    return this.http.patch<void>(`${this.baseUrl}/pedidos/${id}/${acao}`, {});
   }
 }

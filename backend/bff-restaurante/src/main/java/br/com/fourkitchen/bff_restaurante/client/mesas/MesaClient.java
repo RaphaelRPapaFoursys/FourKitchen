@@ -1,5 +1,6 @@
 package br.com.fourkitchen.bff_restaurante.client.mesas;
 
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaGarcomClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.SessaoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarMesaRequest;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 import java.util.List;
 
@@ -39,4 +42,13 @@ public interface MesaClient {
             @PathVariable Integer idMesa,
             @PathVariable Integer codigoSessao
     );
+
+    @GetMapping("/api/mesas/{idMesa}/garcons/{idGarcom}/validar")
+    SessaoMesaResponse validarMesaAtribuidaGarcom(
+            @PathVariable Integer idMesa,
+            @PathVariable Integer idGarcom
+    );
+
+    @GetMapping("/api/mesas/garcons/{idGarcom}")
+    List<MesaGarcomClientResponse> listarMesasPorGarcom(@PathVariable Integer idGarcom);
 }
