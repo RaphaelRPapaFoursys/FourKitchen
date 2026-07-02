@@ -1,59 +1,60 @@
-# Frontend
+﻿# FourKitchen Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.17.
+Frontend Angular do FourKitchen, com telas por perfil de usuario e protecao de rotas integrada ao BFF.
 
-## Development server
+## Stack
 
-To start a local development server, run:
+- Angular 21
+- TypeScript
+- RxJS
+- Vitest para testes
 
-```bash
-ng serve
-```
+## Como rodar
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Instale as dependencias:
 
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Inicie o servidor local:
 
 ```bash
-ng generate --help
+npm run dev
 ```
 
-## Building
+A aplicacao fica disponivel em `http://localhost:4200/`.
 
-To build the project run:
+## Comandos principais
 
 ```bash
-ng build
+npm run build
+npm run test
+npm run watch
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Autenticacao e rotas
 
-## Running unit tests
+O login usa o BFF em `/api/auth/login` e o token e enviado nas requisicoes autenticadas pelo interceptor HTTP.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+O frontend nao salva o perfil do usuario no `localStorage`. Para validar token e perfil, as rotas protegidas consultam `/api/auth/me` antes de liberar o acesso.
 
-```bash
-ng test
+Se o token expirar ou for invalido, o usuario e deslogado e redirecionado para `/login`.
+
+As rotas protegidas e permissoes por perfil ficam em:
+
+```txt
+src/app/core/routing/protected-routes.ts
 ```
 
-## Running end-to-end tests
+A rota padrao de cada perfil fica em:
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```txt
+src/app/core/utils/profile-redirect.ts
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+A documentacao completa de manutencao das rotas esta em:
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```txt
+docs/ROUTING_PROTECTION.md
+```
