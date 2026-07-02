@@ -156,6 +156,7 @@ public class MesaService {
                 mesa.getId(),
                 atendimento.getId(),
                 atendimento.getCodigoSessao(),
+                atendimento.getGarcomId(),
                 StatusMesa.OCUPADA
         );
     }
@@ -181,6 +182,7 @@ public class MesaService {
                 mesa.getId(),
                 atendimento.getId(),
                 atendimento.getCodigoSessao(),
+                atendimento.getGarcomId(),
                 StatusMesa.OCUPADA
         );
     }

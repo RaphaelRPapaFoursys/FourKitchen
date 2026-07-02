@@ -50,7 +50,7 @@ class GarcomPedidoServiceTest {
     void criarPedidoDeveValidarMesaDoGarcomECriarPedidoComoGarcom() {
         CriarPedidoGarcomRequest request = criarRequest();
         Authentication authentication = criarAuthentication(7L);
-        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, "OCUPADA");
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
         br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse pedidoResponse =
                 new br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse(
                         25,
@@ -107,7 +107,7 @@ class GarcomPedidoServiceTest {
     void criarPedidoDeveLancarServicoPedidosIndisponivelQuandoMsPedidosFalhar() {
         CriarPedidoGarcomRequest request = criarRequest();
         Authentication authentication = criarAuthentication(7L);
-        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, "OCUPADA");
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
 
         when(mesaClient.validarMesaAtribuidaGarcom(1, 7)).thenReturn(sessao);
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenThrow(feignException(500));
