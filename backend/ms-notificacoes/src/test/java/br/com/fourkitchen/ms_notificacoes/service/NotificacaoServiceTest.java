@@ -3,6 +3,7 @@ package br.com.fourkitchen.ms_notificacoes.service;
 import br.com.fourkitchen.ms_notificacoes.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.ms_notificacoes.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.ms_notificacoes.enums.DestinoNotificacao;
+import br.com.fourkitchen.ms_notificacoes.enums.TipoNotificacao;
 import br.com.fourkitchen.ms_notificacoes.exception.BaseException;
 import br.com.fourkitchen.ms_notificacoes.exception.ErrorEnum;
 import br.com.fourkitchen.ms_notificacoes.mapper.CriarNotificacaoRequestMapper;
@@ -47,8 +48,7 @@ class NotificacaoServiceTest {
     @Test
     void criarNotificacaoDeveSalvarComoNaoLidaComDataAtual() {
         CriarNotificacaoRequest request = new CriarNotificacaoRequest(
-                "PEDIDO_PRONTO",
-                "Pedido pronto para retirada",
+                TipoNotificacao.PEDIDO_PRONTO,
                 DestinoNotificacao.GARCOM
         );
         Notificacao notificacaoMapeada = criarNotificacao(null, false);
