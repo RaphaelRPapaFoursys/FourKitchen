@@ -3,6 +3,8 @@ package br.com.fourkitchen.ms_pedidos.service;
 import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
@@ -18,7 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 public class PedidoService {
@@ -100,6 +104,26 @@ public class PedidoService {
                 .toList();
     }
 
+    public List<PedidoCozinhaResponse> findFilaCozinha() {
+        List<Pedido> pedidos = pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(STATUS_COZINHA);
+
+        if (pedidos.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> idsPedidos = pedidos.stream()
+                .map(Pedido::getId)
+                .toList();
+
+        Map<Integer, List<ProdutoPedido>> itensPorPedido = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
+                .stream()
+                .collect(Collectors.groupingBy(ProdutoPedido::getIdPedido));
+
+        return pedidos.stream()
+                .map(pedido -> mapearPedidoCozinha(pedido, itensPorPedido.getOrDefault(pedido.getId(), List.of())))
+                .toList();
+    }
+
     public boolean possuiPedidosAtivos(Integer atendimentoId) {
         return pedidoRepository.existsByIdAtendimentoAndStatusIn(atendimentoId, STATUS_ATIVOS);
     }
@@ -147,5 +171,30 @@ public class PedidoService {
         } while (pedidoRepository.existsByCodigo(codigo));
 
         return codigo;
+    }
+
+    private PedidoCozinhaResponse mapearPedidoCozinha(Pedido pedido, List<ProdutoPedido> itens) {
+        return new PedidoCozinhaResponse(
+                pedido.getId(),
+                pedido.getCodigo(),
+                pedido.getCanal(),
+                pedido.getStatus(),
+                pedido.getIdMesa(),
+                pedido.getIdAtendimento(),
+                pedido.getDataCriacao(),
+                itens.stream()
+                        .map(this::mapearItemCozinha)
+                        .toList()
+        );
+    }
+
+    private ItemPedidoCozinhaResponse mapearItemCozinha(ProdutoPedido item) {
+        return new ItemPedidoCozinhaResponse(
+                item.getId(),
+                item.getIdProduto(),
+                item.getQuantidade(),
+                item.getPrecoUnitario(),
+                item.getObservacao()
+        );
     }
 }

@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_pedidos.controller;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
@@ -71,6 +72,11 @@ public class PedidoController {
     @GetMapping("/cozinha")
     private ResponseEntity<List<PedidoResponse>> buscarPedidosCozinha() {
         return ResponseEntity.ok(pedidoService.findPedidosCozinha());
+    }
+
+    @GetMapping("/cozinha/fila")
+    private ResponseEntity<List<PedidoCozinhaResponse>> buscarFilaCozinha() {
+        return ResponseEntity.ok(pedidoService.findFilaCozinha());
     }
 
     @GetMapping("/atendimentos/{atendimentoId}/possui-ativos")
