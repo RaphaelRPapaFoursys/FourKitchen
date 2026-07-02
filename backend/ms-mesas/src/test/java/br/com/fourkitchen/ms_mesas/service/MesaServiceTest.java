@@ -295,6 +295,52 @@ class MesaServiceTest {
     }
 
     @Test
+    void validarMesaAtribuidaGarcomDeveRetornarSessaoQuandoMesaOcupadaForDoGarcom() {
+        Atendimento atendimento = criarAtendimento(8, 123456);
+        atendimento.setGarcomId(7);
+        Mesa mesa = criarMesa(1, 10, false, atendimento);
+
+        when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
+
+        var response = mesaService.validarMesaAtribuidaGarcom(1, 7);
+
+        assertEquals(1, response.idMesa());
+        assertEquals(8, response.idAtendimento());
+        assertEquals(123456, response.codigoSessao());
+        assertEquals(StatusMesa.OCUPADA, response.status());
+        verify(mesaRepository).findById(1);
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
+    void validarMesaAtribuidaGarcomDeveBloquearMesaDeOutroGarcom() {
+        Atendimento atendimento = criarAtendimento(8, 123456);
+        atendimento.setGarcomId(9);
+        Mesa mesa = criarMesa(1, 10, false, atendimento);
+
+        when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
+
+        BaseException exception = assertThrows(BaseException.class, () -> mesaService.validarMesaAtribuidaGarcom(1, 7));
+
+        assertEquals(ErrorEnum.MESA_NAO_ATRIBUIDA_AO_GARCOM, exception.getErrorEnum());
+        verify(mesaRepository).findById(1);
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
+    void validarMesaAtribuidaGarcomDeveBloquearMesaDisponivel() {
+        Mesa mesa = criarMesa(1, 10, true, null);
+
+        when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
+
+        BaseException exception = assertThrows(BaseException.class, () -> mesaService.validarMesaAtribuidaGarcom(1, 7));
+
+        assertEquals(ErrorEnum.MESA_NAO_OCUPADA, exception.getErrorEnum());
+        verify(mesaRepository).findById(1);
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
     void abrirMesaDeveLancarExcecaoQuandoMesaNaoExistir() {
         when(mesaRepository.findById(99)).thenReturn(Optional.empty());
 

@@ -144,6 +144,31 @@ public class MesaService {
         );
     }
 
+    public SessaoMesaResponse validarMesaAtribuidaGarcom(Integer idMesa, Integer idGarcom) {
+        Mesa mesa = buscarPorId(idMesa);
+
+        if (Boolean.TRUE.equals(mesa.getDisponivel())) {
+            throw new BaseException(ErrorEnum.MESA_NAO_OCUPADA);
+        }
+
+        Atendimento atendimento = buscarAtendimentoAberto(mesa);
+
+        if (atendimento.getDataFechamento() != null) {
+            throw new BaseException(ErrorEnum.ATENDIMENTO_NAO_ABERTO);
+        }
+
+        if (!Objects.equals(atendimento.getGarcomId(), idGarcom)) {
+            throw new BaseException(ErrorEnum.MESA_NAO_ATRIBUIDA_AO_GARCOM);
+        }
+
+        return new SessaoMesaResponse(
+                mesa.getId(),
+                atendimento.getId(),
+                atendimento.getCodigoSessao(),
+                StatusMesa.OCUPADA
+        );
+    }
+
     private Mesa buscarPorId(Integer id) {
         return mesaRepository.findById(id)
                 .orElseThrow(() -> new BaseException(ErrorEnum.MESA_NAO_ENCONTRADA));

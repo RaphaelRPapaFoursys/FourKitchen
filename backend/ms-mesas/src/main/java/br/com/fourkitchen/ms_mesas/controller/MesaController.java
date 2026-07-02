@@ -64,4 +64,12 @@ public class MesaController {
     ) {
         return ResponseEntity.ok(mesaService.validarSessaoMesa(id, codigoSessao));
     }
+
+    @GetMapping("/{id}/garcons/{idGarcom}/validar")
+    public ResponseEntity<SessaoMesaResponse> validarMesaAtribuidaGarcom(
+            @PathVariable Integer id,
+            @PathVariable Integer idGarcom
+    ) {
+        return ResponseEntity.ok(mesaService.validarMesaAtribuidaGarcom(id, idGarcom));
+    }
 }
