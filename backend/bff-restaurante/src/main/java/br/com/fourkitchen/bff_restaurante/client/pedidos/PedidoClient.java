@@ -3,12 +3,13 @@ package br.com.fourkitchen.bff_restaurante.client.pedidos;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.CriarPedidoRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -26,4 +27,9 @@ public interface PedidoClient {
 
     @PatchMapping("/pedidos/{id}/finalizar-preparo")
     PedidoResponse finalizarPreparo(@PathVariable Integer id);
+
+    @GetMapping("/pedidos/atendimentos/ativos")
+    List<PedidoResponse> listarPedidosAtivosPorAtendimentos(
+            @RequestParam("idsAtendimento") List<Integer> idsAtendimento
+    );
 }

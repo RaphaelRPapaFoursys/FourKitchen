@@ -84,7 +84,10 @@ class CozinhaServiceTest {
         verify(pedidoClient).iniciarPreparo(25);
         verify(notificacaoService).criarNotificacao(new CriarNotificacaoRequest(
                 TipoNotificacao.PEDIDO_EM_PREPARO,
-                DestinoNotificacao.COZINHA
+                DestinoNotificacao.COZINHA,
+                null,
+                null,
+                null
         ));
     }
 
@@ -102,7 +105,10 @@ class CozinhaServiceTest {
         verify(pedidoClient).finalizarPreparo(25);
         verify(notificacaoService).criarNotificacao(new CriarNotificacaoRequest(
                 TipoNotificacao.PEDIDO_PRONTO,
-                DestinoNotificacao.GARCOM
+                DestinoNotificacao.GARCOM,
+                null,
+                null,
+                null
         ));
     }
 

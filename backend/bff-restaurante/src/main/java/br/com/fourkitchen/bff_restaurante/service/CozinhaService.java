@@ -73,7 +73,10 @@ public class CozinhaService {
     private void registrarEvento(EventoPedido eventoPedido) {
         notificacaoService.criarNotificacao(new CriarNotificacaoRequest(
                 eventoPedido.tipoNotificacao(),
-                eventoPedido.destino()
+                eventoPedido.destino(),
+                null,
+                null,
+                null
         ));
     }
 

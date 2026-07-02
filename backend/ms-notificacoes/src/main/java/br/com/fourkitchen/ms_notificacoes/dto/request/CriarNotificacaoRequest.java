@@ -9,6 +9,12 @@ public record CriarNotificacaoRequest(
         TipoNotificacao tipo,
 
         @NotNull(message = "Destino e obrigatorio.")
-        DestinoNotificacao destino
+        DestinoNotificacao destino,
+
+        Integer idMesa,
+
+        Integer idAtendimento,
+
+        Integer idGarcom
 ) {
 }

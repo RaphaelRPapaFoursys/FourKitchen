@@ -17,6 +17,9 @@ public class CriarNotificacaoRequestMapper implements Mapper<CriarNotificacaoReq
                 .destino(source.destino())
                 .lida(false)
                 .data(LocalDateTime.now())
+                .idMesa(source.idMesa())
+                .idAtendimento(source.idAtendimento())
+                .idGarcom(source.idGarcom())
                 .build();
     }
 }

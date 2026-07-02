@@ -35,6 +35,21 @@ public record CriarNotificacaoRequest(
                 }
         )
         @NotNull(message = "Destino e obrigatorio.")
-        DestinoNotificacao destino
+        DestinoNotificacao destino,
+
+        @Schema(
+                description = "Mesa relacionada a notificacao, quando houver. Para CHAMADA_GARCOM, informe a mesa que solicitou atendimento.",
+                example = "1"
+        )
+        Integer idMesa,
+
+        @Schema(
+                description = "Atendimento relacionado a notificacao. Obrigatorio para CHAMADA_GARCOM, pois a tela do garcom agrupa as chamadas por atendimento.",
+                example = "8"
+        )
+        Integer idAtendimento,
+
+        @Schema(description = "Garcom relacionado a notificacao, quando houver", example = "7")
+        Integer idGarcom
 ) {
 }

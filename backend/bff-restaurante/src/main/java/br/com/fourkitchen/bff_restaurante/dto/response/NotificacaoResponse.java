@@ -35,6 +35,15 @@ public record NotificacaoResponse(
         Boolean lida,
 
         @Schema(description = "Data e hora de criacao da notificacao", example = "2026-07-01T13:25:09")
-        LocalDateTime data
+        LocalDateTime data,
+
+        @Schema(description = "Mesa relacionada a notificacao, quando houver", example = "1")
+        Integer idMesa,
+
+        @Schema(description = "Atendimento relacionado a notificacao, quando houver", example = "8")
+        Integer idAtendimento,
+
+        @Schema(description = "Garcom relacionado a notificacao, quando houver", example = "7")
+        Integer idGarcom
 ) {
 }

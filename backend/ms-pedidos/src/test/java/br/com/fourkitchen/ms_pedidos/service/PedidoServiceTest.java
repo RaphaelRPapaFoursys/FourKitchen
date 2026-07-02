@@ -36,6 +36,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -175,6 +176,51 @@ class PedidoServiceTest {
 
         assertEquals(true, resultado);
         verify(pedidoRepository).existsByIdAtendimentoAndStatusIn(eq(8), anyStatusCollection());
+    }
+
+    @Test
+    void findPedidosAtivosPorAtendimentosDeveConsultarPedidosAtivosDosAtendimentos() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(123456)
+                .canal(CanaisPedido.GARCOM)
+                .status(StatusPedido.ENVIADO_COZINHA)
+                .idMesa(1)
+                .idUsuario(7)
+                .idAtendimento(8)
+                .build();
+        PedidoResponse response = new PedidoResponse(
+                25,
+                123456,
+                CanaisPedido.GARCOM,
+                StatusPedido.ENVIADO_COZINHA,
+                1,
+                7,
+                8
+        );
+
+        when(pedidoRepository.findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(
+                eq(List.of(8)),
+                anyStatusCollection()
+        )).thenReturn(List.of(pedido));
+        when(pedidoResponseMapper.map(pedido)).thenReturn(response);
+
+        List<PedidoResponse> resultado = pedidoService.findPedidosAtivosPorAtendimentos(List.of(8));
+
+        assertEquals(List.of(response), resultado);
+        verify(pedidoRepository).findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(
+                eq(List.of(8)),
+                anyStatusCollection()
+        );
+        verify(pedidoResponseMapper).map(pedido);
+    }
+
+    @Test
+    void findPedidosAtivosPorAtendimentosDeveRetornarListaVaziaQuandoNaoReceberAtendimentos() {
+        List<PedidoResponse> resultado = pedidoService.findPedidosAtivosPorAtendimentos(List.of());
+
+        assertEquals(List.of(), resultado);
+        verifyNoInteractions(pedidoRepository, pedidoResponseMapper);
     }
 
     @Test

@@ -96,7 +96,10 @@ class NotificacaoServiceTest {
     private CriarNotificacaoRequest criarRequest() {
         return new CriarNotificacaoRequest(
                 TipoNotificacao.PEDIDO_PRONTO,
-                DestinoNotificacao.COZINHA
+                DestinoNotificacao.COZINHA,
+                null,
+                null,
+                null
         );
     }
 
@@ -107,7 +110,10 @@ class NotificacaoServiceTest {
                 "Pedido pronto para retirada",
                 DestinoNotificacao.COZINHA,
                 lida,
-                LocalDateTime.of(2026, 7, 1, 13, 25)
+                LocalDateTime.of(2026, 7, 1, 13, 25),
+                null,
+                null,
+                null
         );
     }
 

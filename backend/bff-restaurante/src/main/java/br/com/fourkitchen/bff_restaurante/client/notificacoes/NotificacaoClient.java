@@ -22,6 +22,11 @@ public interface NotificacaoClient {
     @GetMapping("/api/notificacoes/pendentes")
     List<NotificacaoResponse> listarPendentes(@RequestParam(required = false) DestinoNotificacao destino);
 
+    @GetMapping("/api/notificacoes/chamadas-pendentes")
+    List<NotificacaoResponse> listarChamadasPendentesPorAtendimentos(
+            @RequestParam("idsAtendimento") List<Integer> idsAtendimento
+    );
+
     @PatchMapping("/api/notificacoes/{id}/lida")
     NotificacaoResponse marcarComoLida(@PathVariable Integer id);
 }

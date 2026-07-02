@@ -96,6 +96,13 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.possuiPedidosAtivos(atendimentoId));
     }
 
+    @GetMapping("/atendimentos/ativos")
+    private ResponseEntity<List<PedidoResponse>> listarPedidosAtivosPorAtendimentos(
+            @RequestParam("idsAtendimento") List<Integer> idsAtendimento
+    ) {
+        return ResponseEntity.ok(pedidoService.findPedidosAtivosPorAtendimentos(idsAtendimento));
+    }
+
     @PatchMapping("{id}")
     private ResponseEntity<Void> alterarPedido(
             @PathVariable Integer id,

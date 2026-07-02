@@ -24,8 +24,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class
-Notificacao {
+public class Notificacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,4 +45,13 @@ Notificacao {
 
     @Column(name = "data", nullable = false)
     private LocalDateTime data;
+
+    @Column(name = "id_mesa")
+    private Integer idMesa;
+
+    @Column(name = "id_atendimento")
+    private Integer idAtendimento;
+
+    @Column(name = "id_garcom")
+    private Integer idGarcom;
 }

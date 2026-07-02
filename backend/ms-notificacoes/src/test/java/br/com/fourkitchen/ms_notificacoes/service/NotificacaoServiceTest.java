@@ -49,7 +49,10 @@ class NotificacaoServiceTest {
     void criarNotificacaoDeveSalvarComoNaoLidaComDataAtual() {
         CriarNotificacaoRequest request = new CriarNotificacaoRequest(
                 TipoNotificacao.PEDIDO_PRONTO,
-                DestinoNotificacao.GARCOM
+                DestinoNotificacao.GARCOM,
+                null,
+                null,
+                null
         );
         Notificacao notificacaoMapeada = criarNotificacao(null, false);
         Notificacao notificacaoSalva = criarNotificacao(1, false);
@@ -65,6 +68,63 @@ class NotificacaoServiceTest {
         verify(criarNotificacaoRequestMapper).map(request);
         verify(notificacaoRepository).save(notificacaoMapeada);
         verify(notificacaoResponseMapper).map(notificacaoSalva);
+    }
+
+    @Test
+    void criarChamadaGarcomDeveSalvarQuandoAtendimentoForInformado() {
+        CriarNotificacaoRequest request = new CriarNotificacaoRequest(
+                TipoNotificacao.CHAMADA_GARCOM,
+                DestinoNotificacao.GARCOM,
+                1,
+                8,
+                7
+        );
+        Notificacao notificacaoMapeada = criarNotificacao(null, false);
+        Notificacao notificacaoSalva = criarNotificacao(1, false);
+        NotificacaoResponse response = criarResponse(notificacaoSalva);
+
+        when(criarNotificacaoRequestMapper.map(request)).thenReturn(notificacaoMapeada);
+        when(notificacaoRepository.save(notificacaoMapeada)).thenReturn(notificacaoSalva);
+        when(notificacaoResponseMapper.map(notificacaoSalva)).thenReturn(response);
+
+        NotificacaoResponse resultado = notificacaoService.criarNotificacao(request);
+
+        assertSame(response, resultado);
+        verify(criarNotificacaoRequestMapper).map(request);
+        verify(notificacaoRepository).save(notificacaoMapeada);
+        verify(notificacaoResponseMapper).map(notificacaoSalva);
+    }
+
+    @Test
+    void criarNotificacaoDeveLancarExcecaoQuandoChamadaGarcomNaoTiverAtendimento() {
+        CriarNotificacaoRequest request = new CriarNotificacaoRequest(
+                TipoNotificacao.CHAMADA_GARCOM,
+                DestinoNotificacao.GARCOM,
+                1,
+                null,
+                7
+        );
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.criarNotificacao(request));
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+        verifyNoInteractions(criarNotificacaoRequestMapper, notificacaoRepository, notificacaoResponseMapper);
+    }
+
+    @Test
+    void criarNotificacaoDeveLancarExcecaoQuandoChamadaGarcomTiverDestinoInvalido() {
+        CriarNotificacaoRequest request = new CriarNotificacaoRequest(
+                TipoNotificacao.CHAMADA_GARCOM,
+                DestinoNotificacao.COZINHA,
+                1,
+                8,
+                7
+        );
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.criarNotificacao(request));
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+        verifyNoInteractions(criarNotificacaoRequestMapper, notificacaoRepository, notificacaoResponseMapper);
     }
 
     @Test
@@ -118,6 +178,37 @@ class NotificacaoServiceTest {
     }
 
     @Test
+    void listarChamadasPendentesPorAtendimentosDeveFiltrarChamadasDeGarcom() {
+        Notificacao notificacao = criarNotificacao(1, false);
+        NotificacaoResponse response = criarResponse(notificacao);
+
+        when(notificacaoRepository.findByTipoAndDestinoAndLidaFalseAndIdAtendimentoInOrderByDataDesc(
+                TipoNotificacao.CHAMADA_GARCOM.name(),
+                DestinoNotificacao.GARCOM,
+                List.of(8)
+        )).thenReturn(List.of(notificacao));
+        when(notificacaoResponseMapper.map(notificacao)).thenReturn(response);
+
+        List<NotificacaoResponse> resultado = notificacaoService.listarChamadasPendentesPorAtendimentos(List.of(8));
+
+        assertEquals(List.of(response), resultado);
+        verify(notificacaoRepository).findByTipoAndDestinoAndLidaFalseAndIdAtendimentoInOrderByDataDesc(
+                TipoNotificacao.CHAMADA_GARCOM.name(),
+                DestinoNotificacao.GARCOM,
+                List.of(8)
+        );
+        verify(notificacaoResponseMapper).map(notificacao);
+    }
+
+    @Test
+    void listarChamadasPendentesPorAtendimentosDeveRetornarListaVaziaQuandoNaoReceberAtendimentos() {
+        List<NotificacaoResponse> resultado = notificacaoService.listarChamadasPendentesPorAtendimentos(List.of());
+
+        assertEquals(List.of(), resultado);
+        verifyNoInteractions(notificacaoRepository, notificacaoResponseMapper);
+    }
+
+    @Test
     void marcarComoLidaDeveLancarExcecaoQuandoNotificacaoNaoExistir() {
         when(notificacaoRepository.findById(99)).thenReturn(Optional.empty());
 
@@ -138,6 +229,9 @@ class NotificacaoServiceTest {
                 .destino(DestinoNotificacao.COZINHA)
                 .lida(lida)
                 .data(LocalDateTime.of(2026, 6, 30, 12, 0))
+                .idMesa(1)
+                .idAtendimento(8)
+                .idGarcom(7)
                 .build();
     }
 
@@ -148,7 +242,10 @@ class NotificacaoServiceTest {
                 notificacao.getMensagem(),
                 notificacao.getDestino(),
                 notificacao.getLida(),
-                notificacao.getData()
+                notificacao.getData(),
+                notificacao.getIdMesa(),
+                notificacao.getIdAtendimento(),
+                notificacao.getIdGarcom()
         );
     }
 }

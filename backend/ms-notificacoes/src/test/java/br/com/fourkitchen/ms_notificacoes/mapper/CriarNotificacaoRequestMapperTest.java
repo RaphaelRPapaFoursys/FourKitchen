@@ -18,7 +18,10 @@ class CriarNotificacaoRequestMapperTest {
     void mapDeveConverterRequestParaNotificacaoNaoLidaComDataAtual() {
         CriarNotificacaoRequest request = new CriarNotificacaoRequest(
                 TipoNotificacao.PEDIDO_PRONTO,
-                DestinoNotificacao.GARCOM
+                DestinoNotificacao.GARCOM,
+                1,
+                8,
+                7
         );
 
         Notificacao notificacao = mapper.map(request);
@@ -26,6 +29,9 @@ class CriarNotificacaoRequestMapperTest {
         assertEquals("PEDIDO_PRONTO", notificacao.getTipo());
         assertEquals("Pedido pronto para retirada", notificacao.getMensagem());
         assertEquals(DestinoNotificacao.GARCOM, notificacao.getDestino());
+        assertEquals(1, notificacao.getIdMesa());
+        assertEquals(8, notificacao.getIdAtendimento());
+        assertEquals(7, notificacao.getIdGarcom());
         assertFalse(notificacao.getLida());
         assertNotNull(notificacao.getData());
     }

@@ -3,12 +3,14 @@ package br.com.fourkitchen.ms_mesas.service;
 import br.com.fourkitchen.ms_mesas.client.PedidosAtivosClient;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
+import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
 import br.com.fourkitchen.ms_mesas.enums.StatusMesa;
 import br.com.fourkitchen.ms_mesas.exception.BaseException;
 import br.com.fourkitchen.ms_mesas.exception.ErrorEnum;
 import br.com.fourkitchen.ms_mesas.mapper.CriarMesaRequestMapper;
+import br.com.fourkitchen.ms_mesas.mapper.MesaGarcomResponseMapper;
 import br.com.fourkitchen.ms_mesas.mapper.MesaResponseMapper;
 import br.com.fourkitchen.ms_mesas.model.Atendimento;
 import br.com.fourkitchen.ms_mesas.model.Mesa;
@@ -35,12 +37,26 @@ public class MesaService {
 
     private final MesaResponseMapper mesaResponseMapper;
 
+    private final MesaGarcomResponseMapper mesaGarcomResponseMapper;
+
     private final CriarMesaRequestMapper criarMesaRequestMapper;
 
     public List<MesaResponse> listarMesas() {
         return mesaRepository.findAll()
                 .stream()
                 .map(mesaResponseMapper::map)
+                .toList();
+    }
+
+    public List<MesaGarcomResponse> listarMesasPorGarcom(Integer garcomId) {
+        validarGarcomExisteComPerfilGarcom(garcomId);
+
+        return mesaRepository
+                .findByDisponivelFalseAndAtendimento_GarcomIdAndAtendimento_DataFechamentoIsNullOrderByNumeroAsc(
+                        garcomId
+                )
+                .stream()
+                .map(mesaGarcomResponseMapper::map)
                 .toList();
     }
 

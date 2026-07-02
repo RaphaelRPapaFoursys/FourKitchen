@@ -129,6 +129,18 @@ public class PedidoService {
         return pedidoRepository.existsByIdAtendimentoAndStatusIn(atendimentoId, STATUS_ATIVOS);
     }
 
+    public List<PedidoResponse> findPedidosAtivosPorAtendimentos(List<Integer> idsAtendimento) {
+        if (idsAtendimento == null || idsAtendimento.isEmpty()) {
+            return List.of();
+        }
+
+        return pedidoRepository
+                .findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(idsAtendimento, STATUS_ATIVOS)
+                .stream()
+                .map(pedidoResponseMapper::map)
+                .toList();
+    }
+
     @Transactional
     public PedidoResponse iniciarPreparo(Integer id) {
         Pedido pedido = buscarPedido(id);

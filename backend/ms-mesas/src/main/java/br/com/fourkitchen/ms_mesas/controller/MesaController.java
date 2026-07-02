@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_mesas.controller;
 
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
+import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
 import br.com.fourkitchen.ms_mesas.service.MesaService;
@@ -37,6 +38,11 @@ public class MesaController {
     @GetMapping
     public ResponseEntity<List<MesaResponse>> listarMesas() {
         return ResponseEntity.ok(mesaService.listarMesas());
+    }
+
+    @GetMapping("/garcons/{idGarcom}")
+    public ResponseEntity<List<MesaGarcomResponse>> listarMesasPorGarcom(@PathVariable Integer idGarcom) {
+        return ResponseEntity.ok(mesaService.listarMesasPorGarcom(idGarcom));
     }
 
     @PatchMapping("/{id}/abrir")
