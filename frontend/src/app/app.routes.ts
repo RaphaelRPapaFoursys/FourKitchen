@@ -1,4 +1,7 @@
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
+
+import { defaultRedirectGuard } from './core/guards/auth.guard';
+import { protectedRoutes } from './core/routing/protected-routes';
 
 export const routes: Routes = [
   {
@@ -11,34 +14,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/login/login').then(m => m.Login)
   },
+  ...protectedRoutes,
   {
-    path: 'home',
+    path: '**',
+    canActivate: [defaultRedirectGuard],
     loadComponent: () =>
-      import('./features/home/home').then(m => m.Home)
+      import('./features/login/login').then(m => m.Login),
   },
-  {
-    path: 'totem',
-    loadComponent: () =>
-      import('./features/totem/totem').then(m => m.Totem)
-  },
-  {
-    path: 'mesa',
-    loadComponent: () =>
-      import('./features/mesa/mesa').then(m => m.Mesa)
-  },
-  {
-    path: 'garcom',
-    loadComponent: () =>
-      import('./features/garcom/garcom').then(m => m.Garcom)
-  },
-  {
-    path: 'cozinha',
-    loadComponent: () =>
-      import('./features/cozinha/cozinha').then(m => m.Cozinha)
-  },
-  {
-    path: 'gestor',
-    loadComponent: () =>
-      import('./features/gestor/gestor').then(m => m.Gestor)
-  }
 ];
+
