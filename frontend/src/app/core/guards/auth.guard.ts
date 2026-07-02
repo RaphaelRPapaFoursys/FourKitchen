@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+﻿import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Router, UrlTree } from '@angular/router';
 import { Observable, catchError, map, of } from 'rxjs';
 
@@ -8,6 +8,8 @@ import { getRedirectRouteByProfile, normalizePerfil } from '../utils/profile-red
 export const authGuard: CanActivateFn = route => canAccessRoute(route);
 
 export const authChildGuard: CanActivateChildFn = childRoute => canAccessRoute(childRoute);
+
+export const defaultRedirectGuard: CanActivateFn = () => redirectToDefaultRoute();
 
 function canAccessRoute(route: ActivatedRouteSnapshot): boolean | UrlTree | Observable<boolean | UrlTree> {
   const authService = inject(AuthService);
@@ -43,6 +45,22 @@ function canAccessRoute(route: ActivatedRouteSnapshot): boolean | UrlTree | Obse
   );
 }
 
+function redirectToDefaultRoute(): UrlTree | Observable<UrlTree> {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    return router.parseUrl('/login');
+  }
+
+  return authService.me().pipe(
+    map(usuario => router.parseUrl(getRedirectRouteByProfile(usuario.perfil))),
+    catchError(() => {
+      authService.logout();
+      return of(router.parseUrl('/login'));
+    }),
+  );
+}
 function getAllowedProfiles(route: ActivatedRouteSnapshot): unknown {
   for (let index = route.pathFromRoot.length - 1; index >= 0; index -= 1) {
     const allowedProfiles = route.pathFromRoot[index].data['allowedProfiles'];
@@ -54,3 +72,4 @@ function getAllowedProfiles(route: ActivatedRouteSnapshot): unknown {
 
   return undefined;
 }
+

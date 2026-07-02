@@ -1,4 +1,4 @@
-# Protecao de rotas por perfil
+﻿# Protecao de rotas por perfil
 
 Este documento explica como adicionar, alterar ou remover rotas protegidas de acordo com o perfil do usuario autenticado.
 
@@ -186,6 +186,26 @@ TOTEM: '/totem/pedidos',
 - Com login, mas sem permissao: o usuario e redirecionado para a rota padrao do proprio perfil.
 - Com login e permissao correta: o acesso e liberado.
 
+## Rotas inexistentes
+
+O arquivo `src/app/app.routes.ts` possui uma rota wildcard no final:
+
+```ts
+{
+  path: '**',
+  canActivate: [defaultRedirectGuard],
+  loadComponent: () =>
+    import('./features/login/login').then(m => m.Login),
+}
+```
+
+Essa rota captura qualquer caminho que nao exista.
+
+- Sem login: redireciona para `/login`.
+- Com login valido: consulta `/api/auth/me` e redireciona para a rota padrao do perfil.
+- Token expirado ou invalido: limpa a sessao e redireciona para `/login`.
+
+A rota wildcard deve ficar sempre no final de `app.routes.ts`.
 ## Checklist rapido
 
 1. Criar o componente da nova tela em `src/app/features`.
@@ -193,3 +213,4 @@ TOTEM: '/totem/pedidos',
 3. Informar os perfis permitidos.
 4. Se for rota inicial de perfil, atualizar `src/app/core/utils/profile-redirect.ts`.
 5. Rodar `npm.cmd run build` para validar.
+
