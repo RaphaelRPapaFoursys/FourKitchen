@@ -1,79 +1,11 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 
-type StatusPedido = 'aguardando' | 'preparando';
+import { PedidoFilaCozinhaResponse } from '../../core/models/cozinha.models';
+import { CozinhaService } from '../../core/services/cozinha';
+
 type PrioridadePedido = 'urgente' | 'alta' | 'normal';
 type OrdenacaoPedido = 'tempo' | 'prioridade';
-
-interface ItemPedido {
-  quantidade: number;
-  nome: string;
-  observacao?: string;
-}
-
-interface PedidoCozinha {
-  id: number;
-  status: StatusPedido;
-  prioridade: PrioridadePedido;
-  origem: string;
-  horario: string;
-  estimativaMinutos: number;
-  noFogoMinutos: number;
-  itens: ItemPedido[];
-}
-
-const pedidosIniciais: PedidoCozinha[] = [
-  {
-    id: 429,
-    status: 'aguardando',
-    prioridade: 'urgente',
-    origem: 'Mesa 12',
-    horario: '18:45',
-    estimativaMinutos: 12,
-    noFogoMinutos: 12,
-    itens: [
-      { quantidade: 2, nome: 'Hamburguer Gourmet Monster', observacao: 'Sem cebola, bem passado' },
-      { quantidade: 1, nome: 'Batata Rustica Individual' },
-    ],
-  },
-  {
-    id: 432,
-    status: 'aguardando',
-    prioridade: 'alta',
-    origem: 'Totem 02',
-    horario: '18:52',
-    estimativaMinutos: 5,
-    noFogoMinutos: 5,
-    itens: [
-      { quantidade: 3, nome: 'Rodizio de Mini Burguer', observacao: '+ Molho extra barbecue' },
-    ],
-  },
-  {
-    id: 425,
-    status: 'preparando',
-    prioridade: 'alta',
-    origem: 'Mesa Digital 08',
-    horario: '08:12',
-    estimativaMinutos: 8,
-    noFogoMinutos: 8,
-    itens: [
-      { quantidade: 1, nome: 'Costela BBQ 12h', observacao: 'Ponto da carne: Desmanchando' },
-      { quantidade: 1, nome: 'Arroz Biroska' },
-    ],
-  },
-  {
-    id: 435,
-    status: 'preparando',
-    prioridade: 'normal',
-    origem: 'Mesa 04',
-    horario: '02:45',
-    estimativaMinutos: 2,
-    noFogoMinutos: 2,
-    itens: [
-      { quantidade: 4, nome: 'Petit Gateau Classico' },
-    ],
-  },
-];
 
 @Component({
   selector: 'app-cozinha',
@@ -83,10 +15,17 @@ const pedidosIniciais: PedidoCozinha[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Cozinha {
-  protected readonly pedidos = signal<PedidoCozinha[]>(pedidosIniciais);
+  protected readonly pedidos = signal<PedidoFilaCozinhaResponse[]>([]);
   protected readonly busca = signal('');
   protected readonly ordenacao = signal<OrdenacaoPedido>('tempo');
-  protected readonly sincronizadoEm = signal(new Date(Date.now() - 2000));
+  protected readonly sincronizadoEm = signal<Date | null>(null);
+  protected readonly carregando = signal(false);
+  protected readonly erro = signal<string | null>(null);
+  protected readonly pedidoEmAcao = signal<number | null>(null);
+
+  constructor(private readonly cozinhaService: CozinhaService) {
+    this.carregarFila();
+  }
 
   protected readonly pedidosFiltrados = computed(() => {
     const termo = this.busca().trim().toLowerCase();
@@ -104,42 +43,48 @@ export class Cozinha {
 
         const texto = [
           pedido.id,
-          pedido.origem,
-          pedido.prioridade,
-          ...pedido.itens.flatMap(item => [item.nome, item.observacao]),
+          pedido.codigo,
+          pedido.status,
+          this.origem(pedido),
+          this.prioridade(pedido),
+          ...pedido.itens.flatMap(item => [item.nomeProduto, item.observacao]),
         ].join(' ').toLowerCase();
 
         return texto.includes(termo);
       })
       .sort((a, b) => {
         if (this.ordenacao() === 'prioridade') {
-          return prioridadePeso[a.prioridade] - prioridadePeso[b.prioridade]
-            || a.estimativaMinutos - b.estimativaMinutos;
+          return prioridadePeso[this.prioridade(a)] - prioridadePeso[this.prioridade(b)]
+            || this.minutosDesdeCriacao(b) - this.minutosDesdeCriacao(a);
         }
 
-        return b.noFogoMinutos - a.noFogoMinutos;
+        return this.minutosDesdeCriacao(b) - this.minutosDesdeCriacao(a);
       });
   });
 
   protected readonly aguardando = computed(() =>
-    this.pedidosFiltrados().filter(pedido => pedido.status === 'aguardando')
+    this.pedidosFiltrados().filter(pedido => this.statusNormalizado(pedido) === 'ENVIADO_COZINHA')
   );
 
   protected readonly preparando = computed(() =>
-    this.pedidosFiltrados().filter(pedido => pedido.status === 'preparando')
+    this.pedidosFiltrados().filter(pedido => {
+      const status = this.statusNormalizado(pedido);
+
+      return status === 'EM_PREPARO' || status === 'PRONTO';
+    })
   );
 
   protected readonly urgentes = computed(() =>
-    this.pedidos().filter(pedido => pedido.prioridade === 'urgente').length
+    this.pedidos().filter(pedido => this.prioridade(pedido) === 'urgente').length
   );
 
   protected readonly altas = computed(() =>
-    this.pedidos().filter(pedido => pedido.prioridade === 'alta').length
+    this.pedidos().filter(pedido => this.prioridade(pedido) === 'alta').length
   );
 
   protected readonly tempoMedio = computed(() => {
     const pedidos = this.pedidos();
-    const total = pedidos.reduce((soma, pedido) => soma + pedido.noFogoMinutos, 0);
+    const total = pedidos.reduce((soma, pedido) => soma + this.minutosDesdeCriacao(pedido), 0);
 
     return pedidos.length ? Math.round(total / pedidos.length) : 0;
   });
@@ -153,19 +98,15 @@ export class Cozinha {
   }
 
   protected atualizarFila(): void {
-    this.sincronizadoEm.set(new Date());
+    this.carregarFila();
   }
 
   protected iniciarPreparo(id: number): void {
-    this.pedidos.update(pedidos =>
-      pedidos.map(pedido =>
-        pedido.id === id ? { ...pedido, status: 'preparando' } : pedido
-      )
-    );
+    this.alterarStatus(id, 'EM_PREPARO');
   }
 
   protected marcarPronto(id: number): void {
-    this.pedidos.update(pedidos => pedidos.filter(pedido => pedido.id !== id));
+    this.alterarStatus(id, 'PRONTO');
   }
 
   protected prioridadeLabel(prioridade: PrioridadePedido): string {
@@ -178,9 +119,99 @@ export class Cozinha {
     return labels[prioridade];
   }
 
+  protected prioridade(pedido: PedidoFilaCozinhaResponse): PrioridadePedido {
+    const minutos = this.minutosDesdeCriacao(pedido);
+
+    if (minutos >= 10) {
+      return 'urgente';
+    }
+
+    if (minutos >= 5) {
+      return 'alta';
+    }
+
+    return 'normal';
+  }
+
+  protected origem(pedido: PedidoFilaCozinhaResponse): string {
+    if (pedido.idMesa) {
+      return `Mesa ${pedido.idMesa.toString().padStart(2, '0')}`;
+    }
+
+    return pedido.canal.toLowerCase() === 'totem' ? 'Totem' : pedido.canal;
+  }
+
+  protected horario(pedido: PedidoFilaCozinhaResponse): string {
+    return new Date(pedido.dataCriacao).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  protected minutosDesdeCriacao(pedido: PedidoFilaCozinhaResponse): number {
+    const criadoEm = new Date(pedido.dataCriacao).getTime();
+
+    if (Number.isNaN(criadoEm)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.round((Date.now() - criadoEm) / 60000));
+  }
+
+  protected statusPronto(pedido: PedidoFilaCozinhaResponse): boolean {
+    return this.statusNormalizado(pedido) === 'PRONTO';
+  }
+
+  protected acaoDesabilitada(pedido: PedidoFilaCozinhaResponse): boolean {
+    return this.pedidoEmAcao() === pedido.id || this.statusPronto(pedido);
+  }
+
   protected sincronizadoLabel(): string {
-    const segundos = Math.max(0, Math.round((Date.now() - this.sincronizadoEm().getTime()) / 1000));
+    const sincronizadoEm = this.sincronizadoEm();
+
+    if (!sincronizadoEm) {
+      return 'pendente';
+    }
+
+    const segundos = Math.max(0, Math.round((Date.now() - sincronizadoEm.getTime()) / 1000));
 
     return segundos <= 1 ? 'agora' : `${segundos}s atras`;
+  }
+
+  private carregarFila(): void {
+    this.carregando.set(true);
+    this.erro.set(null);
+
+    this.cozinhaService.listarFila().subscribe({
+      next: pedidos => {
+        this.pedidos.set(pedidos);
+        this.sincronizadoEm.set(new Date());
+        this.carregando.set(false);
+      },
+      error: () => {
+        this.erro.set('Nao foi possivel carregar a fila da cozinha.');
+        this.carregando.set(false);
+      },
+    });
+  }
+
+  private alterarStatus(id: number, status: 'EM_PREPARO' | 'PRONTO'): void {
+    this.pedidoEmAcao.set(id);
+    this.erro.set(null);
+
+    this.cozinhaService.alterarStatus(id, status).subscribe({
+      next: () => {
+        this.pedidoEmAcao.set(null);
+        this.carregarFila();
+      },
+      error: () => {
+        this.erro.set('Nao foi possivel atualizar o pedido.');
+        this.pedidoEmAcao.set(null);
+      },
+    });
+  }
+
+  private statusNormalizado(pedido: PedidoFilaCozinhaResponse): string {
+    return String(pedido.status).trim().toUpperCase();
   }
 }

@@ -175,6 +175,28 @@ h1 {
   width: 28px;
 }
 
+.refresh-button:disabled,
+.order-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.feedback {
+  background: #ffffff;
+  border-left: 2px solid var(--orange);
+  border-radius: 0 6px 6px 0;
+  color: #4f5460;
+  font-size: 11px;
+  margin: -6px 0 14px;
+  padding: 9px 12px;
+}
+
+.feedback--error {
+  border-left-color: var(--red);
+  color: var(--red);
+  font-weight: 800;
+}
+
 .board {
   display: grid;
   gap: 16px;
@@ -255,6 +277,10 @@ h1 {
 
 .order-card--normal {
   border-left-color: transparent;
+}
+
+.order-card--ready {
+  border-left-color: #1fc56d;
 }
 
 .order-card__top {
@@ -376,6 +402,12 @@ h1 {
   background: #ffffff;
   border: 1px solid var(--orange);
   color: var(--orange);
+}
+
+.order-action--ready {
+  background: #e9f8ef;
+  border: 1px solid #1fc56d;
+  color: #138a4a;
 }
 
 .statusbar {

@@ -12,6 +12,9 @@ public record ItemFilaCozinhaResponse(
         @Schema(description = "Identificador do produto solicitado", example = "10")
         Integer idProduto,
 
+        @Schema(description = "Nome do produto solicitado", example = "Hamburguer Gourmet Monster")
+        String nomeProduto,
+
         @Schema(description = "Quantidade solicitada do produto", example = "2")
         Integer quantidade,
 

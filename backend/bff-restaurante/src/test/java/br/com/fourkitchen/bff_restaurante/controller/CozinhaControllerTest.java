@@ -1,5 +1,6 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
+import br.com.fourkitchen.bff_restaurante.dto.request.AlterarStatusPedidoCozinhaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.service.CozinhaService;
 import org.junit.jupiter.api.Test;
@@ -45,5 +46,15 @@ class CozinhaControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertEquals(List.of(pedido), response.getBody());
         verify(cozinhaService).listarFila();
+    }
+
+    @Test
+    void alterarStatusDeveRetornarNoContent() {
+        AlterarStatusPedidoCozinhaRequest request = new AlterarStatusPedidoCozinhaRequest("PRONTO");
+
+        ResponseEntity<Void> response = cozinhaController.alterarStatus(25, request);
+
+        assertEquals(204, response.getStatusCode().value());
+        verify(cozinhaService).alterarStatus(25, request);
     }
 }

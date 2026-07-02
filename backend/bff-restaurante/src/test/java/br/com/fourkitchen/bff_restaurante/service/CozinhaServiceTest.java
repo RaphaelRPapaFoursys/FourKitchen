@@ -1,8 +1,12 @@
 package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.AlterarPedidoRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
+import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.request.AlterarStatusPedidoCozinhaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
@@ -23,6 +27,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +37,9 @@ class CozinhaServiceTest {
     @Mock
     private PedidoClient pedidoClient;
 
+    @Mock
+    private ProdutoClient produtoClient;
+
     @InjectMocks
     private CozinhaService cozinhaService;
 
@@ -39,6 +47,7 @@ class CozinhaServiceTest {
     void listarFilaDeveDelegarParaMsPedidosEMapearResponse() {
         PedidoCozinhaResponse response = criarResponse();
 
+        when(produtoClient.listarProdutos()).thenReturn(List.of(criarProdutoResponse()));
         when(pedidoClient.listarFilaCozinha()).thenReturn(List.of(response));
 
         List<PedidoFilaCozinhaResponse> resultado = cozinhaService.listarFila();
@@ -53,18 +62,56 @@ class CozinhaServiceTest {
         assertEquals(8, pedido.idAtendimento());
         assertEquals(LocalDateTime.of(2026, 7, 2, 10, 30), pedido.dataCriacao());
         assertEquals(1, pedido.itens().size());
+        assertEquals("Hamburguer Gourmet Monster", pedido.itens().getFirst().nomeProduto());
         assertEquals("Sem cebola", pedido.itens().getFirst().observacao());
+        verify(produtoClient).listarProdutos();
         verify(pedidoClient).listarFilaCozinha();
     }
 
     @Test
     void listarFilaDeveMapearMsPedidosIndisponivel() {
+        when(produtoClient.listarProdutos()).thenReturn(List.of(criarProdutoResponse()));
         when(pedidoClient.listarFilaCozinha()).thenThrow(feignException(500));
 
         BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.listarFila());
 
         assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
         verify(pedidoClient).listarFilaCozinha();
+    }
+
+    @Test
+    void listarFilaNaoDeveBloquearPedidosQuandoMsProdutosFalhar() {
+        PedidoCozinhaResponse response = criarResponse();
+
+        when(pedidoClient.listarFilaCozinha()).thenReturn(List.of(response));
+        when(produtoClient.listarProdutos()).thenThrow(feignException(500));
+
+        List<PedidoFilaCozinhaResponse> resultado = cozinhaService.listarFila();
+
+        assertEquals(1, resultado.size());
+        assertEquals("Produto #10", resultado.getFirst().itens().getFirst().nomeProduto());
+        verify(pedidoClient).listarFilaCozinha();
+        verify(produtoClient).listarProdutos();
+    }
+
+    @Test
+    void alterarStatusDeveDelegarParaMsPedidos() {
+        cozinhaService.alterarStatus(25, new AlterarStatusPedidoCozinhaRequest("EM_PREPARO"));
+
+        verify(pedidoClient).alterarPedido(
+                eq(25),
+                eq(new AlterarPedidoRequest(null, "EM_PREPARO", null, null, null))
+        );
+    }
+
+    @Test
+    void alterarStatusDeveRecusarStatusForaDoFluxoDaCozinha() {
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> cozinhaService.alterarStatus(25, new AlterarStatusPedidoCozinhaRequest("FINALIZADO"))
+        );
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
     }
 
     private PedidoCozinhaResponse criarResponse() {
@@ -83,6 +130,18 @@ class CozinhaServiceTest {
                         new BigDecimal("29.90"),
                         "Sem cebola"
                 ))
+        );
+    }
+
+    private ProdutoResponse criarProdutoResponse() {
+        return new ProdutoResponse(
+                10,
+                "Hamburguer Gourmet Monster",
+                "Burger",
+                new BigDecimal("29.90"),
+                1,
+                "Lanches",
+                true
         );
     }
 

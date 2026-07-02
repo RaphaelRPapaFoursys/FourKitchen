@@ -1,7 +1,7 @@
 <main class="kitchen-page">
   <header class="topbar">
     <label class="search" aria-label="Buscar pedido">
-      <span aria-hidden="true">⌕</span>
+      <span aria-hidden="true">*</span>
       <input
         type="search"
         placeholder="Buscar pedido..."
@@ -11,15 +11,15 @@
     </label>
 
     <section class="station" aria-label="Status da estacao">
-      <strong>Kitchen Station #1</strong>
-      <span>Live Monitor</span>
+      <strong>Cozinha</strong>
+      <span>Ao Vivo</span>
     </section>
   </header>
 
   <section class="content">
     <div class="headline">
       <div>
-        <h1>Painel de Produção</h1>
+        <h1>Painel de Producao</h1>
         <div class="badges" aria-label="Resumo da fila">
           <span class="badge badge--urgent">{{ urgentes() }} Urgentes</span>
           <span class="badge badge--high">{{ altas() }} Alta Prioridade</span>
@@ -28,14 +28,20 @@
 
       <div class="toolbar">
         <button type="button" class="sort-button" (click)="alternarOrdenacao()">
-          <span aria-hidden="true">≡</span>
+          <span aria-hidden="true">=</span>
           {{ ordenacao() === 'tempo' ? 'Ordenar por Tempo' : 'Ordenar por Prioridade' }}
         </button>
-        <button type="button" class="refresh-button" aria-label="Atualizar fila" (click)="atualizarFila()">
-          ↻
+        <button type="button" class="refresh-button" aria-label="Atualizar fila" (click)="atualizarFila()" [disabled]="carregando()">
+          R
         </button>
       </div>
     </div>
+
+    @if (erro()) {
+      <p class="feedback feedback--error">{{ erro() }}</p>
+    } @else if (carregando()) {
+      <p class="feedback">Carregando fila da cozinha...</p>
+    }
 
     <section class="board" aria-label="Fila de pedidos">
       <section class="lane">
@@ -45,14 +51,14 @@
             <span>{{ aguardando().length.toString().padStart(2, '0') }}</span>
           </div>
           <div class="lane__controls" aria-hidden="true">
-            <span>⌃</span>
-            <span>⌄</span>
+            <span>^</span>
+            <span>v</span>
           </div>
         </header>
 
         <div class="orders">
           @for (pedido of aguardando(); track pedido.id) {
-            <article class="order-card" [class.order-card--high]="pedido.prioridade === 'alta'">
+            <article class="order-card" [class.order-card--high]="prioridade(pedido) === 'alta'">
               <ng-container
                 [ngTemplateOutlet]="pedidoCard"
                 [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'iniciar' }"
@@ -71,14 +77,18 @@
             <span>{{ preparando().length.toString().padStart(2, '0') }}</span>
           </div>
           <div class="lane__controls" aria-hidden="true">
-            <span>⌃</span>
-            <span>⌄</span>
+            <span>^</span>
+            <span>v</span>
           </div>
         </header>
 
         <div class="orders">
           @for (pedido of preparando(); track pedido.id) {
-            <article class="order-card order-card--preparing" [class.order-card--normal]="pedido.prioridade === 'normal'">
+            <article
+              class="order-card order-card--preparing"
+              [class.order-card--normal]="prioridade(pedido) === 'normal'"
+              [class.order-card--ready]="statusPronto(pedido)"
+            >
               <ng-container
                 [ngTemplateOutlet]="pedidoCard"
                 [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'pronto' }"
@@ -95,8 +105,8 @@
   <footer class="statusbar">
     <span class="online">Sistema Online</span>
     <span>Sincronizado: {{ sincronizadoLabel() }}</span>
-    <span>Tempo Medio de Preparo: 14:22 min</span>
-    <span>Pedidos/Hora: 24</span>
+    <span>Tempo Medio de Preparo: {{ tempoMedio() }} min</span>
+    <span>Pedidos na Fila: {{ pedidos().length }}</span>
   </footer>
 </main>
 
@@ -104,33 +114,33 @@
   <div class="order-card__top">
     <div>
       <div class="order-card__id">
-        <strong>#{{ pedido.id }}</strong>
-        <span class="priority" [class.priority--normal]="pedido.prioridade === 'normal'">
-          {{ prioridadeLabel(pedido.prioridade) }}
+        <strong>#{{ pedido.codigo || pedido.id }}</strong>
+        <span class="priority" [class.priority--normal]="prioridade(pedido) === 'normal'">
+          {{ statusPronto(pedido) ? 'Pronto' : prioridadeLabel(prioridade(pedido)) }}
         </span>
       </div>
       <div class="order-card__origin">
-        <span aria-hidden="true">□</span>
-        {{ pedido.origem }}
+        <span aria-hidden="true">[]</span>
+        {{ origem(pedido) }}
       </div>
     </div>
 
     <div class="timer">
-      <strong>{{ pedido.horario }}</strong>
+      <strong>{{ horario(pedido) }}</strong>
       @if (acao === 'iniciar') {
-        <span>Esperando: {{ pedido.estimativaMinutos }}min</span>
+        <span>Esperando: {{ minutosDesdeCriacao(pedido) }}min</span>
       } @else {
-        <span>No fogo há: {{ pedido.noFogoMinutos }}min</span>
+        <span>No fogo ha: {{ minutosDesdeCriacao(pedido) }}min</span>
       }
     </div>
   </div>
 
   <ul class="items">
-    @for (item of pedido.itens; track item.nome) {
+    @for (item of pedido.itens; track item.id) {
       <li>
         <span>{{ item.quantidade }}x</span>
         <div>
-          <strong>{{ item.nome }}</strong>
+          <strong>{{ item.nomeProduto }}</strong>
           @if (item.observacao) {
             <small>{{ item.observacao }}</small>
           }
@@ -140,12 +150,26 @@
   </ul>
 
   @if (acao === 'iniciar') {
-    <button type="button" class="order-action order-action--primary" (click)="iniciarPreparo(pedido.id)">
-      ▶ Iniciar Preparo
+    <button
+      type="button"
+      class="order-action order-action--primary"
+      (click)="iniciarPreparo(pedido.id)"
+      [disabled]="acaoDesabilitada(pedido)"
+    >
+      Iniciar Preparo
+    </button>
+  } @else if (statusPronto(pedido)) {
+    <button type="button" class="order-action order-action--ready" disabled>
+      Pedido Pronto
     </button>
   } @else {
-    <button type="button" class="order-action order-action--outline" (click)="marcarPronto(pedido.id)">
-      ◎ Marcar como Pronto
+    <button
+      type="button"
+      class="order-action order-action--outline"
+      (click)="marcarPronto(pedido.id)"
+      [disabled]="acaoDesabilitada(pedido)"
+    >
+      Marcar como Pronto
     </button>
   }
 </ng-template>
