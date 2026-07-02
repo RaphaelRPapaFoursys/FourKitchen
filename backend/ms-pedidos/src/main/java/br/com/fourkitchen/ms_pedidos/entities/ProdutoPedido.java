@@ -1,5 +1,6 @@
 package br.com.fourkitchen.ms_pedidos.entities;
 
+import br.com.fourkitchen.ms_pedidos.enums.StatusProdutoPedido;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,4 +37,7 @@ public class ProdutoPedido {
 
     @Column(name = "observacao")
     private String observacao;
+
+    @Column(name = "status_produto_pedido")
+    private StatusProdutoPedido status;
 }

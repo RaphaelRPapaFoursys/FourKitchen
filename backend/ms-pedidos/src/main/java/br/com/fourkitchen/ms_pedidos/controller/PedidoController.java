@@ -2,9 +2,12 @@ package br.com.fourkitchen.ms_pedidos.controller;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +121,19 @@ public class PedidoController {
             return ResponseEntity
                     .notFound()
                     .build();
+        }
+    }
+
+    @PatchMapping("/sinalizar-problema")
+    public ResponseEntity<SinalizarProblemaResponse> sinalizarProblema(
+            @RequestBody SinalizarProblemaRequest request
+    ) {
+        try {
+            SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);
+            return ResponseEntity.ok(response);
+
+        } catch (PedidoInexistenteException | ProdutoPedidoInexistenteException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }
