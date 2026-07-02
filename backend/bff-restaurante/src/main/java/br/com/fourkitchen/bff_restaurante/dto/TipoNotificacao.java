@@ -7,6 +7,7 @@ import lombok.Getter;
 @Schema(description = "Tipo da notificacao. A mensagem exibida e gerada automaticamente pelo ms-notificacoes.")
 public enum TipoNotificacao {
 
+    PEDIDO_EM_PREPARO("Pedido em preparo"),
     PEDIDO_PRONTO("Pedido pronto para retirada"),
     PEDIDO_COM_FALTA("Pedido com item em falta"),
     PEDIDO_CANCELADO("Pedido cancelado"),

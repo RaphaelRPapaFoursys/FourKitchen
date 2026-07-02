@@ -14,6 +14,7 @@ public record NotificacaoResponse(
                 description = "Tipo da notificacao",
                 example = "PEDIDO_PRONTO",
                 allowableValues = {
+                        "PEDIDO_EM_PREPARO",
                         "PEDIDO_PRONTO",
                         "PEDIDO_COM_FALTA",
                         "PEDIDO_CANCELADO",
