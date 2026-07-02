@@ -11,6 +11,20 @@ Este documento explica como adicionar, alterar ou remover rotas protegidas de ac
 
 Na maior parte dos casos, voce vai alterar apenas `protected-routes.ts`.
 
+## Validacao no BFF
+
+O frontend nao salva o perfil do usuario no `localStorage`.
+
+Somente o token fica salvo. Sempre que uma rota protegida e acessada, o guard chama:
+
+```txt
+/api/auth/me
+```
+
+Essa chamada valida se o token ainda e valido e retorna o usuario/perfil atual pelo BFF.
+
+Se o token estiver expirado ou invalido, o usuario e deslogado e redirecionado para `/login`.
+
 ## Perfis disponiveis
 
 Os perfis aceitos hoje sao:
@@ -168,6 +182,7 @@ TOTEM: '/totem/pedidos',
 ## O que acontece quando o usuario nao tem permissao
 
 - Sem login: o usuario e redirecionado para `/login`.
+- Token expirado ou invalido: o usuario e deslogado e redirecionado para `/login`.
 - Com login, mas sem permissao: o usuario e redirecionado para a rota padrao do proprio perfil.
 - Com login e permissao correta: o acesso e liberado.
 

@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Router, UrlTree } from '@angular/router';
+import { Observable, catchError, map, of } from 'rxjs';
 
 import { AuthService } from '../services/auth';
 import { getRedirectRouteByProfile, normalizePerfil } from '../utils/profile-redirect';
@@ -8,7 +9,7 @@ export const authGuard: CanActivateFn = route => canAccessRoute(route);
 
 export const authChildGuard: CanActivateChildFn = childRoute => canAccessRoute(childRoute);
 
-function canAccessRoute(route: ActivatedRouteSnapshot): boolean | UrlTree {
+function canAccessRoute(route: ActivatedRouteSnapshot): boolean | UrlTree | Observable<boolean | UrlTree> {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -16,26 +17,30 @@ function canAccessRoute(route: ActivatedRouteSnapshot): boolean | UrlTree {
     return router.parseUrl('/login');
   }
 
-  const usuario = authService.getCurrentUser();
+  return authService.me().pipe(
+    map(usuario => {
+      const allowedProfiles = getAllowedProfiles(route);
 
-  if (!usuario) {
-    authService.logout();
-    return router.parseUrl('/login');
-  }
+      if (!Array.isArray(allowedProfiles)) {
+        return true;
+      }
 
-  const allowedProfiles = getAllowedProfiles(route);
+      const perfil = normalizePerfil(usuario.perfil);
+      const normalizedAllowedProfiles = allowedProfiles
+        .filter((allowedProfile): allowedProfile is string => typeof allowedProfile === 'string')
+        .map(normalizePerfil);
 
-  if (!Array.isArray(allowedProfiles)) {
-    return true;
-  }
+      if (normalizedAllowedProfiles.includes(perfil)) {
+        return true;
+      }
 
-  const perfil = normalizePerfil(usuario.perfil);
-
-  if (allowedProfiles.includes(perfil)) {
-    return true;
-  }
-
-  return router.parseUrl(getRedirectRouteByProfile(usuario.perfil));
+      return router.parseUrl(getRedirectRouteByProfile(usuario.perfil));
+    }),
+    catchError(() => {
+      authService.logout();
+      return of(router.parseUrl('/login'));
+    }),
+  );
 }
 
 function getAllowedProfiles(route: ActivatedRouteSnapshot): unknown {
