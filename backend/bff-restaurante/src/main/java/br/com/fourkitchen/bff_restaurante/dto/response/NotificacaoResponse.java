@@ -10,7 +10,18 @@ public record NotificacaoResponse(
         @Schema(description = "Identificador da notificacao", example = "1")
         Integer id,
 
-        @Schema(description = "Tipo da notificacao", example = "PEDIDO_PRONTO")
+        @Schema(
+                description = "Tipo da notificacao",
+                example = "PEDIDO_PRONTO",
+                allowableValues = {
+                        "PEDIDO_PRONTO",
+                        "PEDIDO_COM_FALTA",
+                        "PEDIDO_CANCELADO",
+                        "CHAMADA_GARCOM",
+                        "CONTA_SOLICITADA",
+                        "ALTERACAO_PEDIDO_SOLICITADA"
+                }
+        )
         String tipo,
 
         @Schema(description = "Mensagem da notificacao", example = "Pedido pronto para retirada")

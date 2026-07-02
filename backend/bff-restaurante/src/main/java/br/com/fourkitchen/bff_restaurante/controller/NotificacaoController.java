@@ -41,7 +41,7 @@ public class NotificacaoController {
     @PostMapping
     @Operation(
             summary = "Cria notificacao",
-            description = "Cria uma notificacao no ms-notificacoes e devolve o registro criado para o frontend."
+            description = "Cria uma notificacao no ms-notificacoes. O frontend informa tipo e destino; a mensagem e gerada automaticamente pelo tipo."
     )
     @ApiResponses(value = {
             @ApiResponse(
