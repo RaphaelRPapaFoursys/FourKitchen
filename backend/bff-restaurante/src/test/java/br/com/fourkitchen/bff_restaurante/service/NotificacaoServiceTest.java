@@ -84,6 +84,48 @@ class NotificacaoServiceTest {
     }
 
     @Test
+    void concluirChamadaGarcomDeveDelegarParaMsNotificacoes() {
+        NotificacaoResponse response = criarResponse(true);
+
+        when(notificacaoClient.concluirChamadaGarcom(3, 7)).thenReturn(response);
+
+        NotificacaoResponse resultado = notificacaoService.concluirChamadaGarcom(3, 7);
+
+        assertSame(response, resultado);
+        verify(notificacaoClient).concluirChamadaGarcom(3, 7);
+    }
+
+    @Test
+    void concluirChamadaGarcomDeveMapearNotificacaoNaoEncontrada() {
+        when(notificacaoClient.concluirChamadaGarcom(99, 7)).thenThrow(feignException(404));
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.concluirChamadaGarcom(99, 7));
+
+        assertEquals(ErrorEnum.NOTIFICACAO_NAO_ENCONTRADA, exception.getErrorEnum());
+        verify(notificacaoClient).concluirChamadaGarcom(99, 7);
+    }
+
+    @Test
+    void concluirChamadaGarcomDeveMapearChamadaInvalida() {
+        when(notificacaoClient.concluirChamadaGarcom(3, 7)).thenThrow(feignException(400));
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.concluirChamadaGarcom(3, 7));
+
+        assertEquals(ErrorEnum.CHAMADA_GARCOM_INVALIDA, exception.getErrorEnum());
+        verify(notificacaoClient).concluirChamadaGarcom(3, 7);
+    }
+
+    @Test
+    void concluirChamadaGarcomDeveMapearChamadaDeOutroGarcom() {
+        when(notificacaoClient.concluirChamadaGarcom(3, 9)).thenThrow(feignException(403));
+
+        BaseException exception = assertThrows(BaseException.class, () -> notificacaoService.concluirChamadaGarcom(3, 9));
+
+        assertEquals(ErrorEnum.CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM, exception.getErrorEnum());
+        verify(notificacaoClient).concluirChamadaGarcom(3, 9);
+    }
+
+    @Test
     void listarPendentesDeveMapearMsNotificacoesIndisponivel() {
         when(notificacaoClient.listarPendentes(null)).thenThrow(feignException(500));
 
