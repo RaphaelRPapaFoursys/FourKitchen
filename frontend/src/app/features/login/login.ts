@@ -72,6 +72,10 @@ export class Login {
     if (error instanceof HttpErrorResponse) {
       const apiError = this.getApiError(error.error);
 
+      if (error.status === 502) {
+        return 'Nao foi possivel entrar no sistema. Tente novamente mais tarde.';
+      }
+      
       if (error.status === 401) {
         return 'E-mail ou senha invalidos.';
       }
@@ -82,10 +86,6 @@ export class Login {
 
       if (error.status === 400) {
         return 'Dados invalidos. Verifique e tente novamente.';
-      }
-
-      if (error.status === 502) {
-        return 'Nao foi possivel entrar no sistema. Tente novamente mais tarde.';
       }
     }
 
