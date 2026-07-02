@@ -55,7 +55,7 @@ public class MesaController {
             @RequestBody @Valid AtribuirGarcomRequest request
     ) {
         return ResponseEntity.ok(mesaService.atribuirGarcom(id, request));
-    }
+    } 
 
     @GetMapping("/{id}/sessoes/{codigoSessao}/validar")
     public ResponseEntity<SessaoMesaResponse> validarSessaoMesa(

@@ -1,12 +1,38 @@
 package br.com.fourkitchen.bff_restaurante.client.mesas;
 
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.SessaoMesaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
+import br.com.fourkitchen.bff_restaurante.dto.request.CriarMesaRequest;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 @FeignClient(name = "ms-mesas", url = "${clients.ms-mesas.url}")
 public interface MesaClient {
+
+    @PostMapping("/api/mesas")
+    MesaResponse criarMesa(@RequestBody CriarMesaRequest request);
+
+    @GetMapping("/api/mesas")
+    List<MesaResponse> listarMesas();
+
+    @PatchMapping("/api/mesas/{id}/abrir")
+    MesaResponse abrirMesa(@PathVariable Integer id);
+
+    @PatchMapping("/api/mesas/{id}/fechar")
+    MesaResponse fecharMesa(@PathVariable Integer id);
+
+    @PatchMapping("/api/mesas/{id}/atribuir-garcom")
+    MesaResponse atribuirGarcom(
+            @PathVariable Integer id,
+            @RequestBody AtribuirGarcomRequest request
+    );
 
     @GetMapping("/api/mesas/{idMesa}/sessoes/{codigoSessao}/validar")
     SessaoMesaResponse validarSessaoMesa(
