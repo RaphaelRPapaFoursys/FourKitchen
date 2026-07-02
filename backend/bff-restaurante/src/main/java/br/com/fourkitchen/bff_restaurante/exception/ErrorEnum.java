@@ -102,6 +102,18 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    GARCOM_INVALIDO(
+            "017",
+            "Garcom invalido",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    MESA_NAO_ENCONTRADA(
+            "018",
+            "Mesa nao encontrada",
+            HttpStatus.NOT_FOUND
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",
