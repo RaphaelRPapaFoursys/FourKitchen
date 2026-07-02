@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_pedidos.service;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
@@ -19,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -198,6 +200,61 @@ class PedidoServiceTest {
         assertEquals(List.of(response), resultado);
         verify(pedidoRepository).findByStatusIn(anyStatusCollection());
         verify(pedidoResponseMapper).map(pedido);
+    }
+
+    @Test
+    void findFilaCozinhaDeveRetornarPedidosComItensOrdenadosPorChegada() {
+        LocalDateTime dataCriacao = LocalDateTime.of(2026, 7, 2, 10, 30);
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(123456)
+                .canal(CanaisPedido.MESA)
+                .status(StatusPedido.ENVIADO_COZINHA)
+                .idMesa(1)
+                .idAtendimento(8)
+                .dataCriacao(dataCriacao)
+                .build();
+        ProdutoPedido item = ProdutoPedido.builder()
+                .id(5)
+                .idPedido(25)
+                .idProduto(10)
+                .quantidade(2)
+                .precoUnitario(new BigDecimal("29.90"))
+                .observacao("Sem cebola")
+                .build();
+
+        when(pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection())).thenReturn(List.of(pedido));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25))).thenReturn(List.of(item));
+
+        List<PedidoCozinhaResponse> resultado = pedidoService.findFilaCozinha();
+
+        assertEquals(1, resultado.size());
+        PedidoCozinhaResponse pedidoResponse = resultado.getFirst();
+        assertEquals(25, pedidoResponse.id());
+        assertEquals(123456, pedidoResponse.codigo());
+        assertEquals(CanaisPedido.MESA, pedidoResponse.canal());
+        assertEquals(StatusPedido.ENVIADO_COZINHA, pedidoResponse.status());
+        assertEquals(1, pedidoResponse.idMesa());
+        assertEquals(8, pedidoResponse.idAtendimento());
+        assertEquals(dataCriacao, pedidoResponse.dataCriacao());
+        assertEquals(1, pedidoResponse.itens().size());
+        assertEquals(5, pedidoResponse.itens().getFirst().id());
+        assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
+        assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
+        assertEquals(new BigDecimal("29.90"), pedidoResponse.itens().getFirst().precoUnitario());
+        assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
+        verify(pedidoRepository).findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection());
+        verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25));
+    }
+
+    @Test
+    void findFilaCozinhaDeveRetornarListaVaziaSemBuscarItensQuandoNaoHaPedidos() {
+        when(pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection())).thenReturn(List.of());
+
+        List<PedidoCozinhaResponse> resultado = pedidoService.findFilaCozinha();
+
+        assertEquals(List.of(), resultado);
+        verify(pedidoRepository).findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection());
     }
 
     private Collection<StatusPedido> anyStatusCollection() {
