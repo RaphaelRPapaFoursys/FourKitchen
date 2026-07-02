@@ -11,6 +11,7 @@ public record CriarNotificacaoRequest(
                 description = "Tipo da notificacao. A mensagem correspondente e definida automaticamente pelo backend.",
                 example = "PEDIDO_PRONTO",
                 allowableValues = {
+                        "PEDIDO_EM_PREPARO",
                         "PEDIDO_PRONTO",
                         "PEDIDO_COM_FALTA",
                         "PEDIDO_CANCELADO",

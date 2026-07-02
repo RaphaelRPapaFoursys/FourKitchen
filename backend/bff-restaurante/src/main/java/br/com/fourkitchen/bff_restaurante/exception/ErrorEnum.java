@@ -84,6 +84,18 @@ public enum ErrorEnum {
             HttpStatus.FORBIDDEN
     ),
 
+    PEDIDO_NAO_ENCONTRADO(
+            "014",
+            "Pedido nao encontrado",
+            HttpStatus.NOT_FOUND
+    ),
+
+    TRANSICAO_STATUS_INVALIDA(
+            "015",
+            "Transicao de status invalida",
+            HttpStatus.BAD_REQUEST
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

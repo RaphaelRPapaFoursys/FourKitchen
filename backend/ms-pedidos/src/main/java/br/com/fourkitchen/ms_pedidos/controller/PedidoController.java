@@ -79,6 +79,16 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findFilaCozinha());
     }
 
+    @PatchMapping("/{id}/iniciar-preparo")
+    private ResponseEntity<PedidoResponse> iniciarPreparo(@PathVariable Integer id) {
+        return ResponseEntity.ok(pedidoService.iniciarPreparo(id));
+    }
+
+    @PatchMapping("/{id}/finalizar-preparo")
+    private ResponseEntity<PedidoResponse> finalizarPreparo(@PathVariable Integer id) {
+        return ResponseEntity.ok(pedidoService.finalizarPreparo(id));
+    }
+
     @GetMapping("/atendimentos/{atendimentoId}/possui-ativos")
     private ResponseEntity<Boolean> possuiPedidosAtivos(
             @PathVariable Integer atendimentoId
