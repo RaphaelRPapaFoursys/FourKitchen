@@ -6,6 +6,7 @@ import { finalize } from 'rxjs';
 
 import { ApiError, UsuarioAutenticadoResponse } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth';
+import { getRedirectRouteByProfile } from '../../core/utils/profile-redirect';
 
 type LoginField = 'email' | 'password';
 
@@ -64,17 +65,7 @@ export class Login {
   }
 
   private getRedirectRoute(usuario: UsuarioAutenticadoResponse): string {
-    const profileRoutes: Record<string, string> = {
-      ADMIN: '/gestor',
-      GESTOR: '/gestor',
-      COZINHA: '/cozinha',
-      GARCOM: '/garcom',
-      MESA: '/mesa',
-      TOTEM: '/totem'
-    };
-
-    // TODO: Confirmar regra final de redirecionamento por perfil com o BFF.
-    return profileRoutes[usuario.perfil.toUpperCase()] ?? '/home';
+    return getRedirectRouteByProfile(usuario.perfil);
   }
 
   private getErrorMessage(error: unknown): string {

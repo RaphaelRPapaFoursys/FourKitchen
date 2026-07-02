@@ -41,7 +41,7 @@ public class NotificacaoController {
     @PostMapping
     @Operation(
             summary = "Cria notificacao",
-            description = "Cria uma notificacao no ms-notificacoes e devolve o registro criado para o frontend."
+            description = "Cria uma notificacao no ms-notificacoes. O frontend informa tipo e destino; a mensagem e gerada automaticamente pelo tipo. Para CHAMADA_GARCOM, envie destino GARCOM e idAtendimento para a chamada aparecer na lista de mesas do garcom."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -69,6 +69,23 @@ public class NotificacaoController {
             )
     })
     public ResponseEntity<NotificacaoResponse> criarNotificacao(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "Payload de notificacao enviado pelo frontend. O campo mensagem nao deve ser enviado; ele e definido pelo backend conforme o tipo.",
+                    content = @Content(
+                            schema = @Schema(implementation = CriarNotificacaoRequest.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "Pedido pronto",
+                                            value = "{\"tipo\":\"PEDIDO_PRONTO\",\"destino\":\"GARCOM\"}"
+                                    ),
+                                    @ExampleObject(
+                                            name = "Chamada de garcom",
+                                            value = "{\"tipo\":\"CHAMADA_GARCOM\",\"destino\":\"GARCOM\",\"idMesa\":1,\"idAtendimento\":8,\"idGarcom\":7}"
+                                    )
+                            }
+                    )
+            )
             @RequestBody @Valid CriarNotificacaoRequest request
     ) {
         NotificacaoResponse response = notificacaoService.criarNotificacao(request);

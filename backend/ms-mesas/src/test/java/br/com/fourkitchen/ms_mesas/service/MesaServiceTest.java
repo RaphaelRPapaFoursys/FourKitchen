@@ -3,11 +3,13 @@ package br.com.fourkitchen.ms_mesas.service;
 import br.com.fourkitchen.ms_mesas.client.PedidosAtivosClient;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
+import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
 import br.com.fourkitchen.ms_mesas.enums.StatusMesa;
 import br.com.fourkitchen.ms_mesas.exception.BaseException;
 import br.com.fourkitchen.ms_mesas.exception.ErrorEnum;
 import br.com.fourkitchen.ms_mesas.mapper.CriarMesaRequestMapper;
+import br.com.fourkitchen.ms_mesas.mapper.MesaGarcomResponseMapper;
 import br.com.fourkitchen.ms_mesas.mapper.MesaResponseMapper;
 import br.com.fourkitchen.ms_mesas.model.Atendimento;
 import br.com.fourkitchen.ms_mesas.model.Mesa;
@@ -50,6 +52,9 @@ class MesaServiceTest {
     private MesaResponseMapper mesaResponseMapper;
 
     @Mock
+    private MesaGarcomResponseMapper mesaGarcomResponseMapper;
+
+    @Mock
     private CriarMesaRequestMapper criarMesaRequestMapper;
 
     @InjectMocks
@@ -68,6 +73,34 @@ class MesaServiceTest {
         assertEquals(List.of(response), resultado);
         verify(mesaRepository).findAll();
         verify(mesaResponseMapper).map(mesa);
+    }
+
+    @Test
+    void listarMesasPorGarcomDeveRetornarSomenteMesasAtribuidasAoGarcom() {
+        Atendimento atendimento = criarAtendimento(8, 123456);
+        atendimento.setGarcomId(7);
+        Mesa mesa = criarMesa(1, 10, false, atendimento);
+        MesaGarcomResponse response = new MesaGarcomResponse(
+                1,
+                10,
+                StatusMesa.OCUPADA,
+                8,
+                123456,
+                7,
+                null
+        );
+
+        when(mesaRepository.findByDisponivelFalseAndAtendimento_GarcomIdAndAtendimento_DataFechamentoIsNullOrderByNumeroAsc(7))
+                .thenReturn(List.of(mesa));
+        when(mesaGarcomResponseMapper.map(mesa)).thenReturn(response);
+
+        List<MesaGarcomResponse> resultado = mesaService.listarMesasPorGarcom(7);
+
+        assertEquals(List.of(response), resultado);
+        verify(mesaRepository)
+                .findByDisponivelFalseAndAtendimento_GarcomIdAndAtendimento_DataFechamentoIsNullOrderByNumeroAsc(7);
+        verify(mesaGarcomResponseMapper).map(mesa);
+        verifyNoInteractions(mesaResponseMapper, atendimentoRepository, pedidosAtivosClient);
     }
 
     @Test
@@ -290,6 +323,52 @@ class MesaServiceTest {
         BaseException exception = assertThrows(BaseException.class, () -> mesaService.atribuirGarcom(1, request));
 
         assertEquals(ErrorEnum.ATENDIMENTO_NAO_ABERTO, exception.getErrorEnum());
+        verify(mesaRepository).findById(1);
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
+    void validarMesaAtribuidaGarcomDeveRetornarSessaoQuandoMesaOcupadaForDoGarcom() {
+        Atendimento atendimento = criarAtendimento(8, 123456);
+        atendimento.setGarcomId(7);
+        Mesa mesa = criarMesa(1, 10, false, atendimento);
+
+        when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
+
+        var response = mesaService.validarMesaAtribuidaGarcom(1, 7);
+
+        assertEquals(1, response.idMesa());
+        assertEquals(8, response.idAtendimento());
+        assertEquals(123456, response.codigoSessao());
+        assertEquals(StatusMesa.OCUPADA, response.status());
+        verify(mesaRepository).findById(1);
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
+    void validarMesaAtribuidaGarcomDeveBloquearMesaDeOutroGarcom() {
+        Atendimento atendimento = criarAtendimento(8, 123456);
+        atendimento.setGarcomId(9);
+        Mesa mesa = criarMesa(1, 10, false, atendimento);
+
+        when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
+
+        BaseException exception = assertThrows(BaseException.class, () -> mesaService.validarMesaAtribuidaGarcom(1, 7));
+
+        assertEquals(ErrorEnum.MESA_NAO_ATRIBUIDA_AO_GARCOM, exception.getErrorEnum());
+        verify(mesaRepository).findById(1);
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
+    void validarMesaAtribuidaGarcomDeveBloquearMesaDisponivel() {
+        Mesa mesa = criarMesa(1, 10, true, null);
+
+        when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
+
+        BaseException exception = assertThrows(BaseException.class, () -> mesaService.validarMesaAtribuidaGarcom(1, 7));
+
+        assertEquals(ErrorEnum.MESA_NAO_OCUPADA, exception.getErrorEnum());
         verify(mesaRepository).findById(1);
         verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
     }

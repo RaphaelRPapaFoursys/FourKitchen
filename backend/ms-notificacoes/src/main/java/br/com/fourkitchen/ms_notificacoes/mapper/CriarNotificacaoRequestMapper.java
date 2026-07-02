@@ -12,11 +12,14 @@ public class CriarNotificacaoRequestMapper implements Mapper<CriarNotificacaoReq
     @Override
     public Notificacao map(CriarNotificacaoRequest source) {
         return Notificacao.builder()
-                .tipo(source.tipo())
-                .mensagem(source.mensagem())
+                .tipo(source.tipo().name())
+                .mensagem(source.tipo().getMensagemPadrao())
                 .destino(source.destino())
                 .lida(false)
                 .data(LocalDateTime.now())
+                .idMesa(source.idMesa())
+                .idAtendimento(source.idAtendimento())
+                .idGarcom(source.idGarcom())
                 .build();
     }
 }

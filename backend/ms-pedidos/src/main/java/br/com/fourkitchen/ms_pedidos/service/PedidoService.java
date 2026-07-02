@@ -11,6 +11,8 @@ import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
+import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
+import br.com.fourkitchen.ms_pedidos.exceptions.ErrorEnum;
 import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
@@ -133,6 +135,38 @@ public class PedidoService {
         return pedidoRepository.existsByIdAtendimentoAndStatusIn(atendimentoId, STATUS_ATIVOS);
     }
 
+    public List<PedidoResponse> findPedidosAtivosPorAtendimentos(List<Integer> idsAtendimento) {
+        if (idsAtendimento == null || idsAtendimento.isEmpty()) {
+            return List.of();
+        }
+
+        return pedidoRepository
+                .findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(idsAtendimento, STATUS_ATIVOS)
+                .stream()
+                .map(pedidoResponseMapper::map)
+                .toList();
+    }
+
+    @Transactional
+    public PedidoResponse iniciarPreparo(Integer id) {
+        Pedido pedido = buscarPedido(id);
+
+        validarStatusAtual(pedido, StatusPedido.ENVIADO_COZINHA);
+        pedido.setStatus(StatusPedido.EM_PREPARO);
+
+        return pedidoResponseMapper.map(pedido);
+    }
+
+    @Transactional
+    public PedidoResponse finalizarPreparo(Integer id) {
+        Pedido pedido = buscarPedido(id);
+
+        validarStatusAtual(pedido, StatusPedido.EM_PREPARO);
+        pedido.setStatus(StatusPedido.PRONTO);
+
+        return pedidoResponseMapper.map(pedido);
+    }
+
     @Transactional
     public void patchPedido(Integer id, AlterarPedidoRequest alterarPedidoRequest) {
         Pedido pedido = pedidoRepository.findById(id)
@@ -176,6 +210,17 @@ public class PedidoService {
         } while (pedidoRepository.existsByCodigo(codigo));
 
         return codigo;
+    }
+
+    private Pedido buscarPedido(Integer id) {
+        return pedidoRepository.findById(id)
+                .orElseThrow(PedidoInexistenteException::new);
+    }
+
+    private void validarStatusAtual(Pedido pedido, StatusPedido statusEsperado) {
+        if (!statusEsperado.equals(pedido.getStatus())) {
+            throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+        }
     }
 
     private PedidoCozinhaResponse mapearPedidoCozinha(Pedido pedido, List<ProdutoPedido> itens) {
