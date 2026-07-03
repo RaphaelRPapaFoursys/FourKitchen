@@ -4,6 +4,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.CanaisPedido;
@@ -407,6 +408,22 @@ class PedidoServiceTest {
         assertEquals(StatusPedido.ENVIADO_COZINHA, pedido.getStatus());
         verify(pedidoRepository).findById(25);
         verify(pedidoResponseMapper, never()).map(any(Pedido.class));
+    }
+
+    @Test
+    void buscarResumoOperacaoDeveContarPedidosPorStatus() {
+        when(pedidoRepository.countByStatus(StatusPedido.EM_PREPARO)).thenReturn(5L);
+        when(pedidoRepository.countByStatus(StatusPedido.PRONTO)).thenReturn(3L);
+        when(pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)).thenReturn(2L);
+
+        ResumoPedidosOperacaoResponse resultado = pedidoService.buscarResumoOperacao();
+
+        assertEquals(5L, resultado.pedidosEmPreparo());
+        assertEquals(3L, resultado.pedidosProntos());
+        assertEquals(2L, resultado.problemasPendentes());
+        verify(pedidoRepository).countByStatus(StatusPedido.EM_PREPARO);
+        verify(pedidoRepository).countByStatus(StatusPedido.PRONTO);
+        verify(pedidoRepository).countByStatus(StatusPedido.AGUARDANDO_DECISAO);
     }
 
     private Collection<StatusPedido> anyStatusCollection() {

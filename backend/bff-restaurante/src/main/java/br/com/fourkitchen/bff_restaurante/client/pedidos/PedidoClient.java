@@ -3,6 +3,7 @@ package br.com.fourkitchen.bff_restaurante.client.pedidos;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.CriarPedidoRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ResumoPedidosOperacaoResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -32,4 +33,7 @@ public interface PedidoClient {
     List<PedidoResponse> listarPedidosAtivosPorAtendimentos(
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento
     );
+
+    @GetMapping("/pedidos/resumo-operacao")
+    ResumoPedidosOperacaoResponse buscarResumoOperacao();
 }

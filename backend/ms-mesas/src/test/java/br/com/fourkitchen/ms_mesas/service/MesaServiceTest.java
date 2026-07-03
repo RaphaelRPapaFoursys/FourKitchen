@@ -5,6 +5,7 @@ import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.ms_mesas.enums.StatusMesa;
 import br.com.fourkitchen.ms_mesas.exception.BaseException;
 import br.com.fourkitchen.ms_mesas.exception.ErrorEnum;
@@ -383,6 +384,17 @@ class MesaServiceTest {
         assertEquals(ErrorEnum.MESA_NAO_ENCONTRADA, exception.getErrorEnum());
         verify(mesaRepository).findById(99);
         verify(mesaRepository, never()).save(any());
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
+    void buscarResumoOperacaoDeveContarMesasOcupadas() {
+        when(mesaRepository.countByDisponivelFalse()).thenReturn(8L);
+
+        ResumoMesasOperacaoResponse resultado = mesaService.buscarResumoOperacao();
+
+        assertEquals(8L, resultado.mesasOcupadas());
+        verify(mesaRepository).countByDisponivelFalse();
         verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
     }
 
