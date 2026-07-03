@@ -4,7 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { LIMIARES_URGENCIA, nivelCargaGarcom, NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgencia.constants';
+import { nivelCargaGarcom, NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgencia.constants';
 import { MesaPainel, StatusMesaPainel } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { PainelService } from '../../core/services/painel';
@@ -61,6 +61,8 @@ export class Gestor {
   protected readonly pedidosPendentesEntrega = this.painelService.pedidosPendentesEntrega;
   protected readonly resumoExpediente = this.painelService.resumoExpediente;
   protected readonly carregando = this.painelService.carregando;
+  protected readonly acaoEmAndamento = this.painelService.acaoEmAndamento;
+  protected readonly mensagemErro = this.painelService.mensagemErro;
 
   protected readonly buscaTermo = signal('');
   protected readonly filtroGarcom = signal<string | null>(null);
@@ -144,15 +146,18 @@ export class Gestor {
   }
 
   protected acaoPrimariaIndisponivel(mesa: MesaPainel): boolean {
-    return this.expedienteFechado() || this.acaoPrimaria(mesa).tipo === 'VER_PEDIDO';
+    return this.expedienteFechado() || this.acaoEmAndamento() || this.acaoPrimaria(mesa).tipo === 'VER_PEDIDO';
   }
 
   protected executarAcao(mesa: MesaPainel): void {
-    if (this.expedienteFechado()) return;
+    if (this.expedienteFechado() || this.acaoEmAndamento()) return;
 
     switch (this.acaoPrimaria(mesa).tipo) {
       case 'ABRIR_MESA':
         this.selecaoGarcom.set({ mesaId: mesa.id, numeroMesa: mesa.numero, modo: 'ABRIR' });
+        break;
+      case 'REATRIBUIR_GARCOM':
+        this.abrirReatribuicao(mesa);
         break;
       case 'FECHAR_CONTA':
         void this.painelService.fecharConta(mesa.id);
@@ -164,6 +169,10 @@ export class Gestor {
         this.verPedido();
         break;
     }
+  }
+
+  protected fecharErro(): void {
+    this.painelService.limparErro();
   }
 
   protected verPedido(): void {
@@ -281,22 +290,8 @@ export class Gestor {
   }
 
   protected itensResumoLabel(mesa: MesaPainel): string {
-    const itens = this.painelService.itensAgregadosMesa(mesa);
-    if (!itens) return '';
-
-    const partes = [`${itens.totalItens} itens`];
-
-    if (itens.pratos > 0) {
-      partes.push(`${itens.pratos} prato${itens.pratos > 1 ? 's' : ''}`);
-    }
-    if (itens.bebidas > 0) {
-      partes.push(`${itens.bebidas} bebida${itens.bebidas > 1 ? 's' : ''}`);
-    }
-    if (itens.sobremesas > 0) {
-      partes.push(`${itens.sobremesas} sobremesa${itens.sobremesas > 1 ? 's' : ''}`);
-    }
-
-    return partes.join(' · ');
+    const totalItens = this.painelService.totalItensMesa(mesa);
+    return totalItens === null ? '' : `${totalItens} itens`;
   }
 
   protected statusPedidoLabel(mesa: MesaPainel): string {
@@ -334,9 +329,5 @@ export class Gestor {
 
   protected nivelCarga(mesasAtivas: number): NivelCarga {
     return nivelCargaGarcom(mesasAtivas);
-  }
-
-  protected variacaoAbs(valor: number): number {
-    return Math.abs(valor);
   }
 }

@@ -50,6 +50,9 @@ export function resolverCriticidadeMesa(mesa: MesaPainel): Criticidade {
 /** Ação primária sugerida pelo card — derivada de status/statusPedido, nunca armazenada na mesa. */
 export function resolverAcaoPrimaria(mesa: MesaPainel): { tipo: AcaoMesaPainel; label: string } {
   if (mesa.status === 'LIVRE') return { tipo: 'ABRIR_MESA', label: 'Abrir mesa' };
+  if (mesa.status === 'OCUPADA' && mesa.garcomId === null) {
+    return { tipo: 'REATRIBUIR_GARCOM', label: 'Atribuir garçom' };
+  }
   if (mesa.statusPedido === 'PRONTO_ENTREGA') return { tipo: 'MARCAR_ENTREGUE', label: 'Marcar entregue' };
   if (mesa.statusPedido === 'CONTA_ABERTA') return { tipo: 'FECHAR_CONTA', label: 'Fechar conta' };
   return { tipo: 'VER_PEDIDO', label: 'Ver pedido' };

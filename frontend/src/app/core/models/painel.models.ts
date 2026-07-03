@@ -3,7 +3,7 @@ export type StatusMesaPainel = 'OCUPADA' | 'LIVRE';
 export type StatusPedidoPainel = 'EM_PREPARO' | 'PRONTO_ENTREGA' | 'CONTA_ABERTA';
 
 /** Ação primária sugerida pelo card, sempre derivada de status/statusPedido — nunca armazenada. */
-export type AcaoMesaPainel = 'VER_PEDIDO' | 'MARCAR_ENTREGUE' | 'FECHAR_CONTA' | 'ABRIR_MESA';
+export type AcaoMesaPainel = 'VER_PEDIDO' | 'MARCAR_ENTREGUE' | 'FECHAR_CONTA' | 'ABRIR_MESA' | 'REATRIBUIR_GARCOM';
 
 export interface ResumoAtendimento {
   mesasLivres: number;
@@ -11,19 +11,8 @@ export interface ResumoAtendimento {
   prontos: number;
   problemas: number;
   garconsDisponiveis: number;
-  /** TODO: backend ainda não expõe métricas de negócio nem comparativo vs. ontem; valores mockados. */
-  ticketMedio: number;
-  ticketMedioVariacaoPct: number;
-  tempoMedioAtendimentoMin: number;
-  tempoMedioAtendimentoVariacaoPct: number;
-}
-
-export interface ItensPedidoResumo {
-  totalItens: number;
-  /** TODO: backend ainda não expõe categoria do produto; a quebra por prato/bebida/sobremesa fica zerada. */
-  pratos: number;
-  bebidas: number;
-  sobremesas: number;
+  /** Arrecadado ÷ atendimentos ativos; `null` quando não há atendimento ativo. */
+  ticketMedio: number | null;
 }
 
 export interface Pedido {
@@ -33,7 +22,7 @@ export interface Pedido {
   criadoMinutosAtras: number;
   /** TODO: backend ainda não registra o instante em que o pedido fica pronto; sem esse dado não dá pra calcular. */
   tempoPreparoMinutos: number | null;
-  itens: ItensPedidoResumo;
+  totalItens: number;
 }
 
 export interface MesaPainel {

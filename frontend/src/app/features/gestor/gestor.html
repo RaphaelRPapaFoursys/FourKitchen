@@ -70,6 +70,13 @@
         </div>
       }
 
+      @if (mensagemErro(); as erro) {
+        <div class="aviso-erro">
+          {{ erro }}
+          <button type="button" class="aviso-erro__fechar" (click)="fecharErro()" aria-label="Fechar">✕</button>
+        </div>
+      }
+
       <section class="secao">
         <div class="secao__cabecalho">
           <div>
@@ -152,35 +159,8 @@
               <path d="M8 8c0-1.4 1.6-2.5 4-2.5s4 1.1 4 2.5-1.6 2.2-4 2.5c-2.4.3-4 1.1-4 2.5s1.6 2.5 4 2.5 4-1.1 4-2.5" />
             </svg>
             <div>
-              <strong>{{ resumo().ticketMedio | currency: 'BRL' }}</strong>
+              <strong>{{ resumo().ticketMedio !== null ? (resumo().ticketMedio | currency: 'BRL') : '—' }}</strong>
               <span>Ticket médio</span>
-              <span
-                class="resumo-card__variacao"
-                [class.resumo-card__variacao--positiva]="resumo().ticketMedioVariacaoPct >= 0"
-                [class.resumo-card__variacao--negativa]="resumo().ticketMedioVariacaoPct < 0"
-              >
-                {{ resumo().ticketMedioVariacaoPct >= 0 ? '↑' : '↓' }}
-                {{ variacaoAbs(resumo().ticketMedioVariacaoPct) }}% vs. ontem
-              </span>
-            </div>
-          </article>
-
-          <article class="resumo-card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
-            <div>
-              <strong>{{ resumo().tempoMedioAtendimentoMin }} min</strong>
-              <span>Tempo médio de atendimento</span>
-              <span
-                class="resumo-card__variacao"
-                [class.resumo-card__variacao--positiva]="resumo().tempoMedioAtendimentoVariacaoPct <= 0"
-                [class.resumo-card__variacao--negativa]="resumo().tempoMedioAtendimentoVariacaoPct > 0"
-              >
-                {{ resumo().tempoMedioAtendimentoVariacaoPct >= 0 ? '↑' : '↓' }}
-                {{ variacaoAbs(resumo().tempoMedioAtendimentoVariacaoPct) }}% vs. ontem
-              </span>
             </div>
           </article>
         </div>
@@ -293,7 +273,7 @@
                       <button
                         type="button"
                         class="mesa-card__trocar-garcom"
-                        [disabled]="expedienteFechado()"
+                        [disabled]="expedienteFechado() || acaoEmAndamento()"
                         (click)="abrirReatribuicao(mesa)"
                       >
                         Trocar
@@ -386,7 +366,7 @@
                     <button
                       class="mesa-card__acao mesa-card__acao--livre"
                       type="button"
-                      [disabled]="expedienteFechado()"
+                      [disabled]="expedienteFechado() || acaoEmAndamento()"
                       (click)="executarAcao(mesa)"
                     >
                       {{ acaoPrimaria(mesa).label }}

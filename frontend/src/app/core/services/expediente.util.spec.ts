@@ -27,7 +27,7 @@ function pedido(overrides: Partial<MesaPainel['pedidos'][number]>) {
     valor: 100,
     criadoMinutosAtras: 10,
     tempoPreparoMinutos: 15,
-    itens: { totalItens: 1, pratos: 1, bebidas: 0, sobremesas: 0 },
+    totalItens: 1,
     ...overrides,
   };
 }

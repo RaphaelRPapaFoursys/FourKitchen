@@ -1,5 +1,5 @@
-import { HttpClient } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
@@ -7,7 +7,6 @@ import { nivelCargaGarcom, resolverAcaoPrimaria, resolverCriticidadeMesa } from 
 import {
   AcaoMesaPainel,
   CargaGarcom,
-  ItensPedidoResumo,
   MesaPainel,
   Pedido,
   PedidoRecente,
@@ -53,15 +52,20 @@ const STATUS_PEDIDO_EM_PREPARO = ['ENVIADO_COZINHA', 'EM_PREPARO', 'AGUARDANDO_D
 
 const PALETA_CORES_GARCOM = ['#2f6fed', '#8b5cf6', '#2fb673', '#f59e0b', '#ec4899', '#0891b2'];
 
-/** TODO: backend ainda não expõe ticket médio nem comparativo vs. ontem; valores mockados. */
-const RESUMO_NAO_DERIVAVEL_MOCK = {
-  ticketMedio: 118.4,
-  ticketMedioVariacaoPct: 6.2,
-  tempoMedioAtendimentoMin: 27,
-  tempoMedioAtendimentoVariacaoPct: -4.5,
+const MAXIMO_ULTIMOS_PEDIDOS = 5;
+
+const INTERVALO_POLLING_MS = 2000;
+
+/** Etapa do fluxo de preparo por status de pedido (ms-pedidos) — usada na barra de progresso do card. */
+const ETAPA_POR_STATUS_PEDIDO: Record<string, number> = {
+  ENVIADO_COZINHA: 1,
+  EM_PREPARO: 2,
+  AGUARDANDO_DECISAO: 2,
+  PRONTO: 3,
+  ENTREGUE: 4,
 };
 
-const MAXIMO_ULTIMOS_PEDIDOS = 5;
+const TOTAL_ETAPAS_PEDIDO = 4;
 
 @Injectable({
   providedIn: 'root',
@@ -70,17 +74,34 @@ export class PainelService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/api/gestor`;
 
+  private readonly destroyRef = inject(DestroyRef);
+
   private readonly mesasSignal = signal<MesaPainel[]>([]);
   private readonly garconsSignal = signal<GarcomApiResponse[]>([]);
   private readonly carregandoSignal = signal(true);
+  private readonly acaoEmAndamentoSignal = signal(false);
+  private readonly mensagemErroSignal = signal<string | null>(null);
 
   readonly mesas = this.mesasSignal.asReadonly();
   readonly carregando = this.carregandoSignal.asReadonly();
+  readonly acaoEmAndamento = this.acaoEmAndamentoSignal.asReadonly();
+  readonly mensagemErro = this.mensagemErroSignal.asReadonly();
 
   constructor() {
     void Promise.all([this.refrescarMesas(), this.refrescarGarcons()]).finally(() =>
       this.carregandoSignal.set(false),
     );
+
+    const idPolling = setInterval(() => {
+      if (this.expedienteFechado() || this.acaoEmAndamentoSignal()) return;
+      void this.refrescarMesas();
+    }, INTERVALO_POLLING_MS);
+
+    this.destroyRef.onDestroy(() => clearInterval(idPolling));
+  }
+
+  limparErro(): void {
+    this.mensagemErroSignal.set(null);
   }
 
   readonly cargaGarcons = computed<CargaGarcom[]>(() => {
@@ -103,6 +124,7 @@ export class PainelService {
 
   readonly resumo = computed<ResumoAtendimento>(() => {
     const mesas = this.mesasSignal();
+    const atendimentosAtivos = this.totalAtendimentosAtivos();
 
     return {
       mesasLivres: mesas.filter(mesa => mesa.status === 'LIVRE').length,
@@ -112,7 +134,7 @@ export class PainelService {
       garconsDisponiveis: this.cargaGarcons().filter(
         garcom => nivelCargaGarcom(garcom.mesasAtivas) !== 'ALTA',
       ).length,
-      ...RESUMO_NAO_DERIVAVEL_MOCK,
+      ticketMedio: atendimentosAtivos === 0 ? null : this.totalArrecadadoAtendimentosAtivos() / atendimentosAtivos,
     };
   });
 
@@ -180,26 +202,19 @@ export class PainelService {
     return mesa.pedidos.reduce((total, pedido) => total + pedido.valor, 0);
   }
 
-  itensAgregadosMesa(mesa: MesaPainel): ItensPedidoResumo | null {
+  totalItensMesa(mesa: MesaPainel): number | null {
     if (mesa.pedidos.length === 0) return null;
-
-    return mesa.pedidos.reduce(
-      (agregado, pedido) => ({
-        totalItens: agregado.totalItens + pedido.itens.totalItens,
-        pratos: agregado.pratos + pedido.itens.pratos,
-        bebidas: agregado.bebidas + pedido.itens.bebidas,
-        sobremesas: agregado.sobremesas + pedido.itens.sobremesas,
-      }),
-      { totalItens: 0, pratos: 0, bebidas: 0, sobremesas: 0 },
-    );
+    return mesa.pedidos.reduce((total, pedido) => total + pedido.totalItens, 0);
   }
 
   async abrirMesa(idMesa: number, idGarcom: number): Promise<void> {
     if (this.expedienteFechado()) return;
 
-    await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/abrir`, {}));
-    await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
-    await this.refrescarMesas();
+    await this.executarComFeedback(async () => {
+      await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/abrir`, {}));
+      await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
+      await this.refrescarMesas();
+    });
   }
 
   async fecharConta(idMesa: number): Promise<void> {
@@ -207,22 +222,50 @@ export class PainelService {
 
     this.registrarNoHistoricoAntesDeFechar(idMesa);
 
-    await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/fechar`, {}));
-    await this.refrescarMesas();
+    await this.executarComFeedback(async () => {
+      await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/fechar`, {}));
+      await this.refrescarMesas();
+    });
   }
 
   async marcarEntregue(idMesa: number): Promise<void> {
     if (this.expedienteFechado()) return;
 
-    await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/marcar-entregue`, {}));
-    await this.refrescarMesas();
+    await this.executarComFeedback(async () => {
+      await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/marcar-entregue`, {}));
+      await this.refrescarMesas();
+    });
   }
 
   async reatribuirGarcom(idMesa: number, idGarcom: number): Promise<void> {
     if (this.expedienteFechado()) return;
 
-    await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
-    await this.refrescarMesas();
+    await this.executarComFeedback(async () => {
+      await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
+      await this.refrescarMesas();
+    });
+  }
+
+  private async executarComFeedback(acao: () => Promise<void>): Promise<void> {
+    this.acaoEmAndamentoSignal.set(true);
+    this.mensagemErroSignal.set(null);
+
+    try {
+      await acao();
+    } catch (erro) {
+      this.mensagemErroSignal.set(this.extrairMensagemErro(erro));
+    } finally {
+      this.acaoEmAndamentoSignal.set(false);
+    }
+  }
+
+  private extrairMensagemErro(erro: unknown): string {
+    if (erro instanceof HttpErrorResponse) {
+      const corpo = erro.error as { msgError?: string } | null;
+      if (corpo?.msgError) return corpo.msgError;
+    }
+
+    return 'Ocorreu um erro. Tente novamente.';
   }
 
   private registrarNoHistoricoAntesDeFechar(idMesa: number): void {
@@ -260,10 +303,19 @@ function mapearMesa(mesa: MesaGestorApiResponse): MesaPainel {
     statusPedido,
     tempoLabel: tempoMinutos === null ? null : 'Em andamento há',
     tempoMinutos,
-    etapaAtual: null,
-    totalEtapas: null,
+    etapaAtual: etapaAtualPedidos(pedidos),
+    totalEtapas: pedidos.length === 0 ? null : TOTAL_ETAPAS_PEDIDO,
     pedidos,
   };
+}
+
+/** Etapa mais atrasada entre os pedidos ativos da mesa — representa o pior caso do atendimento. */
+function etapaAtualPedidos(pedidos: Pedido[]): number | null {
+  const etapas = pedidos
+    .map(pedido => ETAPA_POR_STATUS_PEDIDO[pedido.status])
+    .filter((etapa): etapa is number => etapa !== undefined);
+
+  return etapas.length === 0 ? null : Math.min(...etapas);
 }
 
 function mapearPedido(pedido: PedidoGestorApiResponse): Pedido {
@@ -274,8 +326,7 @@ function mapearPedido(pedido: PedidoGestorApiResponse): Pedido {
     criadoMinutosAtras: minutosDesde(pedido.criadoEm),
     // TODO: backend ainda não registra o instante em que o pedido fica pronto (item de métricas, fora do escopo atual).
     tempoPreparoMinutos: null,
-    // TODO: backend ainda não expõe categoria do produto; a quebra por prato/bebida/sobremesa fica zerada.
-    itens: { totalItens: pedido.totalItens, pratos: 0, bebidas: 0, sobremesas: 0 },
+    totalItens: pedido.totalItens,
   };
 }
 
