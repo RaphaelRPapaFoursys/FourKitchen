@@ -73,7 +73,8 @@ class JwtAuthenticationFilterTest {
                 1L,
                 "Lucas",
                 "garcom@fourkitchen.com",
-                "GARCOM"
+                "GARCOM",
+                null
         );
 
         when(jwtService.extrairUsuario("jwt-token")).thenReturn(usuarioAutenticado);

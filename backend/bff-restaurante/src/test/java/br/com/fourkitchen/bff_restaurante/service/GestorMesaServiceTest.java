@@ -234,6 +234,7 @@ class GestorMesaServiceTest {
                 nome,
                 nome.toLowerCase().replace(" ", ".") + "@fourkitchen.com",
                 perfil,
+                null,
                 ativo
         );
     }

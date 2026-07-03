@@ -53,6 +53,7 @@ class UsuarioServiceTest {
                 usuario.getNome(),
                 usuario.getEmail(),
                 usuario.getPerfilUsuario(),
+                usuario.getIdMesa(),
                 usuario.getAtivo()
         );
 
@@ -72,11 +73,12 @@ class UsuarioServiceTest {
                 "Lucas",
                 "lucas@email.com",
                 "Senha123",
-                PerfilUsuario.ADMIN
+                PerfilUsuario.ADMIN,
+                null
         );
         Usuario usuarioMapeado = criarUsuario(null, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "Senha123", null);
         Usuario usuarioSalvo = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha-criptografada", true);
-        UsuarioResponse response = new UsuarioResponse(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, true);
+        UsuarioResponse response = new UsuarioResponse(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, null, true);
 
         when(usuarioRepository.existsByEmailIgnoreCase(request.email())).thenReturn(false);
         when(criarUsuarioRequestMapper.map(request)).thenReturn(usuarioMapeado);
@@ -106,7 +108,8 @@ class UsuarioServiceTest {
                 "Lucas",
                 "lucas@email.com",
                 "Senha123",
-                PerfilUsuario.ADMIN
+                PerfilUsuario.ADMIN,
+                null
         );
 
         when(usuarioRepository.existsByEmailIgnoreCase(request.email())).thenReturn(true);
@@ -115,6 +118,46 @@ class UsuarioServiceTest {
 
         assertEquals(ErrorEnum.EMAIL_JA_CADASTRADO, exception.getErrorEnum());
 
+        verify(usuarioRepository).existsByEmailIgnoreCase(request.email());
+        verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verifyNoInteractions(criarUsuarioRequestMapper, passwordEncoder, usuarioResponseMapper);
+    }
+
+    @Test
+    void criarUsuarioMesaDeveExigirIdMesa() {
+        CriarUsuarioRequest request = new CriarUsuarioRequest(
+                "Mesa 1",
+                "mesa01@fourkitchen.com",
+                "Senha123",
+                PerfilUsuario.MESA,
+                null
+        );
+
+        when(usuarioRepository.existsByEmailIgnoreCase(request.email())).thenReturn(false);
+
+        BaseException exception = assertThrows(BaseException.class, () -> usuarioService.criarUsuario(request));
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+        verify(usuarioRepository).existsByEmailIgnoreCase(request.email());
+        verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verifyNoInteractions(criarUsuarioRequestMapper, passwordEncoder, usuarioResponseMapper);
+    }
+
+    @Test
+    void criarUsuarioHumanoDeveRejeitarIdMesa() {
+        CriarUsuarioRequest request = new CriarUsuarioRequest(
+                "Lucas",
+                "lucas@email.com",
+                "Senha123",
+                PerfilUsuario.ADMIN,
+                1
+        );
+
+        when(usuarioRepository.existsByEmailIgnoreCase(request.email())).thenReturn(false);
+
+        BaseException exception = assertThrows(BaseException.class, () -> usuarioService.criarUsuario(request));
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
         verify(usuarioRepository).existsByEmailIgnoreCase(request.email());
         verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
         verifyNoInteractions(criarUsuarioRequestMapper, passwordEncoder, usuarioResponseMapper);
