@@ -4,22 +4,21 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { LIMIARES_URGENCIA, nivelCargaGarcom, NivelCarga } from '../../core/constants/urgencia.constants';
+import { LIMIARES_URGENCIA, nivelCargaGarcom, NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgencia.constants';
 import { MesaPainel, StatusMesaPainel } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { PainelService } from '../../core/services/painel';
 
 type Ordenacao = 'CRITICO' | 'NUMERO';
-
-/**
- * critico/atencao: alerta de tempo (vermelho/laranja).
- * ok: sinal positivo explícito (ex.: pedido pronto dentro da meta).
- * emAndamento: fluxo normal, sem julgamento (ex.: em preparo dentro do tempo).
- * info: estado informativo que não é sobre urgência (ex.: conta aberta).
- * livre/fechada: status estrutural da mesa, não do pedido.
- */
-type Criticidade = 'critico' | 'atencao' | 'ok' | 'info' | 'emAndamento' | 'livre' | 'fechada';
+type Criticidade = ReturnType<typeof resolverCriticidadeMesa>;
 type FiltroEstado = 'PROBLEMAS' | 'PRONTOS' | 'EM_PREPARO' | null;
+type ModoSelecaoGarcom = 'ABRIR' | 'REATRIBUIR';
+
+interface SelecaoGarcomEstado {
+  mesaId: number;
+  numeroMesa: number;
+  modo: ModoSelecaoGarcom;
+}
 
 const NOMES_ETAPAS: Record<number, string> = {
   1: 'Pedido enviado à cozinha',
@@ -30,14 +29,11 @@ const NOMES_ETAPAS: Record<number, string> = {
 
 const CRITICIDADE_RANK: Record<StatusMesaPainel, (mesa: MesaPainel) => number> = {
   OCUPADA: mesa => {
-    if (mesa.acao.tipo === 'REATRIBUIR_GARCOM') return 0;
-    if (mesa.statusPedido === 'AGUARDANDO_ENTREGA') return 1;
-    if (mesa.statusPedido === 'EM_PREPARO') return 2;
-    if (mesa.statusPedido === 'PRONTO_ENTREGA') return 3;
-    return 4;
+    if (mesa.statusPedido === 'EM_PREPARO') return 1;
+    if (mesa.statusPedido === 'PRONTO_ENTREGA') return 2;
+    return 3;
   },
-  LIVRE: () => 5,
-  FECHADA: () => 6,
+  LIVRE: () => 4,
 };
 
 @Component({
@@ -64,6 +60,7 @@ export class Gestor {
   protected readonly podeFecharExpediente = this.painelService.podeFecharExpediente;
   protected readonly pedidosPendentesEntrega = this.painelService.pedidosPendentesEntrega;
   protected readonly resumoExpediente = this.painelService.resumoExpediente;
+  protected readonly carregando = this.painelService.carregando;
 
   protected readonly buscaTermo = signal('');
   protected readonly filtroGarcom = signal<string | null>(null);
@@ -72,20 +69,11 @@ export class Gestor {
   protected readonly ordenacao = signal<Ordenacao>('CRITICO');
   protected readonly filtroEstado = signal<FiltroEstado>(null);
   protected readonly fechamentoExpandido = signal(false);
-  protected readonly mesaEmReatribuicao = signal<number | null>(null);
+  protected readonly selecaoGarcom = signal<SelecaoGarcomEstado | null>(null);
   protected readonly mesaDestacada = signal<number | null>(null);
   protected readonly confirmandoFechamento = signal(false);
 
-  protected readonly nomesGarcons = computed(() =>
-    Array.from(
-      new Set(
-        this.painelService
-          .mesas()
-          .map(mesa => mesa.garcom)
-          .filter((garcom): garcom is string => garcom !== null),
-      ),
-    ).sort(),
-  );
+  protected readonly nomesGarcons = computed(() => this.cargaGarcons().map(garcom => garcom.nome));
 
   protected readonly mesasFiltradas = computed(() => {
     const termo = this.buscaTermo().trim().toLowerCase();
@@ -127,29 +115,13 @@ export class Gestor {
       this.filtroEstado() !== null,
   );
 
-  protected readonly garcomEmReatribuicao = computed(() => {
-    const numero = this.mesaEmReatribuicao();
-    return numero === null ? null : (this.painelService.mesas().find(mesa => mesa.numero === numero) ?? null);
+  protected readonly mesaSelecaoGarcom = computed(() => {
+    const selecao = this.selecaoGarcom();
+    return selecao === null ? null : (this.painelService.mesas().find(mesa => mesa.id === selecao.mesaId) ?? null);
   });
 
   protected criticidadeCard(mesa: MesaPainel): Criticidade {
-    if (mesa.status === 'LIVRE') return 'livre';
-    if (mesa.status === 'FECHADA') return 'fechada';
-    if (mesa.acao.tipo === 'REATRIBUIR_GARCOM') return 'critico';
-
-    if (mesa.statusPedido === 'AGUARDANDO_ENTREGA' || mesa.statusPedido === 'EM_PREPARO') {
-      return (mesa.tempoMinutos ?? 0) >= LIMIARES_URGENCIA.preparoAtencaoMinutos ? 'atencao' : 'emAndamento';
-    }
-
-    if (mesa.statusPedido === 'PRONTO_ENTREGA') {
-      const minutos = mesa.tempoMinutos ?? 0;
-      if (minutos > LIMIARES_URGENCIA.prontoAtencaoMaxMinutos) return 'critico';
-      if (minutos > LIMIARES_URGENCIA.prontoOkMaxMinutos) return 'atencao';
-      return 'ok';
-    }
-
-    if (mesa.statusPedido === 'CONTA_ABERTA') return 'info';
-    return 'emAndamento';
+    return resolverCriticidadeMesa(mesa);
   }
 
   protected urgenciaBadgeLabel(mesa: MesaPainel): string | null {
@@ -162,29 +134,31 @@ export class Gestor {
   protected temAcaoSecundaria(mesa: MesaPainel): boolean {
     return (
       mesa.status === 'OCUPADA' &&
-      mesa.acao.tipo !== 'VER_PEDIDO' &&
+      this.acaoPrimaria(mesa).tipo !== 'VER_PEDIDO' &&
       (this.criticidadeCard(mesa) === 'critico' || this.criticidadeCard(mesa) === 'atencao')
     );
+  }
+
+  protected acaoPrimaria(mesa: MesaPainel): { tipo: string; label: string } {
+    return this.painelService.acaoPrimaria(mesa);
+  }
+
+  protected acaoPrimariaIndisponivel(mesa: MesaPainel): boolean {
+    return this.expedienteFechado() || this.acaoPrimaria(mesa).tipo === 'VER_PEDIDO';
   }
 
   protected executarAcao(mesa: MesaPainel): void {
     if (this.expedienteFechado()) return;
 
-    switch (mesa.acao.tipo) {
+    switch (this.acaoPrimaria(mesa).tipo) {
       case 'ABRIR_MESA':
-        this.painelService.abrirMesa(mesa.numero);
+        this.selecaoGarcom.set({ mesaId: mesa.id, numeroMesa: mesa.numero, modo: 'ABRIR' });
         break;
       case 'FECHAR_CONTA':
-        this.painelService.fecharConta(mesa.numero);
-        break;
-      case 'LIBERAR_MESA':
-        this.painelService.liberarMesa(mesa.numero);
+        void this.painelService.fecharConta(mesa.id);
         break;
       case 'MARCAR_ENTREGUE':
-        this.painelService.marcarEntregue(mesa.numero);
-        break;
-      case 'REATRIBUIR_GARCOM':
-        this.mesaEmReatribuicao.set(mesa.numero);
+        void this.painelService.marcarEntregue(mesa.id);
         break;
       case 'VER_PEDIDO':
         this.verPedido();
@@ -207,16 +181,34 @@ export class Gestor {
     }, 1600);
   }
 
-  protected fecharReatribuicao(): void {
-    this.mesaEmReatribuicao.set(null);
+  protected abrirReatribuicao(mesa: MesaPainel): void {
+    this.selecaoGarcom.set({ mesaId: mesa.id, numeroMesa: mesa.numero, modo: 'REATRIBUIR' });
   }
 
-  protected confirmarReatribuicao(nomeGarcom: string): void {
-    const numero = this.mesaEmReatribuicao();
-    if (numero === null) return;
+  protected fecharSelecaoGarcom(): void {
+    this.selecaoGarcom.set(null);
+  }
 
-    this.painelService.reatribuirGarcom(numero, nomeGarcom);
-    this.mesaEmReatribuicao.set(null);
+  protected garcomJaAtribuido(nome: string): boolean {
+    const selecao = this.selecaoGarcom();
+    if (!selecao || selecao.modo !== 'REATRIBUIR') return false;
+    return this.mesaSelecaoGarcom()?.garcom === nome;
+  }
+
+  protected confirmarSelecaoGarcom(nome: string): void {
+    const selecao = this.selecaoGarcom();
+    if (!selecao) return;
+
+    const garcom = this.cargaGarcons().find(item => item.nome === nome);
+    if (!garcom) return;
+
+    if (selecao.modo === 'ABRIR') {
+      void this.painelService.abrirMesa(selecao.mesaId, garcom.id);
+    } else {
+      void this.painelService.reatribuirGarcom(selecao.mesaId, garcom.id);
+    }
+
+    this.selecaoGarcom.set(null);
   }
 
   protected alternarFiltroEstado(estado: Exclude<FiltroEstado, null>): void {
@@ -249,6 +241,10 @@ export class Gestor {
     this.confirmandoFechamento.set(false);
   }
 
+  protected reabrirExpediente(): void {
+    this.painelService.reabrirExpediente();
+  }
+
   protected mensagemBloqueioFechamento(): string {
     const pendentes = this.pedidosPendentesEntrega();
     const pedidoOuPedidos = pendentes === 1 ? 'pedido ainda não foi entregue' : 'pedidos ainda não foram entregues';
@@ -263,6 +259,11 @@ export class Gestor {
   protected tempoMedioPreparoLabel(): string {
     const tempo = this.resumoExpediente().tempoMedioPreparoMin;
     return tempo === null ? '—' : `${tempo} min`;
+  }
+
+  protected larguraBarraCarga(mesasAtivas: number): number {
+    const maximo = Math.max(...this.cargaGarcons().map(garcom => garcom.mesasAtivas), 1);
+    return (mesasAtivas / maximo) * 100;
   }
 
   protected larguraBarraMesaOcupada(pedidos: number): number {
@@ -302,8 +303,6 @@ export class Gestor {
     switch (mesa.statusPedido) {
       case 'EM_PREPARO':
         return 'Em preparo';
-      case 'AGUARDANDO_ENTREGA':
-        return 'Aguardando entrega';
       case 'PRONTO_ENTREGA':
         return 'Pronto para entrega';
       case 'CONTA_ABERTA':
@@ -318,6 +317,16 @@ export class Gestor {
     return NOMES_ETAPAS[etapa] ?? '';
   }
 
+  protected tempoAtrasLabel(minutos: number): string {
+    if (minutos < 60) return `${minutos} min`;
+
+    const horas = Math.floor(minutos / 60);
+    if (horas < 24) return `${horas}h`;
+
+    const dias = Math.floor(horas / 24);
+    return `${dias}d`;
+  }
+
   protected iniciais(nome: string | null | undefined): string {
     if (!nome) return '?';
     return nome.charAt(0).toUpperCase();
@@ -325,11 +334,9 @@ export class Gestor {
 
   protected nivelCarga(mesasAtivas: number): NivelCarga {
     return nivelCargaGarcom(mesasAtivas);
-
   }
 
   protected variacaoAbs(valor: number): number {
     return Math.abs(valor);
   }
 }
-

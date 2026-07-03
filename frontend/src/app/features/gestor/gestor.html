@@ -1,3 +1,6 @@
+@if (carregando()) {
+  <div class="painel__carregando">Carregando painel...</div>
+} @else {
 <div class="painel">
   <aside class="painel__sidebar">
     <div class="painel__brand">
@@ -267,8 +270,6 @@
 
                     @if (mesa.status === 'LIVRE') {
                       <span class="mesa-card__status-pill mesa-card__status-pill--livre">Livre</span>
-                    } @else if (mesa.status === 'FECHADA') {
-                      <span class="mesa-card__status-pill mesa-card__status-pill--fechada">Fechada</span>
                     } @else if (urgenciaBadgeLabel(mesa); as badge) {
                       <span
                         class="mesa-card__status-pill mesa-card__status-pill--urgencia"
@@ -281,7 +282,7 @@
                     @if (mesa.tempoLabel) {
                       <span class="mesa-card__tempo">
                         {{ mesa.tempoLabel }}
-                        <strong>{{ mesa.tempoMinutos }} min</strong>
+                        <strong>{{ tempoAtrasLabel(mesa.tempoMinutos ?? 0) }}</strong>
                       </span>
                     }
                   </header>
@@ -373,7 +374,7 @@
                         </button>
                       }
                     </div>
-                  } @else if (mesa.status === 'LIVRE') {
+                  } @else {
                     <p class="mesa-card__garcom">Garçom: —</p>
                     <p class="mesa-card__disponivel">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -382,30 +383,6 @@
                       </svg>
                       Livre para atendimento
                     </p>
-                    <button
-                      class="mesa-card__acao mesa-card__acao--livre"
-                      type="button"
-                      [disabled]="expedienteFechado()"
-                      (click)="executarAcao(mesa)"
-                    >
-                      {{ acaoPrimaria(mesa).label }}
-                    </button>
-                  } @else {
-                    @if (mesa.garcom) {
-                      <p class="mesa-card__garcom">Garçom: {{ mesa.garcom }}</p>
-                    }
-                    <p class="mesa-card__disponivel">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="m8.5 12.5 2.3 2.3 4.7-5" />
-                      </svg>
-                      Conta fechada
-                    </p>
-                    @if (valorContaMesa(mesa); as valorConta) {
-                      <p class="mesa-card__total">
-                        Total: {{ valorConta | currency: 'BRL' }} (finalizada)
-                      </p>
-                    }
                     <button
                       class="mesa-card__acao mesa-card__acao--livre"
                       type="button"
@@ -478,7 +455,7 @@
                       <span class="ultimos-pedidos__mesa">Mesa {{ pedido.numeroMesa.toString().padStart(2, '0') }}</span>
                       <span>{{ pedido.valor | currency: 'BRL' }}</span>
                       <span>{{ pedido.garcom }}</span>
-                      <span>{{ pedido.minutosAtras }} min</span>
+                      <span>{{ tempoAtrasLabel(pedido.minutosAtras) }}</span>
                     </button>
                   </li>
                 }
@@ -689,3 +666,4 @@
     </div>
   }
 </div>
+}

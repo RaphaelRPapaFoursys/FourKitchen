@@ -114,6 +114,12 @@ public enum ErrorEnum {
             HttpStatus.NOT_FOUND
     ),
 
+    ATENDIMENTO_NAO_ABERTO(
+            "019",
+            "Mesa sem atendimento aberto",
+            HttpStatus.BAD_REQUEST
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

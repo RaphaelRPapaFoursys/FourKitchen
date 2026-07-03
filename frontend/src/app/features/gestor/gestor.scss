@@ -10,6 +10,16 @@
   height: 100vh;
 }
 
+// TODO: visual provisorio, o design final da tela de carregamento vem depois.
+.painel__carregando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
 .painel__sidebar {
   display: flex;
   flex-direction: column;

@@ -147,6 +147,31 @@ public class PedidoService {
                 .toList();
     }
 
+    public List<PedidoCozinhaResponse> findPedidosAtivosDetalhadosPorAtendimentos(List<Integer> idsAtendimento) {
+        if (idsAtendimento == null || idsAtendimento.isEmpty()) {
+            return List.of();
+        }
+
+        List<Pedido> pedidos = pedidoRepository
+                .findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(idsAtendimento, STATUS_ATIVOS);
+
+        if (pedidos.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> idsPedidos = pedidos.stream()
+                .map(Pedido::getId)
+                .toList();
+
+        Map<Integer, List<ProdutoPedido>> itensPorPedido = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
+                .stream()
+                .collect(Collectors.groupingBy(ProdutoPedido::getIdPedido));
+
+        return pedidos.stream()
+                .map(pedido -> mapearPedidoCozinha(pedido, itensPorPedido.getOrDefault(pedido.getId(), List.of())))
+                .toList();
+    }
+
     @Transactional
     public PedidoResponse iniciarPreparo(Integer id) {
         Pedido pedido = buscarPedido(id);
@@ -163,6 +188,16 @@ public class PedidoService {
 
         validarStatusAtual(pedido, StatusPedido.EM_PREPARO);
         pedido.setStatus(StatusPedido.PRONTO);
+
+        return pedidoResponseMapper.map(pedido);
+    }
+
+    @Transactional
+    public PedidoResponse entregarPedido(Integer id) {
+        Pedido pedido = buscarPedido(id);
+
+        validarStatusAtual(pedido, StatusPedido.PRONTO);
+        pedido.setStatus(StatusPedido.ENTREGUE);
 
         return pedidoResponseMapper.map(pedido);
     }

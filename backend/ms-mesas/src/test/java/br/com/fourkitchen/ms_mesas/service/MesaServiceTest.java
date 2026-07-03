@@ -63,7 +63,7 @@ class MesaServiceTest {
     @Test
     void listarMesasDeveRetornarMesasMapeadas() {
         Mesa mesa = criarMesa(1, 10, true, null);
-        MesaResponse response = new MesaResponse(1, 10, StatusMesa.DISPONIVEL, null, null, null, null);
+        MesaResponse response = new MesaResponse(1, 10, StatusMesa.DISPONIVEL, null, null, null, null, null);
 
         when(mesaRepository.findAll()).thenReturn(List.of(mesa));
         when(mesaResponseMapper.map(mesa)).thenReturn(response);
@@ -108,7 +108,7 @@ class MesaServiceTest {
         CriarMesaRequest request = new CriarMesaRequest(10);
         Mesa mesaMapeada = criarMesa(null, 10, null, null);
         Mesa mesaSalva = criarMesa(1, 10, true, null);
-        MesaResponse response = new MesaResponse(1, 10, StatusMesa.DISPONIVEL, null, null, null, null);
+        MesaResponse response = new MesaResponse(1, 10, StatusMesa.DISPONIVEL, null, null, null, null, null);
 
         when(mesaRepository.existsByNumero(10)).thenReturn(false);
         when(criarMesaRequestMapper.map(request)).thenReturn(mesaMapeada);
@@ -148,7 +148,7 @@ class MesaServiceTest {
         Mesa mesa = criarMesa(1, 10, true, null);
         Atendimento atendimentoSalvo = criarAtendimento(1, 123456);
         Mesa mesaSalva = criarMesa(1, 10, false, atendimentoSalvo);
-        MesaResponse response = new MesaResponse(1, 10, StatusMesa.OCUPADA, null, 123456, null, null);
+        MesaResponse response = new MesaResponse(1, 10, StatusMesa.OCUPADA, null, 123456, null, null, null);
 
         when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
         when(atendimentoRepository.existsByCodigoSessao(anyInt())).thenReturn(false);
@@ -194,7 +194,7 @@ class MesaServiceTest {
         Atendimento atendimento = criarAtendimento(1, 123456);
         Mesa mesa = criarMesa(1, 10, false, atendimento);
         Mesa mesaSalva = criarMesa(1, 10, true, null);
-        MesaResponse response = new MesaResponse(1, 10, StatusMesa.DISPONIVEL, null, null, null, null);
+        MesaResponse response = new MesaResponse(1, 10, StatusMesa.DISPONIVEL, null, null, null, null, null);
 
         when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
         when(pedidosAtivosClient.possuiPedidosAtivos(1)).thenReturn(false);
@@ -267,7 +267,7 @@ class MesaServiceTest {
         Mesa mesa = criarMesa(1, 10, false, atendimento);
         Atendimento atendimentoSalvo = criarAtendimento(1, 123456);
         atendimentoSalvo.setGarcomId(7);
-        MesaResponse response = new MesaResponse(1, 10, StatusMesa.OCUPADA, 7, 123456, null, null);
+        MesaResponse response = new MesaResponse(1, 10, StatusMesa.OCUPADA, 7, 123456, null, null, null);
 
         when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
         when(atendimentoRepository.save(atendimento)).thenReturn(atendimentoSalvo);
