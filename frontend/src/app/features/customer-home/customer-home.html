@@ -1,0 +1,160 @@
+<main class="customer-home">
+  <header class="customer-header">
+    <a class="customer-header__brand" routerLink="/mesa" aria-label="FourKitchen Home">
+      <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
+    </a>
+
+    <nav class="customer-nav" aria-label="Navegacao principal">
+      <a class="customer-nav__link customer-nav__link--active" routerLink="/mesa">Home</a>
+      <a class="customer-nav__link" href="#menu">Menu</a>
+      <a class="customer-nav__link customer-nav__link--icon" href="#carrinho">
+        <span>Carrinho</span>
+        <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
+      </a>
+    </nav>
+  </header>
+
+  <section class="hero" aria-labelledby="hero-title">
+    <img class="hero__leaves hero__leaves--left" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
+    <img class="hero__leaves hero__leaves--right" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
+
+    <div class="hero__copy">
+      <h1 id="hero-title">Bem-Vindos ao FourKitchen!</h1>
+      <p>Faca seu pedido de forma rapida, pratica e sem filas.</p>
+
+      <div class="hero__actions" aria-label="Atalhos da home">
+        <a class="hero__button hero__button--primary" href="#categorias">Categorias</a>
+        <a class="hero__button hero__button--dark" href="#menu">Menu</a>
+      </div>
+    </div>
+
+    <div class="hero__image" aria-hidden="true">
+      <div class="hero__placeholder"></div>
+    </div>
+  </section>
+
+  <section class="categories" id="categorias" aria-labelledby="categories-title">
+    <div class="categories__inner">
+      <header class="section-heading">
+        <h2 id="categories-title">Nossas Categorias</h2>
+        <p>Escolha uma categoria para explorar os itens disponiveis.</p>
+      </header>
+
+      @if (menuState().status === 'loading') {
+        <p class="state-message" role="status">{{ menuState().message }}</p>
+      } @else if (menuState().status === 'error') {
+        <p class="state-message state-message--error" role="alert">{{ menuState().message }}</p>
+      } @else if (!hasMenuContent()) {
+        <p class="state-message">Nenhum item disponivel no momento.</p>
+      } @else {
+        <div class="categories__grid">
+          @for (category of categories(); track trackByCategoryId($index, category); let first = $first) {
+            <article class="category-card" [class.category-card--featured]="first">
+              <div class="category-card__media">
+                @if (getCategoryImage(category); as imageUrl) {
+                  <img [src]="imageUrl" [alt]="category.nome" loading="lazy" />
+                } @else {
+                  <span aria-hidden="true"></span>
+                }
+              </div>
+              <h3>{{ category.nome }}</h3>
+              @if (category.descricao) {
+                <p>{{ category.descricao }}</p>
+              }
+            </article>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="menu-intro" aria-labelledby="menu-title">
+    <div class="menu-intro__waves" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <h2 id="menu-title">Explore nosso cardapio!</h2>
+  </section>
+
+  <section class="menu-section" id="menu" aria-label="Cardapio">
+    @if (menuState().status === 'loading') {
+      <p class="state-message state-message--light" role="status">{{ menuState().message }}</p>
+    } @else if (menuState().status === 'error') {
+      <p class="state-message state-message--error" role="alert">{{ menuState().message }}</p>
+    } @else if (!hasMenuContent()) {
+      <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
+    } @else {
+      <div class="menu-filters" aria-label="Filtros do cardapio">
+        <button
+          class="menu-filters__button"
+          type="button"
+          [class.menu-filters__button--active]="selectedCategoryId() === null"
+          (click)="selectCategory(null)"
+        >
+          Todos
+        </button>
+
+        @for (category of categories(); track trackByCategoryId($index, category)) {
+          <button
+            class="menu-filters__button"
+            type="button"
+            [class.menu-filters__button--active]="selectedCategoryId() === category.id"
+            (click)="selectCategory(category.id)"
+          >
+            {{ category.nome }}
+          </button>
+        }
+      </div>
+
+      @if (filteredProducts().length === 0) {
+        <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
+      } @else {
+        <div class="products-grid">
+          @for (product of filteredProducts(); track trackByProductId($index, product)) {
+            <article class="product-card">
+              <div class="product-card__media">
+                @if (getProductImage(product); as imageUrl) {
+                  <img [src]="imageUrl" [alt]="product.nome" loading="lazy" />
+                } @else {
+                  <span aria-hidden="true"></span>
+                }
+              </div>
+
+              <div class="product-card__body">
+                <h3>{{ product.nome }}</h3>
+                <p>{{ product.descricao }}</p>
+
+                <div class="product-card__footer">
+                  <strong>{{ formatPrice(product.preco) }}</strong>
+                  <button type="button" (click)="addToCart(product)" aria-label="Adicionar item">
+                    <img src="assets/icons/plus.svg" alt="" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
+  </section>
+
+  <footer class="customer-footer">
+    <div class="customer-footer__waves" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <address class="customer-footer__content">
+      <span>
+        <img src="assets/icons/location.svg" alt="" aria-hidden="true" />
+        Av. Tambore, 267 - Tambore
+      </span>
+      <span>
+        <img src="assets/icons/phone.svg" alt="" aria-hidden="true" />
+        11 3333-3333
+      </span>
+    </address>
+  </footer>
+</main>

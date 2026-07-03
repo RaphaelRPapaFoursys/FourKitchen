@@ -28,7 +28,7 @@ export const protectedRoutes: Routes = [
     {
       path: 'totem',
       loadComponent: () =>
-        import('../../features/totem/totem').then(m => m.Totem),
+        import('../../features/customer-home/customer-home').then(m => m.CustomerHome),
     },
     ['TOTEM'],
   ),
@@ -36,7 +36,7 @@ export const protectedRoutes: Routes = [
     {
       path: 'mesa',
       loadComponent: () =>
-        import('../../features/mesa/mesa').then(m => m.Mesa),
+        import('../../features/customer-home/customer-home').then(m => m.CustomerHome),
     },
     ['MESA'],
   ),
