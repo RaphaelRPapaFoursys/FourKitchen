@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.notificacoes.NotificacaoClient;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
+import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
@@ -94,9 +95,11 @@ class NotificacaoServiceTest {
 
     private CriarNotificacaoRequest criarRequest() {
         return new CriarNotificacaoRequest(
-                "PEDIDO_PRONTO",
-                "Pedido pronto para retirada",
-                DestinoNotificacao.COZINHA
+                TipoNotificacao.PEDIDO_PRONTO,
+                DestinoNotificacao.COZINHA,
+                null,
+                null,
+                null
         );
     }
 
@@ -107,7 +110,10 @@ class NotificacaoServiceTest {
                 "Pedido pronto para retirada",
                 DestinoNotificacao.COZINHA,
                 lida,
-                LocalDateTime.of(2026, 7, 1, 13, 25)
+                LocalDateTime.of(2026, 7, 1, 13, 25),
+                null,
+                null,
+                null
         );
     }
 

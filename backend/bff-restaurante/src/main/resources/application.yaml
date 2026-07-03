@@ -1,6 +1,11 @@
 spring:
   application:
     name: bff-restaurante
+  cloud:
+    openfeign:
+      httpclient:
+        hc5:
+          enabled: true
 
 clients:
   ms-usuarios:

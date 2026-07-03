@@ -45,4 +45,13 @@ public class Notificacao {
 
     @Column(name = "data", nullable = false)
     private LocalDateTime data;
+
+    @Column(name = "id_mesa")
+    private Integer idMesa;
+
+    @Column(name = "id_atendimento")
+    private Integer idAtendimento;
+
+    @Column(name = "id_garcom")
+    private Integer idGarcom;
 }

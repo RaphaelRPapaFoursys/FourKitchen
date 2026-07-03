@@ -7,7 +7,10 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 2
+      maximum-pool-size: 4
       minimum-idle: 1
+      idle-timeout: 20000
+      connection-timeout: 10000
+      max-lifetime: 60000
 server:
   port: ${SERVER_PORT:8085}

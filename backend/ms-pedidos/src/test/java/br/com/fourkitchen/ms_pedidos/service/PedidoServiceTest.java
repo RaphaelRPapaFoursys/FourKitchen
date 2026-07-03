@@ -2,11 +2,14 @@ package br.com.fourkitchen.ms_pedidos.service;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.CanaisPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
+import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
+import br.com.fourkitchen.ms_pedidos.exceptions.ErrorEnum;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
@@ -19,16 +22,21 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -171,6 +179,51 @@ class PedidoServiceTest {
     }
 
     @Test
+    void findPedidosAtivosPorAtendimentosDeveConsultarPedidosAtivosDosAtendimentos() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(123456)
+                .canal(CanaisPedido.GARCOM)
+                .status(StatusPedido.ENVIADO_COZINHA)
+                .idMesa(1)
+                .idUsuario(7)
+                .idAtendimento(8)
+                .build();
+        PedidoResponse response = new PedidoResponse(
+                25,
+                123456,
+                CanaisPedido.GARCOM,
+                StatusPedido.ENVIADO_COZINHA,
+                1,
+                7,
+                8
+        );
+
+        when(pedidoRepository.findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(
+                eq(List.of(8)),
+                anyStatusCollection()
+        )).thenReturn(List.of(pedido));
+        when(pedidoResponseMapper.map(pedido)).thenReturn(response);
+
+        List<PedidoResponse> resultado = pedidoService.findPedidosAtivosPorAtendimentos(List.of(8));
+
+        assertEquals(List.of(response), resultado);
+        verify(pedidoRepository).findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(
+                eq(List.of(8)),
+                anyStatusCollection()
+        );
+        verify(pedidoResponseMapper).map(pedido);
+    }
+
+    @Test
+    void findPedidosAtivosPorAtendimentosDeveRetornarListaVaziaQuandoNaoReceberAtendimentos() {
+        List<PedidoResponse> resultado = pedidoService.findPedidosAtivosPorAtendimentos(List.of());
+
+        assertEquals(List.of(), resultado);
+        verifyNoInteractions(pedidoRepository, pedidoResponseMapper);
+    }
+
+    @Test
     void findPedidosCozinhaDeveRetornarPedidosEmStatusDeCozinha() {
         Pedido pedido = Pedido.builder()
                 .id(25)
@@ -198,6 +251,162 @@ class PedidoServiceTest {
         assertEquals(List.of(response), resultado);
         verify(pedidoRepository).findByStatusIn(anyStatusCollection());
         verify(pedidoResponseMapper).map(pedido);
+    }
+
+    @Test
+    void findFilaCozinhaDeveRetornarPedidosComItensOrdenadosPorChegada() {
+        LocalDateTime dataCriacao = LocalDateTime.of(2026, 7, 2, 10, 30);
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(123456)
+                .canal(CanaisPedido.MESA)
+                .status(StatusPedido.ENVIADO_COZINHA)
+                .idMesa(1)
+                .idAtendimento(8)
+                .dataCriacao(dataCriacao)
+                .build();
+        ProdutoPedido item = ProdutoPedido.builder()
+                .id(5)
+                .idPedido(25)
+                .idProduto(10)
+                .quantidade(2)
+                .precoUnitario(new BigDecimal("29.90"))
+                .observacao("Sem cebola")
+                .build();
+
+        when(pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection())).thenReturn(List.of(pedido));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25))).thenReturn(List.of(item));
+
+        List<PedidoCozinhaResponse> resultado = pedidoService.findFilaCozinha();
+
+        assertEquals(1, resultado.size());
+        PedidoCozinhaResponse pedidoResponse = resultado.getFirst();
+        assertEquals(25, pedidoResponse.id());
+        assertEquals(123456, pedidoResponse.codigo());
+        assertEquals(CanaisPedido.MESA, pedidoResponse.canal());
+        assertEquals(StatusPedido.ENVIADO_COZINHA, pedidoResponse.status());
+        assertEquals(1, pedidoResponse.idMesa());
+        assertEquals(8, pedidoResponse.idAtendimento());
+        assertEquals(dataCriacao, pedidoResponse.dataCriacao());
+        assertEquals(1, pedidoResponse.itens().size());
+        assertEquals(5, pedidoResponse.itens().getFirst().id());
+        assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
+        assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
+        assertEquals(new BigDecimal("29.90"), pedidoResponse.itens().getFirst().precoUnitario());
+        assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Collection<StatusPedido>> statusCaptor = ArgumentCaptor.forClass(Collection.class);
+        verify(pedidoRepository).findByStatusInOrderByDataCriacaoAscIdAsc(statusCaptor.capture());
+        assertEquals(List.of(StatusPedido.ENVIADO_COZINHA, StatusPedido.EM_PREPARO), statusCaptor.getValue());
+        verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25));
+    }
+
+    @Test
+    void findFilaCozinhaDeveRetornarListaVaziaSemBuscarItensQuandoNaoHaPedidos() {
+        when(pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection())).thenReturn(List.of());
+
+        List<PedidoCozinhaResponse> resultado = pedidoService.findFilaCozinha();
+
+        assertEquals(List.of(), resultado);
+        verify(pedidoRepository).findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection());
+    }
+
+    @Test
+    void iniciarPreparoDeveAlterarPedidoEnviadoParaEmPreparo() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(123456)
+                .canal(CanaisPedido.GARCOM)
+                .status(StatusPedido.ENVIADO_COZINHA)
+                .idMesa(1)
+                .idUsuario(7)
+                .idAtendimento(8)
+                .build();
+        PedidoResponse response = new PedidoResponse(
+                25,
+                123456,
+                CanaisPedido.GARCOM,
+                StatusPedido.EM_PREPARO,
+                1,
+                7,
+                8
+        );
+
+        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+        when(pedidoResponseMapper.map(pedido)).thenReturn(response);
+
+        PedidoResponse resultado = pedidoService.iniciarPreparo(25);
+
+        assertSame(response, resultado);
+        assertEquals(StatusPedido.EM_PREPARO, pedido.getStatus());
+        verify(pedidoRepository).findById(25);
+        verify(pedidoResponseMapper).map(pedido);
+    }
+
+    @Test
+    void finalizarPreparoDeveAlterarPedidoEmPreparoParaPronto() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(123456)
+                .canal(CanaisPedido.GARCOM)
+                .status(StatusPedido.EM_PREPARO)
+                .idMesa(1)
+                .idUsuario(7)
+                .idAtendimento(8)
+                .build();
+        PedidoResponse response = new PedidoResponse(
+                25,
+                123456,
+                CanaisPedido.GARCOM,
+                StatusPedido.PRONTO,
+                1,
+                7,
+                8
+        );
+
+        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+        when(pedidoResponseMapper.map(pedido)).thenReturn(response);
+
+        PedidoResponse resultado = pedidoService.finalizarPreparo(25);
+
+        assertSame(response, resultado);
+        assertEquals(StatusPedido.PRONTO, pedido.getStatus());
+        verify(pedidoRepository).findById(25);
+        verify(pedidoResponseMapper).map(pedido);
+    }
+
+    @Test
+    void iniciarPreparoDeveBloquearTransicaoInvalida() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .status(StatusPedido.EM_PREPARO)
+                .build();
+
+        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+
+        BaseException exception = assertThrows(BaseException.class, () -> pedidoService.iniciarPreparo(25));
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        assertEquals(StatusPedido.EM_PREPARO, pedido.getStatus());
+        verify(pedidoRepository).findById(25);
+        verify(pedidoResponseMapper, never()).map(any(Pedido.class));
+    }
+
+    @Test
+    void finalizarPreparoDeveBloquearTransicaoInvalida() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .status(StatusPedido.ENVIADO_COZINHA)
+                .build();
+
+        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+
+        BaseException exception = assertThrows(BaseException.class, () -> pedidoService.finalizarPreparo(25));
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        assertEquals(StatusPedido.ENVIADO_COZINHA, pedido.getStatus());
+        verify(pedidoRepository).findById(25);
+        verify(pedidoResponseMapper, never()).map(any(Pedido.class));
     }
 
     private Collection<StatusPedido> anyStatusCollection() {

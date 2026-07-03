@@ -4,6 +4,8 @@ import br.com.fourkitchen.ms_pedidos.enums.CanaisPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -38,4 +40,8 @@ public class Pedido {
 
     @Column(name = "id_atendimento")
     private Integer idAtendimento;
+
+    @CreationTimestamp
+    @Column(name = "data_criacao", nullable = false, updatable = false)
+    private LocalDateTime dataCriacao;
 }

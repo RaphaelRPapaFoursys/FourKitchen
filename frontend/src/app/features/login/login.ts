@@ -6,6 +6,7 @@ import { finalize } from 'rxjs';
 
 import { ApiError, UsuarioAutenticadoResponse } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth';
+import { getRedirectRouteByProfile } from '../../core/utils/profile-redirect';
 
 type LoginField = 'email' | 'password';
 
@@ -64,23 +65,17 @@ export class Login {
   }
 
   private getRedirectRoute(usuario: UsuarioAutenticadoResponse): string {
-    const profileRoutes: Record<string, string> = {
-      ADMIN: '/gestor',
-      GESTOR: '/gestor',
-      COZINHA: '/cozinha',
-      GARCOM: '/garcom',
-      MESA: '/mesa',
-      TOTEM: '/totem'
-    };
-
-    // TODO: Confirmar regra final de redirecionamento por perfil com o BFF.
-    return profileRoutes[usuario.perfil.toUpperCase()] ?? '/home';
+    return getRedirectRouteByProfile(usuario.perfil);
   }
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
       const apiError = this.getApiError(error.error);
 
+      if (error.status === 502) {
+        return 'Nao foi possivel entrar no sistema. Tente novamente mais tarde.';
+      }
+      
       if (error.status === 401) {
         return 'E-mail ou senha invalidos.';
       }
@@ -91,10 +86,6 @@ export class Login {
 
       if (error.status === 400) {
         return 'Dados invalidos. Verifique e tente novamente.';
-      }
-
-      if (error.status === 502) {
-        return 'Nao foi possivel entrar no sistema. Tente novamente mais tarde.';
       }
     }
 

@@ -15,7 +15,10 @@ public class NotificacaoResponseMapper implements Mapper<Notificacao, Notificaca
                 notificacao.getMensagem(),
                 notificacao.getDestino(),
                 notificacao.getLida(),
-                notificacao.getData()
+                notificacao.getData(),
+                notificacao.getIdMesa(),
+                notificacao.getIdAtendimento(),
+                notificacao.getIdGarcom()
         );
     }
 }
