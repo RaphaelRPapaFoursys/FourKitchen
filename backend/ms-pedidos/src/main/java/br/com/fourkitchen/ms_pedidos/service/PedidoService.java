@@ -11,10 +11,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
-import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
-import br.com.fourkitchen.ms_pedidos.exceptions.ErrorEnum;
-import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
-import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.exceptions.*;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
@@ -176,6 +173,8 @@ public class PedidoService {
     public PedidoResponse iniciarPreparo(Integer id) {
         Pedido pedido = buscarPedido(id);
 
+        validarPedidoNaoAguardandoDecisao(pedido);
+
         validarStatusAtual(pedido, StatusPedido.ENVIADO_COZINHA);
         pedido.setStatus(StatusPedido.EM_PREPARO);
 
@@ -185,6 +184,8 @@ public class PedidoService {
     @Transactional
     public PedidoResponse finalizarPreparo(Integer id) {
         Pedido pedido = buscarPedido(id);
+
+        validarPedidoNaoAguardandoDecisao(pedido);
 
         validarStatusAtual(pedido, StatusPedido.EM_PREPARO);
         pedido.setStatus(StatusPedido.PRONTO);
@@ -210,6 +211,8 @@ public class PedidoService {
         if(alterarPedidoRequest.canal() != null) {
             pedido.setCanal(alterarPedidoRequest.canal());
         }
+
+       validarPedidoNaoAguardandoDecisao(pedido);
 
         if(alterarPedidoRequest.status() != null) {
             pedido.setStatus(alterarPedidoRequest.status());
@@ -282,6 +285,11 @@ public class PedidoService {
                 item.getObservacao()
         );
     }
+    private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {
+        if (pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO) {
+            throw new PedidoAguardandoDecisaoException();
+        }
+    }
 
     @Transactional
     public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
@@ -304,4 +312,5 @@ public class PedidoService {
                 produtoPedido.getStatus()
         );
     }
+
 }

@@ -1,5 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.SinalizarProblemaRequest;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.SinalizarProblemaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
@@ -13,13 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -167,5 +166,12 @@ public class CozinhaController {
     })
     public ResponseEntity<PedidoStatusCozinhaResponse> finalizarPreparo(@PathVariable Integer id) {
         return ResponseEntity.ok(cozinhaService.finalizarPreparo(id));
+    }
+
+    @PatchMapping("/pedidos/sinalizar-problema")
+    public ResponseEntity<SinalizarProblemaResponse> sinalizarProblema(
+            @RequestBody @Valid SinalizarProblemaRequest request
+    ) {
+        return ResponseEntity.ok(cozinhaService.sinalizarProblema(request));
     }
 }

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -73,13 +74,48 @@ public class NotificacaoService {
         return notificacaoResponseMapper.map(notificacaoSalva);
     }
 
+    public NotificacaoResponse concluirChamadaGarcom(Integer id, Integer idGarcom) {
+        if (idGarcom == null || idGarcom <= 0) {
+            throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+        }
+
+        Notificacao notificacao = notificacaoRepository.findById(id)
+                .orElseThrow(() -> new BaseException(ErrorEnum.NOTIFICACAO_NAO_ENCONTRADA));
+
+        validarChamadaGarcomPendente(notificacao);
+
+        if (!Objects.equals(notificacao.getIdGarcom(), idGarcom)) {
+            throw new BaseException(ErrorEnum.CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM);
+        }
+
+        notificacao.setLida(true);
+
+        Notificacao notificacaoSalva = notificacaoRepository.save(notificacao);
+
+        return notificacaoResponseMapper.map(notificacaoSalva);
+    }
+
     private void validarContextoDaChamadaGarcom(CriarNotificacaoRequest request) {
         if (request.tipo() != TipoNotificacao.CHAMADA_GARCOM) {
             return;
         }
 
-        if (request.destino() != DestinoNotificacao.GARCOM || request.idAtendimento() == null) {
+        if (request.destino() != DestinoNotificacao.GARCOM
+                || request.idAtendimento() == null
+                || request.idGarcom() == null) {
             throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+        }
+    }
+
+    private void validarChamadaGarcomPendente(Notificacao notificacao) {
+        boolean chamadaGarcomValida = TipoNotificacao.CHAMADA_GARCOM.name().equals(notificacao.getTipo())
+                && notificacao.getDestino() == DestinoNotificacao.GARCOM
+                && Boolean.FALSE.equals(notificacao.getLida())
+                && notificacao.getIdAtendimento() != null
+                && notificacao.getIdGarcom() != null;
+
+        if (!chamadaGarcomValida) {
+            throw new BaseException(ErrorEnum.CHAMADA_GARCOM_INVALIDA);
         }
     }
 }
