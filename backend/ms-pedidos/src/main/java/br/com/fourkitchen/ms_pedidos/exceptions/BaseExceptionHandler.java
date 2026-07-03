@@ -68,4 +68,12 @@ public class BaseExceptionHandler {
                 .status(errorEnum.getHttpStatus())
                 .body(errorObject);
     }
+
+    @ExceptionHandler(PedidoAguardandoDecisaoException.class)
+    public ResponseEntity<ErrorObject> handlePedidoAguardandoDecisaoException(PedidoAguardandoDecisaoException e) {
+        log.warn("Tentativa de alterar pedido aguardando decisão: {}", e.getMessage());
+
+        return buildErrorResponse(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
+    }
+
 }

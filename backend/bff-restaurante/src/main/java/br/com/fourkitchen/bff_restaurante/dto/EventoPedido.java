@@ -8,6 +8,11 @@ public enum EventoPedido {
     PEDIDO_PRONTO(
             TipoNotificacao.PEDIDO_PRONTO,
             DestinoNotificacao.GARCOM
+    ),
+
+    PEDIDO_COM_FALTA(
+            TipoNotificacao.PEDIDO_COM_FALTA,
+            DestinoNotificacao.GARCOM
     );
 
     private final TipoNotificacao tipoNotificacao;
