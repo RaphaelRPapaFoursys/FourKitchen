@@ -88,13 +88,13 @@ export class PainelService {
   readonly mensagemErro = this.mensagemErroSignal.asReadonly();
 
   constructor() {
-    void Promise.all([this.refrescarMesas(), this.refrescarGarcons()]).finally(() =>
+    void Promise.all([this.atualizarMesas(), this.atualizarGarcons()]).finally(() =>
       this.carregandoSignal.set(false),
     );
 
     const idPolling = setInterval(() => {
       if (this.expedienteFechado() || this.acaoEmAndamentoSignal()) return;
-      void this.refrescarMesas();
+      void this.atualizarMesas();
     }, INTERVALO_POLLING_MS);
 
     this.destroyRef.onDestroy(() => clearInterval(idPolling));
@@ -213,7 +213,7 @@ export class PainelService {
     await this.executarComFeedback(async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/abrir`, {}));
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
-      await this.refrescarMesas();
+      await this.atualizarMesas();
     });
   }
 
@@ -224,7 +224,7 @@ export class PainelService {
 
     await this.executarComFeedback(async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/fechar`, {}));
-      await this.refrescarMesas();
+      await this.atualizarMesas();
     });
   }
 
@@ -233,7 +233,7 @@ export class PainelService {
 
     await this.executarComFeedback(async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/marcar-entregue`, {}));
-      await this.refrescarMesas();
+      await this.atualizarMesas();
     });
   }
 
@@ -242,7 +242,7 @@ export class PainelService {
 
     await this.executarComFeedback(async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
-      await this.refrescarMesas();
+      await this.atualizarMesas();
     });
   }
 
@@ -278,12 +278,12 @@ export class PainelService {
     ]);
   }
 
-  private async refrescarMesas(): Promise<void> {
+  private async atualizarMesas(): Promise<void> {
     const mesas = await firstValueFrom(this.http.get<MesaGestorApiResponse[]>(`${this.baseUrl}/mesas`));
     this.mesasSignal.set(mesas.map(mapearMesa));
   }
 
-  private async refrescarGarcons(): Promise<void> {
+  private async atualizarGarcons(): Promise<void> {
     const garcons = await firstValueFrom(this.http.get<GarcomApiResponse[]>(`${this.baseUrl}/garcons`));
     this.garconsSignal.set(garcons);
   }
