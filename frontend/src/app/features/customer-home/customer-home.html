@@ -1,13 +1,13 @@
 <main class="customer-home">
-  <header class="customer-header">
-    <a class="customer-header__brand" routerLink="/mesa" aria-label="FourKitchen Home">
+  <header class="customer-header" id="home">
+    <a class="customer-header__brand" href="#home" (click)="scrollToSection('home', $event)" aria-label="FourKitchen Home">
       <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
     </a>
 
     <nav class="customer-nav" aria-label="Navegacao principal">
-      <a class="customer-nav__link customer-nav__link--active" routerLink="/mesa">Home</a>
-      <a class="customer-nav__link" href="#menu">Menu</a>
-      <a class="customer-nav__link customer-nav__link--icon" href="#carrinho">
+      <a class="customer-nav__link customer-nav__link--active" href="#home" (click)="scrollToSection('home', $event)">Home</a>
+      <a class="customer-nav__link" href="#menu" (click)="scrollToSection('menu', $event)">Menu</a>
+      <a class="customer-nav__link customer-nav__link--icon" href="#footer" (click)="scrollToSection('footer', $event)">
         <span>Carrinho</span>
         <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
       </a>
@@ -23,13 +23,13 @@
       <p>Faca seu pedido de forma rapida, pratica e sem filas.</p>
 
       <div class="hero__actions" aria-label="Atalhos da home">
-        <a class="hero__button hero__button--primary" href="#categorias">Categorias</a>
-        <a class="hero__button hero__button--dark" href="#menu">Menu</a>
+        <a class="hero__button hero__button--primary" href="#categorias" (click)="scrollToSection('categorias', $event)">Categorias</a>
+        <a class="hero__button hero__button--dark" href="#menu" (click)="scrollToSection('menu', $event)">Menu</a>
       </div>
     </div>
 
     <div class="hero__image" aria-hidden="true">
-      <div class="hero__placeholder"></div>
+      <img src="assets/images/menu-cardapio.png" alt="" />
     </div>
   </section>
 
@@ -40,40 +40,22 @@
         <p>Escolha uma categoria para explorar os itens disponiveis.</p>
       </header>
 
-      @if (menuState().status === 'loading') {
-        <p class="state-message" role="status">{{ menuState().message }}</p>
-      } @else if (menuState().status === 'error') {
-        <p class="state-message state-message--error" role="alert">{{ menuState().message }}</p>
-      } @else if (!hasMenuContent()) {
-        <p class="state-message">Nenhum item disponivel no momento.</p>
-      } @else {
-        <div class="categories__grid">
-          @for (category of categories(); track trackByCategoryId($index, category); let first = $first) {
-            <article class="category-card" [class.category-card--featured]="first">
-              <div class="category-card__media">
-                @if (getCategoryImage(category); as imageUrl) {
-                  <img [src]="imageUrl" [alt]="category.nome" loading="lazy" />
-                } @else {
-                  <span aria-hidden="true"></span>
-                }
-              </div>
-              <h3>{{ category.nome }}</h3>
-              @if (category.descricao) {
-                <p>{{ category.descricao }}</p>
-              }
-            </article>
-          }
-        </div>
-      }
+      <div class="categories__grid">
+        @for (category of staticCategories; track trackByStaticCategoryId($index, category); let first = $first) {
+          <article class="category-card" [class.category-card--featured]="first">
+            <div class="category-card__media">
+              <img [src]="category.imageUrl" [alt]="category.title" loading="lazy" />
+            </div>
+            <h3>{{ category.title }}</h3>
+            <p>{{ category.description }}</p>
+          </article>
+        }
+      </div>
     </div>
   </section>
 
   <section class="menu-intro" aria-labelledby="menu-title">
-    <div class="menu-intro__waves" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+    <img class="menu-intro__banner" src="assets/banner1.png" alt="" aria-hidden="true" />
     <h2 id="menu-title">Explore nosso cardapio!</h2>
   </section>
 
@@ -139,12 +121,8 @@
     }
   </section>
 
-  <footer class="customer-footer">
-    <div class="customer-footer__waves" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+  <footer class="customer-footer" id="footer">
+    <img class="customer-footer__banner" src="assets/banner2.png" alt="" aria-hidden="true" />
 
     <address class="customer-footer__content">
       <span>

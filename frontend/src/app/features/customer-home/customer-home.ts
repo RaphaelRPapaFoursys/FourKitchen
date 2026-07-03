@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { catchError, map, startWith } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -12,9 +11,16 @@ type MenuLoadState =
   | { status: 'error'; data: null; message: string }
   | { status: 'success'; data: MenuResponse; message: string };
 
+interface StaticCategoryCard {
+  id: number;
+  title: string;
+  description: string;
+  imageUrl: string;
+}
+
 @Component({
   selector: 'app-customer-home',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './customer-home.html',
   styleUrl: './customer-home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +29,32 @@ export class CustomerHome {
   private readonly menuService = inject(MenuService);
 
   protected readonly selectedCategoryId = signal<number | null>(null);
+  protected readonly staticCategories: StaticCategoryCard[] = [
+    {
+      id: 1,
+      title: 'Entradas',
+      description: 'Lorem ipsum dolor sit, consectetur adipiscing elit, sed do eiusmod tempor',
+      imageUrl: 'assets/images/entradas.png',
+    },
+    {
+      id: 2,
+      title: 'Pratos Prontos',
+      description: 'Lorem ipsum dolor sit, consectetur adipiscing elit, sed do eiusmod tempor',
+      imageUrl: 'assets/images/prontos.png',
+    },
+    {
+      id: 3,
+      title: 'Japonesa',
+      description: 'Lorem ipsum dolor sit, consectetur adipiscing elit, sed do eiusmod tempor',
+      imageUrl: 'assets/images/japonesa.png',
+    },
+    {
+      id: 4,
+      title: 'Vegetariana',
+      description: 'Lorem ipsum dolor sit, consectetur adipiscing elit, sed do eiusmod tempor',
+      imageUrl: 'assets/images/vegetariana.png',
+    },
+  ];
 
   protected readonly menuState = toSignal(
     this.menuService.getMenu().pipe(
@@ -69,11 +101,20 @@ export class CustomerHome {
     this.selectedCategoryId.set(categoryId);
   }
 
+  protected scrollToSection(sectionId: string, event: Event): void {
+    event.preventDefault();
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   protected addToCart(_product: ProdutoCardapio): void {
     // TODO: integrar com carrinho futuramente.
   }
 
   protected trackByCategoryId(_index: number, category: CategoriaCardapio): number {
+    return category.id;
+  }
+
+  protected trackByStaticCategoryId(_index: number, category: StaticCategoryCard): number {
     return category.id;
   }
 
