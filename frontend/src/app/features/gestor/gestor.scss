@@ -25,7 +25,7 @@
 .painel__sidebar {
   display: flex;
   flex-direction: column;
-  width: 220px;
+  width: fit-content;
   padding: 1rem;
   background: var(--fk-navy);
   color: var(--fk-on-navy);
@@ -206,11 +206,6 @@
   cursor: pointer;
 }
 
-.painel__usuario svg {
-  width: 1.1rem;
-  height: 1.1rem;
-  color: var(--fk-muted);
-}
 
 .painel__content {
   flex: 1;
@@ -230,7 +225,7 @@
 
 .secao__cabecalho {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 0.85rem;
 }

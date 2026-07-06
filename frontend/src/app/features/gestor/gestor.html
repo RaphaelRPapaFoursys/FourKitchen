@@ -16,8 +16,8 @@
         Gestão
       </a>
       <a class="painel__nav-item">
-        <fk-icon name="user" size="1.15rem" />
-        Perfil
+        <fk-icon name="bag" size="1.15rem" />
+        Pedidos
       </a>
     </nav>
 
@@ -48,9 +48,6 @@
         <div class="painel__usuario">
           <fk-avatar [initial]="iniciais(usuario()?.nome)" />
           <span class="painel__usuario-nome">{{ usuario()?.nome ?? 'Usuário' }}</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <path d="m6 9 6 6 6-6" />
-          </svg>
         </div>
       </div>
     </header>
@@ -64,16 +61,16 @@
         </div>
       }
 
-      <div class="secao__cabecalho">
-        <div>
-          <h2>1. Atendimento</h2>
-          <p>Durante o horário de operação</p>
-        </div>
-        <fk-badge variant="tempo-real" [dot]="true">Tempo real</fk-badge>
-      </div>
-
       <div class="painel-grid">
         <div class="painel-grid__main">
+        <div class="secao__cabecalho">
+          <div>
+            <h2>1. Atendimento</h2>
+            <p>Durante o horário de operação</p>
+          </div>
+          <fk-badge variant="tempo-real" [dot]="true">Tempo real</fk-badge>
+        </div>
+
         <div class="resumo-cards">
           <fk-kpi-card
             [clickable]="true"
