@@ -32,6 +32,13 @@ public interface PedidoClient {
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento
     );
 
+    @GetMapping("/pedidos/atendimentos/ativos/detalhado")
+    List<PedidoCozinhaResponse> listarPedidosAtivosDetalhadosPorAtendimentos(
+            @RequestParam("idsAtendimento") List<Integer> idsAtendimento
+    );
+
+    @PatchMapping("/pedidos/{id}/entregar")
+    PedidoResponse entregarPedido(@PathVariable Integer id);
     @PatchMapping("/pedidos/sinalizar-problema")
     SinalizarProblemaResponse sinalizarProblema (
             @RequestBody SinalizarProblemaRequest request);

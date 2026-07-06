@@ -303,7 +303,10 @@ class PedidoServiceTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Collection<StatusPedido>> statusCaptor = ArgumentCaptor.forClass(Collection.class);
         verify(pedidoRepository).findByStatusInOrderByDataCriacaoAscIdAsc(statusCaptor.capture());
-        assertEquals(List.of(StatusPedido.ENVIADO_COZINHA, StatusPedido.EM_PREPARO), statusCaptor.getValue());
+        assertEquals(
+                List.of(StatusPedido.ENVIADO_COZINHA, StatusPedido.EM_PREPARO, StatusPedido.PRONTO, StatusPedido.AGUARDANDO_DECISAO),
+                statusCaptor.getValue()
+        );
         verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25));
     }
 
