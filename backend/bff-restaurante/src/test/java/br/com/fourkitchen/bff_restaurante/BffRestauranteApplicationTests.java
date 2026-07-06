@@ -63,6 +63,40 @@ class BffRestauranteApplicationTests {
 	}
 
 	@Test
+	void rotaDeMesaDeveExigirAutenticacao() throws Exception {
+		mockMvc.perform(get("/api/mesa/painel"))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	@WithMockUser(roles = "GARCOM")
+	void rotaDeMesaDeveBloquearUsuarioSemPerfilPermitido() throws Exception {
+		mockMvc.perform(get("/api/mesa/painel"))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	@WithMockUser(roles = "MESA")
+	void rotaDeMesaDevePermitirPerfilMesa() throws Exception {
+		mockMvc.perform(get("/api/mesa/painel"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(roles = "MESA")
+	void rotaDeTotemDeveBloquearUsuarioSemPerfilPermitido() throws Exception {
+		mockMvc.perform(get("/api/totem/painel"))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	@WithMockUser(roles = "TOTEM")
+	void rotaDeTotemDevePermitirPerfilTotem() throws Exception {
+		mockMvc.perform(get("/api/totem/painel"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
 	@WithMockUser(roles = "ADMIN")
 	void rotaDeGarcomDeveBloquearPerfilAdmin() throws Exception {
 		mockMvc.perform(get("/api/garcom/painel"))
@@ -110,6 +144,16 @@ class BffRestauranteApplicationTests {
 		@GetMapping("/api/garcom/painel")
 		String garcom() {
 			return "garcom";
+		}
+
+		@GetMapping("/api/mesa/painel")
+		String mesa() {
+			return "mesa";
+		}
+
+		@GetMapping("/api/totem/painel")
+		String totem() {
+			return "totem";
 		}
 
 		@GetMapping("/api/cozinha/painel")

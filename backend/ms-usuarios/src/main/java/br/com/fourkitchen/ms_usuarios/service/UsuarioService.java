@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_usuarios.service;
 
 import br.com.fourkitchen.ms_usuarios.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.ms_usuarios.dto.response.UsuarioResponse;
+import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
 import br.com.fourkitchen.ms_usuarios.exception.BaseException;
 import br.com.fourkitchen.ms_usuarios.exception.ErrorEnum;
 import br.com.fourkitchen.ms_usuarios.mapper.CriarUsuarioRequestMapper;
@@ -38,6 +39,8 @@ public class UsuarioService {
             throw new BaseException(ErrorEnum.EMAIL_JA_CADASTRADO);
         }
 
+        validarVinculoMesa(request);
+
         Usuario usuario = criarUsuarioRequestMapper.map(request);
 
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
@@ -47,6 +50,20 @@ public class UsuarioService {
 
         return usuarioResponseMapper.map(usuarioSalvo);
 
+    }
+
+    private void validarVinculoMesa(CriarUsuarioRequest request) {
+        if (PerfilUsuario.MESA.equals(request.perfilUsuario())) {
+            if (request.idMesa() == null || request.idMesa() <= 0) {
+                throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+            }
+
+            return;
+        }
+
+        if (request.idMesa() != null) {
+            throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+        }
     }
 
 }

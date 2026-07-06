@@ -230,7 +230,8 @@ class GarcomMesaServiceTest {
                 idGarcom,
                 "Amanda",
                 "amanda@fourkitchen.com",
-                "GARCOM"
+                "GARCOM",
+                null
         );
 
         return new UsernamePasswordAuthenticationToken(usuario, null, List.of());

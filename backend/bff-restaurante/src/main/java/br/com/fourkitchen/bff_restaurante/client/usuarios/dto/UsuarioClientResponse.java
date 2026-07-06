@@ -5,6 +5,7 @@ public record UsuarioClientResponse(
         String nome,
         String email,
         String perfilUsuario,
+        Integer idMesa,
         Boolean ativo
 ) {
 }
