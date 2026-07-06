@@ -236,7 +236,6 @@ public class PedidoService {
         if (alterarPedidoRequest.idAtendimento() != null) {
             pedido.setIdAtendimento(alterarPedidoRequest.idAtendimento());
         }
-        //return pedidoResponseMapper.map(pedido);
     }
 
     @Transactional
