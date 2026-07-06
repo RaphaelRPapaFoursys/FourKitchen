@@ -11,6 +11,7 @@ public record MesaResponse(
         Integer garcomId,
         Integer codigoSessao,
         LocalDateTime dataAbertura,
-        LocalDateTime dataFechamento
+        LocalDateTime dataFechamento,
+        Integer idAtendimento
 ) {
 }

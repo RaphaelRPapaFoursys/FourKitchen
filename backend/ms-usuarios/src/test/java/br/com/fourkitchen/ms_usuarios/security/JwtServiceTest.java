@@ -2,7 +2,10 @@ package br.com.fourkitchen.ms_usuarios.security;
 
 import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
 import br.com.fourkitchen.ms_usuarios.model.Usuario;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -39,6 +42,15 @@ class JwtServiceTest {
     }
 
     @Test
+    void gerarTokenDeveIncluirIdMesaQuandoUsuarioForDispositivoMesa() {
+        Usuario usuario = criarUsuarioMesa();
+
+        String token = jwtService.gerarToken(usuario);
+
+        assertEquals(1, extrairClaims(token).get("idMesa", Integer.class));
+    }
+
+    @Test
     void validarTokenDeveRetornarFalseQuandoEmailForDiferente() {
         String token = jwtService.gerarToken(criarUsuario());
 
@@ -63,8 +75,29 @@ class JwtServiceTest {
                 .nome("Ana")
                 .email("ana@email.com")
                 .perfilUsuario(PerfilUsuario.ADMIN)
+                .idMesa(null)
                 .senha("senha-criptografada")
                 .ativo(true)
                 .build();
+    }
+
+    private Usuario criarUsuarioMesa() {
+        return Usuario.builder()
+                .id(10)
+                .nome("Mesa 1")
+                .email("mesa01@fourkitchen.com")
+                .perfilUsuario(PerfilUsuario.MESA)
+                .idMesa(1)
+                .senha("senha-criptografada")
+                .ativo(true)
+                .build();
+    }
+
+    private Claims extrairClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

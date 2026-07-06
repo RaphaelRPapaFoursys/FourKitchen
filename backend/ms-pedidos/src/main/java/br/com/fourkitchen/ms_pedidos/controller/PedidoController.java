@@ -5,6 +5,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
@@ -92,6 +93,11 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.finalizarPreparo(id));
     }
 
+    @PatchMapping("/{id}/entregar")
+    private ResponseEntity<PedidoResponse> entregarPedido(@PathVariable Integer id) {
+        return ResponseEntity.ok(pedidoService.entregarPedido(id));
+    }
+
     @GetMapping("/atendimentos/{atendimentoId}/possui-ativos")
     private ResponseEntity<Boolean> possuiPedidosAtivos(
             @PathVariable Integer atendimentoId
@@ -104,6 +110,16 @@ public class PedidoController {
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento
     ) {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosPorAtendimentos(idsAtendimento));
+    }
+
+    @GetMapping("/resumo-operacao")
+    private ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
+        return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
+    @GetMapping("/atendimentos/ativos/detalhado")
+    private ResponseEntity<List<PedidoCozinhaResponse>> listarPedidosAtivosDetalhadosPorAtendimentos(
+            @RequestParam("idsAtendimento") List<Integer> idsAtendimento
+    ) {
+        return ResponseEntity.ok(pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(idsAtendimento));
     }
 
     @PatchMapping("{id}")
@@ -143,7 +159,7 @@ public class PedidoController {
 
     @PatchMapping("/sinalizar-problema")
     public ResponseEntity<SinalizarProblemaResponse> sinalizarProblema(
-            @RequestBody SinalizarProblemaRequest request
+            @RequestBody @Valid SinalizarProblemaRequest request
     ) {
         try {
             SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);

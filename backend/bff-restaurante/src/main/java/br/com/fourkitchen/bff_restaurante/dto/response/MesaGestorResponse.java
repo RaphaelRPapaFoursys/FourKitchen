@@ -3,6 +3,7 @@ package br.com.fourkitchen.bff_restaurante.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Schema(description = "Mesa exibida no painel do gestor.")
 public record MesaGestorResponse(
@@ -28,6 +29,9 @@ public record MesaGestorResponse(
         LocalDateTime dataAbertura,
 
         @Schema(description = "Data de fechamento da ultima sessao", example = "2026-07-02T12:00:00", nullable = true)
-        LocalDateTime dataFechamento
+        LocalDateTime dataFechamento,
+
+        @Schema(description = "Pedidos ativos do atendimento aberto na mesa")
+        List<PedidoGestorResponse> pedidos
 ) {
 }

@@ -97,33 +97,57 @@ public enum ErrorEnum {
     ),
 
     CHAMADA_GARCOM_INVALIDA(
-            "017",
+            "016",
             "Chamada de garcom invalida",
             HttpStatus.BAD_REQUEST
     ),
 
     CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM(
-            "018",
+            "017",
             "Chamada de garcom nao pertence ao garcom",
             HttpStatus.FORBIDDEN
     ),
 
     MESA_SEM_GARCOM(
-            "016",
+            "018",
             "Mesa sem garcom responsavel",
             HttpStatus.BAD_REQUEST
     ),
 
     GARCOM_INVALIDO(
-            "017",
+            "019",
             "Garcom invalido",
             HttpStatus.BAD_REQUEST
     ),
 
     MESA_NAO_ENCONTRADA(
-            "018",
+            "020",
             "Mesa nao encontrada",
             HttpStatus.NOT_FOUND
+    ),
+
+    ATENDIMENTO_NAO_ABERTO(
+            "019",
+            "Mesa sem atendimento aberto",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    USUARIO_NAO_ENCONTRADO(
+            "021",
+            "Usuario nao encontrado",
+            HttpStatus.NOT_FOUND
+    ),
+
+    EMAIL_JA_CADASTRADO(
+            "022",
+            "Email ja cadastrado",
+            HttpStatus.CONFLICT
+    ),
+
+    NAO_PODE_EXCLUIR_PROPRIO_USUARIO(
+            "023",
+            "Nao e permitido excluir o proprio usuario autenticado",
+            HttpStatus.FORBIDDEN
     ),
 
     ERRO_INTERNO(
