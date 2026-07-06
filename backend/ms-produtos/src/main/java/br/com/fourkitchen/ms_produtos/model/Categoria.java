@@ -36,6 +36,9 @@ public class Categoria {
     @Column(name = "nome", length = 80, nullable = false, unique = true)
     private String nome;
 
+    @Column(name = "descricao", length = 255)
+    private String descricao;
+
     @Column(name = "ativo", nullable = false)
     private Boolean ativo;
 
