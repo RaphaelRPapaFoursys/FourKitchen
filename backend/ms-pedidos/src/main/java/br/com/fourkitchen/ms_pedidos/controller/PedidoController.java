@@ -144,7 +144,7 @@ public class PedidoController {
 
     @PatchMapping("/sinalizar-problema")
     public ResponseEntity<SinalizarProblemaResponse> sinalizarProblema(
-            @RequestBody SinalizarProblemaRequest request
+            @RequestBody @Valid SinalizarProblemaRequest request
     ) {
         try {
             SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);

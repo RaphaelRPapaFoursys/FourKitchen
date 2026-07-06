@@ -146,6 +146,8 @@ public class PedidoService {
     public PedidoResponse iniciarPreparo(Integer id) {
         Pedido pedido = buscarPedido(id);
 
+        validarPedidoNaoAguardandoDecisao(pedido);
+
         validarStatusAtual(pedido, StatusPedido.ENVIADO_COZINHA);
         pedido.setStatus(StatusPedido.EM_PREPARO);
 
@@ -155,6 +157,8 @@ public class PedidoService {
     @Transactional
     public PedidoResponse finalizarPreparo(Integer id) {
         Pedido pedido = buscarPedido(id);
+
+        validarPedidoNaoAguardandoDecisao(pedido);
 
         validarStatusAtual(pedido, StatusPedido.EM_PREPARO);
         pedido.setStatus(StatusPedido.PRONTO);
@@ -170,6 +174,8 @@ public class PedidoService {
         if(alterarPedidoRequest.canal() != null) {
             pedido.setCanal(alterarPedidoRequest.canal());
         }
+
+       validarPedidoNaoAguardandoDecisao(pedido);
 
         if(alterarPedidoRequest.status() != null) {
             pedido.setStatus(alterarPedidoRequest.status());
@@ -242,6 +248,11 @@ public class PedidoService {
                 item.getObservacao()
         );
     }
+    private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {
+        if (pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO) {
+            throw new PedidoAguardandoDecisaoException();
+        }
+    }
 
     @Transactional
     public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
@@ -291,4 +302,5 @@ public class PedidoService {
             produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);
         }
     }
+
 }

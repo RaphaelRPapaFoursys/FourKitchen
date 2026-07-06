@@ -1,10 +1,10 @@
 package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
-import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
-import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
-import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.*;
+import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.EventoPedido;
+import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.ItemFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
@@ -122,5 +122,25 @@ public class CozinhaService {
                 pedido.idMesa(),
                 pedido.idAtendimento()
         );
+    }
+
+    public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
+        try {
+            SinalizarProblemaResponse response = pedidoClient.sinalizarProblema(request);
+
+            registrarEvento(EventoPedido.PEDIDO_COM_FALTA);
+
+            return response;
+        } catch (FeignException e) {
+            if (e.status() == 404) {
+                throw new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO);
+            }
+
+            if (e.status() == 400) {
+                throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+            }
+
+            throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
     }
 }
