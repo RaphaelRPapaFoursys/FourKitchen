@@ -2,20 +2,27 @@ package br.com.fourkitchen.ms_pedidos.service;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.CanaisPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
+import br.com.fourkitchen.ms_pedidos.enums.StatusProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
 import br.com.fourkitchen.ms_pedidos.exceptions.ErrorEnum;
+import br.com.fourkitchen.ms_pedidos.exceptions.PedidoAguardandoDecisaoException;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
 import br.com.fourkitchen.ms_pedidos.repository.ProdutoPedidoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -297,7 +304,10 @@ class PedidoServiceTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Collection<StatusPedido>> statusCaptor = ArgumentCaptor.forClass(Collection.class);
         verify(pedidoRepository).findByStatusInOrderByDataCriacaoAscIdAsc(statusCaptor.capture());
-        assertEquals(List.of(StatusPedido.ENVIADO_COZINHA, StatusPedido.EM_PREPARO), statusCaptor.getValue());
+        assertEquals(
+                List.of(StatusPedido.ENVIADO_COZINHA, StatusPedido.EM_PREPARO),
+                statusCaptor.getValue()
+        );
         verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25));
     }
 
@@ -407,6 +417,99 @@ class PedidoServiceTest {
         assertEquals(StatusPedido.ENVIADO_COZINHA, pedido.getStatus());
         verify(pedidoRepository).findById(25);
         verify(pedidoResponseMapper, never()).map(any(Pedido.class));
+    }
+
+    @Test
+    void buscarResumoOperacaoDeveContarPedidosPorStatus() {
+        when(pedidoRepository.countByStatus(StatusPedido.EM_PREPARO)).thenReturn(5L);
+        when(pedidoRepository.countByStatus(StatusPedido.PRONTO)).thenReturn(3L);
+        when(pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)).thenReturn(2L);
+
+        ResumoPedidosOperacaoResponse resultado = pedidoService.buscarResumoOperacao();
+
+        assertEquals(5L, resultado.pedidosEmPreparo());
+        assertEquals(3L, resultado.pedidosProntos());
+        assertEquals(2L, resultado.problemasPendentes());
+        verify(pedidoRepository).countByStatus(StatusPedido.EM_PREPARO);
+        verify(pedidoRepository).countByStatus(StatusPedido.PRONTO);
+        verify(pedidoRepository).countByStatus(StatusPedido.AGUARDANDO_DECISAO);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = StatusProdutoPedido.class, names = {"FALTA_PRODUTO", "ERRO", "INDISPONIVEL"})
+    void sinalizarProblema_deveAlterarStatusDoPedidoEProduto_paraDiferentesTiposDeProblema(StatusProdutoPedido statusProblema) {
+        // Arrange
+        SinalizarProblemaRequest request = new SinalizarProblemaRequest(1, 10, statusProblema);
+
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.EM_PREPARO)
+                .build();
+
+        ProdutoPedido produtoPedido = ProdutoPedido.builder()
+                .id(10)
+                .idPedido(1)
+                .status(null)
+                .build();
+
+        when(pedidoRepository.findById(1)).thenReturn(Optional.of(pedido));
+        when(produtoPedidoRepository.findByIdPedidoAndId(1, 10)).thenReturn(Optional.of(produtoPedido));
+
+        // Act
+        SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);
+
+        // Assert
+        assertEquals(StatusPedido.AGUARDANDO_DECISAO, pedido.getStatus());
+        assertEquals(statusProblema, produtoPedido.getStatus());
+
+        assertNotNull(response);
+        assertEquals(1, response.idPedido());
+        assertEquals(10, response.idProdutoPedido());
+        assertEquals(StatusPedido.AGUARDANDO_DECISAO, response.statusPedido());
+        assertEquals(statusProblema, response.statusProdutoPedido());
+
+        verify(pedidoRepository).findById(1);
+        verify(produtoPedidoRepository).findByIdPedidoAndId(1, 10);
+    }
+
+    @Test
+    void iniciarPreparo_deveLancarExcecao_quandoPedidoAguardandoDecisao() {
+        // Arrange
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .build();
+
+        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+
+        // Act & Assert
+        assertThrows(PedidoAguardandoDecisaoException.class, () -> {
+            pedidoService.iniciarPreparo(25);
+        });
+
+        // Verify
+        verify(pedidoRepository).findById(25);
+        verifyNoInteractions(pedidoResponseMapper);
+    }
+
+    @Test
+    void finalizarPreparo_deveLancarExcecao_quandoPedidoAguardandoDecisao() {
+        // Arrange
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .build();
+
+        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+
+        // Act & Assert
+        assertThrows(PedidoAguardandoDecisaoException.class, () -> {
+            pedidoService.finalizarPreparo(25);
+        });
+
+        // Verify
+        verify(pedidoRepository).findById(25);
+        verifyNoInteractions(pedidoResponseMapper);
     }
 
     private Collection<StatusPedido> anyStatusCollection() {

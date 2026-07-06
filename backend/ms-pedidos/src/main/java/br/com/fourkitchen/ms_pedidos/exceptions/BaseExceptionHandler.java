@@ -68,4 +68,19 @@ public class BaseExceptionHandler {
                 .status(errorEnum.getHttpStatus())
                 .body(errorObject);
     }
+
+    @ExceptionHandler(PedidoAguardandoDecisaoException.class)
+    public ResponseEntity<ErrorObject> handlePedidoAguardandoDecisaoException(PedidoAguardandoDecisaoException e) {
+        log.warn("Tentativa de alterar pedido aguardando decisão: {}", e.getMessage());
+
+        return buildErrorResponse(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
+    }
+
+    @ExceptionHandler(PedidoEncerradoException.class)
+    public ResponseEntity<ErrorObject> handlePedidoEncerradoException(PedidoEncerradoException e) {
+        log.warn("Tentativa de sinalizar problema com pedido encerrado: {}", e.getMessage());
+
+        return buildErrorResponse(ErrorEnum.PEDIDO_NAO_PODE_SINALIZAR_PROBLEMA);
+    }
+
 }

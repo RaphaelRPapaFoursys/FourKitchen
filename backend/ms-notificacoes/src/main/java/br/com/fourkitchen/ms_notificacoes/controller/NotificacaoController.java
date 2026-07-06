@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_notificacoes.controller;
 
 import br.com.fourkitchen.ms_notificacoes.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.ms_notificacoes.dto.response.NotificacaoResponse;
+import br.com.fourkitchen.ms_notificacoes.dto.response.ResumoNotificacoesOperacaoResponse;
 import br.com.fourkitchen.ms_notificacoes.enums.DestinoNotificacao;
 import br.com.fourkitchen.ms_notificacoes.service.NotificacaoService;
 import jakarta.validation.Valid;
@@ -48,8 +49,21 @@ public class NotificacaoController {
         return ResponseEntity.ok(notificacaoService.listarChamadasPendentesPorAtendimentos(idsAtendimento));
     }
 
+    @GetMapping("/resumo-operacao")
+    public ResponseEntity<ResumoNotificacoesOperacaoResponse> buscarResumoOperacao() {
+        return ResponseEntity.ok(notificacaoService.buscarResumoOperacao());
+    }
+
     @PatchMapping("/{id}/lida")
     public ResponseEntity<NotificacaoResponse> marcarComoLida(@PathVariable Integer id) {
         return ResponseEntity.ok(notificacaoService.marcarComoLida(id));
+    }
+
+    @PatchMapping("/chamadas-garcom/{id}/concluir")
+    public ResponseEntity<NotificacaoResponse> concluirChamadaGarcom(
+            @PathVariable Integer id,
+            @RequestParam Integer idGarcom
+    ) {
+        return ResponseEntity.ok(notificacaoService.concluirChamadaGarcom(id, idGarcom));
     }
 }

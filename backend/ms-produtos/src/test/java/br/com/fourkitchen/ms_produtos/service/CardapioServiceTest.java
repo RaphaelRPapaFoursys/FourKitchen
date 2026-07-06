@@ -50,11 +50,13 @@ class CardapioServiceTest {
         CategoriaCardapioResponse lanchesResponse = new CategoriaCardapioResponse(
                 1,
                 "Lanches",
+                "Descricao Lanches",
                 List.of(hamburguerResponse, batataResponse)
         );
         CategoriaCardapioResponse bebidasResponse = new CategoriaCardapioResponse(
                 2,
                 "Bebidas",
+                "Descricao Bebidas",
                 List.of(refrigeranteResponse)
         );
 
@@ -104,6 +106,7 @@ class CardapioServiceTest {
         return Categoria.builder()
                 .id(id)
                 .nome(nome)
+                .descricao("Descricao " + nome)
                 .ativo(true)
                 .build();
     }
@@ -124,6 +127,7 @@ class CardapioServiceTest {
                 produto.getId(),
                 produto.getNome(),
                 produto.getDescricao(),
+                null,
                 produto.getPreco()
         );
     }
