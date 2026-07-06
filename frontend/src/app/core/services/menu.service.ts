@@ -3,7 +3,9 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { MenuResponse } from '../models/menu.models';
+import { CategoriaCardapioResponse } from '../models/menu.models';
+
+export type MenuContext = 'mesa' | 'totem';
 
 @Injectable({
   providedIn: 'root',
@@ -11,8 +13,9 @@ import { MenuResponse } from '../models/menu.models';
 export class MenuService {
   private readonly http = inject(HttpClient);
 
-  getMenu(): Observable<MenuResponse> {
-    // TODO: ajustar endpoint quando o BFF disponibilizar a rota oficial de cardapio.
-    return this.http.get<MenuResponse>(`${environment.apiUrl}/api/cardapio`);
+  getMenu(context: MenuContext): Observable<CategoriaCardapioResponse[]> {
+    return this.http.get<CategoriaCardapioResponse[]>(
+      `${environment.apiUrl}/api/${context}/cardapio`,
+    );
   }
 }

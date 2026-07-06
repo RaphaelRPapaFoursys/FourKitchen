@@ -1,28 +1,26 @@
-export interface MenuResponse {
-  categorias: CategoriaCardapio[];
-  produtos: ProdutoCardapio[];
+export interface CategoriaCardapioResponse {
+  categoriaId: number;
+  categoriaNome: string;
+  categoriaDescricao?: string;
+  produtos: ProdutoCardapioResponse[];
 }
 
-export interface CategoriaCardapio {
-  id: number;
-  nome: string;
-  descricao?: string;
-  slug?: string;
-  imagemUrl?: string;
-  disponivel?: boolean;
-}
-
-export interface ProdutoCardapio {
+export interface ProdutoCardapioResponse {
   id: number;
   nome: string;
   descricao: string;
+  imagem?: string | null;
+  preco: number;
+}
+
+export interface ProdutoCardapioView {
+  id: number;
+  nome: string;
+  descricao: string;
+  imagem?: string | null;
   preco: number;
   categoriaId: number;
-  categoriaNome?: string;
-  categoriaSlug?: string;
-  imagemUrl?: string;
-  disponivel: boolean;
-  tempoEstimadoPreparo?: number;
+  categoriaNome: string;
 }
 
 export interface ErrorResponse {

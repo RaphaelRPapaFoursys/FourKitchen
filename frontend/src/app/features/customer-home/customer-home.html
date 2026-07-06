@@ -40,17 +40,45 @@
         <p>Escolha uma categoria para explorar os itens disponiveis.</p>
       </header>
 
-      <div class="categories__grid">
-        @for (category of staticCategories; track trackByStaticCategoryId($index, category); let first = $first) {
-          <article class="category-card" [class.category-card--featured]="first">
-            <div class="category-card__media">
-              <img [src]="category.imageUrl" [alt]="category.title" loading="lazy" />
-            </div>
-            <h3>{{ category.title }}</h3>
-            <p>{{ category.description }}</p>
-          </article>
-        }
-      </div>
+      @if (menuState().status === 'loading') {
+        <p class="state-message" role="status">{{ menuState().message }}</p>
+      } @else if (menuState().status === 'error') {
+        <div class="state-message state-message--error" role="alert">
+          <p>{{ menuState().message }}</p>
+          <button type="button" (click)="retryLoadMenu()">Tentar novamente</button>
+        </div>
+      } @else if (!hasMenuContent()) {
+        <p class="state-message">Nenhum item disponivel no momento.</p>
+      } @else {
+        <div class="categories-carousel">
+          <button class="categories-carousel__button categories-carousel__button--left" type="button" aria-label="Ver categorias anteriores" (click)="scrollCategories('left')">
+            ‹
+          </button>
+
+          <div class="categories__grid" #categoriesCarousel>
+            @for (category of categories(); track trackByCategoryId($index, category)) {
+              <button
+                class="category-card"
+                type="button"
+                [class.category-card--active]="selectedCategoryId() === category.categoriaId"
+                (click)="selectCategoryFromCard(category.categoriaId)"
+              >
+                <div class="category-card__media">
+                  <img [src]="getCategoryImage(category)" [alt]="category.categoriaNome" loading="lazy" />
+                </div>
+                <h3>{{ category.categoriaNome }}</h3>
+                @if (category.categoriaDescricao) {
+                  <p>{{ category.categoriaDescricao }}</p>
+                }
+              </button>
+            }
+          </div>
+
+          <button class="categories-carousel__button categories-carousel__button--right" type="button" aria-label="Ver proximas categorias" (click)="scrollCategories('right')">
+            ›
+          </button>
+        </div>
+      }
     </div>
   </section>
 
@@ -59,11 +87,14 @@
     <h2 id="menu-title">Explore nosso cardapio!</h2>
   </section>
 
-  <section class="menu-section" id="menu" aria-label="Cardapio">
+  <section class="menu-section" id="menu" #menuSection aria-label="Cardapio">
     @if (menuState().status === 'loading') {
       <p class="state-message state-message--light" role="status">{{ menuState().message }}</p>
     } @else if (menuState().status === 'error') {
-      <p class="state-message state-message--error" role="alert">{{ menuState().message }}</p>
+      <div class="state-message state-message--error" role="alert">
+        <p>{{ menuState().message }}</p>
+        <button type="button" (click)="retryLoadMenu()">Tentar novamente</button>
+      </div>
     } @else if (!hasMenuContent()) {
       <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
     } @else {
@@ -72,7 +103,7 @@
           class="menu-filters__button"
           type="button"
           [class.menu-filters__button--active]="selectedCategoryId() === null"
-          (click)="selectCategory(null)"
+          (click)="selectCategoryFromFilter(null)"
         >
           Todos
         </button>
@@ -81,10 +112,10 @@
           <button
             class="menu-filters__button"
             type="button"
-            [class.menu-filters__button--active]="selectedCategoryId() === category.id"
-            (click)="selectCategory(category.id)"
+            [class.menu-filters__button--active]="selectedCategoryId() === category.categoriaId"
+            (click)="selectCategoryFromFilter(category.categoriaId)"
           >
-            {{ category.nome }}
+            {{ category.categoriaNome }}
           </button>
         }
       </div>
@@ -96,11 +127,7 @@
           @for (product of filteredProducts(); track trackByProductId($index, product)) {
             <article class="product-card">
               <div class="product-card__media">
-                @if (getProductImage(product); as imageUrl) {
-                  <img [src]="imageUrl" [alt]="product.nome" loading="lazy" />
-                } @else {
-                  <span aria-hidden="true"></span>
-                }
+                <img [src]="getProductImage(product)" [alt]="product.nome" loading="lazy" />
               </div>
 
               <div class="product-card__body">
