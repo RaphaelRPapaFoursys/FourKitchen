@@ -68,7 +68,7 @@ describe('PainelService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), PainelService],
     });
     service = TestBed.inject(PainelService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -175,6 +175,37 @@ describe('PainelService', () => {
       await service.fecharConta(1);
 
       httpMock.expectNone(`${BASE_URL}/mesas/1/fechar`);
+    });
+
+    it('não registra no histórico quando o fecharConta falha', async () => {
+      expect(service.ultimosPedidos()).toHaveLength(0);
+
+      const promise = service.fecharConta(1);
+      httpMock
+        .expectOne(`${BASE_URL}/mesas/1/fechar`)
+        .flush({ msgError: 'Falha ao fechar' }, { status: 500, statusText: 'Server Error' });
+      await esperarMicrotarefas();
+      await promise;
+
+      // Sem sucesso no PATCH, nada entra no histórico e não há recarga de mesas.
+      expect(service.ultimosPedidos()).toHaveLength(0);
+      expect(service.mensagemErro()).not.toBeNull();
+    });
+
+    it('abrirMesa recarrega as mesas mesmo quando a atribuição falha', async () => {
+      const promise = service.abrirMesa(3, 7);
+
+      httpMock.expectOne(`${BASE_URL}/mesas/3/abrir`).flush({});
+      await esperarMicrotarefas();
+      httpMock
+        .expectOne(`${BASE_URL}/mesas/3/atribuir-garcom`)
+        .flush({ msgError: 'Falha ao atribuir' }, { status: 500, statusText: 'Server Error' });
+      await esperarMicrotarefas();
+      // O finally dispara atualizarMesas mesmo com a atribuição falhando.
+      flushMesas();
+      await promise;
+
+      expect(service.mensagemErro()).not.toBeNull();
     });
   });
 

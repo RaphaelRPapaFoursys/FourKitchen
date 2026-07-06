@@ -48,6 +48,7 @@ const CRITICIDADE_RANK: Record<StatusMesaPainel, (mesa: MesaPainel) => number> =
   templateUrl: './gestor.html',
   styleUrl: './gestor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [PainelService],
 })
 export class Gestor {
   private readonly authService = inject(AuthService);
@@ -72,7 +73,7 @@ export class Gestor {
   protected readonly mensagemErro = this.painelService.mensagemErro;
 
   protected readonly buscaTermo = signal('');
-  protected readonly filtroGarcom = signal<string | null>(null);
+  protected readonly filtroGarcom = signal<number | null>(null);
   protected readonly valorMin = signal<number | null>(null);
   protected readonly valorMax = signal<number | null>(null);
   protected readonly ordenacao = signal<Ordenacao>('CRITICO');
@@ -81,8 +82,6 @@ export class Gestor {
   protected readonly selecaoGarcom = signal<SelecaoGarcomEstado | null>(null);
   protected readonly mesaDestacada = signal<number | null>(null);
   protected readonly confirmandoFechamento = signal(false);
-
-  protected readonly nomesGarcons = computed(() => this.cargaGarcons().map(garcom => garcom.nome));
 
   protected readonly mesasFiltradas = computed(() => {
     const termo = this.buscaTermo().trim().toLowerCase();
@@ -99,7 +98,7 @@ export class Gestor {
         const correspondePedido = this.statusPedidoLabel(item).toLowerCase().includes(termo);
         if (!correspondeNumero && !correspondeGarcom && !correspondePedido) return false;
       }
-      if (garcom && item.garcom !== garcom) return false;
+      if (garcom !== null && item.garcomId !== garcom) return false;
       const valorConta = this.valorContaMesa(item);
       if (min !== null && (valorConta === null || valorConta < min)) return false;
       if (max !== null && (valorConta === null || valorConta > max)) return false;
@@ -208,17 +207,17 @@ export class Gestor {
     this.selecaoGarcom.set(null);
   }
 
-  protected garcomJaAtribuido(nome: string): boolean {
+  protected garcomJaAtribuido(id: number): boolean {
     const selecao = this.selecaoGarcom();
     if (!selecao || selecao.modo !== 'REATRIBUIR') return false;
-    return this.mesaSelecaoGarcom()?.garcom === nome;
+    return this.mesaSelecaoGarcom()?.garcomId === id;
   }
 
-  protected confirmarSelecaoGarcom(nome: string): void {
+  protected confirmarSelecaoGarcom(id: number): void {
     const selecao = this.selecaoGarcom();
     if (!selecao) return;
 
-    const garcom = this.cargaGarcons().find(item => item.nome === nome);
+    const garcom = this.cargaGarcons().find(item => item.id === id);
     if (!garcom) return;
 
     if (selecao.modo === 'ABRIR') {

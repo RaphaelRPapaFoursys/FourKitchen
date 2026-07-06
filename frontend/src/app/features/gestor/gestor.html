@@ -137,8 +137,8 @@
                   (ngModelChange)="filtroGarcom.set($event)"
                 >
                   <option [ngValue]="null">Todos</option>
-                  @for (nome of nomesGarcons(); track nome) {
-                    <option [ngValue]="nome">{{ nome }}</option>
+                  @for (garcom of cargaGarcons(); track garcom.id) {
+                    <option [ngValue]="garcom.id">{{ garcom.nome }}</option>
                   }
                 </select>
               </div>
@@ -350,7 +350,7 @@
             <p>Mesas ativas por garçom</p>
 
             <ul class="carga-garcons__lista">
-              @for (garcom of cargaGarcons(); track garcom.nome) {
+              @for (garcom of cargaGarcons(); track garcom.id) {
                 <li>
                   <fk-waiter-load-item
                     [name]="garcom.nome"
@@ -531,14 +531,14 @@
         </header>
 
         <ul class="reatribuicao-modal__lista">
-          @for (garcom of cargaGarcons(); track garcom.nome) {
+          @for (garcom of cargaGarcons(); track garcom.id) {
             <li>
               <button
                 type="button"
                 class="reatribuicao-modal__opcao"
-                [disabled]="garcomJaAtribuido(garcom.nome)"
-                [title]="garcomJaAtribuido(garcom.nome) ? 'Já atribuído a esta mesa' : ''"
-                (click)="confirmarSelecaoGarcom(garcom.nome)"
+                [disabled]="garcomJaAtribuido(garcom.id)"
+                [title]="garcomJaAtribuido(garcom.id) ? 'Já atribuído a esta mesa' : ''"
+                (click)="confirmarSelecaoGarcom(garcom.id)"
               >
                 <fk-waiter-load-item
                   [name]="garcom.nome"

@@ -70,9 +70,12 @@ const ETAPA_POR_STATUS_PEDIDO: Record<string, number> = {
 
 const TOTAL_ETAPAS_PEDIDO = 4;
 
-@Injectable({
-  providedIn: 'root',
-})
+/**
+ * Fornecido no escopo do componente Gestor (providers: [PainelService]), não em 'root'.
+ * Assim o polling só roda enquanto a tela do gestor está montada e o DestroyRef
+ * limpa os intervalos ao sair dela.
+ */
+@Injectable()
 export class PainelService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/api/gestor`;
@@ -99,12 +102,12 @@ export class PainelService {
 
     const idPollingMesas = setInterval(() => {
       if (this.expedienteFechado() || this.acaoEmAndamentoSignal()) return;
-      void this.atualizarMesas();
+      void this.atualizarMesasSilencioso();
     }, INTERVALO_POLLING_MS);
 
     const idPollingGarcons = setInterval(() => {
       if (this.expedienteFechado() || this.acaoEmAndamentoSignal()) return;
-      void this.atualizarGarcons();
+      void this.atualizarGarconsSilencioso();
     }, INTERVALO_POLLING_GARCONS_MS);
 
     this.destroyRef.onDestroy(() => {
@@ -235,19 +238,27 @@ export class PainelService {
     if (this.expedienteFechado()) return;
 
     await this.executarComFeedback('Abrindo mesa...', async () => {
-      await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/abrir`, {}));
-      await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
-      await this.atualizarMesas();
+      try {
+        await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/abrir`, {}));
+        await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
+      } finally {
+        // Reflete o estado real mesmo se a atribuição falhar (mesa pode ter aberto sem garçom).
+        await this.atualizarMesas();
+      }
     });
   }
 
   async fecharConta(idMesa: number): Promise<void> {
     if (this.expedienteFechado()) return;
 
-    this.registrarNoHistoricoAntesDeFechar(idMesa);
+    // Captura o snapshot antes do PATCH, mas só registra no histórico após o fechamento dar certo.
+    const atendimento = this.snapshotHistorico(idMesa);
 
     await this.executarComFeedback('Fechando conta...', async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/fechar`, {}));
+      if (atendimento) {
+        this.historicoExpediente.update(historico => [...historico, atendimento]);
+      }
       await this.atualizarMesas();
     });
   }
@@ -294,19 +305,17 @@ export class PainelService {
     return 'Ocorreu um erro. Tente novamente.';
   }
 
-  private registrarNoHistoricoAntesDeFechar(idMesa: number): void {
+  /** Monta (sem gravar) o registro de histórico da mesa; devolve null quando não há o que registrar. */
+  private snapshotHistorico(idMesa: number): AtendimentoFinalizado | null {
     const mesa = this.mesasSignal().find(item => item.id === idMesa);
-    if (!mesa || mesa.garcom === null || mesa.pedidos.length === 0) return;
+    if (!mesa || mesa.garcom === null || mesa.pedidos.length === 0) return null;
 
-    this.historicoExpediente.update(historico => [
-      ...historico,
-      {
-        numeroMesa: mesa.numero,
-        garcom: mesa.garcom as string,
-        pedidos: mesa.pedidos,
-        duracaoMinutos: mesa.abertaEm === null ? 0 : minutosDesde(mesa.abertaEm),
-      },
-    ]);
+    return {
+      numeroMesa: mesa.numero,
+      garcom: mesa.garcom,
+      pedidos: mesa.pedidos,
+      duracaoMinutos: mesa.abertaEm === null ? 0 : minutosDesde(mesa.abertaEm),
+    };
   }
 
   private async atualizarMesas(): Promise<void> {
@@ -317,6 +326,23 @@ export class PainelService {
   private async atualizarGarcons(): Promise<void> {
     const garcons = await firstValueFrom(this.http.get<GarcomApiResponse[]>(`${this.baseUrl}/garcons`));
     this.garconsSignal.set(garcons);
+  }
+
+  /** Variantes usadas pelo polling: uma falha transitória não deve incomodar o usuário. */
+  private async atualizarMesasSilencioso(): Promise<void> {
+    try {
+      await this.atualizarMesas();
+    } catch {
+      // ignora falha de polling (o próximo tick tenta de novo)
+    }
+  }
+
+  private async atualizarGarconsSilencioso(): Promise<void> {
+    try {
+      await this.atualizarGarcons();
+    } catch {
+      // ignora falha de polling
+    }
   }
 }
 
