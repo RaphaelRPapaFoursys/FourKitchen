@@ -10,6 +10,7 @@ import br.com.fourkitchen.ms_usuarios.mapper.CriarUsuarioRequestMapper;
 import br.com.fourkitchen.ms_usuarios.mapper.UsuarioResponseMapper;
 import br.com.fourkitchen.ms_usuarios.model.Usuario;
 import br.com.fourkitchen.ms_usuarios.repository.UsuarioRepository;
+import br.com.fourkitchen.ms_usuarios.validation.UsuarioRegex;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
-
-    private static final String REGEX_SENHA_FORTE = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
 
     private final UsuarioRepository usuarioRepository;
 
@@ -122,7 +121,7 @@ public class UsuarioService {
     }
 
     private void validarSenha(String senha) {
-        if (!senha.matches(REGEX_SENHA_FORTE)) {
+        if (!senha.matches(UsuarioRegex.SENHA_FORTE)) {
             throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
         }
     }
