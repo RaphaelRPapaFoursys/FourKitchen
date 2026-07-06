@@ -1,6 +1,7 @@
 package br.com.fourkitchen.ms_usuarios.service;
 
 import br.com.fourkitchen.ms_usuarios.dto.request.CriarUsuarioRequest;
+import br.com.fourkitchen.ms_usuarios.dto.request.AtualizarUsuarioRequest;
 import br.com.fourkitchen.ms_usuarios.dto.response.UsuarioResponse;
 import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
 import br.com.fourkitchen.ms_usuarios.exception.BaseException;
@@ -18,6 +19,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
+
+    private static final String REGEX_SENHA_FORTE = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
 
     private final UsuarioRepository usuarioRepository;
 
@@ -52,16 +55,74 @@ public class UsuarioService {
 
     }
 
+    public UsuarioResponse atualizarUsuario(Integer id, AtualizarUsuarioRequest request) {
+        Usuario usuario = buscarUsuarioPorId(id);
+
+        if (usuarioRepository.existsByEmailIgnoreCaseAndIdNot(request.email(), id)) {
+            throw new BaseException(ErrorEnum.EMAIL_JA_CADASTRADO);
+        }
+
+        validarVinculoMesa(request.perfilUsuario(), request.idMesa());
+
+        usuario.setNome(request.nome());
+        usuario.setEmail(request.email());
+        usuario.setPerfilUsuario(request.perfilUsuario());
+        usuario.setIdMesa(request.idMesa());
+
+        if (senhaInformada(request.senha())) {
+            validarSenha(request.senha());
+            usuario.setSenha(passwordEncoder.encode(request.senha()));
+        }
+
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+        return usuarioResponseMapper.map(usuarioSalvo);
+    }
+
+    public void inativarUsuario(Integer id, Integer idUsuarioAutenticado) {
+        if (id.equals(idUsuarioAutenticado)) {
+            throw new BaseException(ErrorEnum.NAO_PODE_EXCLUIR_PROPRIO_USUARIO);
+        }
+
+        Usuario usuario = buscarUsuarioPorId(id);
+
+        if (!Boolean.TRUE.equals(usuario.getAtivo())) {
+            throw new BaseException(ErrorEnum.USUARIO_JA_INATIVO);
+        }
+
+        usuario.setAtivo(false);
+        usuarioRepository.save(usuario);
+    }
+
     private void validarVinculoMesa(CriarUsuarioRequest request) {
-        if (PerfilUsuario.MESA.equals(request.perfilUsuario())) {
-            if (request.idMesa() == null || request.idMesa() <= 0) {
+        validarVinculoMesa(request.perfilUsuario(), request.idMesa());
+    }
+
+    private void validarVinculoMesa(PerfilUsuario perfilUsuario, Integer idMesa) {
+        if (PerfilUsuario.MESA.equals(perfilUsuario)) {
+            if (idMesa == null || idMesa <= 0) {
                 throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
             }
 
             return;
         }
 
-        if (request.idMesa() != null) {
+        if (idMesa != null) {
+            throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+        }
+    }
+
+    private Usuario buscarUsuarioPorId(Integer id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new BaseException(ErrorEnum.USUARIO_NAO_ENCONTRADO));
+    }
+
+    private boolean senhaInformada(String senha) {
+        return senha != null && !senha.isBlank();
+    }
+
+    private void validarSenha(String senha) {
+        if (!senha.matches(REGEX_SENHA_FORTE)) {
             throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
         }
     }

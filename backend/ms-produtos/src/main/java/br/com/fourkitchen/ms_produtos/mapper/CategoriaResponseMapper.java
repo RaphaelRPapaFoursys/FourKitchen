@@ -11,6 +11,7 @@ public class CategoriaResponseMapper implements Mapper<Categoria, CategoriaRespo
         return new CategoriaResponse(
                 source.getId(),
                 source.getNome(),
+                source.getDescricao(),
                 source.getAtivo()
         );
     }

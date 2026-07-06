@@ -1,10 +1,13 @@
 package br.com.fourkitchen.ms_usuarios.controller;
 
+import br.com.fourkitchen.ms_usuarios.dto.request.AtualizarUsuarioRequest;
 import br.com.fourkitchen.ms_usuarios.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.ms_usuarios.dto.response.UsuarioResponse;
 import br.com.fourkitchen.ms_usuarios.exception.ErrorObject;
+import br.com.fourkitchen.ms_usuarios.model.Usuario;
 import br.com.fourkitchen.ms_usuarios.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +19,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -72,5 +76,54 @@ public class UsuarioController {
         UsuarioResponse response = usuarioService.criarUsuario(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
+    }
+
+    @PutMapping("/{id}")
+    @Operation(
+            summary = "Atualiza usuario",
+            description = "Atualiza nome, email, perfil e vinculo de mesa. A senha e alterada somente quando informada.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Usuario atualizado com sucesso",
+                    content = @Content(
+                            schema = @Schema(implementation = UsuarioResponse.class),
+                            examples = @ExampleObject(value = "{\"id\":1,\"nome\":\"Maria Silva\",\"email\":\"maria@fourkitchen.com\",\"perfilUsuario\":\"GESTOR\",\"idMesa\":null,\"ativo\":true}")
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Dados invalidos", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil ADMIN ou GESTOR", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Usuario nao encontrado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "409", description = "Email ja cadastrado para outro usuario", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<UsuarioResponse> atualizarUsuario(
+            @PathVariable Integer id,
+            @RequestBody @Valid AtualizarUsuarioRequest request
+    ) {
+        return ResponseEntity.ok(usuarioService.atualizarUsuario(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Inativa usuario",
+            description = "Executa exclusao logica do usuario, alterando ativo para false. Nao remove o registro do banco.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Usuario inativado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Usuario ja esta inativo", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil ADMIN ou GESTOR ou tentando excluir a si mesmo", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Usuario nao encontrado", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<Void> inativarUsuario(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        Usuario usuarioAutenticado = (Usuario) authentication.getPrincipal();
+        usuarioService.inativarUsuario(id, usuarioAutenticado.getId());
+
+        return ResponseEntity.noContent().build();
     }
 }

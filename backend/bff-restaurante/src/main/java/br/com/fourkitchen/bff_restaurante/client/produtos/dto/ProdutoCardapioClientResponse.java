@@ -1,8 +1,8 @@
-package br.com.fourkitchen.ms_produtos.dto.response;
+package br.com.fourkitchen.bff_restaurante.client.produtos.dto;
 
 import java.math.BigDecimal;
 
-public record ProdutoCardapioResponse(
+public record ProdutoCardapioClientResponse(
         Integer id,
         String nome,
         String descricao,
