@@ -1,5 +1,9 @@
 package br.com.fourkitchen.bff_restaurante.client.usuarios;
 
+import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.GetMapping;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.AtualizarUsuarioClientRequest;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import org.springframework.cloud.openfeign.FeignClient;

@@ -132,6 +132,12 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    PEDIDO_NAO_PODE_SINALIZAR_PROBLEMA(
+            "005",
+            "Status do pedido não permite sinalizar problema",
+            HttpStatus.BAD_REQUEST
+    ),
+  
     USUARIO_NAO_ENCONTRADO(
             "021",
             "Usuario nao encontrado",

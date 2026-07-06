@@ -1,19 +1,32 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { Garcom } from './garcom';
+import { environment } from '../../../environments/environment';
 
 describe('Garcom', () => {
   let component: Garcom;
   let fixture: ComponentFixture<Garcom>;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Garcom],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
+    httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(Garcom);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+
+    httpMock.expectOne(`${environment.apiUrl}/api/mesas`).flush([]);
+    httpMock.expectOne(`${environment.apiUrl}/api/notificacoes/pendentes?destino=GARCOM`).flush([]);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpMock.verify();
   });
 
   it('should create', () => {

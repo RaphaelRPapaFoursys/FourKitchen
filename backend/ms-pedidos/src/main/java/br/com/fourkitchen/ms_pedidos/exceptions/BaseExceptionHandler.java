@@ -76,4 +76,11 @@ public class BaseExceptionHandler {
         return buildErrorResponse(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
     }
 
+    @ExceptionHandler(PedidoEncerradoException.class)
+    public ResponseEntity<ErrorObject> handlePedidoEncerradoException(PedidoEncerradoException e) {
+        log.warn("Tentativa de sinalizar problema com pedido encerrado: {}", e.getMessage());
+
+        return buildErrorResponse(ErrorEnum.PEDIDO_NAO_PODE_SINALIZAR_PROBLEMA);
+    }
+
 }
