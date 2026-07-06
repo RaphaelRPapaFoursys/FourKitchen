@@ -8,6 +8,12 @@ import { nivelCargaGarcom, NivelCarga, resolverCriticidadeMesa } from '../../cor
 import { MesaPainel, StatusMesaPainel } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { PainelService } from '../../core/services/painel';
+import { Avatar } from '../../shared/components/avatar/avatar';
+import { Badge } from '../../shared/components/badge/badge';
+import { Icon } from '../../shared/components/icon/icon';
+import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { ProgressBar } from '../../shared/components/progress-bar/progress-bar';
+import { WaiterLoadItem } from '../../shared/components/waiter-load-item/waiter-load-item';
 
 type Ordenacao = 'CRITICO' | 'NUMERO';
 type Criticidade = ReturnType<typeof resolverCriticidadeMesa>;
@@ -38,7 +44,7 @@ const CRITICIDADE_RANK: Record<StatusMesaPainel, (mesa: MesaPainel) => number> =
 
 @Component({
   selector: 'app-gestor',
-  imports: [FormsModule, CurrencyPipe],
+  imports: [FormsModule, CurrencyPipe, Avatar, Badge, Icon, KpiCard, ProgressBar, WaiterLoadItem],
   templateUrl: './gestor.html',
   styleUrl: './gestor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -254,8 +260,8 @@ export class Gestor {
     this.confirmandoFechamento.set(false);
   }
 
-  protected reabrirExpediente(): void {
-    this.painelService.reabrirExpediente();
+  protected abrirNovoExpediente(): void {
+    this.painelService.abrirNovoExpediente();
   }
 
   protected mensagemBloqueioFechamento(): string {
