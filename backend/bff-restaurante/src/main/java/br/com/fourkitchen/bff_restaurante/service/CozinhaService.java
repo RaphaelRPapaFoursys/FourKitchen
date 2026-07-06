@@ -9,6 +9,7 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.ItemFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.enums.StatusProdutoPedido;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import feign.FeignException;
@@ -128,7 +129,14 @@ public class CozinhaService {
         try {
             SinalizarProblemaResponse response = pedidoClient.sinalizarProblema(request);
 
-            registrarEvento(EventoPedido.PEDIDO_COM_FALTA);
+            if (request.statusProdutoPedido().equals(StatusProdutoPedido.FALTA_PRODUTO)){
+                registrarEvento(EventoPedido.PEDIDO_COM_FALTA);
+            } else if (request.statusProdutoPedido().equals(StatusProdutoPedido.ERRO)) {
+                registrarEvento(EventoPedido.PEDIDO_ERRO);
+            }else {
+                registrarEvento(EventoPedido.PEDIDO_INDISPONIVEL);
+            }
+
 
             return response;
         } catch (FeignException e) {
@@ -137,7 +145,7 @@ public class CozinhaService {
             }
 
             if (e.status() == 400) {
-                throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+                throw new BaseException(ErrorEnum.PEDIDO_NAO_PODE_SINALIZAR_PROBLEMA);
             }
 
             throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);

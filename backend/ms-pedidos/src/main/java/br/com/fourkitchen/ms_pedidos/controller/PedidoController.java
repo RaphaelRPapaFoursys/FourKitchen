@@ -93,6 +93,11 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosPorAtendimentos(idsAtendimento));
     }
 
+    @GetMapping("/resumo-operacao")
+    private ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
+        return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
+    }
+
     @GetMapping("/atendimentos/ativos/detalhado")
     public ResponseEntity<List<PedidoCozinhaResponse>> listarPedidosAtivosDetalhadosPorAtendimentos(
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento
