@@ -17,7 +17,8 @@ public class MesaResponseMapper implements Mapper<Mesa, MesaResponse> {
                 source.getAtendimento() != null ? source.getAtendimento().getGarcomId() : null,
                 source.getAtendimento() != null ? source.getAtendimento().getCodigoSessao() : null,
                 source.getAtendimento() != null ? source.getAtendimento().getDataAbertura() : null,
-                source.getAtendimento() != null ? source.getAtendimento().getDataFechamento() : null
+                source.getAtendimento() != null ? source.getAtendimento().getDataFechamento() : null,
+                source.getAtendimento() != null ? source.getAtendimento().getId() : null
         );
     }
 }

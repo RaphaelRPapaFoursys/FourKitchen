@@ -4,6 +4,7 @@ import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
 import br.com.fourkitchen.ms_mesas.service.MesaService;
 import jakarta.validation.Valid;
@@ -45,6 +46,11 @@ public class MesaController {
         return ResponseEntity.ok(mesaService.listarMesasPorGarcom(idGarcom));
     }
 
+    @GetMapping("/resumo-operacao")
+    public ResponseEntity<ResumoMesasOperacaoResponse> buscarResumoOperacao() {
+        return ResponseEntity.ok(mesaService.buscarResumoOperacao());
+    }
+
     @PatchMapping("/{id}/abrir")
     public ResponseEntity<MesaResponse> abrirMesa(@PathVariable Integer id) {
         return ResponseEntity.ok(mesaService.abrirMesa(id));
@@ -61,7 +67,7 @@ public class MesaController {
             @RequestBody @Valid AtribuirGarcomRequest request
     ) {
         return ResponseEntity.ok(mesaService.atribuirGarcom(id, request));
-    }
+    } 
 
     @GetMapping("/{id}/sessoes/{codigoSessao}/validar")
     public ResponseEntity<SessaoMesaResponse> validarSessaoMesa(

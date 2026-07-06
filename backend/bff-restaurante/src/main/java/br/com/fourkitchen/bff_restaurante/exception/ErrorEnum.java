@@ -132,6 +132,36 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    ATENDIMENTO_NAO_ABERTO(
+            "019",
+            "Mesa sem atendimento aberto",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    PEDIDO_NAO_PODE_SINALIZAR_PROBLEMA(
+            "005",
+            "Status do pedido não permite sinalizar problema",
+            HttpStatus.BAD_REQUEST
+    ),
+  
+    USUARIO_NAO_ENCONTRADO(
+            "021",
+            "Usuario nao encontrado",
+            HttpStatus.NOT_FOUND
+    ),
+
+    EMAIL_JA_CADASTRADO(
+            "022",
+            "Email ja cadastrado",
+            HttpStatus.CONFLICT
+    ),
+
+    NAO_PODE_EXCLUIR_PROPRIO_USUARIO(
+            "023",
+            "Nao e permitido excluir o proprio usuario autenticado",
+            HttpStatus.FORBIDDEN
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

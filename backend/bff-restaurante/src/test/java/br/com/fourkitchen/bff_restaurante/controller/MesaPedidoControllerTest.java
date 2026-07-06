@@ -10,12 +10,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,10 +32,10 @@ class MesaPedidoControllerTest {
     @Test
     void criarPedidoDeveRetornarCreated() {
         CriarPedidoMesaRequest request = new CriarPedidoMesaRequest(
-                1,
                 123456,
-                List.of(new ItemPedidoMesaRequest(10, 2, new BigDecimal("29.90"), null))
+                List.of(new ItemPedidoMesaRequest(10, 2, null))
         );
+        Authentication authentication = mock(Authentication.class);
         PedidoMesaResponse pedidoResponse = new PedidoMesaResponse(
                 25,
                 100025,
@@ -44,12 +45,12 @@ class MesaPedidoControllerTest {
                 8
         );
 
-        when(mesaPedidoService.criarPedido(request)).thenReturn(pedidoResponse);
+        when(mesaPedidoService.criarPedido(request, authentication)).thenReturn(pedidoResponse);
 
-        ResponseEntity<PedidoMesaResponse> response = mesaPedidoController.criarPedido(request);
+        ResponseEntity<PedidoMesaResponse> response = mesaPedidoController.criarPedido(request, authentication);
 
         assertEquals(201, response.getStatusCode().value());
         assertSame(pedidoResponse, response.getBody());
-        verify(mesaPedidoService).criarPedido(request);
+        verify(mesaPedidoService).criarPedido(request, authentication);
     }
 }

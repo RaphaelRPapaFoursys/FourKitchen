@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_notificacoes.service;
 
 import br.com.fourkitchen.ms_notificacoes.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.ms_notificacoes.dto.response.NotificacaoResponse;
+import br.com.fourkitchen.ms_notificacoes.dto.response.ResumoNotificacoesOperacaoResponse;
 import br.com.fourkitchen.ms_notificacoes.enums.DestinoNotificacao;
 import br.com.fourkitchen.ms_notificacoes.enums.TipoNotificacao;
 import br.com.fourkitchen.ms_notificacoes.exception.BaseException;
@@ -315,6 +316,23 @@ class NotificacaoServiceTest {
 
         assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
         verifyNoInteractions(notificacaoRepository, notificacaoResponseMapper);
+    }
+
+    @Test
+    void buscarResumoOperacaoDeveContarChamadasDeGarcomPendentes() {
+        when(notificacaoRepository.countByTipoAndDestinoAndLidaFalse(
+                TipoNotificacao.CHAMADA_GARCOM.name(),
+                DestinoNotificacao.GARCOM
+        )).thenReturn(4L);
+
+        ResumoNotificacoesOperacaoResponse resultado = notificacaoService.buscarResumoOperacao();
+
+        assertEquals(4L, resultado.chamadasPendentes());
+        verify(notificacaoRepository).countByTipoAndDestinoAndLidaFalse(
+                TipoNotificacao.CHAMADA_GARCOM.name(),
+                DestinoNotificacao.GARCOM
+        );
+        verifyNoInteractions(criarNotificacaoRequestMapper, notificacaoResponseMapper);
     }
 
     private Notificacao criarNotificacao(Integer id, Boolean lida) {

@@ -154,4 +154,24 @@ public class GestorMesaController {
     ) {
         return ResponseEntity.ok(gestorMesaService.atribuirGarcom(id, request, authorization));
     }
+
+    @PatchMapping("/mesas/{id}/marcar-entregue")
+    @Operation(
+            summary = "Marca pedidos prontos como entregues",
+            description = "Marca como entregues todos os pedidos da mesa que estiverem com status PRONTO."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedidos marcados como entregues com sucesso", content = @Content(schema = @Schema(implementation = MesaGestorResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Mesa sem atendimento aberto", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil GESTOR ou ADMIN", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Mesa nao encontrada", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<MesaGestorResponse> marcarEntregue(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        return ResponseEntity.ok(gestorMesaService.marcarEntregue(id, authorization));
+    }
 }

@@ -5,5 +5,6 @@ public record LoginResponse(
         Long id,
         String nome,
         String useremail,
-        String perfil
+        String perfil,
+        Integer idMesa
 ) {}
