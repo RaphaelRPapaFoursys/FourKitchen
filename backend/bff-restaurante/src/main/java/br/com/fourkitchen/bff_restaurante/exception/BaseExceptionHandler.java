@@ -1,13 +1,8 @@
 package br.com.fourkitchen.bff_restaurante.exception;
 
-import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -36,26 +31,6 @@ public class BaseExceptionHandler {
                 .orElse(ErrorEnum.DADOS_INVALIDOS.getErrorMessage());
 
         return buildErrorResponse(ErrorEnum.DADOS_INVALIDOS, errorMessage);
-    }
-
-    @ExceptionHandler(FeignException.class)
-    public ResponseEntity<String> handleFeignException(FeignException e) {
-        log.warn("Erro em chamada Feign no bff-restaurante: status={}", e.status());
-
-        int status = e.status();
-        HttpStatusCode statusCode = status > 0
-                ? HttpStatusCode.valueOf(status)
-                : HttpStatus.BAD_GATEWAY;
-
-        String body = e.contentUTF8();
-        if (body == null || body.isBlank()) {
-            body = "{\"codError\":\"500\",\"msgError\":\"Servico indisponivel\"}";
-        }
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        return new ResponseEntity<>(body, headers, statusCode);
     }
 
     @ExceptionHandler(Exception.class)

@@ -1,5 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.SinalizarProblemaRequest;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.SinalizarProblemaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
@@ -13,13 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class CozinhaController {
                     description = "Fila retornada com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = PedidoFilaCozinhaResponse.class)),
-                            examples = @ExampleObject(value = "[{\"id\":25,\"codigo\":100025,\"canal\":\"MESA\",\"status\":\"ENVIADO_COZINHA\",\"idMesa\":1,\"idAtendimento\":8,\"dataCriacao\":\"2026-07-02T10:30:00\",\"itens\":[{\"id\":5,\"idProduto\":10,\"nomeProduto\":\"Hamburguer\",\"quantidade\":2,\"precoUnitario\":29.90,\"observacao\":\"Sem cebola\"}]}]")
+                            examples = @ExampleObject(value = "[{\"id\":25,\"codigo\":100025,\"canal\":\"MESA\",\"status\":\"ENVIADO_COZINHA\",\"idMesa\":1,\"idAtendimento\":8,\"dataCriacao\":\"2026-07-02T10:30:00\",\"itens\":[{\"id\":5,\"idProduto\":10,\"quantidade\":2,\"precoUnitario\":29.90,\"observacao\":\"Sem cebola\"}]}]")
                     )
             ),
             @ApiResponse(
@@ -97,10 +96,26 @@ public class CozinhaController {
                             examples = @ExampleObject(value = "{\"codError\":\"015\",\"msgError\":\"Transicao de status invalida\"}")
                     )
             ),
-            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
-            @ApiResponse(responseCode = "403", description = "Usuario sem perfil de cozinha", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
-            @ApiResponse(responseCode = "404", description = "Pedido nao encontrado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
-            @ApiResponse(responseCode = "502", description = "Servico de pedidos ou notificacoes indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Token ausente, invalido ou expirado",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Usuario sem perfil de cozinha",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Pedido nao encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            ),
+            @ApiResponse(
+                    responseCode = "502",
+                    description = "Servico de pedidos ou notificacoes indisponivel",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            )
     })
     public ResponseEntity<PedidoStatusCozinhaResponse> iniciarPreparo(@PathVariable Integer id) {
         return ResponseEntity.ok(cozinhaService.iniciarPreparo(id));
@@ -128,12 +143,35 @@ public class CozinhaController {
                             examples = @ExampleObject(value = "{\"codError\":\"015\",\"msgError\":\"Transicao de status invalida\"}")
                     )
             ),
-            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
-            @ApiResponse(responseCode = "403", description = "Usuario sem perfil de cozinha", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
-            @ApiResponse(responseCode = "404", description = "Pedido nao encontrado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
-            @ApiResponse(responseCode = "502", description = "Servico de pedidos ou notificacoes indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Token ausente, invalido ou expirado",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Usuario sem perfil de cozinha",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Pedido nao encontrado",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            ),
+            @ApiResponse(
+                    responseCode = "502",
+                    description = "Servico de pedidos ou notificacoes indisponivel",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            )
     })
     public ResponseEntity<PedidoStatusCozinhaResponse> finalizarPreparo(@PathVariable Integer id) {
         return ResponseEntity.ok(cozinhaService.finalizarPreparo(id));
+    }
+
+    @PatchMapping("/pedidos/sinalizar-problema")
+    public ResponseEntity<SinalizarProblemaResponse> sinalizarProblema(
+            @RequestBody @Valid SinalizarProblemaRequest request
+    ) {
+        return ResponseEntity.ok(cozinhaService.sinalizarProblema(request));
     }
 }

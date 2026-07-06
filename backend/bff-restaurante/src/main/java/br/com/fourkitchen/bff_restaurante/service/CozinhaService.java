@@ -1,12 +1,10 @@
 package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
-import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
-import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
-import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
-import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
-import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.*;
+import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.EventoPedido;
+import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.ItemFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
@@ -18,25 +16,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CozinhaService {
 
     private final PedidoClient pedidoClient;
-    private final ProdutoClient produtoClient;
+
     private final NotificacaoService notificacaoService;
 
     public List<PedidoFilaCozinhaResponse> listarFila() {
         try {
-            List<PedidoCozinhaResponse> pedidos = pedidoClient.listarFilaCozinha();
-            Map<Integer, String> nomesProdutos = buscarNomesProdutosSemBloquearFila();
-
-            return pedidos
+            return pedidoClient.listarFilaCozinha()
                     .stream()
-                    .map(pedido -> mapearPedido(pedido, nomesProdutos))
+                    .map(this::mapearPedido)
                     .toList();
         } catch (FeignException e) {
             throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
@@ -87,7 +80,7 @@ public class CozinhaService {
         ));
     }
 
-    private PedidoFilaCozinhaResponse mapearPedido(PedidoCozinhaResponse pedido, Map<Integer, String> nomesProdutos) {
+    private PedidoFilaCozinhaResponse mapearPedido(PedidoCozinhaResponse pedido) {
         return new PedidoFilaCozinhaResponse(
                 pedido.id(),
                 pedido.codigo(),
@@ -97,7 +90,7 @@ public class CozinhaService {
                 pedido.idAtendimento(),
                 pedido.dataCriacao(),
                 itensDoPedido(pedido).stream()
-                        .map(item -> mapearItem(item, nomesProdutos))
+                        .map(this::mapearItem)
                         .toList()
         );
     }
@@ -110,30 +103,14 @@ public class CozinhaService {
         return pedido.itens();
     }
 
-    private ItemFilaCozinhaResponse mapearItem(ItemPedidoCozinhaResponse item, Map<Integer, String> nomesProdutos) {
+    private ItemFilaCozinhaResponse mapearItem(ItemPedidoCozinhaResponse item) {
         return new ItemFilaCozinhaResponse(
                 item.id(),
                 item.idProduto(),
-                nomesProdutos.getOrDefault(item.idProduto(), "Produto #" + item.idProduto()),
                 item.quantidade(),
                 item.precoUnitario(),
                 item.observacao()
         );
-    }
-
-    private Map<Integer, String> buscarNomesProdutosSemBloquearFila() {
-        try {
-            return produtoClient.listarProdutos()
-                    .stream()
-                    .filter(produto -> produto.id() != null)
-                    .collect(Collectors.toMap(
-                            ProdutoResponse::id,
-                            ProdutoResponse::nome,
-                            (nomeAtual, nomeNovo) -> nomeAtual
-                    ));
-        } catch (Exception e) {
-            return Map.of();
-        }
     }
 
     private PedidoStatusCozinhaResponse mapearStatus(PedidoResponse pedido) {
@@ -145,5 +122,25 @@ public class CozinhaService {
                 pedido.idMesa(),
                 pedido.idAtendimento()
         );
+    }
+
+    public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
+        try {
+            SinalizarProblemaResponse response = pedidoClient.sinalizarProblema(request);
+
+            registrarEvento(EventoPedido.PEDIDO_COM_FALTA);
+
+            return response;
+        } catch (FeignException e) {
+            if (e.status() == 404) {
+                throw new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO);
+            }
+
+            if (e.status() == 400) {
+                throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+            }
+
+            throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
     }
 }

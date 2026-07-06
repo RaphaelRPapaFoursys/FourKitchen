@@ -52,7 +52,8 @@ class UserServiceTest {
                 1L,
                 "Lucas",
                 "garcom@fourkitchen.com",
-                "GARCOM"
+                "GARCOM",
+                null
         );
 
         when(usuarioAuthClient.login(new UsuarioLoginRequest(request.email(), request.senha())))
@@ -62,7 +63,7 @@ class UserServiceTest {
 
         assertEquals("jwt-token", response.accessToken());
         assertEquals("Bearer", response.tokenType());
-        assertEquals(new UsuarioAutenticadoResponse(1L, "Lucas", "garcom@fourkitchen.com", "GARCOM"), response.usuario());
+        assertEquals(new UsuarioAutenticadoResponse(1L, "Lucas", "garcom@fourkitchen.com", "GARCOM", null), response.usuario());
         verify(usuarioAuthClient).login(new UsuarioLoginRequest(request.email(), request.senha()));
         verify(jwtService).validarToken("jwt-token");
     }
@@ -103,7 +104,8 @@ class UserServiceTest {
                 1L,
                 "Lucas",
                 "garcom@fourkitchen.com",
-                "GARCOM"
+                "GARCOM",
+                null
         );
 
         when(usuarioAuthClient.login(new UsuarioLoginRequest(request.email(), request.senha())))
@@ -123,7 +125,8 @@ class UserServiceTest {
                 1L,
                 "Lucas",
                 "garcom@fourkitchen.com",
-                "GARCOM"
+                "GARCOM",
+                null
         );
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 usuarioAutenticado,
@@ -133,7 +136,7 @@ class UserServiceTest {
 
         UsuarioAutenticadoResponse response = userService.me(authentication);
 
-        assertEquals(new UsuarioAutenticadoResponse(1L, "Lucas", "garcom@fourkitchen.com", "GARCOM"), response);
+        assertEquals(new UsuarioAutenticadoResponse(1L, "Lucas", "garcom@fourkitchen.com", "GARCOM", null), response);
     }
 
     @Test

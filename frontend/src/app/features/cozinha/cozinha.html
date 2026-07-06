@@ -140,7 +140,7 @@
       <li>
         <span>{{ item.quantidade }}x</span>
         <div>
-          <strong>{{ item.nomeProduto }}</strong>
+          <strong>{{ nomeItem(item) }}</strong>
           @if (item.observacao) {
             <small>{{ item.observacao }}</small>
           }

@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-@SpringBootTest
+@SpringBootTest(properties = "jwt.secret=chave-super-secreta-para-testes-fourkitchen-123456789")
 @Import(BffRestauranteApplicationTests.ProtectedRoutesTestController.class)
 class BffRestauranteApplicationTests {
 
@@ -36,6 +36,8 @@ class BffRestauranteApplicationTests {
 				.andExpect(content().string(containsString("/api/notificacoes/pendentes")))
 				.andExpect(content().string(containsString("/api/mesa/pedidos")))
 				.andExpect(content().string(containsString("/api/totem/pedidos")))
+				.andExpect(content().string(containsString("/api/garcom/chamadas/{id}/concluir")))
+				.andExpect(content().string(containsString("/api/gestor/resumo")))
 				.andExpect(content().string(containsString("O preco nao deve ser enviado pelo front")))
 				.andExpect(content().string(containsString("bearerAuth")));
 	}
@@ -57,6 +59,40 @@ class BffRestauranteApplicationTests {
 	@WithMockUser(roles = "GARCOM")
 	void rotaDeGarcomDevePermitirPerfilGarcom() throws Exception {
 		mockMvc.perform(get("/api/garcom/painel"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void rotaDeMesaDeveExigirAutenticacao() throws Exception {
+		mockMvc.perform(get("/api/mesa/painel"))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	@WithMockUser(roles = "GARCOM")
+	void rotaDeMesaDeveBloquearUsuarioSemPerfilPermitido() throws Exception {
+		mockMvc.perform(get("/api/mesa/painel"))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	@WithMockUser(roles = "MESA")
+	void rotaDeMesaDevePermitirPerfilMesa() throws Exception {
+		mockMvc.perform(get("/api/mesa/painel"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(roles = "MESA")
+	void rotaDeTotemDeveBloquearUsuarioSemPerfilPermitido() throws Exception {
+		mockMvc.perform(get("/api/totem/painel"))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	@WithMockUser(roles = "TOTEM")
+	void rotaDeTotemDevePermitirPerfilTotem() throws Exception {
+		mockMvc.perform(get("/api/totem/painel"))
 				.andExpect(status().isOk());
 	}
 
@@ -108,6 +144,16 @@ class BffRestauranteApplicationTests {
 		@GetMapping("/api/garcom/painel")
 		String garcom() {
 			return "garcom";
+		}
+
+		@GetMapping("/api/mesa/painel")
+		String mesa() {
+			return "mesa";
+		}
+
+		@GetMapping("/api/totem/painel")
+		String totem() {
+			return "totem";
 		}
 
 		@GetMapping("/api/cozinha/painel")

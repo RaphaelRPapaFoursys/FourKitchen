@@ -1,13 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, finalize, forkJoin, of } from 'rxjs';
+import { finalize } from 'rxjs';
 
-import { MesaResponse } from '../../core/models/mesa.models';
-import { NotificacaoResponse } from '../../core/models/notificacao.models';
+import { ChamadaPendenteMesaResponse, MesaGarcomResponse } from '../../core/models/garcom.models';
 import { AuthService } from '../../core/services/auth';
-import { MesaService } from '../../core/services/mesa';
-import { NotificacaoService } from '../../core/services/notificacao';
+import { GarcomChamadaService } from '../../core/services/garcom-chamada';
+import { GarcomMesaService } from '../../core/services/garcom-mesa';
 
 type FiltroMesa = 'todas' | 'ocupadas' | 'livres';
 
@@ -20,18 +19,16 @@ type FiltroMesa = 'todas' | 'ocupadas' | 'livres';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Garcom {
-  private readonly mesaService = inject(MesaService);
-  private readonly notificacaoService = inject(NotificacaoService);
+  private readonly garcomMesaService = inject(GarcomMesaService);
+  private readonly garcomChamadaService = inject(GarcomChamadaService);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly mesas = signal<MesaResponse[]>([]);
-  protected readonly notificacoes = signal<NotificacaoResponse[]>([]);
+  protected readonly mesas = signal<MesaGarcomResponse[]>([]);
   protected readonly busca = signal('');
   protected readonly filtro = signal<FiltroMesa>('todas');
   protected readonly carregando = signal(false);
   protected readonly erro = signal('');
-  protected readonly mesaEmAcao = signal<number | null>(null);
   protected readonly notificacaoEmAcao = signal<number | null>(null);
 
   protected readonly nomeUsuario = computed(() =>
@@ -59,7 +56,7 @@ export class Garcom {
           mesa.numero,
           mesa.status,
           this.statusVisual(mesa),
-          this.notificacaoDaMesa(mesa)?.mensagem,
+          ...mesa.chamadasPendentes.map(chamada => chamada.mensagem),
         ].join(' ').toLowerCase().includes(termo);
       })
       .sort((a, b) => a.numero - b.numero);
@@ -77,18 +74,15 @@ export class Garcom {
     this.erro.set('');
     this.carregando.set(true);
 
-    forkJoin({
-      mesas: this.mesaService.listarMesas(),
-      notificacoes: this.notificacaoService.listarPendentes('GARCOM').pipe(catchError(() => of([]))),
-    })
+    this.garcomMesaService
+      .listarMesas()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.carregando.set(false))
       )
       .subscribe({
-        next: ({ mesas, notificacoes }) => {
+        next: mesas => {
           this.mesas.set(mesas);
-          this.notificacoes.set(notificacoes);
         },
         error: error => this.erro.set(this.getErrorMessage(error)),
       });
@@ -102,48 +96,30 @@ export class Garcom {
     this.filtro.set(filtro);
   }
 
-  protected abrirMesa(mesa: MesaResponse): void {
-    this.executarAcaoMesa(mesa.id, () => this.mesaService.abrirMesa(mesa.id));
-  }
+  protected atenderNotificacao(mesa: MesaGarcomResponse, chamada: ChamadaPendenteMesaResponse): void {
+    this.notificacaoEmAcao.set(chamada.id);
 
-  protected fecharMesa(mesa: MesaResponse): void {
-    this.executarAcaoMesa(mesa.id, () => this.mesaService.fecharMesa(mesa.id));
-  }
-
-  protected atenderNotificacao(notificacao: NotificacaoResponse): void {
-    this.notificacaoEmAcao.set(notificacao.id);
-
-    this.notificacaoService
-      .marcarComoLida(notificacao.id)
+    this.garcomChamadaService
+      .concluirChamada(chamada.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.notificacaoEmAcao.set(null))
       )
       .subscribe({
-        next: notificacaoLida => {
-          this.notificacoes.update(notificacoes =>
-            notificacoes.filter(notificacaoAtual => notificacaoAtual.id !== notificacaoLida.id)
-          );
-        },
+        next: () => this.removerChamada(mesa.idMesa, chamada.id),
         error: error => this.erro.set(this.getErrorMessage(error)),
       });
   }
 
-  protected notificacaoDaMesa(mesa: MesaResponse): NotificacaoResponse | null {
-    const numeroMesa = mesa.numero.toString().padStart(2, '0');
-
-    return this.notificacoes().find(notificacao => {
-      const texto = `${notificacao.tipo} ${notificacao.mensagem}`.toLowerCase();
-
-      return texto.includes(`mesa ${mesa.numero}`) || texto.includes(`mesa ${numeroMesa}`);
-    }) ?? null;
+  protected notificacaoDaMesa(mesa: MesaGarcomResponse): ChamadaPendenteMesaResponse | null {
+    return mesa.chamadasPendentes[0] ?? null;
   }
 
-  protected statusVisual(mesa: MesaResponse): 'LIVRE' | 'OCUPADA' | 'CHAMANDO' {
-    return this.notificacaoDaMesa(mesa) ? 'CHAMANDO' : mesa.status === 'OCUPADA' ? 'OCUPADA' : 'LIVRE';
+  protected statusVisual(mesa: MesaGarcomResponse): 'LIVRE' | 'OCUPADA' | 'CHAMANDO' {
+    return mesa.possuiChamadaPendente ? 'CHAMANDO' : mesa.status === 'OCUPADA' ? 'OCUPADA' : 'LIVRE';
   }
 
-  protected tempoAberta(mesa: MesaResponse): string {
+  protected tempoAberta(mesa: MesaGarcomResponse): string {
     if (!mesa.dataAbertura) {
       return '';
     }
@@ -159,28 +135,31 @@ export class Garcom {
     return `${minutos} min`;
   }
 
-  protected trackMesa(_: number, mesa: MesaResponse): number {
-    return mesa.id;
+  protected pedidosAtivosLabel(mesa: MesaGarcomResponse): string {
+    const total = mesa.pedidosAtivos.length;
+
+    return `${total} pedido${total === 1 ? '' : 's'} ativo${total === 1 ? '' : 's'}`;
   }
 
-  private executarAcaoMesa(mesaId: number, requestFactory: () => ReturnType<MesaService['abrirMesa']>): void {
-    this.erro.set('');
-    this.mesaEmAcao.set(mesaId);
-
-    requestFactory()
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.mesaEmAcao.set(null))
-      )
-      .subscribe({
-        next: mesaAtualizada => this.substituirMesa(mesaAtualizada),
-        error: error => this.erro.set(this.getErrorMessage(error)),
-      });
+  protected trackMesa(_: number, mesa: MesaGarcomResponse): number {
+    return mesa.idMesa;
   }
 
-  private substituirMesa(mesaAtualizada: MesaResponse): void {
+  private removerChamada(idMesa: number, idChamada: number): void {
     this.mesas.update(mesas =>
-      mesas.map(mesa => mesa.id === mesaAtualizada.id ? mesaAtualizada : mesa)
+      mesas.map(mesa => {
+        if (mesa.idMesa !== idMesa) {
+          return mesa;
+        }
+
+        const chamadasPendentes = mesa.chamadasPendentes.filter(chamada => chamada.id !== idChamada);
+
+        return {
+          ...mesa,
+          chamadasPendentes,
+          possuiChamadaPendente: chamadasPendentes.length > 0,
+        };
+      })
     );
   }
 

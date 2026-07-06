@@ -4,8 +4,6 @@ import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
-import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
-import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
@@ -42,20 +40,16 @@ class CozinhaServiceTest {
     private PedidoClient pedidoClient;
 
     @Mock
-    private ProdutoClient produtoClient;
-
-    @Mock
     private NotificacaoService notificacaoService;
 
     @InjectMocks
     private CozinhaService cozinhaService;
 
     @Test
-    void listarFilaDeveDelegarParaMsPedidosEMapearResponseComNomeDoProduto() {
+    void listarFilaDeveDelegarParaMsPedidosEMapearResponse() {
         PedidoCozinhaResponse response = criarResponse();
 
         when(pedidoClient.listarFilaCozinha()).thenReturn(List.of(response));
-        when(produtoClient.listarProdutos()).thenReturn(List.of(criarProdutoResponse()));
 
         List<PedidoFilaCozinhaResponse> resultado = cozinhaService.listarFila();
 
@@ -69,34 +63,7 @@ class CozinhaServiceTest {
         assertEquals(8, pedido.idAtendimento());
         assertEquals(LocalDateTime.of(2026, 7, 2, 10, 30), pedido.dataCriacao());
         assertEquals(1, pedido.itens().size());
-        assertEquals("Hamburguer Gourmet Monster", pedido.itens().getFirst().nomeProduto());
         assertEquals("Sem cebola", pedido.itens().getFirst().observacao());
-        verify(pedidoClient).listarFilaCozinha();
-        verify(produtoClient).listarProdutos();
-    }
-
-    @Test
-    void listarFilaNaoDeveBloquearPedidosQuandoMsProdutosFalhar() {
-        PedidoCozinhaResponse response = criarResponse();
-
-        when(pedidoClient.listarFilaCozinha()).thenReturn(List.of(response));
-        when(produtoClient.listarProdutos()).thenThrow(feignException(500));
-
-        List<PedidoFilaCozinhaResponse> resultado = cozinhaService.listarFila();
-
-        assertEquals(1, resultado.size());
-        assertEquals("Produto #10", resultado.getFirst().itens().getFirst().nomeProduto());
-        verify(pedidoClient).listarFilaCozinha();
-        verify(produtoClient).listarProdutos();
-    }
-
-    @Test
-    void listarFilaDeveMapearMsPedidosIndisponivel() {
-        when(pedidoClient.listarFilaCozinha()).thenThrow(feignException(500));
-
-        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.listarFila());
-
-        assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
         verify(pedidoClient).listarFilaCozinha();
     }
 
@@ -167,6 +134,16 @@ class CozinhaServiceTest {
         verify(notificacaoService, never()).criarNotificacao(any());
     }
 
+    @Test
+    void listarFilaDeveMapearMsPedidosIndisponivel() {
+        when(pedidoClient.listarFilaCozinha()).thenThrow(feignException(500));
+
+        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.listarFila());
+
+        assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
+        verify(pedidoClient).listarFilaCozinha();
+    }
+
     private PedidoCozinhaResponse criarResponse() {
         return new PedidoCozinhaResponse(
                 25,
@@ -183,18 +160,6 @@ class CozinhaServiceTest {
                         new BigDecimal("29.90"),
                         "Sem cebola"
                 ))
-        );
-    }
-
-    private ProdutoResponse criarProdutoResponse() {
-        return new ProdutoResponse(
-                10,
-                "Hamburguer Gourmet Monster",
-                "Burger",
-                new BigDecimal("29.90"),
-                1,
-                "Lanches",
-                true
         );
     }
 

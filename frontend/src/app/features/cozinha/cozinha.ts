@@ -47,7 +47,7 @@ export class Cozinha {
           pedido.status,
           this.origem(pedido),
           this.prioridade(pedido),
-          ...pedido.itens.flatMap(item => [item.nomeProduto, item.observacao]),
+          ...pedido.itens.flatMap(item => [this.nomeItem(item), item.observacao]),
         ].join(' ').toLowerCase();
 
         return texto.includes(termo);
@@ -160,6 +160,10 @@ export class Cozinha {
 
   protected statusPronto(pedido: PedidoFilaCozinhaResponse): boolean {
     return this.statusNormalizado(pedido) === 'PRONTO';
+  }
+
+  protected nomeItem(item: PedidoFilaCozinhaResponse['itens'][number]): string {
+    return item.nomeProduto?.trim() || `Produto #${item.idProduto}`;
   }
 
   protected acaoDesabilitada(pedido: PedidoFilaCozinhaResponse): boolean {

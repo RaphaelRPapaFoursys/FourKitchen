@@ -9,7 +9,7 @@ export type StatusPedidoCozinha =
 export interface ItemFilaCozinhaResponse {
   id: number;
   idProduto: number;
-  nomeProduto: string;
+  nomeProduto?: string | null;
   quantidade: number;
   precoUnitario: number;
   observacao: string | null;

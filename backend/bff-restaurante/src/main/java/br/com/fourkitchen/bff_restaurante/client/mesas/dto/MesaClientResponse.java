@@ -1,14 +1,15 @@
-package br.com.fourkitchen.bff_restaurante.dto.response;
+package br.com.fourkitchen.bff_restaurante.client.mesas.dto;
 
 import java.time.LocalDateTime;
 
-public record MesaResponse(
+public record MesaClientResponse(
         Integer id,
         Integer numero,
         String status,
         Integer garcomId,
         Integer codigoSessao,
         LocalDateTime dataAbertura,
-        LocalDateTime dataFechamento
+        LocalDateTime dataFechamento,
+        Integer idAtendimento
 ) {
 }

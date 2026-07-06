@@ -1,11 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, finalize } from 'rxjs';
+import { finalize } from 'rxjs';
 
-import { MesaResponse } from '../../core/models/mesa.models';
 import { AuthService } from '../../core/services/auth';
-import { MesaService } from '../../core/services/mesa';
+
+interface MesaResumo {
+  id: number;
+  numero: number;
+  status: 'OCUPADA' | 'DISPONIVEL';
+}
 
 interface PedidoMesaAtivo {
   id: number;
@@ -40,19 +44,13 @@ const pedidosAtivos: PedidoMesaAtivo[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Mesa {
-  private readonly mesaService = inject(MesaService);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly mesas = signal<MesaResponse[]>([]);
+  protected readonly mesaAtiva = signal<MesaResumo | null>(null);
   protected readonly carregando = signal(false);
-  protected readonly mesaEmAcao = signal<number | null>(null);
   protected readonly erro = signal('');
   protected readonly pedidosAtivos = signal<PedidoMesaAtivo[]>(pedidosAtivos);
-
-  protected readonly mesaAtiva = computed(() =>
-    this.mesas().find(mesa => mesa.status === 'OCUPADA') ?? this.mesas()[0] ?? null
-  );
 
   protected readonly mesaNumero = computed(() =>
     this.mesaAtiva()?.numero ?? 3
@@ -71,34 +69,39 @@ export class Mesa {
   );
 
   constructor() {
-    this.carregarMesas();
+    this.carregarMesaAutenticada();
   }
 
-  protected carregarMesas(): void {
+  protected carregarMesaAutenticada(): void {
     this.erro.set('');
     this.carregando.set(true);
 
-    this.mesaService
-      .listarMesas()
+    this.authService
+      .me()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.carregando.set(false))
       )
       .subscribe({
-        next: mesas => this.mesas.set(mesas),
+        next: usuario => {
+          if (!usuario.idMesa) {
+            this.erro.set('Mesa nao vinculada ao usuario autenticado.');
+            this.mesaAtiva.set(null);
+            return;
+          }
+
+          this.mesaAtiva.set({
+            id: usuario.idMesa,
+            numero: usuario.idMesa,
+            status: 'OCUPADA',
+          });
+        },
         error: error => this.erro.set(this.getErrorMessage(error)),
       });
   }
 
   protected fecharConta(): void {
-    const mesa = this.mesaAtiva();
-
-    if (!mesa) {
-      this.erro.set('Nenhuma mesa carregada para fechamento.');
-      return;
-    }
-
-    this.executarAcaoMesa(mesa.id, this.mesaService.fecharMesa(mesa.id));
+    this.erro.set('Fechamento de conta pela mesa depende de endpoint especifico no BFF.');
   }
 
   protected novoPedido(): void {
@@ -114,27 +117,6 @@ export class Mesa {
       style: 'currency',
       currency: 'BRL',
     }).format(valor);
-  }
-
-  private executarAcaoMesa(mesaId: number, request: Observable<MesaResponse>): void {
-    this.erro.set('');
-    this.mesaEmAcao.set(mesaId);
-
-    request
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.mesaEmAcao.set(null))
-      )
-      .subscribe({
-        next: mesaAtualizada => this.substituirMesa(mesaAtualizada),
-        error: error => this.erro.set(this.getErrorMessage(error)),
-      });
-  }
-
-  private substituirMesa(mesaAtualizada: MesaResponse): void {
-    this.mesas.update(mesas =>
-      mesas.map(mesa => mesa.id === mesaAtualizada.id ? mesaAtualizada : mesa)
-    );
   }
 
   private getErrorMessage(error: unknown): string {

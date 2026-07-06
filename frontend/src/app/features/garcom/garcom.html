@@ -97,7 +97,7 @@
               <button
                 type="button"
                 class="primary-action primary-action--danger"
-                (click)="atenderNotificacao(notificacao)"
+                (click)="atenderNotificacao(mesa, notificacao)"
                 [disabled]="notificacaoEmAcao() === notificacao.id"
               >
                 Atender
@@ -106,27 +106,18 @@
               <div class="table-details">
                 <span>Tempo: {{ tempoAberta(mesa) || 'em aberto' }}</span>
                 <span>Codigo: {{ mesa.codigoSessao || '-' }}</span>
+                <span>{{ pedidosAtivosLabel(mesa) }}</span>
               </div>
-              <button
-                type="button"
-                class="secondary-action"
-                (click)="fecharMesa(mesa)"
-                [disabled]="mesaEmAcao() === mesa.id"
-              >
-                Fechar Mesa
+              <button type="button" class="secondary-action" disabled>
+                Mesa em Atendimento
               </button>
             } @else {
               <div class="table-capacity">
                 <span aria-hidden="true">o</span>
-                <span>Disponivel</span>
+                <span>Sem atendimento ativo</span>
               </div>
-              <button
-                type="button"
-                class="primary-action"
-                (click)="abrirMesa(mesa)"
-                [disabled]="mesaEmAcao() === mesa.id"
-              >
-                Abrir Comanda
+              <button type="button" class="primary-action" disabled>
+                Aguardando Gestor
               </button>
             }
           </article>

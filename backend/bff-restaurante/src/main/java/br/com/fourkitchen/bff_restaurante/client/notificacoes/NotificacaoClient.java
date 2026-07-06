@@ -1,5 +1,6 @@
 package br.com.fourkitchen.bff_restaurante.client.notificacoes;
 
+import br.com.fourkitchen.bff_restaurante.client.notificacoes.dto.ResumoNotificacoesOperacaoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
@@ -29,4 +30,13 @@ public interface NotificacaoClient {
 
     @PatchMapping("/api/notificacoes/{id}/lida")
     NotificacaoResponse marcarComoLida(@PathVariable Integer id);
+
+    @PatchMapping("/api/notificacoes/chamadas-garcom/{id}/concluir")
+    NotificacaoResponse concluirChamadaGarcom(
+            @PathVariable Integer id,
+            @RequestParam Integer idGarcom
+    );
+
+    @GetMapping("/api/notificacoes/resumo-operacao")
+    ResumoNotificacoesOperacaoResponse buscarResumoOperacao();
 }

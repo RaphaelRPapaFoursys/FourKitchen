@@ -97,7 +97,7 @@
           type="button"
           class="action action--danger"
           (click)="fecharConta()"
-          [disabled]="mesaEmAcao() === mesaAtiva()?.id || mesaStatus() === 'DISPONIVEL'"
+          [disabled]="mesaStatus() === 'DISPONIVEL'"
         >
           <span aria-hidden="true">[]</span>
           Fechar Conta
