@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_pedidos.controller;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
@@ -152,5 +153,12 @@ public class PedidoController {
         } catch (PedidoInexistenteException | ProdutoPedidoInexistenteException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PatchMapping("/decisao-problema")
+    public ResponseEntity<Void> decisaoProblema(
+            @RequestBody DecisaoProblemaRequest decisaoProblemaRequest
+    ) {
+        return null;
     }
 }

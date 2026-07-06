@@ -1,20 +1,15 @@
 package br.com.fourkitchen.ms_pedidos.service;
 
-import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
-import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
-import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.*;
 import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
-import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
-import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
-import br.com.fourkitchen.ms_pedidos.exceptions.ErrorEnum;
-import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
-import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.enums.StatusProdutoPedido;
+import br.com.fourkitchen.ms_pedidos.exceptions.*;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
@@ -268,5 +263,32 @@ public class PedidoService {
                 pedido.getStatus(),
                 produtoPedido.getStatus()
         );
+    }
+
+    @Transactional
+    public void decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
+        Pedido pedido = pedidoRepository.findById(decisaoProblemaRequest.idPedido())
+                .orElseThrow(PedidoInexistenteException::new);
+
+        ProdutoPedido produtoPedido = produtoPedidoRepository.findById(decisaoProblemaRequest.idProdutoPedido())
+                .orElseThrow(ProdutoPedidoInexistenteException::new);
+
+//        Produto produto
+
+        if(decisaoProblemaRequest.pedidoCancelado()) {
+            pedido.setStatus(StatusPedido.CANCELADO);
+
+            return;
+        }
+
+        if(pedido.getStatus() != StatusPedido.AGUARDANDO_DECISAO) {
+            throw new PedidoNaoPermiteDecisaoException();
+        }
+
+//        if(decisaoProblemaRequest.)
+
+        if(decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
+            produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);
+        }
     }
 }
