@@ -1,5 +1,6 @@
 package br.com.fourkitchen.ms_usuarios.service;
 
+import br.com.fourkitchen.ms_usuarios.dto.request.AtualizarUsuarioRequest;
 import br.com.fourkitchen.ms_usuarios.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.ms_usuarios.dto.response.UsuarioResponse;
 import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -161,6 +163,138 @@ class UsuarioServiceTest {
         verify(usuarioRepository).existsByEmailIgnoreCase(request.email());
         verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
         verifyNoInteractions(criarUsuarioRequestMapper, passwordEncoder, usuarioResponseMapper);
+    }
+
+    @Test
+    void atualizarUsuarioDeveSalvarDadosSemAlterarSenhaQuandoNaoInformada() {
+        AtualizarUsuarioRequest request = new AtualizarUsuarioRequest(
+                "Lucas Atualizado",
+                "lucas.atualizado@email.com",
+                null,
+                PerfilUsuario.GESTOR,
+                null
+        );
+        Usuario usuario = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha-antiga", true);
+        UsuarioResponse response = new UsuarioResponse(
+                1,
+                "Lucas Atualizado",
+                "lucas.atualizado@email.com",
+                PerfilUsuario.GESTOR,
+                null,
+                true
+        );
+
+        when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.existsByEmailIgnoreCaseAndIdNot(request.email(), 1)).thenReturn(false);
+        when(usuarioRepository.save(usuario)).thenReturn(usuario);
+        when(usuarioResponseMapper.map(usuario)).thenReturn(response);
+
+        UsuarioResponse resultado = usuarioService.atualizarUsuario(1, request);
+
+        assertSame(response, resultado);
+        assertEquals("Lucas Atualizado", usuario.getNome());
+        assertEquals("lucas.atualizado@email.com", usuario.getEmail());
+        assertEquals(PerfilUsuario.GESTOR, usuario.getPerfilUsuario());
+        assertEquals("senha-antiga", usuario.getSenha());
+        verify(passwordEncoder, never()).encode(org.mockito.ArgumentMatchers.anyString());
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void atualizarUsuarioDeveCriptografarSenhaQuandoInformada() {
+        AtualizarUsuarioRequest request = new AtualizarUsuarioRequest(
+                "Lucas Atualizado",
+                "lucas@email.com",
+                "NovaSenha123",
+                PerfilUsuario.ADMIN,
+                null
+        );
+        Usuario usuario = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha-antiga", true);
+        UsuarioResponse response = new UsuarioResponse(1, "Lucas Atualizado", "lucas@email.com", PerfilUsuario.ADMIN, null, true);
+
+        when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.existsByEmailIgnoreCaseAndIdNot(request.email(), 1)).thenReturn(false);
+        when(passwordEncoder.encode("NovaSenha123")).thenReturn("senha-criptografada");
+        when(usuarioRepository.save(usuario)).thenReturn(usuario);
+        when(usuarioResponseMapper.map(usuario)).thenReturn(response);
+
+        UsuarioResponse resultado = usuarioService.atualizarUsuario(1, request);
+
+        assertSame(response, resultado);
+        assertEquals("senha-criptografada", usuario.getSenha());
+        verify(passwordEncoder).encode("NovaSenha123");
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void atualizarUsuarioDeveBloquearEmailUsadoPorOutroUsuario() {
+        AtualizarUsuarioRequest request = new AtualizarUsuarioRequest(
+                "Lucas",
+                "duplicado@email.com",
+                null,
+                PerfilUsuario.ADMIN,
+                null
+        );
+        Usuario usuario = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha", true);
+
+        when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.existsByEmailIgnoreCaseAndIdNot(request.email(), 1)).thenReturn(true);
+
+        BaseException exception = assertThrows(BaseException.class, () -> usuarioService.atualizarUsuario(1, request));
+
+        assertEquals(ErrorEnum.EMAIL_JA_CADASTRADO, exception.getErrorEnum());
+        verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void atualizarUsuarioDeveLancarUsuarioNaoEncontrado() {
+        AtualizarUsuarioRequest request = new AtualizarUsuarioRequest(
+                "Lucas",
+                "lucas@email.com",
+                null,
+                PerfilUsuario.ADMIN,
+                null
+        );
+
+        when(usuarioRepository.findById(99)).thenReturn(Optional.empty());
+
+        BaseException exception = assertThrows(BaseException.class, () -> usuarioService.atualizarUsuario(99, request));
+
+        assertEquals(ErrorEnum.USUARIO_NAO_ENCONTRADO, exception.getErrorEnum());
+        verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void inativarUsuarioDeveAlterarAtivoParaFalse() {
+        Usuario usuario = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha", true);
+
+        when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario));
+
+        usuarioService.inativarUsuario(1, 99);
+
+        assertEquals(false, usuario.getAtivo());
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void inativarUsuarioDeveBloquearProprioUsuario() {
+        BaseException exception = assertThrows(BaseException.class, () -> usuarioService.inativarUsuario(1, 1));
+
+        assertEquals(ErrorEnum.NAO_PODE_EXCLUIR_PROPRIO_USUARIO, exception.getErrorEnum());
+        verify(usuarioRepository, never()).findById(org.mockito.ArgumentMatchers.anyInt());
+        verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void inativarUsuarioDeveBloquearUsuarioJaInativo() {
+        Usuario usuario = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha", false);
+
+        when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario));
+
+        BaseException exception = assertThrows(BaseException.class, () -> usuarioService.inativarUsuario(1, 99));
+
+        assertEquals(ErrorEnum.USUARIO_JA_INATIVO, exception.getErrorEnum());
+        verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
     private Usuario criarUsuario(
