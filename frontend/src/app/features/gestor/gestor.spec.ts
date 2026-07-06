@@ -71,17 +71,17 @@ describe('Gestor', () => {
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
-    painelService = TestBed.inject(PainelService);
     httpMock = TestBed.inject(HttpTestingController);
-    flushCargaInicial();
 
     fixture = TestBed.createComponent(Gestor);
     component = fixture.componentInstance;
+    painelService = fixture.debugElement.injector.get(PainelService);
+    flushCargaInicial();
     await fixture.whenStable();
   });
 
   afterEach(() => {
-    httpMock.verify();
+    httpMock?.verify();
   });
 
   it('should create', () => {
