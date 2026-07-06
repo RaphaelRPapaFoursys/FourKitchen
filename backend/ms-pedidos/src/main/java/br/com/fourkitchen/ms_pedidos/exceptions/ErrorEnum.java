@@ -24,6 +24,13 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    PEDIDO_AGUARDANDO_DECISAO(
+            "004",
+            "Produto esta aguardando decisão",
+            HttpStatus.BAD_REQUEST
+    ),
+
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

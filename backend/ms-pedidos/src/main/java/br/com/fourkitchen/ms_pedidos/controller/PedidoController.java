@@ -93,6 +93,11 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.finalizarPreparo(id));
     }
 
+    @PatchMapping("/{id}/entregar")
+    private ResponseEntity<PedidoResponse> entregarPedido(@PathVariable Integer id) {
+        return ResponseEntity.ok(pedidoService.entregarPedido(id));
+    }
+
     @GetMapping("/atendimentos/{atendimentoId}/possui-ativos")
     private ResponseEntity<Boolean> possuiPedidosAtivos(
             @PathVariable Integer atendimentoId
@@ -110,6 +115,11 @@ public class PedidoController {
     @GetMapping("/resumo-operacao")
     private ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
         return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
+    @GetMapping("/atendimentos/ativos/detalhado")
+    private ResponseEntity<List<PedidoCozinhaResponse>> listarPedidosAtivosDetalhadosPorAtendimentos(
+            @RequestParam("idsAtendimento") List<Integer> idsAtendimento
+    ) {
+        return ResponseEntity.ok(pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(idsAtendimento));
     }
 
     @PatchMapping("{id}")
@@ -149,7 +159,7 @@ public class PedidoController {
 
     @PatchMapping("/sinalizar-problema")
     public ResponseEntity<SinalizarProblemaResponse> sinalizarProblema(
-            @RequestBody SinalizarProblemaRequest request
+            @RequestBody @Valid SinalizarProblemaRequest request
     ) {
         try {
             SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);

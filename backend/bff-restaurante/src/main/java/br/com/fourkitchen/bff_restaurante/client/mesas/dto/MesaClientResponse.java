@@ -1,13 +1,11 @@
-package br.com.fourkitchen.ms_mesas.dto.response;
-
-import br.com.fourkitchen.ms_mesas.enums.StatusMesa;
+package br.com.fourkitchen.bff_restaurante.client.mesas.dto;
 
 import java.time.LocalDateTime;
 
-public record MesaResponse(
+public record MesaClientResponse(
         Integer id,
         Integer numero,
-        StatusMesa status,
+        String status,
         Integer garcomId,
         Integer codigoSessao,
         LocalDateTime dataAbertura,
