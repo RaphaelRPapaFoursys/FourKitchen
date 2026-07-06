@@ -149,6 +149,8 @@ public class PedidoService {
                 pedidoRepository.countByStatus(StatusPedido.PRONTO),
                 pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)
         );
+    }
+
     public List<PedidoCozinhaResponse> findPedidosAtivosDetalhadosPorAtendimentos(List<Integer> idsAtendimento) {
         if (idsAtendimento == null || idsAtendimento.isEmpty()) {
             return List.of();

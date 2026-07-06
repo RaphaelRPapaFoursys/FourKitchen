@@ -305,7 +305,7 @@ class PedidoServiceTest {
         ArgumentCaptor<Collection<StatusPedido>> statusCaptor = ArgumentCaptor.forClass(Collection.class);
         verify(pedidoRepository).findByStatusInOrderByDataCriacaoAscIdAsc(statusCaptor.capture());
         assertEquals(
-                List.of(StatusPedido.ENVIADO_COZINHA, StatusPedido.EM_PREPARO, StatusPedido.PRONTO, StatusPedido.AGUARDANDO_DECISAO),
+                List.of(StatusPedido.ENVIADO_COZINHA, StatusPedido.EM_PREPARO),
                 statusCaptor.getValue()
         );
         verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25));
@@ -433,6 +433,8 @@ class PedidoServiceTest {
         verify(pedidoRepository).countByStatus(StatusPedido.EM_PREPARO);
         verify(pedidoRepository).countByStatus(StatusPedido.PRONTO);
         verify(pedidoRepository).countByStatus(StatusPedido.AGUARDANDO_DECISAO);
+    }
+
     @ParameterizedTest
     @EnumSource(value = StatusProdutoPedido.class, names = {"FALTA_PRODUTO", "ERRO", "INDISPONIVEL"})
     void sinalizarProblema_deveAlterarStatusDoPedidoEProduto_paraDiferentesTiposDeProblema(StatusProdutoPedido statusProblema) {
