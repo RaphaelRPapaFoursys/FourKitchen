@@ -93,9 +93,9 @@ export class PainelService {
   readonly mensagemErro = this.mensagemErroSignal.asReadonly();
 
   constructor() {
-    void Promise.all([this.atualizarMesas(), this.atualizarGarcons()]).finally(() =>
-      this.carregandoSignal.set(false),
-    );
+    void Promise.all([this.atualizarMesas(), this.atualizarGarcons()])
+      .catch(erro => this.mensagemErroSignal.set(this.extrairMensagemErro(erro)))
+      .finally(() => this.carregandoSignal.set(false));
 
     const idPollingMesas = setInterval(() => {
       if (this.expedienteFechado() || this.acaoEmAndamentoSignal()) return;
@@ -211,7 +211,9 @@ export class PainelService {
     this.expedienteFechado.set(true);
   }
 
-  reabrirExpediente(): void {
+  /** Inicia um expediente do zero: reabre a operação e descarta o histórico/métricas acumulados. */
+  abrirNovoExpediente(): void {
+    this.historicoExpediente.set([]);
     this.expedienteFechado.set(false);
   }
 
