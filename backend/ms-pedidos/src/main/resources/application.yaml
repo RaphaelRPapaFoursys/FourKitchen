@@ -1,4 +1,11 @@
 spring:
+  config:
+    # Carrega o .env local do ms-pedidos ao executar pela IDE ou terminal.
+    # O primeiro caminho atende execucao dentro de backend/ms-pedidos;
+    # o segundo atende execucao a partir da raiz do projeto.
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:backend/ms-pedidos/.env[.properties]
   application:
     name: ms-pedidos
   datasource:
