@@ -1,0 +1,5 @@
+ALTER TABLE categorias
+    ADD COLUMN IF NOT EXISTS descricao VARCHAR(255);
+
+ALTER TABLE produtos
+    ADD COLUMN IF NOT EXISTS imagem BYTEA;
