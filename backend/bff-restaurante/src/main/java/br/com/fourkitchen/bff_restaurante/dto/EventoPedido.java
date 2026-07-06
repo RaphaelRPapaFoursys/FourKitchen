@@ -14,10 +14,12 @@ public enum EventoPedido {
             TipoNotificacao.PEDIDO_COM_FALTA,
             DestinoNotificacao.GARCOM
     ),
+  
     PEDIDO_ERRO(
          TipoNotificacao.PEDIDO_ERRO,
          DestinoNotificacao.GARCOM
     ),
+  
     PEDIDO_INDISPONIVEL(
             TipoNotificacao.PEDIDO_INDISPONIVEL,
             DestinoNotificacao.GARCOM
