@@ -8,6 +8,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.exceptions.PedidoNaoPermiteDecisaoException;
 import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
 import jakarta.validation.Valid;
@@ -159,6 +160,14 @@ public class PedidoController {
     public ResponseEntity<Void> decisaoProblema(
             @RequestBody DecisaoProblemaRequest decisaoProblemaRequest
     ) {
-        return null;
+        try{
+            pedidoService.decisaoProblema(decisaoProblemaRequest);
+
+            return ResponseEntity.ok().build();
+        } catch (PedidoInexistenteException |
+                 PedidoNaoPermiteDecisaoException error) {
+            return ResponseEntity
+                    .badRequest().build();
+        }
     }
 }

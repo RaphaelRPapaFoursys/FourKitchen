@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.SinalizarProblemaRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.SinalizarProblemaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
@@ -173,5 +174,59 @@ public class CozinhaController {
             @RequestBody @Valid SinalizarProblemaRequest request
     ) {
         return ResponseEntity.ok(cozinhaService.sinalizarProblema(request));
+    }
+
+    @PatchMapping("/pedidos/decisao-problema")
+    @Operation(
+            summary = "Registra decisão sobre problema do pedido",
+            description = "Permite cancelar o pedido, remover um item ou substituir um item. Após uma decisão válida, o pedido retorna para ENVIADO_COZINHA, exceto quando cancelado."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Decisão processada com sucesso"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados inválidos ou regra de negócio não atendida",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorObject.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Token ausente, inválido ou expirado",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorObject.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Usuário sem permissão para realizar a ação",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorObject.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Pedido ou produto do pedido não encontrado",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorObject.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "502",
+                    description = "Serviço de produtos indisponível",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorObject.class)
+                    )
+            )
+    })
+    public ResponseEntity<Void> decisaoProblema(
+            @RequestBody @Valid DecisaoProblemaRequest decisaoProblemaRequest
+    ) {
+        cozinhaService.decisaoProblema(decisaoProblemaRequest);
+
+        return ResponseEntity.ok().build();
     }
 }

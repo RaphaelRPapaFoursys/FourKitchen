@@ -8,32 +8,37 @@ public enum ErrorEnum {
 
     PEDIDO_NAO_ENCONTRADO(
             "001",
-            "Pedido nao encontrado",
+            "Pedido nao encontrado.",
             HttpStatus.NOT_FOUND
     ),
 
     TRANSICAO_STATUS_INVALIDA(
             "002",
-            "Transicao de status invalida",
+            "Transicao de status invalida.",
             HttpStatus.BAD_REQUEST
     ),
 
     DADOS_INVALIDOS(
             "003",
-            "Dados invalidos",
+            "Dados invalidos.",
             HttpStatus.BAD_REQUEST
     ),
 
     PEDIDO_AGUARDANDO_DECISAO(
             "004",
-            "Produto esta aguardando decisão",
+            "Produto esta aguardando decisão.",
             HttpStatus.BAD_REQUEST
     ),
 
+    PEDIDO_NAO_PERMITE_DECISAO(
+            "021",
+            "O pedido deve estar com status AGUARDANDO_DECISAO para receber uma decisão.",
+            HttpStatus.BAD_REQUEST
+    ),
 
     ERRO_INTERNO(
             "500",
-            "Erro interno do servidor",
+            "Erro interno do servidor.",
             HttpStatus.INTERNAL_SERVER_ERROR
     );
 

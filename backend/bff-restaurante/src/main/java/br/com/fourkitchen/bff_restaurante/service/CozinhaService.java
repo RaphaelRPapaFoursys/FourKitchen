@@ -2,10 +2,13 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.*;
+import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
+import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.EventoPedido;
 import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
+import br.com.fourkitchen.bff_restaurante.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.ItemFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
@@ -22,6 +25,8 @@ import java.util.List;
 public class CozinhaService {
 
     private final PedidoClient pedidoClient;
+
+    private final ProdutoClient produtoClient;
 
     private final NotificacaoService notificacaoService;
 
@@ -128,7 +133,7 @@ public class CozinhaService {
         try {
             SinalizarProblemaResponse response = pedidoClient.sinalizarProblema(request);
 
-            registrarEvento(EventoPedido.PEDIDO_COM_FALTA);
+            registrarEvento(EventoPedido.PEDIDO_COM_PROBLEMA);
 
             return response;
         } catch (FeignException e) {
@@ -141,6 +146,24 @@ public class CozinhaService {
             }
 
             throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
+    }
+
+    public void decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
+        try {
+            if(decisaoProblemaRequest.idNovoProduto() != null) {
+                ProdutoDisponibilidadeResponse produtoDisponibilidadeResponse = produtoClient.verificarDisponibilidade(decisaoProblemaRequest.idNovoProduto());
+
+                if(!Boolean.TRUE.equals(produtoDisponibilidadeResponse.disponivel())) {
+                    throw new BaseException(ErrorEnum.PRODUTO_INDISPONIVEL);
+                }
+            }
+
+            pedidoClient.decisaoProblema(decisaoProblemaRequest);
+        } catch (FeignException error) {
+            if(error.status() == 400) {
+                throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
+            }
         }
     }
 }

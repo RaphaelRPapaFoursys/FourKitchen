@@ -284,7 +284,25 @@ public class PedidoService {
         ProdutoPedido produtoPedido = produtoPedidoRepository.findById(decisaoProblemaRequest.idProdutoPedido())
                 .orElseThrow(ProdutoPedidoInexistenteException::new);
 
-//        Produto produto
+        if(decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
+            produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);
+
+            List<ProdutoPedido> listaProdutos = produtoPedidoRepository
+                    .findByIdPedidoAndStatus(decisaoProblemaRequest.idPedido(), StatusProdutoPedido.DISPONIVEL);
+
+            if(listaProdutos.isEmpty()) {
+                pedido.setStatus(StatusPedido.CANCELADO);
+                return;
+            }
+        }
+
+        if(decisaoProblemaRequest.idNovoProduto() != null) {
+            produtoPedido.setIdProduto(decisaoProblemaRequest.idNovoProduto());
+        }
+
+        if(pedido.getStatus() != StatusPedido.AGUARDANDO_DECISAO) {
+            throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
+        }
 
         if(decisaoProblemaRequest.pedidoCancelado()) {
             pedido.setStatus(StatusPedido.CANCELADO);
@@ -292,15 +310,14 @@ public class PedidoService {
             return;
         }
 
-        if(pedido.getStatus() != StatusPedido.AGUARDANDO_DECISAO) {
-            throw new PedidoNaoPermiteDecisaoException();
-        }
-
-//        if(decisaoProblemaRequest.)
-
         if(decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
             produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);
         }
-    }
 
+        produtoPedido.setStatus(decisaoProblemaRequest.novoStatusProdutoPedido());
+        pedido.setStatus(StatusPedido.ENVIADO_COZINHA);
+
+        pedidoRepository.save(pedido);
+        produtoPedidoRepository.save(produtoPedido);
+    }
 }
