@@ -7,6 +7,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
@@ -38,9 +39,7 @@ public class PedidoService {
 
     private static final Collection<StatusPedido> STATUS_COZINHA = List.of(
             StatusPedido.ENVIADO_COZINHA,
-            StatusPedido.EM_PREPARO,
-            StatusPedido.PRONTO,
-            StatusPedido.AGUARDANDO_DECISAO
+            StatusPedido.EM_PREPARO
     );
 
     @Autowired
@@ -144,6 +143,12 @@ public class PedidoService {
                 .toList();
     }
 
+    public ResumoPedidosOperacaoResponse buscarResumoOperacao() {
+        return new ResumoPedidosOperacaoResponse(
+                pedidoRepository.countByStatus(StatusPedido.EM_PREPARO),
+                pedidoRepository.countByStatus(StatusPedido.PRONTO),
+                pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)
+        );
     public List<PedidoCozinhaResponse> findPedidosAtivosDetalhadosPorAtendimentos(List<Integer> idsAtendimento) {
         if (idsAtendimento == null || idsAtendimento.isEmpty()) {
             return List.of();

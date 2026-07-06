@@ -32,6 +32,8 @@ public interface PedidoClient {
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento
     );
 
+    @GetMapping("/pedidos/resumo-operacao")
+    ResumoPedidosOperacaoResponse buscarResumoOperacao();
     @GetMapping("/pedidos/atendimentos/ativos/detalhado")
     List<PedidoCozinhaResponse> listarPedidosAtivosDetalhadosPorAtendimentos(
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento

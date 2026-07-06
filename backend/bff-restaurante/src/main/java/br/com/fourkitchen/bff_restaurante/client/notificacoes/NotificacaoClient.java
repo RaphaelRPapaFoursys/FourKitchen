@@ -1,5 +1,6 @@
 package br.com.fourkitchen.bff_restaurante.client.notificacoes;
 
+import br.com.fourkitchen.bff_restaurante.client.notificacoes.dto.ResumoNotificacoesOperacaoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
@@ -35,4 +36,7 @@ public interface NotificacaoClient {
             @PathVariable Integer id,
             @RequestParam Integer idGarcom
     );
+
+    @GetMapping("/api/notificacoes/resumo-operacao")
+    ResumoNotificacoesOperacaoResponse buscarResumoOperacao();
 }

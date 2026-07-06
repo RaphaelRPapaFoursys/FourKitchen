@@ -5,6 +5,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
@@ -111,6 +112,9 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosPorAtendimentos(idsAtendimento));
     }
 
+    @GetMapping("/resumo-operacao")
+    private ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
+        return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
     @GetMapping("/atendimentos/ativos/detalhado")
     private ResponseEntity<List<PedidoCozinhaResponse>> listarPedidosAtivosDetalhadosPorAtendimentos(
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento
