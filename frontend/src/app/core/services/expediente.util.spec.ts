@@ -10,6 +10,7 @@ function mesa(overrides: Partial<MesaPainel>): MesaPainel {
     status: 'OCUPADA',
     garcomId: 1,
     garcom: 'Carlos',
+    abertaEm: null,
     statusPedido: 'CONTA_ABERTA',
     tempoLabel: null,
     tempoMinutos: null,

@@ -11,7 +11,7 @@ import { PainelService } from '../../core/services/painel';
 
 type Ordenacao = 'CRITICO' | 'NUMERO';
 type Criticidade = ReturnType<typeof resolverCriticidadeMesa>;
-type FiltroEstado = 'PROBLEMAS' | 'PRONTOS' | 'EM_PREPARO' | null;
+type FiltroEstado = 'PROBLEMAS' | 'PRONTOS' | 'EM_PREPARO' | 'LIVRE' | null;
 type ModoSelecaoGarcom = 'ABRIR' | 'REATRIBUIR';
 
 interface SelecaoGarcomEstado {
@@ -62,6 +62,7 @@ export class Gestor {
   protected readonly resumoExpediente = this.painelService.resumoExpediente;
   protected readonly carregando = this.painelService.carregando;
   protected readonly acaoEmAndamento = this.painelService.acaoEmAndamento;
+  protected readonly descricaoAcao = this.painelService.descricaoAcao;
   protected readonly mensagemErro = this.painelService.mensagemErro;
 
   protected readonly buscaTermo = signal('');
@@ -99,6 +100,7 @@ export class Gestor {
       if (estado === 'PROBLEMAS' && this.criticidadeCard(item) !== 'critico') return false;
       if (estado === 'PRONTOS' && item.statusPedido !== 'PRONTO_ENTREGA') return false;
       if (estado === 'EM_PREPARO' && item.statusPedido !== 'EM_PREPARO') return false;
+      if (estado === 'LIVRE' && item.status !== 'LIVRE') return false;
       return true;
     });
 
@@ -154,6 +156,7 @@ export class Gestor {
 
     switch (this.acaoPrimaria(mesa).tipo) {
       case 'ABRIR_MESA':
+        void this.painelService.recarregarGarcons();
         this.selecaoGarcom.set({ mesaId: mesa.id, numeroMesa: mesa.numero, modo: 'ABRIR' });
         break;
       case 'REATRIBUIR_GARCOM':
@@ -191,6 +194,7 @@ export class Gestor {
   }
 
   protected abrirReatribuicao(mesa: MesaPainel): void {
+    void this.painelService.recarregarGarcons();
     this.selecaoGarcom.set({ mesaId: mesa.id, numeroMesa: mesa.numero, modo: 'REATRIBUIR' });
   }
 

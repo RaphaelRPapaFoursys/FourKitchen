@@ -7,6 +7,8 @@ export interface AtendimentoFinalizado {
   numeroMesa: number;
   garcom: string;
   pedidos: Pedido[];
+  /** Duração do atendimento em minutos (abertura → fechamento). Presente só nos atendimentos já fechados. */
+  duracaoMinutos?: number;
 }
 
 /** Status do pedido em que a mesa ainda não recebeu tudo o que pediu. */

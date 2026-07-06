@@ -56,6 +56,9 @@ const MAXIMO_ULTIMOS_PEDIDOS = 5;
 
 const INTERVALO_POLLING_MS = 2000;
 
+/** Garçons mudam raramente no expediente; a recarga imediata é sob demanda em recarregarGarcons. */
+const INTERVALO_POLLING_GARCONS_MS = 20000;
+
 /** Etapa do fluxo de preparo por status de pedido (ms-pedidos) — usada na barra de progresso do card. */
 const ETAPA_POR_STATUS_PEDIDO: Record<string, number> = {
   ENVIADO_COZINHA: 1,
@@ -80,11 +83,13 @@ export class PainelService {
   private readonly garconsSignal = signal<GarcomApiResponse[]>([]);
   private readonly carregandoSignal = signal(true);
   private readonly acaoEmAndamentoSignal = signal(false);
+  private readonly descricaoAcaoSignal = signal<string | null>(null);
   private readonly mensagemErroSignal = signal<string | null>(null);
 
   readonly mesas = this.mesasSignal.asReadonly();
   readonly carregando = this.carregandoSignal.asReadonly();
   readonly acaoEmAndamento = this.acaoEmAndamentoSignal.asReadonly();
+  readonly descricaoAcao = this.descricaoAcaoSignal.asReadonly();
   readonly mensagemErro = this.mensagemErroSignal.asReadonly();
 
   constructor() {
@@ -92,16 +97,32 @@ export class PainelService {
       this.carregandoSignal.set(false),
     );
 
-    const idPolling = setInterval(() => {
+    const idPollingMesas = setInterval(() => {
       if (this.expedienteFechado() || this.acaoEmAndamentoSignal()) return;
       void this.atualizarMesas();
     }, INTERVALO_POLLING_MS);
 
-    this.destroyRef.onDestroy(() => clearInterval(idPolling));
+    const idPollingGarcons = setInterval(() => {
+      if (this.expedienteFechado() || this.acaoEmAndamentoSignal()) return;
+      void this.atualizarGarcons();
+    }, INTERVALO_POLLING_GARCONS_MS);
+
+    this.destroyRef.onDestroy(() => {
+      clearInterval(idPollingMesas);
+      clearInterval(idPollingGarcons);
+    });
   }
 
   limparErro(): void {
     this.mensagemErroSignal.set(null);
+  }
+
+  async recarregarGarcons(): Promise<void> {
+    try {
+      await this.atualizarGarcons();
+    } catch {
+      // uma falha na recarga não deve travar a abertura do modal
+    }
   }
 
   readonly cargaGarcons = computed<CargaGarcom[]>(() => {
@@ -138,18 +159,19 @@ export class PainelService {
     };
   });
 
+  /** Pedidos de atendimentos já fechados no expediente (mais recentes primeiro). */
   readonly ultimosPedidos = computed<PedidoRecente[]>(() =>
-    mesasComAtendimentoAtivo(this.mesasSignal())
-      .flatMap(mesa =>
-        mesa.pedidos.map(pedido => ({
+    [...this.historicoExpediente()]
+      .reverse()
+      .flatMap(atendimento =>
+        atendimento.pedidos.map(pedido => ({
           pedidoId: pedido.id,
-          numeroMesa: mesa.numero,
-          garcom: mesa.garcom as string,
+          numeroMesa: atendimento.numeroMesa,
+          garcom: atendimento.garcom,
           valor: pedido.valor,
-          minutosAtras: pedido.criadoMinutosAtras,
+          tempoAtendimentoMinutos: atendimento.duracaoMinutos ?? 0,
         })),
       )
-      .sort((a, b) => a.minutosAtras - b.minutosAtras)
       .slice(0, MAXIMO_ULTIMOS_PEDIDOS),
   );
 
@@ -210,7 +232,7 @@ export class PainelService {
   async abrirMesa(idMesa: number, idGarcom: number): Promise<void> {
     if (this.expedienteFechado()) return;
 
-    await this.executarComFeedback(async () => {
+    await this.executarComFeedback('Abrindo mesa...', async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/abrir`, {}));
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
       await this.atualizarMesas();
@@ -222,7 +244,7 @@ export class PainelService {
 
     this.registrarNoHistoricoAntesDeFechar(idMesa);
 
-    await this.executarComFeedback(async () => {
+    await this.executarComFeedback('Fechando conta...', async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/fechar`, {}));
       await this.atualizarMesas();
     });
@@ -231,7 +253,7 @@ export class PainelService {
   async marcarEntregue(idMesa: number): Promise<void> {
     if (this.expedienteFechado()) return;
 
-    await this.executarComFeedback(async () => {
+    await this.executarComFeedback('Confirmando entrega...', async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/marcar-entregue`, {}));
       await this.atualizarMesas();
     });
@@ -240,14 +262,15 @@ export class PainelService {
   async reatribuirGarcom(idMesa: number, idGarcom: number): Promise<void> {
     if (this.expedienteFechado()) return;
 
-    await this.executarComFeedback(async () => {
+    await this.executarComFeedback('Atribuindo garçom...', async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/atribuir-garcom`, { garcomId: idGarcom }));
       await this.atualizarMesas();
     });
   }
 
-  private async executarComFeedback(acao: () => Promise<void>): Promise<void> {
+  private async executarComFeedback(descricao: string, acao: () => Promise<void>): Promise<void> {
     this.acaoEmAndamentoSignal.set(true);
+    this.descricaoAcaoSignal.set(descricao);
     this.mensagemErroSignal.set(null);
 
     try {
@@ -256,6 +279,7 @@ export class PainelService {
       this.mensagemErroSignal.set(this.extrairMensagemErro(erro));
     } finally {
       this.acaoEmAndamentoSignal.set(false);
+      this.descricaoAcaoSignal.set(null);
     }
   }
 
@@ -274,7 +298,12 @@ export class PainelService {
 
     this.historicoExpediente.update(historico => [
       ...historico,
-      { numeroMesa: mesa.numero, garcom: mesa.garcom as string, pedidos: mesa.pedidos },
+      {
+        numeroMesa: mesa.numero,
+        garcom: mesa.garcom as string,
+        pedidos: mesa.pedidos,
+        duracaoMinutos: mesa.abertaEm === null ? 0 : minutosDesde(mesa.abertaEm),
+      },
     ]);
   }
 
@@ -300,6 +329,7 @@ function mapearMesa(mesa: MesaGestorApiResponse): MesaPainel {
     status: mesa.status === 'OCUPADA' ? 'OCUPADA' : 'LIVRE',
     garcomId: mesa.garcomId,
     garcom: mesa.garcomNome,
+    abertaEm: mesa.dataAbertura,
     statusPedido,
     tempoLabel: tempoMinutos === null ? null : 'Em andamento há',
     tempoMinutos,

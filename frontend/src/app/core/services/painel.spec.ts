@@ -104,15 +104,20 @@ describe('PainelService', () => {
   });
 
   describe('ultimosPedidos', () => {
-    it('inclui apenas pedidos de mesas ocupadas com atendimento ativo', () => {
-      const numerosDeMesasNaoOcupadas = service
-        .mesas()
-        .filter(mesa => mesa.status !== 'OCUPADA')
-        .map(mesa => mesa.numero);
+    it('mostra apenas pedidos de atendimentos já fechados', async () => {
+      expect(service.ultimosPedidos()).toHaveLength(0);
 
-      for (const pedido of service.ultimosPedidos()) {
-        expect(numerosDeMesasNaoOcupadas).not.toContain(pedido.numeroMesa);
+      const promise = service.fecharConta(1);
+      httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
+      for (let i = 0; i < 3; i++) {
+        await Promise.resolve();
       }
+      httpMock.expectOne(`${BASE_URL}/mesas`).flush(MESAS_API);
+      await promise;
+
+      const pedidos = service.ultimosPedidos();
+      expect(pedidos).toHaveLength(1);
+      expect(pedidos[0].numeroMesa).toBe(3);
     });
   });
 

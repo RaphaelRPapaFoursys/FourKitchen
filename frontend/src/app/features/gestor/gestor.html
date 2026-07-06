@@ -70,13 +70,6 @@
         </div>
       }
 
-      @if (mensagemErro(); as erro) {
-        <div class="aviso-erro">
-          {{ erro }}
-          <button type="button" class="aviso-erro__fechar" (click)="fecharErro()" aria-label="Fechar">✕</button>
-        </div>
-      }
-
       <section class="secao">
         <div class="secao__cabecalho">
           <div>
@@ -90,7 +83,12 @@
         </div>
 
         <div class="resumo-cards">
-          <article class="resumo-card">
+          <button
+            class="resumo-card resumo-card--clicavel"
+            type="button"
+            [class.resumo-card--ativo]="filtroEstado() === 'LIVRE'"
+            (click)="alternarFiltroEstado('LIVRE')"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <path d="M5 11V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5" />
               <path d="M3 11h18v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3Z" />
@@ -101,7 +99,7 @@
               <strong>{{ resumo().mesasLivres.toString().padStart(2, '0') }}</strong>
               <span>Mesas livres</span>
             </div>
-          </article>
+          </button>
 
           <button
             class="resumo-card resumo-card--clicavel"
@@ -422,7 +420,15 @@
 
             <div class="ultimos-pedidos">
               <h3>Últimos pedidos</h3>
-              <p>Mostrando os 5 mais recentes</p>
+              <p>
+                @if (ultimosPedidos().length === 0) {
+                  Nenhum pedido fechado ainda
+                } @else if (ultimosPedidos().length === 1) {
+                  Mostrando o pedido mais recente
+                } @else {
+                  Mostrando os {{ ultimosPedidos().length }} mais recentes
+                }
+              </p>
 
               <ul class="ultimos-pedidos__lista">
                 @for (pedido of ultimosPedidos(); track pedido.pedidoId) {
@@ -435,7 +441,7 @@
                       <span class="ultimos-pedidos__mesa">Mesa {{ pedido.numeroMesa.toString().padStart(2, '0') }}</span>
                       <span>{{ pedido.valor | currency: 'BRL' }}</span>
                       <span>{{ pedido.garcom }}</span>
-                      <span>{{ tempoAtrasLabel(pedido.minutosAtras) }}</span>
+                      <span>{{ tempoAtrasLabel(pedido.tempoAtendimentoMinutos) }}</span>
                     </button>
                   </li>
                 }
@@ -616,6 +622,33 @@
             </li>
           }
         </ul>
+      </div>
+    </div>
+  }
+
+  @if (acaoEmAndamento()) {
+    <div class="carregando-overlay">
+      <div class="carregando-overlay__caixa">
+        <span class="carregando-overlay__spinner" aria-hidden="true"></span>
+        <span>{{ descricaoAcao() ?? 'Processando...' }}</span>
+      </div>
+    </div>
+  }
+
+  @if (mensagemErro(); as erro) {
+    <div class="erro-overlay" (click)="fecharErro()">
+      <div class="erro-modal" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <button type="button" class="erro-modal__fechar" (click)="fecharErro()" aria-label="Fechar">✕</button>
+        <span class="erro-modal__icone" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v5" />
+            <path d="M12 16h.01" />
+          </svg>
+        </span>
+        <h3 class="erro-modal__titulo">Não foi possível concluir a ação</h3>
+        <p class="erro-modal__mensagem">{{ erro }}</p>
+        <button type="button" class="erro-modal__botao" (click)="fecharErro()">Entendi</button>
       </div>
     </div>
   }

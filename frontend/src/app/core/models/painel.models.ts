@@ -32,6 +32,8 @@ export interface MesaPainel {
   status: StatusMesaPainel;
   garcomId: number | null;
   garcom: string | null;
+  /** Instante de abertura do atendimento (ISO), vindo do ms-mesas; usado para medir a duração. */
+  abertaEm: string | null;
   statusPedido: StatusPedidoPainel | null;
   tempoLabel: string | null;
   tempoMinutos: number | null;
@@ -53,7 +55,8 @@ export interface PedidoRecente {
   numeroMesa: number;
   garcom: string;
   valor: number;
-  minutosAtras: number;
+  /** Duração do atendimento (em minutos) a que este pedido pertence, medida até o fechamento. */
+  tempoAtendimentoMinutos: number;
 }
 
 export interface MesaMaisOcupada {

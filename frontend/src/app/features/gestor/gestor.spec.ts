@@ -88,10 +88,18 @@ describe('Gestor', () => {
     expect(component).toBeTruthy();
   });
 
-  it('lista os últimos pedidos das mesas ocupadas', () => {
-    const pedidos = painelService.ultimosPedidos();
+  it('lista apenas os pedidos de atendimentos já fechados', async () => {
+    expect(painelService.ultimosPedidos().length).toBe(0);
 
-    expect(pedidos.length).toBe(2);
+    const promise = painelService.fecharConta(1);
+    httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
+    await esperarMicrotarefas();
+    flushMesas();
+    await promise;
+
+    const pedidos = painelService.ultimosPedidos();
+    expect(pedidos.length).toBe(1);
+    expect(pedidos[0].numeroMesa).toBe(3);
   });
 
   /** Cada `await` numa promise resolvida via `firstValueFrom` só retoma no próximo microtask. */
