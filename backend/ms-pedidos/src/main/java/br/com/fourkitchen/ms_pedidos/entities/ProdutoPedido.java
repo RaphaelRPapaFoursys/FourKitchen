@@ -38,6 +38,7 @@ public class ProdutoPedido {
     @Column(name = "observacao")
     private String observacao;
 
-    @Column(name = "status_produto_pedido")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50)
     private StatusProdutoPedido status;
 }
