@@ -7,9 +7,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
-import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
-import br.com.fourkitchen.ms_pedidos.exceptions.PedidoNaoPermiteDecisaoException;
-import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,7 +117,7 @@ public class PedidoController {
             return ResponseEntity
                     .ok()
                     .build();
-        } catch (PedidoInexistenteException e) {
+        } catch (BaseException e) {
             return ResponseEntity
                     .notFound()
                     .build();
@@ -136,7 +134,7 @@ public class PedidoController {
             return ResponseEntity
                     .noContent()
                     .build();
-        } catch (PedidoInexistenteException e) {
+        } catch (BaseException e) {
             return ResponseEntity
                     .notFound()
                     .build();
@@ -151,7 +149,7 @@ public class PedidoController {
             SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);
             return ResponseEntity.ok(response);
 
-        } catch (PedidoInexistenteException | ProdutoPedidoInexistenteException e) {
+        } catch (BaseException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -164,8 +162,7 @@ public class PedidoController {
             pedidoService.decisaoProblema(decisaoProblemaRequest);
 
             return ResponseEntity.ok().build();
-        } catch (PedidoInexistenteException |
-                 PedidoNaoPermiteDecisaoException error) {
+        } catch (BaseException error) {
             return ResponseEntity
                     .badRequest().build();
         }
