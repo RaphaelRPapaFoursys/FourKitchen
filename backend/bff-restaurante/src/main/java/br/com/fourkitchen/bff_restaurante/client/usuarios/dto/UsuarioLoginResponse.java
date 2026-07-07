@@ -5,6 +5,7 @@ public record UsuarioLoginResponse(
         Long id,
         String nome,
         String useremail,
-        String perfil
+        String perfil,
+        Integer idMesa
 ) {
 }

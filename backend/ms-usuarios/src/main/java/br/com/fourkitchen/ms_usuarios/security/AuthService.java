@@ -21,7 +21,7 @@ public class AuthService {
     public void criarUsuario(String nome, String email, String senha) {
 
         if (usuarioRepository.existsByEmailIgnoreCase(email)) {
-            throw new RuntimeException("E-mail já cadastrado.");
+            throw new RuntimeException("Email ja cadastrado.");
         }
 
         Usuario usuario = new Usuario();
@@ -54,7 +54,8 @@ public class AuthService {
                 usuario.getId().longValue(),
                 usuario.getNome(),
                 usuario.getEmail(),
-                usuario.getPerfilUsuario().name()
+                usuario.getPerfilUsuario().name(),
+                usuario.getIdMesa()
         );
     }
 }

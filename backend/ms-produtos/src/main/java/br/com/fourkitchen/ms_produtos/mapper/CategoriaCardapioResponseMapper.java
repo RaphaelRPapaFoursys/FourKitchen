@@ -11,6 +11,7 @@ public class CategoriaCardapioResponseMapper implements Mapper<CategoriaCardapio
         return new CategoriaCardapioResponse(
                 source.categoria().getId(),
                 source.categoria().getNome(),
+                source.categoria().getDescricao(),
                 source.produtos()
         );
     }

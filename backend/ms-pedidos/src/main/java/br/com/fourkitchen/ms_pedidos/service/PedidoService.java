@@ -4,6 +4,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.*;
 import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
@@ -36,9 +37,7 @@ public class PedidoService {
 
     private static final Collection<StatusPedido> STATUS_COZINHA = List.of(
             StatusPedido.ENVIADO_COZINHA,
-            StatusPedido.EM_PREPARO,
-            StatusPedido.PRONTO,
-            StatusPedido.AGUARDANDO_DECISAO
+            StatusPedido.EM_PREPARO
     );
 
     @Autowired
@@ -65,7 +64,7 @@ public class PedidoService {
         pedidoRepository.save(pedido);
 
         if (pedidoRequest.itens() != null) {
-            for(ProdutoPedidoRequest item : pedidoRequest.itens()) {
+            for (ProdutoPedidoRequest item : pedidoRequest.itens()) {
                 ProdutoPedido produtoPedido = ProdutoPedido
                         .builder()
                         .quantidade(item.quantidade())
@@ -141,6 +140,39 @@ public class PedidoService {
                 .toList();
     }
 
+    public ResumoPedidosOperacaoResponse buscarResumoOperacao() {
+        return new ResumoPedidosOperacaoResponse(
+                pedidoRepository.countByStatus(StatusPedido.EM_PREPARO),
+                pedidoRepository.countByStatus(StatusPedido.PRONTO),
+                pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)
+        );
+    }
+
+    public List<PedidoCozinhaResponse> findPedidosAtivosDetalhadosPorAtendimentos(List<Integer> idsAtendimento) {
+        if (idsAtendimento == null || idsAtendimento.isEmpty()) {
+            return List.of();
+        }
+
+        List<Pedido> pedidos = pedidoRepository
+                .findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(idsAtendimento, STATUS_ATIVOS);
+
+        if (pedidos.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> idsPedidos = pedidos.stream()
+                .map(Pedido::getId)
+                .toList();
+
+        Map<Integer, List<ProdutoPedido>> itensPorPedido = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
+                .stream()
+                .collect(Collectors.groupingBy(ProdutoPedido::getIdPedido));
+
+        return pedidos.stream()
+                .map(pedido -> mapearPedidoCozinha(pedido, itensPorPedido.getOrDefault(pedido.getId(), List.of())))
+                .toList();
+    }
+
     @Transactional
     public PedidoResponse iniciarPreparo(Integer id) {
         Pedido pedido = buscarPedido(id);
@@ -166,35 +198,44 @@ public class PedidoService {
     }
 
     @Transactional
+    public PedidoResponse entregarPedido(Integer id) {
+        Pedido pedido = buscarPedido(id);
+
+        validarStatusAtual(pedido, StatusPedido.PRONTO);
+        pedido.setStatus(StatusPedido.ENTREGUE);
+
+        return pedidoResponseMapper.map(pedido);
+    }
+
+    @Transactional
     public void patchPedido(Integer id, AlterarPedidoRequest alterarPedidoRequest) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
-        if(alterarPedidoRequest.canal() != null) {
+        if (alterarPedidoRequest.canal() != null) {
             pedido.setCanal(alterarPedidoRequest.canal());
         }
 
-       validarPedidoNaoAguardandoDecisao(pedido);
+        validarPedidoNaoAguardandoDecisao(pedido);
 
-        if(alterarPedidoRequest.status() != null) {
+        if (alterarPedidoRequest.status() != null) {
             pedido.setStatus(alterarPedidoRequest.status());
         }
 
-        if(alterarPedidoRequest.idMesa() != null) {
+        if (alterarPedidoRequest.idMesa() != null) {
             pedido.setIdMesa(alterarPedidoRequest.idMesa());
         }
 
-        if(alterarPedidoRequest.idUsuario() != null) {
+        if (alterarPedidoRequest.idUsuario() != null) {
             pedido.setIdUsuario(alterarPedidoRequest.idUsuario());
         }
 
-        if(alterarPedidoRequest.idAtendimento() != null) {
+        if (alterarPedidoRequest.idAtendimento() != null) {
             pedido.setIdAtendimento(alterarPedidoRequest.idAtendimento());
         }
-        //return pedidoResponseMapper.map(pedido);
     }
 
-   @Transactional
+    @Transactional
     public void softDelete(Integer id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
@@ -247,6 +288,7 @@ public class PedidoService {
                 item.getObservacao()
         );
     }
+
     private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {
         if (pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO) {
             throw new BaseException(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
@@ -264,6 +306,13 @@ public class PedidoService {
                         request.idPedido(),
                         request.idProdutoPedido()
                 ).orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_PRODUTO_NAO_ENCONTRADO));
+
+        StatusPedido status = pedido.getStatus();
+
+        if (status != StatusPedido.ENVIADO_COZINHA
+                && status != StatusPedido.EM_PREPARO) {
+            throw new PedidoEncerradoException();
+        }
 
         pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
         produtoPedido.setStatus(request.statusProdutoPedido());

@@ -49,6 +49,9 @@ class GestorMesaServiceTest {
     private UsuarioClient usuarioClient;
 
     @Mock
+    private br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient pedidoClient;
+
+    @Mock
     private MesaGestorResponseMapper mesaGestorResponseMapper;
 
     @Mock
@@ -224,6 +227,7 @@ class GestorMesaServiceTest {
                 garcomId,
                 123456,
                 LocalDateTime.of(2026, 7, 2, 10, 0),
+                null,
                 null
         );
     }
@@ -234,6 +238,7 @@ class GestorMesaServiceTest {
                 nome,
                 nome.toLowerCase().replace(" ", ".") + "@fourkitchen.com",
                 perfil,
+                null,
                 ativo
         );
     }
@@ -255,7 +260,8 @@ class GestorMesaServiceTest {
                 garcomNome,
                 123456,
                 LocalDateTime.of(2026, 7, 2, 10, 0),
-                null
+                null,
+                List.of()
         );
     }
 

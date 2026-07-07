@@ -6,108 +6,114 @@ import br.com.fourkitchen.ms_pedidos.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("pedidos")
+@RequiredArgsConstructor
+@RequestMapping("/api/pedidos")
 public class PedidoController {
-    @Autowired
-    PedidoService pedidoService;
+
+    private final PedidoService pedidoService;
 
     @PostMapping
-    private ResponseEntity<PedidoResponse> criarPedido(
+    public ResponseEntity<PedidoResponse> criarPedido(
             @RequestBody @Valid CriarPedidoRequest pedidoRequest
     ) {
         PedidoResponse pedidoResponse = pedidoService.createPedido(pedidoRequest);
 
-        try {
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(pedidoResponse);
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .build();
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(pedidoResponse);
     }
 
-    @GetMapping("{id}")
-    private ResponseEntity<PedidoResponse> buscarPedido(
+    @GetMapping("/{id}")
+    public ResponseEntity<PedidoResponse> buscarPedido(
             @PathVariable Integer id
     ) {
-        PedidoResponse pedidoResponse = pedidoService.findById(id);
-
-        try {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(pedidoResponse);
-        } catch (Exception e) {
-            return ResponseEntity
-                    .notFound()
-                    .build();
-        }
+        return ResponseEntity.ok(pedidoService.findById(id));
     }
 
     @GetMapping
-    private ResponseEntity<List<PedidoResponse>> buscarPedidos() {
-        List<PedidoResponse> listaPedidos = pedidoService.findAll();
-
-        try {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(listaPedidos);
-        } catch (Exception e) {
-            return ResponseEntity
-                    .notFound()
-                    .build();
-        }
+    public ResponseEntity<List<PedidoResponse>> buscarPedidos() {
+        return ResponseEntity.ok(pedidoService.findAll());
     }
 
     @GetMapping("/cozinha")
-    private ResponseEntity<List<PedidoResponse>> buscarPedidosCozinha() {
+    public ResponseEntity<List<PedidoResponse>> buscarPedidosCozinha() {
         return ResponseEntity.ok(pedidoService.findPedidosCozinha());
     }
 
     @GetMapping("/cozinha/fila")
-    private ResponseEntity<List<PedidoCozinhaResponse>> buscarFilaCozinha() {
+    public ResponseEntity<List<PedidoCozinhaResponse>> buscarFilaCozinha() {
         return ResponseEntity.ok(pedidoService.findFilaCozinha());
     }
 
     @PatchMapping("/{id}/iniciar-preparo")
-    private ResponseEntity<PedidoResponse> iniciarPreparo(@PathVariable Integer id) {
+    public ResponseEntity<PedidoResponse> iniciarPreparo(@PathVariable Integer id) {
         return ResponseEntity.ok(pedidoService.iniciarPreparo(id));
     }
 
     @PatchMapping("/{id}/finalizar-preparo")
-    private ResponseEntity<PedidoResponse> finalizarPreparo(@PathVariable Integer id) {
+    public ResponseEntity<PedidoResponse> finalizarPreparo(@PathVariable Integer id) {
         return ResponseEntity.ok(pedidoService.finalizarPreparo(id));
     }
 
+    @PatchMapping("/{id}/entregar")
+    public ResponseEntity<PedidoResponse> entregarPedido(@PathVariable Integer id) {
+        return ResponseEntity.ok(pedidoService.entregarPedido(id));
+    }
+
     @GetMapping("/atendimentos/{atendimentoId}/possui-ativos")
-    private ResponseEntity<Boolean> possuiPedidosAtivos(
+    public ResponseEntity<Boolean> possuiPedidosAtivos(
             @PathVariable Integer atendimentoId
     ) {
         return ResponseEntity.ok(pedidoService.possuiPedidosAtivos(atendimentoId));
     }
 
     @GetMapping("/atendimentos/ativos")
-    private ResponseEntity<List<PedidoResponse>> listarPedidosAtivosPorAtendimentos(
+    public ResponseEntity<List<PedidoResponse>> listarPedidosAtivosPorAtendimentos(
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento
     ) {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosPorAtendimentos(idsAtendimento));
     }
 
-    @PatchMapping("{id}")
-    private ResponseEntity<Void> alterarPedido(
+    @GetMapping("/resumo-operacao")
+    private ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
+        return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
+    }
+
+    @GetMapping("/atendimentos/ativos/detalhado")
+    public ResponseEntity<List<PedidoCozinhaResponse>> listarPedidosAtivosDetalhadosPorAtendimentos(
+            @RequestParam("idsAtendimento") List<Integer> idsAtendimento
+    ) {
+        return ResponseEntity.ok(pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(idsAtendimento));
+    }
+
+    @GetMapping("/resumo-operacao")
+    public ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
+        return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> alterarPedido(
             @PathVariable Integer id,
             @RequestBody AlterarPedidoRequest alterarPedidoRequest
     ) {
@@ -124,8 +130,8 @@ public class PedidoController {
         }
     }
 
-    @DeleteMapping("{id}")
-    private ResponseEntity<Void> cancelarPedido(
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelarPedido(
             @PathVariable Integer id
     ) {
         pedidoService.softDelete(id);

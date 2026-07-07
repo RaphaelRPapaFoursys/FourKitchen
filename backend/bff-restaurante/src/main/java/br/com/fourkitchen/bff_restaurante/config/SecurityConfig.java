@@ -44,8 +44,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/api/auth/login",
-                                "/api/mesa/pedidos",
-                                "/api/totem/pedidos",
                                 "/actuator/health",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -53,6 +51,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // Prefixos reservados para rotas de dominio do BFF.
                         // Mesmo antes dos controllers existirem, a autorizacao por perfil ja fica preparada.
+                        .requestMatchers("/api/mesa/**").hasRole("MESA")
+                        .requestMatchers("/api/totem/**").hasRole("TOTEM")
                         .requestMatchers("/api/garcom/**").hasRole("GARCOM")
                         .requestMatchers("/api/cozinha/**").hasRole("COZINHA")
                         .requestMatchers("/api/gestor/**").hasAnyRole("GESTOR", "ADMIN")

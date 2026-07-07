@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_notificacoes.service;
 
 import br.com.fourkitchen.ms_notificacoes.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.ms_notificacoes.dto.response.NotificacaoResponse;
+import br.com.fourkitchen.ms_notificacoes.dto.response.ResumoNotificacoesOperacaoResponse;
 import br.com.fourkitchen.ms_notificacoes.enums.DestinoNotificacao;
 import br.com.fourkitchen.ms_notificacoes.enums.TipoNotificacao;
 import br.com.fourkitchen.ms_notificacoes.exception.BaseException;
@@ -61,6 +62,15 @@ public class NotificacaoService {
                 .stream()
                 .map(notificacaoResponseMapper::map)
                 .toList();
+    }
+
+    public ResumoNotificacoesOperacaoResponse buscarResumoOperacao() {
+        return new ResumoNotificacoesOperacaoResponse(
+                notificacaoRepository.countByTipoAndDestinoAndLidaFalse(
+                        TipoNotificacao.CHAMADA_GARCOM.name(),
+                        DestinoNotificacao.GARCOM
+                )
+        );
     }
 
     public NotificacaoResponse marcarComoLida(Integer id) {

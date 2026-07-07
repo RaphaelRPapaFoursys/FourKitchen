@@ -113,7 +113,8 @@ class GestorMesaControllerTest {
                 "Amanda Souza",
                 123456,
                 LocalDateTime.of(2026, 7, 2, 10, 0),
-                null
+                null,
+                List.of()
         );
     }
 }
