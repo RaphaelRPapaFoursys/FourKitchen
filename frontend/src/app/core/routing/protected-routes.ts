@@ -28,17 +28,17 @@ export const protectedRoutes: Routes = [
     {
       path: 'totem',
       loadComponent: () =>
-        import('../../features/totem/totem').then(m => m.Totem),
+        import('../../features/customer-home/customer-home').then(m => m.CustomerHome),
     },
-    ['TOTEM'],
+    ['ADMIN', 'TOTEM'],
   ),
   protectedRoute(
     {
       path: 'mesa',
       loadComponent: () =>
-        import('../../features/mesa/mesa').then(m => m.Mesa),
+        import('../../features/customer-home/customer-home').then(m => m.CustomerHome),
     },
-    ['MESA'],
+    ['ADMIN', 'MESA'],
   ),
   protectedRoute(
     {
@@ -46,7 +46,7 @@ export const protectedRoutes: Routes = [
       loadComponent: () =>
         import('../../features/garcom/garcom').then(m => m.Garcom),
     },
-    ['GARCOM'],
+    ['ADMIN', 'GARCOM'],
   ),
   protectedRoute(
     {
@@ -54,7 +54,7 @@ export const protectedRoutes: Routes = [
       loadComponent: () =>
         import('../../features/cozinha/cozinha').then(m => m.Cozinha),
     },
-    ['COZINHA'],
+    ['ADMIN', 'COZINHA'],
   ),
   protectedRoute(
     {

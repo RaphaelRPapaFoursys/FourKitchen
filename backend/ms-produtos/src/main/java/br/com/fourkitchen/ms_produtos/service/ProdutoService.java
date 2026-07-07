@@ -94,6 +94,7 @@ public class ProdutoService {
         return produtoResponseMapper.map(produtoSalvo);
     }
 
+    // Verifica se o produto existe no banco de dados e retorna suas informações
     public ProdutoDisponibilidadeResponse verificarDisponibilidadeParaVenda(Integer id) {
         Produto produto = buscarPorId(id);
 

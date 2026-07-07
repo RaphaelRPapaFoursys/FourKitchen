@@ -2,12 +2,14 @@ package br.com.fourkitchen.ms_pedidos.controller;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
+import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -120,7 +122,15 @@ public class PedidoController {
     ) {
         pedidoService.patchPedido(id, alterarPedidoRequest);
 
-        return ResponseEntity.ok().build();
+        try {
+            return ResponseEntity
+                    .ok()
+                    .build();
+        } catch (BaseException e) {
+            return ResponseEntity
+                    .notFound()
+                    .build();
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -129,13 +139,41 @@ public class PedidoController {
     ) {
         pedidoService.softDelete(id);
 
-        return ResponseEntity.noContent().build();
+        try {
+            return ResponseEntity
+                    .noContent()
+                    .build();
+        } catch (BaseException error) {
+            return ResponseEntity
+                    .notFound()
+                    .build();
+        }
     }
 
     @PatchMapping("/sinalizar-problema")
     public ResponseEntity<SinalizarProblemaResponse> sinalizarProblema(
             @RequestBody @Valid SinalizarProblemaRequest request
     ) {
-        return ResponseEntity.ok(pedidoService.sinalizarProblema(request));
+        try {
+            SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);
+            return ResponseEntity.ok(response);
+
+        } catch (BaseException error) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/decisao-problema")
+    public ResponseEntity<Void> decisaoProblema(
+            @RequestBody DecisaoProblemaRequest decisaoProblemaRequest
+    ) {
+        try{
+            pedidoService.decisaoProblema(decisaoProblemaRequest);
+
+            return ResponseEntity.ok().build();
+        } catch (BaseException error) {
+            return ResponseEntity
+                    .badRequest().build();
+        }
     }
 }
