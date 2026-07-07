@@ -4,6 +4,7 @@ import br.com.fourkitchen.ms_mesas.client.PedidosAtivosClient;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.MesaPaginadaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
@@ -18,6 +19,7 @@ import br.com.fourkitchen.ms_mesas.model.Mesa;
 import br.com.fourkitchen.ms_mesas.repository.AtendimentoRepository;
 import br.com.fourkitchen.ms_mesas.repository.MesaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,14 @@ public class MesaService {
                 .stream()
                 .map(mesaResponseMapper::map)
                 .toList();
+    }
+
+    //DEVOLVE UMA PAGE
+    public MesaPaginadaResponse listarMesasPaginadas(Pageable pageable) {
+        return MesaPaginadaResponse.from(
+                mesaRepository.findAll(pageable)
+                        .map(mesaResponseMapper::map)
+        );
     }
 
     public List<MesaGarcomResponse> listarMesasPorGarcom(Integer garcomId) {

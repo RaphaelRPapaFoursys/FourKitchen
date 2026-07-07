@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.service.GestorMesaService;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,33 @@ class GestorMesaControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertSame(mesa, response.getBody().getFirst());
         verify(gestorMesaService).listarMesas(AUTHORIZATION);
+    }
+
+    @Test
+    void listarMesasPaginadasDeveRetornarOk() {
+        MesaGestorResponse mesa = criarMesa();
+        MesaGestorPaginadaResponse pagina = new MesaGestorPaginadaResponse(
+                List.of(mesa),
+                0,
+                10,
+                1L,
+                1,
+                true,
+                true
+        );
+
+        when(gestorMesaService.listarMesasPaginadas(AUTHORIZATION, 0, 10, "numero,asc")).thenReturn(pagina);
+
+        ResponseEntity<MesaGestorPaginadaResponse> response = gestorMesaController.listarMesasPaginadas(
+                0,
+                10,
+                "numero,asc",
+                AUTHORIZATION
+        );
+
+        assertEquals(200, response.getStatusCode().value());
+        assertSame(pagina, response.getBody());
+        verify(gestorMesaService).listarMesasPaginadas(AUTHORIZATION, 0, 10, "numero,asc");
     }
 
     @Test
