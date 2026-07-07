@@ -7,6 +7,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
@@ -21,6 +22,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -148,6 +150,39 @@ public class PedidoService {
                 pedidoRepository.countByStatus(StatusPedido.EM_PREPARO),
                 pedidoRepository.countByStatus(StatusPedido.PRONTO),
                 pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)
+        );
+    }
+
+    public ResumoContaAtendimentoResponse buscarResumoContaAtendimento(Integer idAtendimento) {
+        List<Pedido> pedidos = pedidoRepository
+                .findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                        idAtendimento,
+                        StatusPedido.CANCELADO
+                );
+
+        if (pedidos.isEmpty()) {
+            return new ResumoContaAtendimentoResponse(idAtendimento, BigDecimal.ZERO, 0, 0);
+        }
+
+        List<Integer> idsPedidos = pedidos.stream()
+                .map(Pedido::getId)
+                .toList();
+
+        List<ProdutoPedido> itens = produtoPedidoRepository.findByIdPedidoIn(idsPedidos);
+
+        BigDecimal valorFinal = itens.stream()
+                .map(this::valorItem)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        int totalItens = itens.stream()
+                .mapToInt(item -> item.getQuantidade() == null ? 0 : item.getQuantidade())
+                .sum();
+
+        return new ResumoContaAtendimentoResponse(
+                idAtendimento,
+                valorFinal,
+                pedidos.size(),
+                totalItens
         );
     }
 
@@ -290,6 +325,14 @@ public class PedidoService {
                 item.getPrecoUnitario(),
                 item.getObservacao()
         );
+    }
+
+    private BigDecimal valorItem(ProdutoPedido item) {
+        if (item.getPrecoUnitario() == null || item.getQuantidade() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade()));
     }
 
     private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {

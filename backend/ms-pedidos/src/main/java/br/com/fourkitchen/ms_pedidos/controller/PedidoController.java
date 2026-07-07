@@ -5,6 +5,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
@@ -93,16 +94,18 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosPorAtendimentos(idsAtendimento));
     }
 
-    @GetMapping("/resumo-operacao")
-    private ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
-        return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
-    }
-
     @GetMapping("/atendimentos/ativos/detalhado")
     public ResponseEntity<List<PedidoCozinhaResponse>> listarPedidosAtivosDetalhadosPorAtendimentos(
             @RequestParam("idsAtendimento") List<Integer> idsAtendimento
     ) {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(idsAtendimento));
+    }
+
+    @GetMapping("/atendimentos/{atendimentoId}/resumo-conta")
+    public ResponseEntity<ResumoContaAtendimentoResponse> buscarResumoContaAtendimento(
+            @PathVariable Integer atendimentoId
+    ) {
+        return ResponseEntity.ok(pedidoService.buscarResumoContaAtendimento(atendimentoId));
     }
 
     @GetMapping("/resumo-operacao")

@@ -5,6 +5,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
@@ -433,6 +434,68 @@ class PedidoServiceTest {
         verify(pedidoRepository).countByStatus(StatusPedido.EM_PREPARO);
         verify(pedidoRepository).countByStatus(StatusPedido.PRONTO);
         verify(pedidoRepository).countByStatus(StatusPedido.AGUARDANDO_DECISAO);
+    }
+
+    @Test
+    void buscarResumoContaAtendimentoDeveSomarItensDePedidosNaoCancelados() {
+        Pedido pedido1 = Pedido.builder()
+                .id(25)
+                .idAtendimento(8)
+                .status(StatusPedido.FINALIZADO)
+                .build();
+        Pedido pedido2 = Pedido.builder()
+                .id(26)
+                .idAtendimento(8)
+                .status(StatusPedido.ENTREGUE)
+                .build();
+        ProdutoPedido item1 = ProdutoPedido.builder()
+                .idPedido(25)
+                .quantidade(2)
+                .precoUnitario(new BigDecimal("29.90"))
+                .build();
+        ProdutoPedido item2 = ProdutoPedido.builder()
+                .idPedido(26)
+                .quantidade(1)
+                .precoUnitario(new BigDecimal("15.50"))
+                .build();
+
+        when(pedidoRepository.findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                8,
+                StatusPedido.CANCELADO
+        )).thenReturn(List.of(pedido1, pedido2));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25, 26))).thenReturn(List.of(item1, item2));
+
+        ResumoContaAtendimentoResponse resultado = pedidoService.buscarResumoContaAtendimento(8);
+
+        assertEquals(8, resultado.idAtendimento());
+        assertEquals(new BigDecimal("75.30"), resultado.valorFinal());
+        assertEquals(2, resultado.totalPedidos());
+        assertEquals(3, resultado.totalItens());
+        verify(pedidoRepository).findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                8,
+                StatusPedido.CANCELADO
+        );
+        verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25, 26));
+    }
+
+    @Test
+    void buscarResumoContaAtendimentoDeveRetornarZeroQuandoNaoHouverPedidos() {
+        when(pedidoRepository.findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                8,
+                StatusPedido.CANCELADO
+        )).thenReturn(List.of());
+
+        ResumoContaAtendimentoResponse resultado = pedidoService.buscarResumoContaAtendimento(8);
+
+        assertEquals(8, resultado.idAtendimento());
+        assertEquals(BigDecimal.ZERO, resultado.valorFinal());
+        assertEquals(0, resultado.totalPedidos());
+        assertEquals(0, resultado.totalItens());
+        verify(pedidoRepository).findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                8,
+                StatusPedido.CANCELADO
+        );
+        verifyNoInteractions(produtoPedidoRepository);
     }
 
     @ParameterizedTest

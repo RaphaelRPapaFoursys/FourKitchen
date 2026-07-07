@@ -1,8 +1,10 @@
 package br.com.fourkitchen.ms_mesas.service;
 
 import br.com.fourkitchen.ms_mesas.client.PedidosAtivosClient;
+import br.com.fourkitchen.ms_mesas.client.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
+import br.com.fourkitchen.ms_mesas.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaPaginadaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
@@ -14,8 +16,10 @@ import br.com.fourkitchen.ms_mesas.mapper.CriarMesaRequestMapper;
 import br.com.fourkitchen.ms_mesas.mapper.MesaGarcomResponseMapper;
 import br.com.fourkitchen.ms_mesas.mapper.MesaResponseMapper;
 import br.com.fourkitchen.ms_mesas.model.Atendimento;
+import br.com.fourkitchen.ms_mesas.model.HistoricoAtendimento;
 import br.com.fourkitchen.ms_mesas.model.Mesa;
 import br.com.fourkitchen.ms_mesas.repository.AtendimentoRepository;
+import br.com.fourkitchen.ms_mesas.repository.HistoricoAtendimentoRepository;
 import br.com.fourkitchen.ms_mesas.repository.MesaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +31,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +55,9 @@ class MesaServiceTest {
 
     @Mock
     private AtendimentoRepository atendimentoRepository;
+
+    @Mock
+    private HistoricoAtendimentoRepository historicoAtendimentoRepository;
 
     @Mock
     private PedidosAtivosClient pedidosAtivosClient;
@@ -219,12 +228,21 @@ class MesaServiceTest {
     @Test
     void fecharMesaDeveDisponibilizarMesaELimparAtendimento() {
         Atendimento atendimento = criarAtendimento(1, 123456);
+        atendimento.setDataAbertura(LocalDateTime.of(2026, 7, 2, 10, 0));
+        atendimento.setGarcomId(7);
         Mesa mesa = criarMesa(1, 10, false, atendimento);
         Mesa mesaSalva = criarMesa(1, 10, true, null);
         MesaResponse response = new MesaResponse(1, 10, StatusMesa.DISPONIVEL, null, null, null, null, null);
+        ResumoContaAtendimentoResponse resumo = new ResumoContaAtendimentoResponse(
+                1,
+                new BigDecimal("149.70"),
+                3,
+                7
+        );
 
         when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
         when(pedidosAtivosClient.possuiPedidosAtivos(1)).thenReturn(false);
+        when(pedidosAtivosClient.buscarResumoConta(1)).thenReturn(resumo);
         when(atendimentoRepository.save(atendimento)).thenReturn(atendimento);
         when(mesaRepository.save(mesa)).thenReturn(mesaSalva);
         when(mesaResponseMapper.map(mesaSalva)).thenReturn(response);
@@ -235,11 +253,59 @@ class MesaServiceTest {
         assertEquals(true, mesa.getDisponivel());
         assertEquals(null, mesa.getAtendimento());
         assertNotNull(atendimento.getDataFechamento());
+        ArgumentCaptor<HistoricoAtendimento> historicoCaptor = ArgumentCaptor.forClass(HistoricoAtendimento.class);
         verify(mesaRepository).findById(1);
         verify(pedidosAtivosClient).possuiPedidosAtivos(1);
+        verify(pedidosAtivosClient).buscarResumoConta(1);
         verify(atendimentoRepository).save(atendimento);
+        verify(historicoAtendimentoRepository).save(historicoCaptor.capture());
         verify(mesaRepository).save(mesa);
         verify(mesaResponseMapper).map(mesaSalva);
+
+        HistoricoAtendimento historico = historicoCaptor.getValue();
+        assertEquals(1, historico.getIdAtendimento());
+        assertEquals(123456, historico.getCodigoSessao());
+        assertEquals(1, historico.getIdMesa());
+        assertEquals(10, historico.getNumeroMesa());
+        assertEquals(7, historico.getIdGarcom());
+        assertEquals(new BigDecimal("149.70"), historico.getValorFinal());
+        assertEquals(3, historico.getTotalPedidos());
+        assertEquals(7, historico.getTotalItens());
+        assertEquals(LocalDateTime.of(2026, 7, 2, 10, 0), historico.getDataAbertura());
+        assertNotNull(historico.getDataFechamento());
+        assertNotNull(historico.getDuracaoMinutos());
+    }
+
+    @Test
+    void listarHistoricoAtendimentosDeveRetornarHistoricoOrdenadoDoRepositorio() {
+        HistoricoAtendimento historico = HistoricoAtendimento.builder()
+                .id(1)
+                .idAtendimento(8)
+                .codigoSessao(123456)
+                .idMesa(1)
+                .numeroMesa(10)
+                .idGarcom(7)
+                .nomeGarcom("Amanda Souza")
+                .valorFinal(new BigDecimal("149.70"))
+                .totalPedidos(3)
+                .totalItens(7)
+                .dataAbertura(LocalDateTime.of(2026, 7, 2, 10, 0))
+                .dataFechamento(LocalDateTime.of(2026, 7, 2, 11, 20))
+                .duracaoMinutos(80)
+                .build();
+
+        when(historicoAtendimentoRepository.findAllByOrderByDataFechamentoDescIdDesc())
+                .thenReturn(List.of(historico));
+
+        List<HistoricoAtendimentoResponse> resultado = mesaService.listarHistoricoAtendimentos();
+
+        assertEquals(1, resultado.size());
+        assertEquals(8, resultado.getFirst().idAtendimento());
+        assertEquals(10, resultado.getFirst().numeroMesa());
+        assertEquals("Amanda Souza", resultado.getFirst().nomeGarcom());
+        assertEquals(new BigDecimal("149.70"), resultado.getFirst().valorFinal());
+        assertEquals(80, resultado.getFirst().duracaoMinutos());
+        verify(historicoAtendimentoRepository).findAllByOrderByDataFechamentoDescIdDesc();
     }
 
     @Test
