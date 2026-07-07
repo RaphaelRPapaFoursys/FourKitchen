@@ -8,7 +8,9 @@ import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
-import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
+import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.exceptions.PedidoNaoPermiteDecisaoException;
+import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -123,7 +125,7 @@ public class PedidoController {
             return ResponseEntity
                     .ok()
                     .build();
-        } catch (BaseException e) {
+        } catch (PedidoInexistenteException e) {
             return ResponseEntity
                     .notFound()
                     .build();
@@ -140,7 +142,7 @@ public class PedidoController {
             return ResponseEntity
                     .noContent()
                     .build();
-        } catch (BaseException e) {
+        } catch (PedidoInexistenteException e) {
             return ResponseEntity
                     .notFound()
                     .build();
@@ -155,7 +157,7 @@ public class PedidoController {
             SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);
             return ResponseEntity.ok(response);
 
-        } catch (BaseException e) {
+        } catch (PedidoInexistenteException | ProdutoPedidoInexistenteException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -168,7 +170,8 @@ public class PedidoController {
             pedidoService.decisaoProblema(decisaoProblemaRequest);
 
             return ResponseEntity.ok().build();
-        } catch (BaseException error) {
+        } catch (PedidoInexistenteException |
+                 PedidoNaoPermiteDecisaoException error) {
             return ResponseEntity
                     .badRequest().build();
         }

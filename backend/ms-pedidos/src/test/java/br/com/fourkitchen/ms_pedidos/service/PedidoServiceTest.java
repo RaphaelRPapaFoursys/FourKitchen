@@ -499,7 +499,7 @@ class PedidoServiceTest {
         when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
 
         // Act & Assert
-        assertThrows(BaseException.class, () -> {
+        assertThrows(PedidoAguardandoDecisaoException.class, () -> {
             pedidoService.iniciarPreparo(25);
         });
 
@@ -519,7 +519,7 @@ class PedidoServiceTest {
         when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
 
         // Act & Assert
-        assertThrows(BaseException.class, () -> {
+        assertThrows(PedidoAguardandoDecisaoException.class, () -> {
             pedidoService.finalizarPreparo(25);
         });
 
@@ -547,7 +547,7 @@ class PedidoServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(
-                BaseException.class,
+                PedidoInexistenteException.class,
                 () -> pedidoService.decisaoProblema(request)
         );
 
@@ -578,7 +578,7 @@ class PedidoServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(
-                BaseException.class,
+                ProdutoPedidoInexistenteException.class,
                 () -> pedidoService.decisaoProblema(request)
         );
 

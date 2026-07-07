@@ -42,12 +42,6 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
-    PEDIDO_PRODUTO_NAO_ENCONTRADO(
-            "005",
-            "ProdutoPedido inexistente",
-            HttpStatus.NOT_FOUND
-    ),
-
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor.",

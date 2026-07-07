@@ -1,10 +1,14 @@
 package br.com.fourkitchen.ms_pedidos.controller;
 
+import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.AlterarProdutoPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.CriarProdutoPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.ProdutoPedidoResponse;
-import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
+import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
+import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
 import br.com.fourkitchen.ms_pedidos.service.ProdutoPedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +41,7 @@ public class ProdutoPedidoController {
             return ResponseEntity
                     .ok()
                     .body(produtoPedidoResponse);
-        } catch (BaseException error) {
+        } catch (ProdutoPedidoInexistenteException error) {
             return ResponseEntity
                     .notFound()
                     .build();
@@ -52,7 +56,7 @@ public class ProdutoPedidoController {
             return ResponseEntity
                     .ok()
                     .body(listaProdutoPedidoResponse);
-        } catch (BaseException error) {
+        } catch (ProdutoPedidoInexistenteException error) {
             return ResponseEntity
                     .badRequest()
                     .build();

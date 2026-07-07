@@ -21,6 +21,20 @@ public class BaseExceptionHandler {
         return buildErrorResponse(e.getErrorEnum());
     }
 
+    @ExceptionHandler(PedidoInexistenteException.class)
+    public ResponseEntity<ErrorObject> handlePedidoInexistenteException(PedidoInexistenteException e) {
+        log.warn("Pedido nao encontrado no ms-pedidos: {}", e.getMessage());
+
+        return buildErrorResponse(ErrorEnum.PEDIDO_NAO_ENCONTRADO);
+    }
+
+    @ExceptionHandler(ProdutoPedidoInexistenteException.class)
+    public ResponseEntity<ErrorObject> handleProdutoPedidoInexistenteException(ProdutoPedidoInexistenteException e) {
+        log.warn("Produto do pedido nao encontrado no ms-pedidos: {}", e.getMessage());
+
+        return buildErrorResponse(ErrorEnum.PEDIDO_NAO_ENCONTRADO);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorObject> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         final String errorMessage = e.getBindingResult()
@@ -54,4 +68,12 @@ public class BaseExceptionHandler {
                 .status(errorEnum.getHttpStatus())
                 .body(errorObject);
     }
+
+    @ExceptionHandler(PedidoAguardandoDecisaoException.class)
+    public ResponseEntity<ErrorObject> handlePedidoAguardandoDecisaoException(PedidoAguardandoDecisaoException e) {
+        log.warn("Tentativa de alterar pedido aguardando decisão: {}", e.getMessage());
+
+        return buildErrorResponse(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
+    }
+
 }
