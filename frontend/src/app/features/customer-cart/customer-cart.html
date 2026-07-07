@@ -1,0 +1,79 @@
+<main class="customer-cart">
+  <header class="cart-header">
+    <a class="cart-header__brand" href="/{{ getCurrentContext() }}" (click)="goToMenu($event)" aria-label="FourKitchen Home">
+      <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
+    </a>
+
+    <nav class="cart-nav" aria-label="Navegacao principal">
+      <a class="cart-nav__link" href="/{{ getCurrentContext() }}" (click)="goToMenu($event)">Menu</a>
+      <a class="cart-nav__link cart-nav__link--active cart-nav__link--icon" href="/{{ getCurrentContext() }}/carrinho" (click)="goToCart($event)">
+        <span>Carrinho</span>
+        @if (totalItems() > 0) {
+          <strong class="cart-nav__badge">{{ totalItems() }}</strong>
+        }
+        <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
+      </a>
+    </nav>
+  </header>
+
+  <section class="cart-panel" aria-labelledby="cart-title">
+    <div class="cart-panel__heading">
+      <h1 id="cart-title">Seu Pedido</h1>
+      <span>{{ totalItems() }} itens</span>
+    </div>
+
+    @if (items().length === 0) {
+      <div class="empty-cart">
+        <p>Seu carrinho esta vazio.</p>
+        <button type="button" (click)="continueShopping()">Continuar Comprando</button>
+      </div>
+    } @else {
+      <div class="cart-layout">
+        <div class="cart-items">
+          @for (item of items(); track trackByCartItemId($index, item)) {
+            <article class="cart-item">
+              <div class="cart-item__media">
+                <img [src]="getProductImage(item)" [alt]="item.name" />
+              </div>
+
+              <div class="cart-item__content">
+                <h2>{{ item.name }}</h2>
+                @if (item.observation) {
+                  <p>Obs: {{ item.observation }}</p>
+                } @else {
+                  <p>{{ item.description }}</p>
+                }
+              </div>
+
+              <div class="cart-item__quantity" aria-label="Quantidade">
+                <button type="button" aria-label="Diminuir quantidade" (click)="decreaseQuantity(item)">-</button>
+                <span>{{ item.quantity }}</span>
+                <button type="button" aria-label="Aumentar quantidade" (click)="increaseQuantity(item)">+</button>
+              </div>
+
+              <strong>{{ formatPrice(item.unitPrice * item.quantity) }}</strong>
+
+              <button class="cart-item__remove" type="button" aria-label="Remover item" (click)="removeItem(item.cartItemId)">
+                x
+              </button>
+            </article>
+          }
+        </div>
+
+        <aside class="cart-summary" aria-label="Resumo do pedido">
+          <div>
+            <span>Subtotal</span>
+            <strong>{{ formatPrice(subtotal()) }}</strong>
+          </div>
+          <div>
+            <span>Total</span>
+            <strong>{{ formatPrice(subtotal()) }}</strong>
+          </div>
+
+          <button class="cart-summary__confirm" type="button" (click)="confirmOrder()">Confirmar Pedido</button>
+          <button class="cart-summary__secondary" type="button" (click)="continueShopping()">Continuar Comprando</button>
+        </aside>
+      </div>
+    }
+  </section>
+</main>

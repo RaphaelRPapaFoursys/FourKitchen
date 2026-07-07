@@ -26,11 +26,43 @@ export const protectedRoutes: Routes = [
   }),
   protectedRoute(
     {
+      path: 'totem/carrinho',
+      loadComponent: () =>
+        import('../../features/customer-cart/customer-cart').then(m => m.CustomerCart),
+    },
+    ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
+      path: 'totem/pedido-criado',
+      loadComponent: () =>
+        import('../../features/order-success/order-success').then(m => m.OrderSuccess),
+    },
+    ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
       path: 'totem',
       loadComponent: () =>
         import('../../features/customer-home/customer-home').then(m => m.CustomerHome),
     },
     ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
+      path: 'mesa/carrinho',
+      loadComponent: () =>
+        import('../../features/customer-cart/customer-cart').then(m => m.CustomerCart),
+    },
+    ['ADMIN', 'MESA'],
+  ),
+  protectedRoute(
+    {
+      path: 'mesa/pedido-criado',
+      loadComponent: () =>
+        import('../../features/order-success/order-success').then(m => m.OrderSuccess),
+    },
+    ['ADMIN', 'MESA'],
   ),
   protectedRoute(
     {

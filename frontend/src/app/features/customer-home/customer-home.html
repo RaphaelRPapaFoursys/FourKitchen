@@ -7,8 +7,11 @@
     <nav class="customer-nav" aria-label="Navegacao principal">
       <a class="customer-nav__link customer-nav__link--active" href="#home" (click)="scrollToSection('home', $event)">Home</a>
       <a class="customer-nav__link" href="#menu" (click)="scrollToSection('menu', $event)">Menu</a>
-      <a class="customer-nav__link customer-nav__link--icon" href="#footer" (click)="scrollToSection('footer', $event)">
+      <a class="customer-nav__link customer-nav__link--icon" href="/{{ getCurrentContext() }}/carrinho" (click)="goToCart($event)">
         <span>Carrinho</span>
+        @if (cartItemsCount() > 0) {
+          <strong class="customer-nav__badge">{{ cartItemsCount() }}</strong>
+        }
         <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
       </a>
     </nav>
@@ -125,7 +128,15 @@
       } @else {
         <div class="products-grid">
           @for (product of filteredProducts(); track trackByProductId($index, product)) {
-            <article class="product-card">
+            <article
+              class="product-card"
+              tabindex="0"
+              role="button"
+              [attr.aria-label]="'Ver detalhes de ' + product.nome"
+              (click)="openProductDetails(product)"
+              (keydown.enter)="openProductDetails(product)"
+              (keydown.space)="$event.preventDefault(); openProductDetails(product)"
+            >
               <div class="product-card__media">
                 <img [src]="getProductImage(product)" [alt]="product.nome" loading="lazy" />
               </div>
@@ -136,7 +147,7 @@
 
                 <div class="product-card__footer">
                   <strong>{{ formatPrice(product.preco) }}</strong>
-                  <button type="button" (click)="addToCart(product)" aria-label="Adicionar item">
+                  <button type="button" (click)="openDetailsFromAddButton(product, $event)" aria-label="Adicionar item">
                     <img src="assets/icons/plus.svg" alt="" aria-hidden="true" />
                   </button>
                 </div>
@@ -162,4 +173,63 @@
       </span>
     </address>
   </footer>
+
+  @if (cartFeedback()) {
+    <p class="cart-feedback" role="status">{{ cartFeedback() }}</p>
+  }
+
+  @if (selectedProduct(); as product) {
+    <div class="product-modal" role="presentation" (click)="closeProductDetails()">
+      <section
+        class="product-modal__card"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Detalhes de ' + product.nome"
+        (click)="$event.stopPropagation()"
+      >
+        <button class="product-modal__close" type="button" aria-label="Fechar detalhes" (click)="closeProductDetails()">
+          x
+        </button>
+
+        <div class="product-modal__media">
+          <img [src]="getProductImage(product)" [alt]="product.nome" />
+        </div>
+
+        <div class="product-modal__content">
+          <div class="product-modal__heading">
+            <h2>{{ product.nome }}</h2>
+            <strong>{{ formatPrice(product.preco) }}</strong>
+          </div>
+
+          <p class="product-modal__description">{{ product.descricao }}</p>
+
+          <label class="product-modal__notes">
+            <span>
+              <img src="assets/icons/menu.svg" alt="" aria-hidden="true" />
+              Observacoes
+            </span>
+            <textarea
+              rows="3"
+              placeholder="Ex: sem cebola, ponto da carne..."
+              [ngModel]="selectedObservation()"
+              (ngModelChange)="updateObservation($event)"
+            ></textarea>
+          </label>
+        </div>
+
+        <footer class="product-modal__actions">
+          <div class="quantity-control" aria-label="Quantidade">
+            <button type="button" aria-label="Diminuir quantidade" (click)="decreaseQuantity()">-</button>
+            <span>{{ selectedQuantity() }}</span>
+            <button type="button" aria-label="Aumentar quantidade" (click)="increaseQuantity()">+</button>
+          </div>
+
+          <button class="product-modal__add" type="button" (click)="addSelectedProductToCart()">
+            <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
+            Adicionar ao Carrinho
+          </button>
+        </footer>
+      </section>
+    </div>
+  }
 </main>
