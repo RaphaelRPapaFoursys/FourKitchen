@@ -1,0 +1,274 @@
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subject, catchError, map, startWith, switchMap } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+import {
+  CategoriaCardapioResponse,
+  ProdutoCardapioView,
+} from '../../core/models/menu.models';
+import { MenuContext, MenuService } from '../../core/services/menu.service';
+
+type MenuLoadState =
+  | { status: 'loading'; data: null; message: string }
+  | { status: 'error'; data: null; message: string }
+  | { status: 'success'; data: CategoriaCardapioResponse[]; message: string };
+
+@Component({
+  selector: 'app-customer-home',
+  imports: [CommonModule],
+  templateUrl: './customer-home.html',
+  styleUrl: './customer-home.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class CustomerHome {
+  @ViewChild('menuSection') private menuSection?: ElementRef<HTMLElement>;
+  @ViewChild('categoriesCarousel') private categoriesCarousel?: ElementRef<HTMLElement>;
+
+  private readonly menuService = inject(MenuService);
+  private readonly router = inject(Router);
+  private readonly reloadMenuSubject = new Subject<void>();
+  private scrollAnimationFrameId: number | null = null;
+
+  protected readonly selectedCategoryId = signal<number | null>(null);
+
+  protected readonly menuState = toSignal(
+    this.reloadMenuSubject.pipe(
+      startWith({ status: 'loading', data: null, message: 'Carregando cardapio...' } satisfies MenuLoadState),
+      switchMap(() =>
+        this.menuService.getMenu(this.getCurrentContext()).pipe(
+          map(data => ({ status: 'success', data, message: '' }) satisfies MenuLoadState),
+          startWith({ status: 'loading', data: null, message: 'Carregando cardapio...' } satisfies MenuLoadState),
+          catchError(() => [
+            {
+              status: 'error',
+              data: null,
+              message: 'Nao foi possivel carregar o cardapio. Tente novamente.',
+            } satisfies MenuLoadState,
+          ]),
+        ),
+      ),
+    ),
+    {
+      initialValue: {
+        status: 'loading',
+        data: null,
+        message: 'Carregando cardapio...',
+      } satisfies MenuLoadState,
+    },
+  );
+
+  protected readonly categories = computed(() => this.menuState().data ?? []);
+  protected readonly products = computed(() => this.buildProductViews(this.categories()));
+
+  protected readonly filteredProducts = computed(() => {
+    const categoryId = this.selectedCategoryId();
+
+    if (categoryId === null) {
+      return this.products();
+    }
+
+    return this.products().filter(product => product.categoriaId === categoryId);
+  });
+
+  protected readonly hasMenuContent = computed(() => this.products().length > 0);
+
+  protected loadMenu(): void {
+    this.reloadMenuSubject.next();
+  }
+
+  protected retryLoadMenu(): void {
+    this.loadMenu();
+  }
+
+  protected selectCategory(categoryId: number | null): void {
+    this.selectedCategoryId.set(categoryId);
+  }
+
+  protected selectCategoryFromCard(categoryId: number): void {
+    this.selectedCategoryId.set(categoryId);
+    this.scrollToMenuSection();
+  }
+
+  protected selectCategoryFromFilter(categoryId: number | null): void {
+    this.selectedCategoryId.set(categoryId);
+  }
+
+  protected scrollCategories(direction: 'left' | 'right'): void {
+    const carousel = this.categoriesCarousel?.nativeElement;
+
+    if (!carousel) {
+      return;
+    }
+
+    const destination = this.getCategoryScrollDestination(carousel, direction);
+
+    carousel.classList.add('categories__grid--animating');
+
+    this.animateScroll(
+      carousel,
+      destination,
+      'left',
+      760,
+      () => carousel.classList.remove('categories__grid--animating'),
+    );
+  }
+
+  protected scrollToSection(sectionId: string, event: Event): void {
+    event.preventDefault();
+    const section = document.getElementById(sectionId);
+
+    if (section) {
+      this.animateWindowScroll(section.getBoundingClientRect().top + window.scrollY, 680);
+    }
+  }
+
+  private scrollToMenuSection(): void {
+    const menuSection = this.menuSection?.nativeElement;
+
+    if (menuSection) {
+      this.animateWindowScroll(menuSection.getBoundingClientRect().top + window.scrollY, 680);
+    }
+  }
+
+  protected addToCart(_product: ProdutoCardapioView): void {
+    // TODO: integrar com carrinho futuramente.
+  }
+
+  protected trackByCategoryId(_index: number, category: CategoriaCardapioResponse): number {
+    return category.categoriaId;
+  }
+
+  protected trackByProductId(_index: number, product: ProdutoCardapioView): number {
+    return product.id;
+  }
+
+  protected getCategoryImage(category: CategoriaCardapioResponse): string {
+    const imageMap: Record<string, string> = {
+      entradas: 'assets/images/entradas.png',
+      lanches: 'assets/images/entradas.png',
+      'pratos-prontos': 'assets/images/prontos.png',
+      pratos: 'assets/images/prontos.png',
+      japonesa: 'assets/images/japonesa.png',
+      vegetariana: 'assets/images/vegetariana.png',
+    };
+
+    return imageMap[this.normalizeCategoryName(category.categoriaNome)]
+      ?? 'assets/images/category-placeholder.svg';
+  }
+
+  protected getProductImage(product: ProdutoCardapioView): string {
+    if (!product.imagem) {
+      return 'assets/images/product-placeholder.svg';
+    }
+
+    return product.imagem.startsWith('data:image')
+      ? product.imagem
+      : `data:image/png;base64,${product.imagem}`;
+  }
+
+  protected formatPrice(price: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(price);
+  }
+
+  private getCurrentContext(): MenuContext {
+    return this.router.url.startsWith('/totem') ? 'totem' : 'mesa';
+  }
+
+  private buildProductViews(categories: CategoriaCardapioResponse[]): ProdutoCardapioView[] {
+    return categories.flatMap(category =>
+      category.produtos.map(product => ({
+        ...product,
+        categoriaId: category.categoriaId,
+        categoriaNome: category.categoriaNome,
+      })),
+    );
+  }
+
+  private normalizeCategoryName(categoryName: string): string {
+    return categoryName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  private animateWindowScroll(targetTop: number, duration: number): void {
+    this.animateScroll(window, targetTop, 'top', duration);
+  }
+
+  private animateScroll(
+    target: Window | HTMLElement,
+    destination: number,
+    axis: 'top' | 'left',
+    duration: number,
+    onComplete?: () => void,
+  ): void {
+    if (this.scrollAnimationFrameId !== null) {
+      cancelAnimationFrame(this.scrollAnimationFrameId);
+    }
+
+    const start = axis === 'top'
+      ? target instanceof Window ? target.scrollY : target.scrollTop
+      : target instanceof Window ? target.scrollX : target.scrollLeft;
+    const change = destination - start;
+    const startTime = performance.now();
+
+    const step = (currentTime: number): void => {
+      const elapsed = Math.min((currentTime - startTime) / duration, 1);
+      const eased = elapsed < 0.5
+        ? 4 * elapsed * elapsed * elapsed
+        : 1 - Math.pow(-2 * elapsed + 2, 3) / 2;
+      const nextPosition = start + change * eased;
+
+      if (target instanceof Window) {
+        target.scrollTo({
+          top: axis === 'top' ? nextPosition : target.scrollY,
+          left: axis === 'left' ? nextPosition : target.scrollX,
+        });
+      } else if (axis === 'top') {
+        target.scrollTop = nextPosition;
+      } else {
+        target.scrollLeft = nextPosition;
+      }
+
+      if (elapsed < 1) {
+        this.scrollAnimationFrameId = requestAnimationFrame(step);
+      } else {
+        this.scrollAnimationFrameId = null;
+        onComplete?.();
+      }
+    };
+
+    this.scrollAnimationFrameId = requestAnimationFrame(step);
+  }
+
+  private getCategoryScrollDestination(
+    carousel: HTMLElement,
+    direction: 'left' | 'right',
+  ): number {
+    const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+    const cardOffsets = Array.from(carousel.querySelectorAll<HTMLElement>('.category-card'))
+      .map(card => Math.min(card.offsetLeft, maxScrollLeft));
+    const currentScroll = carousel.scrollLeft;
+    const threshold = 8;
+
+    if (direction === 'right') {
+      return cardOffsets.find(offset => offset > currentScroll + threshold) ?? maxScrollLeft;
+    }
+
+    for (let index = cardOffsets.length - 1; index >= 0; index -= 1) {
+      if (cardOffsets[index] < currentScroll - threshold) {
+        return cardOffsets[index];
+      }
+    }
+
+    return 0;
+  }
+}

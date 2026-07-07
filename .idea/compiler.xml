@@ -20,7 +20,7 @@
         <module name="ms-notificacoes" />
         <module name="ms-cozinha" />
       </profile>
-      <profile name="Annotation profile for bff-restaurante" enabled="true">
+      <profile name="Annotation profile for ms-usuarios" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

@@ -1,0 +1,165 @@
+<main class="customer-home">
+  <header class="customer-header" id="home">
+    <a class="customer-header__brand" href="#home" (click)="scrollToSection('home', $event)" aria-label="FourKitchen Home">
+      <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
+    </a>
+
+    <nav class="customer-nav" aria-label="Navegacao principal">
+      <a class="customer-nav__link customer-nav__link--active" href="#home" (click)="scrollToSection('home', $event)">Home</a>
+      <a class="customer-nav__link" href="#menu" (click)="scrollToSection('menu', $event)">Menu</a>
+      <a class="customer-nav__link customer-nav__link--icon" href="#footer" (click)="scrollToSection('footer', $event)">
+        <span>Carrinho</span>
+        <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
+      </a>
+    </nav>
+  </header>
+
+  <section class="hero" aria-labelledby="hero-title">
+    <img class="hero__leaves hero__leaves--left" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
+    <img class="hero__leaves hero__leaves--right" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
+
+    <div class="hero__copy">
+      <h1 id="hero-title">Bem-Vindos ao FourKitchen!</h1>
+      <p>Faca seu pedido de forma rapida, pratica e sem filas.</p>
+
+      <div class="hero__actions" aria-label="Atalhos da home">
+        <a class="hero__button hero__button--primary" href="#categorias" (click)="scrollToSection('categorias', $event)">Categorias</a>
+        <a class="hero__button hero__button--dark" href="#menu" (click)="scrollToSection('menu', $event)">Menu</a>
+      </div>
+    </div>
+
+    <div class="hero__image" aria-hidden="true">
+      <img src="assets/images/menu-cardapio.png" alt="" />
+    </div>
+  </section>
+
+  <section class="categories" id="categorias" aria-labelledby="categories-title">
+    <div class="categories__inner">
+      <header class="section-heading">
+        <h2 id="categories-title">Nossas Categorias</h2>
+        <p>Escolha uma categoria para explorar os itens disponiveis.</p>
+      </header>
+
+      @if (menuState().status === 'loading') {
+        <p class="state-message" role="status">{{ menuState().message }}</p>
+      } @else if (menuState().status === 'error') {
+        <div class="state-message state-message--error" role="alert">
+          <p>{{ menuState().message }}</p>
+          <button type="button" (click)="retryLoadMenu()">Tentar novamente</button>
+        </div>
+      } @else if (!hasMenuContent()) {
+        <p class="state-message">Nenhum item disponivel no momento.</p>
+      } @else {
+        <div class="categories-carousel">
+          <button class="categories-carousel__button categories-carousel__button--left" type="button" aria-label="Ver categorias anteriores" (click)="scrollCategories('left')">
+            ‹
+          </button>
+
+          <div class="categories__grid" #categoriesCarousel>
+            @for (category of categories(); track trackByCategoryId($index, category)) {
+              <button
+                class="category-card"
+                type="button"
+                [class.category-card--active]="selectedCategoryId() === category.categoriaId"
+                (click)="selectCategoryFromCard(category.categoriaId)"
+              >
+                <div class="category-card__media">
+                  <img [src]="getCategoryImage(category)" [alt]="category.categoriaNome" loading="lazy" />
+                </div>
+                <h3>{{ category.categoriaNome }}</h3>
+                @if (category.categoriaDescricao) {
+                  <p>{{ category.categoriaDescricao }}</p>
+                }
+              </button>
+            }
+          </div>
+
+          <button class="categories-carousel__button categories-carousel__button--right" type="button" aria-label="Ver proximas categorias" (click)="scrollCategories('right')">
+            ›
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="menu-intro" aria-labelledby="menu-title">
+    <img class="menu-intro__banner" src="assets/banner1.png" alt="" aria-hidden="true" />
+    <h2 id="menu-title">Explore nosso cardapio!</h2>
+  </section>
+
+  <section class="menu-section" id="menu" #menuSection aria-label="Cardapio">
+    @if (menuState().status === 'loading') {
+      <p class="state-message state-message--light" role="status">{{ menuState().message }}</p>
+    } @else if (menuState().status === 'error') {
+      <div class="state-message state-message--error" role="alert">
+        <p>{{ menuState().message }}</p>
+        <button type="button" (click)="retryLoadMenu()">Tentar novamente</button>
+      </div>
+    } @else if (!hasMenuContent()) {
+      <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
+    } @else {
+      <div class="menu-filters" aria-label="Filtros do cardapio">
+        <button
+          class="menu-filters__button"
+          type="button"
+          [class.menu-filters__button--active]="selectedCategoryId() === null"
+          (click)="selectCategoryFromFilter(null)"
+        >
+          Todos
+        </button>
+
+        @for (category of categories(); track trackByCategoryId($index, category)) {
+          <button
+            class="menu-filters__button"
+            type="button"
+            [class.menu-filters__button--active]="selectedCategoryId() === category.categoriaId"
+            (click)="selectCategoryFromFilter(category.categoriaId)"
+          >
+            {{ category.categoriaNome }}
+          </button>
+        }
+      </div>
+
+      @if (filteredProducts().length === 0) {
+        <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
+      } @else {
+        <div class="products-grid">
+          @for (product of filteredProducts(); track trackByProductId($index, product)) {
+            <article class="product-card">
+              <div class="product-card__media">
+                <img [src]="getProductImage(product)" [alt]="product.nome" loading="lazy" />
+              </div>
+
+              <div class="product-card__body">
+                <h3>{{ product.nome }}</h3>
+                <p>{{ product.descricao }}</p>
+
+                <div class="product-card__footer">
+                  <strong>{{ formatPrice(product.preco) }}</strong>
+                  <button type="button" (click)="addToCart(product)" aria-label="Adicionar item">
+                    <img src="assets/icons/plus.svg" alt="" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
+  </section>
+
+  <footer class="customer-footer" id="footer">
+    <img class="customer-footer__banner" src="assets/banner2.png" alt="" aria-hidden="true" />
+
+    <address class="customer-footer__content">
+      <span>
+        <img src="assets/icons/location.svg" alt="" aria-hidden="true" />
+        Av. Tambore, 267 - Tambore
+      </span>
+      <span>
+        <img src="assets/icons/phone.svg" alt="" aria-hidden="true" />
+        11 3333-3333
+      </span>
+    </address>
+  </footer>
+</main>

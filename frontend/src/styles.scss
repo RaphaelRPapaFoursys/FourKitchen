@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
 /* ==========================================================================
    Design tokens — FourKitchen
    Fonte única de cores, raios, sombras e espaçamentos da aplicação.
@@ -70,7 +72,8 @@ body {
 }
 
 body {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--fk-bg);
   color: var(--fk-text);
 }
