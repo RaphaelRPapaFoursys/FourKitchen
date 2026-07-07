@@ -51,10 +51,10 @@ public class SecurityConfig {
                         ).permitAll()
                         // Prefixos reservados para rotas de dominio do BFF.
                         // Mesmo antes dos controllers existirem, a autorizacao por perfil ja fica preparada.
-                        .requestMatchers("/api/mesa/**").hasRole("MESA")
-                        .requestMatchers("/api/totem/**").hasRole("TOTEM")
-                        .requestMatchers("/api/garcom/**").hasRole("GARCOM")
-                        .requestMatchers("/api/cozinha/**").hasRole("COZINHA")
+                        .requestMatchers("/api/mesa/**").hasAnyRole("MESA", "ADMIN")
+                        .requestMatchers("/api/totem/**").hasAnyRole("TOTEM", "ADMIN")
+                        .requestMatchers("/api/garcom/**").hasAnyRole("GARCOM", "ADMIN")
+                        .requestMatchers("/api/cozinha/**").hasAnyRole("COZINHA", "ADMIN")
                         .requestMatchers("/api/gestor/**").hasAnyRole("GESTOR", "ADMIN")
                         .anyRequest().authenticated()
                 )

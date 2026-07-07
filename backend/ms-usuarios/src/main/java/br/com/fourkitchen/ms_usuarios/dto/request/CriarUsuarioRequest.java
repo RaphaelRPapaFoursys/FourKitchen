@@ -1,6 +1,7 @@
 package br.com.fourkitchen.ms_usuarios.dto.request;
 
 import br.com.fourkitchen.ms_usuarios.enums.PerfilUsuario;
+import br.com.fourkitchen.ms_usuarios.validation.UsuarioRegex;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,12 +25,12 @@ public record CriarUsuarioRequest(
         @Schema(
                 description = "Senha com no minimo 8 caracteres, uma letra maiuscula, uma letra minuscula e um numero",
                 example = "Senha123",
-                pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
+                pattern = UsuarioRegex.SENHA_FORTE,
                 minLength = 8
         )
         @NotBlank(message = "Senha e obrigatoria.")
         @Pattern(
-                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
+                regexp = UsuarioRegex.SENHA_FORTE,
                 message = "A senha deve conter no minimo 8 caracteres, uma letra maiuscula, uma letra minuscula e um numero."
         )
         String senha,

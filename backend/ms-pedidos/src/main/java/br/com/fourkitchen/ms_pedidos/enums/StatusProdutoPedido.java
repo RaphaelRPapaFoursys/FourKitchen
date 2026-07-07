@@ -4,5 +4,7 @@ public enum StatusProdutoPedido {
     DISPONIVEL,
     FALTA_PRODUTO,
     ERRO,
-    INDISPONIVEL
+    INDISPONIVEL,
+    CANCELADO,
+    REMOVIDO
 }
