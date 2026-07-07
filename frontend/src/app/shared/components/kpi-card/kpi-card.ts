@@ -102,6 +102,21 @@ export type KpiSize = 'md' | 'lg';
       background: var(--fk-orange-soft);
     }
 
+    :host(.card--active.card--tint-orange) {
+      border-color: var(--fk-orange);
+      background: var(--fk-orange-soft);
+    }
+
+    :host(.card--active.card--tint-green) {
+      border-color: var(--fk-green);
+      background: var(--fk-green-soft);
+    }
+
+    :host(.card--active.card--tint-red) {
+      border-color: var(--fk-red);
+      background: var(--fk-red-soft);
+    }
+
     .body {
       min-width: 0;
     }
