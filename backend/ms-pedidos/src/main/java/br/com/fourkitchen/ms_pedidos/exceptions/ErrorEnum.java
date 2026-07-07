@@ -42,6 +42,18 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    PEDIDO_ENCERRADO(
+            "006",
+            "Pedido encerrado.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    PRODUTO_PEDIDO_NAO_ENCONTRADO(
+            "007",
+            "ProdutoPedido não encontrado.",
+            HttpStatus.NOT_FOUND
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor.",

@@ -83,8 +83,7 @@ public class PedidoService {
 
     public PedidoResponse findById(Integer id) {
         Pedido pedido = pedidoRepository.findById(id)
-
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         return pedidoResponseMapper.map(pedido);
     }
@@ -211,7 +210,7 @@ public class PedidoService {
     @Transactional
     public void patchPedido(Integer id, AlterarPedidoRequest alterarPedidoRequest) {
         Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         if (alterarPedidoRequest.canal() != null) {
             pedido.setCanal(alterarPedidoRequest.canal());
@@ -239,7 +238,7 @@ public class PedidoService {
     @Transactional
     public void softDelete(Integer id) {
         Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         pedido.setStatus(StatusPedido.CANCELADO);
     }
@@ -256,7 +255,7 @@ public class PedidoService {
 
     private Pedido buscarPedido(Integer id) {
         return pedidoRepository.findById(id)
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
     }
 
     private void validarStatusAtual(Pedido pedido, StatusPedido statusEsperado) {
@@ -292,26 +291,27 @@ public class PedidoService {
 
     private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {
         if (pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO) {
-            throw new PedidoAguardandoDecisaoException();
+            throw new BaseException(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
         }
     }
 
     @Transactional
     public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
 
-        Pedido pedido = pedidoRepository.findById(request.idPedido()).orElseThrow(PedidoInexistenteException::new);
+        Pedido pedido = pedidoRepository.findById(request.idPedido())
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         ProdutoPedido produtoPedido = produtoPedidoRepository
                 .findByIdPedidoAndId(
                         request.idPedido(),
                         request.idProdutoPedido()
-                ).orElseThrow(ProdutoPedidoInexistenteException::new);
+                ).orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
 
         StatusPedido status = pedido.getStatus();
 
         if (status != StatusPedido.ENVIADO_COZINHA
                 && status != StatusPedido.EM_PREPARO) {
-            throw new PedidoEncerradoException();
+            throw new BaseException(ErrorEnum.PEDIDO_ENCERRADO);
         }
 
         pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
@@ -328,10 +328,10 @@ public class PedidoService {
     @Transactional
     public void decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
         Pedido pedido = pedidoRepository.findById(decisaoProblemaRequest.idPedido())
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         ProdutoPedido produtoPedido = produtoPedidoRepository.findById(decisaoProblemaRequest.idProdutoPedido())
-                .orElseThrow(ProdutoPedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
 
         if(decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
             produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);

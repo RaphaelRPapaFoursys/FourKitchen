@@ -4,7 +4,8 @@ import br.com.fourkitchen.ms_pedidos.dto.request.AlterarProdutoPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarProdutoPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.ProdutoPedidoResponse;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
-import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
+import br.com.fourkitchen.ms_pedidos.exceptions.ErrorEnum;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarProdutoPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.ProdutoPedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.ProdutoPedidoRepository;
@@ -33,7 +34,7 @@ public class ProdutoPedidoService {
 
     public ProdutoPedidoResponse findById(Integer id) {
         ProdutoPedido itemPedido = produtoPedidoRepository.findById(id)
-                .orElseThrow(ProdutoPedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
 
         return produtoPedidoResponseMapper.map(itemPedido);
     }
@@ -49,7 +50,7 @@ public class ProdutoPedidoService {
     @Transactional
     public ProdutoPedidoResponse patchProdutoPedido(Integer id, AlterarProdutoPedidoRequest produtoPedidoRequest) {
         ProdutoPedido produtoPedido = produtoPedidoRepository.findById(id)
-                .orElseThrow(ProdutoPedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
 
         if(produtoPedidoRequest.quantidade() != null) {
             produtoPedido.setQuantidade(produtoPedidoRequest.quantidade());

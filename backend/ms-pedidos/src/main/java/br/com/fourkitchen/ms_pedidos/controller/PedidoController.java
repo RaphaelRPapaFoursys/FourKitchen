@@ -8,9 +8,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
-import br.com.fourkitchen.ms_pedidos.exceptions.PedidoInexistenteException;
-import br.com.fourkitchen.ms_pedidos.exceptions.PedidoNaoPermiteDecisaoException;
-import br.com.fourkitchen.ms_pedidos.exceptions.ProdutoPedidoInexistenteException;
+import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -109,11 +107,6 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(idsAtendimento));
     }
 
-    @GetMapping("/resumo-operacao")
-    public ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
-        return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
-    }
-
     @PatchMapping("/{id}")
     public ResponseEntity<Void> alterarPedido(
             @PathVariable Integer id,
@@ -125,7 +118,7 @@ public class PedidoController {
             return ResponseEntity
                     .ok()
                     .build();
-        } catch (PedidoInexistenteException e) {
+        } catch (BaseException e) {
             return ResponseEntity
                     .notFound()
                     .build();
@@ -142,7 +135,7 @@ public class PedidoController {
             return ResponseEntity
                     .noContent()
                     .build();
-        } catch (PedidoInexistenteException e) {
+        } catch (BaseException error) {
             return ResponseEntity
                     .notFound()
                     .build();
@@ -157,7 +150,7 @@ public class PedidoController {
             SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);
             return ResponseEntity.ok(response);
 
-        } catch (PedidoInexistenteException | ProdutoPedidoInexistenteException e) {
+        } catch (BaseException error) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -170,8 +163,7 @@ public class PedidoController {
             pedidoService.decisaoProblema(decisaoProblemaRequest);
 
             return ResponseEntity.ok().build();
-        } catch (PedidoInexistenteException |
-                 PedidoNaoPermiteDecisaoException error) {
+        } catch (BaseException error) {
             return ResponseEntity
                     .badRequest().build();
         }
