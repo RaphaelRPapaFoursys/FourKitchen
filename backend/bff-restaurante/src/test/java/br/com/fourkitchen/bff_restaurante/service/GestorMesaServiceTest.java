@@ -40,6 +40,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -158,6 +159,47 @@ class GestorMesaServiceTest {
         assertEquals(0, resultado.problemas());
         assertEquals(new BigDecimal("20.00"), resultado.ticketMedio());
         assertEquals(1, resultado.cargaGarcons().getFirst().mesasAtivas());
+    }
+
+    @Test
+    void listarMesasPaginadasEBuscarResumoPainelDevemReutilizarSnapshotDentroDoTtl() {
+        MesaClientResponse mesa = criarMesaComAtendimento(1, 10, 7, 100);
+        UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
+        GarcomResumoResponse garcom = criarGarcom(7, "Amanda Souza");
+        PedidoCozinhaResponse pedido = criarPedido(1, 100, "EM_PREPARO", 1, BigDecimal.TEN);
+        MesaGestorResponse mesaResponse = criarMesaResponse(1, "Amanda Souza");
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(mesa));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of(usuario));
+        when(garcomResumoResponseMapper.map(usuario)).thenReturn(garcom);
+        when(pedidoClient.listarPedidosAtivosDetalhadosPorAtendimentos(List.of(100))).thenReturn(List.of(pedido));
+        when(mesaGestorResponseMapper.map(any(MesaGestorMapperSource.class))).thenReturn(mesaResponse);
+
+        gestorMesaService.listarMesasPaginadas(AUTHORIZATION, 0, 10, "criticidade", null, null, null);
+        ResumoPainelResponse resumo = gestorMesaService.buscarResumoPainel(AUTHORIZATION);
+
+        assertEquals(1, resumo.emPreparo());
+        verify(mesaClient, times(1)).listarMesas();
+        verify(usuarioClient, times(1)).listarUsuariosAtivos(AUTHORIZATION);
+        verify(pedidoClient, times(1)).listarPedidosAtivosDetalhadosPorAtendimentos(List.of(100));
+    }
+
+    @Test
+    void abrirMesaDeveInvalidarSnapshotDoPainel() {
+        MesaClientResponse mesa = criarMesa(1, 10, null);
+        MesaGestorResponse mesaResponse = criarMesaResponse(1, null);
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(mesa));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of());
+        when(mesaGestorResponseMapper.map(any(MesaGestorMapperSource.class))).thenReturn(mesaResponse);
+        when(mesaClient.abrirMesa(1)).thenReturn(mesa);
+
+        gestorMesaService.listarMesasPaginadas(AUTHORIZATION, 0, 10, "criticidade", null, null, null);
+        gestorMesaService.abrirMesa(1, AUTHORIZATION);
+        gestorMesaService.buscarResumoPainel(AUTHORIZATION);
+
+        verify(mesaClient, times(2)).listarMesas();
+        verify(usuarioClient, times(2)).listarUsuariosAtivos(AUTHORIZATION);
     }
 
     @Test

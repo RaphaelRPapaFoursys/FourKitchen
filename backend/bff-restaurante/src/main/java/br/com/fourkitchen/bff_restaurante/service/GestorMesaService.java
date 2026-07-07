@@ -32,7 +32,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -57,6 +60,7 @@ public class GestorMesaService {
     private static final long LIMIAR_PREPARO_ATENCAO_MINUTOS = 14;
     private static final long LIMIAR_PRONTO_OK_MINUTOS = 5;
     private static final long LIMIAR_PRONTO_ATENCAO_MINUTOS = 10;
+    private static final long CACHE_PAINEL_TTL_MILLIS = 5_000;
 
     private final MesaClient mesaClient;
 
@@ -67,6 +71,10 @@ public class GestorMesaService {
     private final MesaGestorResponseMapper mesaGestorResponseMapper;
 
     private final GarcomResumoResponseMapper garcomResumoResponseMapper;
+
+    private final Object painelCacheLock = new Object();
+
+    private volatile PainelSnapshot painelSnapshot;
 
     public List<MesaGestorResponse> listarMesas(String authorization) {
         List<MesaClientResponse> mesas = buscarMesas();
@@ -91,7 +99,7 @@ public class GestorMesaService {
     ) {
         int paginaSolicitada = normalizarPage(page);
         int tamanhoPagina = normalizarSize(size);
-        List<MesaPainelCalculo> mesas = carregarMesasPainel(authorization);
+        List<MesaPainelCalculo> mesas = carregarSnapshotPainel(authorization).mesas();
 
         List<MesaPainelCalculo> filtradas = mesas.stream()
                 .filter(mesa -> aplicarFiltroEstado(mesa, filtroEstado))
@@ -119,11 +127,9 @@ public class GestorMesaService {
     }
 
     public ResumoPainelResponse buscarResumoPainel(String authorization) {
-        List<GarcomResumoResponse> garcons = buscarGarcons(authorization);
-        List<MesaClientResponse> mesasCliente = buscarMesas();
-        Map<Integer, GarcomResumoResponse> garconsPorId = garcons.stream()
-                .collect(Collectors.toMap(GarcomResumoResponse::id, Function.identity()));
-        List<MesaPainelCalculo> mesas = carregarMesasPainel(mesasCliente, garconsPorId);
+        PainelSnapshot snapshot = carregarSnapshotPainel(authorization);
+        List<GarcomResumoResponse> garcons = snapshot.garcons();
+        List<MesaPainelCalculo> mesas = snapshot.mesas();
 
         int mesasLivres = (int) mesas.stream()
                 .filter(mesa -> STATUS_MESA_DISPONIVEL.equals(mesa.mesa().status()))
@@ -165,6 +171,11 @@ public class GestorMesaService {
     }
 
     public List<GarcomResumoResponse> listarGarcons(String authorization) {
+        PainelSnapshot snapshot = snapshotValido(authorization, System.currentTimeMillis());
+        if (snapshot != null) {
+            return snapshot.garcons();
+        }
+
         return buscarGarcons(authorization);
     }
 
@@ -216,6 +227,8 @@ public class GestorMesaService {
                 .filter(pedido -> STATUS_PEDIDO_PRONTO.equals(pedido.status()))
                 .forEach(pedido -> entregarPedido(pedido.id()));
 
+        invalidarCachePainel();
+
         return mapearMesa(
                 mesa,
                 buscarGarconsPorIdQuandoNecessario(authorization, List.of(mesa)),
@@ -244,6 +257,79 @@ public class GestorMesaService {
         Map<Integer, GarcomResumoResponse> garconsPorId = buscarGarconsPorIdQuandoNecessario(authorization, mesas);
 
         return carregarMesasPainel(mesas, garconsPorId);
+    }
+
+    private PainelSnapshot carregarSnapshotPainel(String authorization) {
+        validarAuthorization(authorization);
+
+        long agora = System.currentTimeMillis();
+        PainelSnapshot snapshot = snapshotValido(authorization, agora);
+        if (snapshot != null) {
+            return snapshot;
+        }
+
+        synchronized (painelCacheLock) {
+            snapshot = snapshotValido(authorization, System.currentTimeMillis());
+            if (snapshot != null) {
+                return snapshot;
+            }
+
+            PainelSnapshot novoSnapshot = carregarSnapshotPainelSemCache(authorization);
+            painelSnapshot = novoSnapshot;
+            return novoSnapshot;
+        }
+    }
+
+    private PainelSnapshot snapshotValido(String authorization, long agora) {
+        PainelSnapshot snapshot = painelSnapshot;
+        if (snapshot == null
+                || snapshot.expiraEmMillis() <= agora
+                || !Objects.equals(snapshot.authorization(), authorization)) {
+            return null;
+        }
+
+        return snapshot;
+    }
+
+    private PainelSnapshot carregarSnapshotPainelSemCache(String authorization) {
+        List<MesaClientResponse> mesas = buscarMesas();
+
+        CompletableFuture<List<GarcomResumoResponse>> garconsFuture =
+                CompletableFuture.supplyAsync(() -> buscarGarcons(authorization));
+        CompletableFuture<Map<Integer, List<PedidoGestorResponse>>> pedidosFuture =
+                CompletableFuture.supplyAsync(() -> buscarPedidosPorAtendimento(mesas));
+
+        List<GarcomResumoResponse> garcons = aguardar(garconsFuture);
+        Map<Integer, List<PedidoGestorResponse>> pedidosPorAtendimento = aguardar(pedidosFuture);
+        Map<Integer, GarcomResumoResponse> garconsPorId = garcons.stream()
+                .collect(Collectors.toMap(GarcomResumoResponse::id, Function.identity()));
+
+        List<MesaPainelCalculo> mesasPainel = mesas.stream()
+                .map(mesa -> criarMesaPainelCalculo(mesa, garconsPorId, pedidosPorAtendimento))
+                .toList();
+
+        return new PainelSnapshot(
+                authorization,
+                System.currentTimeMillis() + CACHE_PAINEL_TTL_MILLIS,
+                mesasPainel,
+                garcons
+        );
+    }
+
+    private <T> T aguardar(CompletableFuture<T> future) {
+        try {
+            return future.join();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof BaseException baseException) {
+                throw baseException;
+            }
+
+            throw e;
+        }
+    }
+
+    private void invalidarCachePainel() {
+        painelSnapshot = null;
     }
 
     private List<MesaPainelCalculo> carregarMesasPainel(
@@ -586,7 +672,9 @@ public class GestorMesaService {
 
     private MesaClientResponse executarAlteracaoMesa(AlteracaoMesa alteracaoMesa) {
         try {
-            return alteracaoMesa.executar();
+            MesaClientResponse mesa = alteracaoMesa.executar();
+            invalidarCachePainel();
+            return mesa;
         } catch (FeignException e) {
             if (e.status() == 404) {
                 throw new BaseException(ErrorEnum.MESA_NAO_ENCONTRADA);
@@ -624,6 +712,14 @@ public class GestorMesaService {
             Long tempoMinutos,
             String criticidade,
             BigDecimal valorConta
+    ) {
+    }
+
+    private record PainelSnapshot(
+            String authorization,
+            long expiraEmMillis,
+            List<MesaPainelCalculo> mesas,
+            List<GarcomResumoResponse> garcons
     ) {
     }
 }

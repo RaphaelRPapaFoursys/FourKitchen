@@ -9,9 +9,9 @@ spring:
     hikari:
       maximum-pool-size: 4
       minimum-idle: 1
-      idle-timeout: 20000
+      idle-timeout: 600000
       connection-timeout: 10000
-      max-lifetime: 60000
+      max-lifetime: 1800000
 server:
   port: ${SERVER_PORT:8082}
 
