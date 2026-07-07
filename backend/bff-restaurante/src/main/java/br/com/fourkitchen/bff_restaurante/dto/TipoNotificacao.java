@@ -9,9 +9,8 @@ public enum TipoNotificacao {
 
     PEDIDO_EM_PREPARO("Pedido em preparo"),
     PEDIDO_PRONTO("Pedido pronto para retirada"),
-    PEDIDO_ERRO("Pedido com erro"),
     PEDIDO_INDISPONIVEL("Pedido com item indisponivel"),
-    PEDIDO_COM_FALTA("Pedido com item em falta"),
+    PEDIDO_COM_PROBLEMA("Pedido com item com problema."),
     PEDIDO_CANCELADO("Pedido cancelado"),
     CHAMADA_GARCOM("Cliente solicitou atendimento"),
     CONTA_SOLICITADA("Cliente solicitou fechamento da conta"),

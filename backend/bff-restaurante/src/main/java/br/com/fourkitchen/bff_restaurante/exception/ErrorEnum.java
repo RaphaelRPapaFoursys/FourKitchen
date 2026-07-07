@@ -126,6 +126,12 @@ public enum ErrorEnum {
             HttpStatus.NOT_FOUND
     ),
 
+    PEDIDO_NAO_PERMITE_DECISAO(
+            "021",
+            "O pedido deve estar com status AGUARDANDO_DECISAO para receber uma decisão.",
+            HttpStatus.BAD_REQUEST
+    ),
+
     ATENDIMENTO_NAO_ABERTO(
             "019",
             "Mesa sem atendimento aberto",
