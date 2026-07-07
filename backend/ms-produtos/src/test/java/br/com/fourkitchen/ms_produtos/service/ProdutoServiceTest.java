@@ -95,7 +95,6 @@ class ProdutoServiceTest {
         CriarProdutoRequest request = new CriarProdutoRequest(
                 "Hamburguer",
                 "Artesanal",
-                null,
                 new BigDecimal("29.90"),
                 1
         );
@@ -129,7 +128,6 @@ class ProdutoServiceTest {
         CriarProdutoRequest request = new CriarProdutoRequest(
                 "Hamburguer",
                 "Artesanal",
-                null,
                 BigDecimal.ZERO,
                 1
         );
@@ -147,7 +145,6 @@ class ProdutoServiceTest {
         CriarProdutoRequest request = new CriarProdutoRequest(
                 "Hamburguer",
                 "Artesanal",
-                null,
                 new BigDecimal("29.90"),
                 99
         );
@@ -167,7 +164,6 @@ class ProdutoServiceTest {
         CriarProdutoRequest request = new CriarProdutoRequest(
                 "Hamburguer",
                 "Artesanal",
-                null,
                 new BigDecimal("29.90"),
                 1
         );
@@ -188,7 +184,6 @@ class ProdutoServiceTest {
         AtualizarProdutoRequest request = new AtualizarProdutoRequest(
                 "Hamburguer Duplo",
                 "Artesanal duplo",
-                null,
                 new BigDecimal("39.90"),
                 2
         );
@@ -315,7 +310,6 @@ class ProdutoServiceTest {
                 produto.getId(),
                 produto.getNome(),
                 produto.getDescricao(),
-                null,
                 produto.getPreco(),
                 categoria != null ? categoria.getId() : null,
                 categoria != null ? categoria.getNome() : null,

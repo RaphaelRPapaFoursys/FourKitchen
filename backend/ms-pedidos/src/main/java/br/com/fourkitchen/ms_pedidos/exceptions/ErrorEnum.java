@@ -35,12 +35,6 @@ public enum ErrorEnum {
             "O pedido deve estar com status AGUARDANDO_DECISAO para receber uma decisão.",
             HttpStatus.BAD_REQUEST
     ),
-      
-    PEDIDO_NAO_PODE_SINALIZAR_PROBLEMA(
-            "005",
-            "Status do pedido não permite sinalizar problema",
-            HttpStatus.BAD_REQUEST
-    ),
 
     PEDIDO_PRODUTO_NAO_ENCONTRADO(
             "005",
@@ -53,7 +47,6 @@ public enum ErrorEnum {
             "Erro interno do servidor.",
             HttpStatus.INTERNAL_SERVER_ERROR
     );
-
 
     private final String errorCode;
     private final String errorMessage;

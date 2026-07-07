@@ -9,25 +9,20 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
-import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class MesaChamadaGarcomService {
 
-    private static final String PERFIL_MESA = "MESA";
-
     private final MesaClient mesaClient;
 
     private final NotificacaoService notificacaoService;
 
-    public NotificacaoResponse chamarGarcom(ChamarGarcomRequest request, Authentication authentication) {
-        UsuarioAutenticado usuario = obterUsuarioMesa(authentication);
-        SessaoMesaResponse sessao = validarSessaoMesa(usuario.idMesa(), request.codigoSessao());
+    public NotificacaoResponse chamarGarcom(ChamarGarcomRequest request) {
+        SessaoMesaResponse sessao = validarSessaoMesa(request);
         validarGarcomResponsavel(sessao);
 
         return notificacaoService.criarNotificacao(new CriarNotificacaoRequest(
@@ -39,21 +34,9 @@ public class MesaChamadaGarcomService {
         ));
     }
 
-    private UsuarioAutenticado obterUsuarioMesa(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof UsuarioAutenticado usuario)) {
-            throw new BaseException(ErrorEnum.TOKEN_INVALIDO);
-        }
-
-        if (!PERFIL_MESA.equals(usuario.perfil()) || usuario.idMesa() == null || usuario.idMesa() <= 0) {
-            throw new BaseException(ErrorEnum.ACESSO_NEGADO);
-        }
-
-        return usuario;
-    }
-
-    private SessaoMesaResponse validarSessaoMesa(Integer idMesa, Integer codigoSessao) {
+    private SessaoMesaResponse validarSessaoMesa(ChamarGarcomRequest request) {
         try {
-            return mesaClient.validarSessaoMesa(idMesa, codigoSessao);
+            return mesaClient.validarSessaoMesa(request.idMesa(), request.codigoSessao());
         } catch (FeignException e) {
             if (e.status() == 400 || e.status() == 404) {
                 throw new BaseException(ErrorEnum.SESSAO_MESA_INVALIDA);

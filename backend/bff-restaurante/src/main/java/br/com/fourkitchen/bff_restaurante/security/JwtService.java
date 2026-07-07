@@ -25,8 +25,7 @@ public class JwtService {
                 extrairId(claims),
                 claims.get("nome", String.class),
                 claims.getSubject(),
-                claims.get("perfil", String.class),
-                extrairIdMesa(claims)
+                claims.get("perfil", String.class)
         );
     }
 
@@ -38,20 +37,6 @@ public class JwtService {
         }
 
         return Long.valueOf(id.toString());
-    }
-
-    private Integer extrairIdMesa(Claims claims) {
-        Object idMesa = claims.get("idMesa");
-
-        if (idMesa == null) {
-            return null;
-        }
-
-        if (idMesa instanceof Number number) {
-            return number.intValue();
-        }
-
-        return Integer.valueOf(idMesa.toString());
     }
 
     private Claims extrairClaims(String token) {

@@ -4,14 +4,11 @@ import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.SessaoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.CriarPedidoRequest;
-import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
-import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.request.ItemPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
-import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
@@ -21,8 +18,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -45,9 +40,6 @@ class MesaPedidoServiceTest {
     @Mock
     private PedidoClient pedidoClient;
 
-    @Mock
-    private ProdutoClient produtoClient;
-
     @InjectMocks
     private MesaPedidoService mesaPedidoService;
 
@@ -62,16 +54,14 @@ class MesaPedidoServiceTest {
                         "MESA",
                         "ENVIADO_COZINHA",
                         1,
-                        101,
+                        null,
                         8
                 );
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
-        when(produtoClient.verificarDisponibilidade(10))
-                .thenReturn(new ProdutoDisponibilidadeResponse(10, true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenReturn(pedidoResponse);
 
-        PedidoMesaResponse response = mesaPedidoService.criarPedido(request, criarAuthenticationMesa());
+        PedidoMesaResponse response = mesaPedidoService.criarPedido(request);
 
         assertEquals(25, response.id());
         assertEquals(100025, response.codigo());
@@ -88,12 +78,10 @@ class MesaPedidoServiceTest {
         assertEquals("ENVIADO_COZINHA", pedidoRequest.status());
         assertEquals(1, pedidoRequest.idMesa());
         assertEquals(8, pedidoRequest.idAtendimento());
-        assertEquals(101, pedidoRequest.idUsuario());
+        assertEquals(null, pedidoRequest.idUsuario());
         assertEquals(1, pedidoRequest.itens().size());
         assertEquals(10, pedidoRequest.itens().getFirst().idProduto());
-        assertEquals(new BigDecimal("29.90"), pedidoRequest.itens().getFirst().precoUnitario());
         verify(mesaClient).validarSessaoMesa(1, 123456);
-        verify(produtoClient).verificarDisponibilidade(10);
     }
 
     @Test
@@ -102,14 +90,11 @@ class MesaPedidoServiceTest {
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenThrow(feignException(404));
 
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> mesaPedidoService.criarPedido(request, criarAuthenticationMesa())
-        );
+        BaseException exception = assertThrows(BaseException.class, () -> mesaPedidoService.criarPedido(request));
 
         assertEquals(ErrorEnum.SESSAO_MESA_INVALIDA, exception.getErrorEnum());
         verify(mesaClient).validarSessaoMesa(1, 123456);
-        verifyNoInteractions(produtoClient, pedidoClient);
+        verifyNoInteractions(pedidoClient);
     }
 
     @Test
@@ -118,82 +103,21 @@ class MesaPedidoServiceTest {
         SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
-        when(produtoClient.verificarDisponibilidade(10))
-                .thenReturn(new ProdutoDisponibilidadeResponse(10, true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenThrow(feignException(500));
 
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> mesaPedidoService.criarPedido(request, criarAuthenticationMesa())
-        );
+        BaseException exception = assertThrows(BaseException.class, () -> mesaPedidoService.criarPedido(request));
 
         assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
         verify(mesaClient).validarSessaoMesa(1, 123456);
-        verify(produtoClient).verificarDisponibilidade(10);
         verify(pedidoClient).criarPedido(any(CriarPedidoRequest.class));
-    }
-
-    @Test
-    void criarPedidoDeveBloquearUsuarioMesaSemVinculo() {
-        CriarPedidoMesaRequest request = criarRequest();
-
-        UsuarioAutenticado usuario = new UsuarioAutenticado(
-                101L,
-                "Mesa sem vinculo",
-                "mesa@fourkitchen.com",
-                "MESA",
-                null
-        );
-        Authentication authentication = new UsernamePasswordAuthenticationToken(usuario, null, List.of());
-
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> mesaPedidoService.criarPedido(request, authentication)
-        );
-
-        assertEquals(ErrorEnum.ACESSO_NEGADO, exception.getErrorEnum());
-        verifyNoInteractions(mesaClient, produtoClient, pedidoClient);
-    }
-
-    @Test
-    void criarPedidoDeveBloquearPerfilDiferenteDeMesa() {
-        CriarPedidoMesaRequest request = criarRequest();
-
-        UsuarioAutenticado usuario = new UsuarioAutenticado(
-                101L,
-                "Garcom",
-                "garcom01",
-                "GARCOM",
-                1
-        );
-        Authentication authentication = new UsernamePasswordAuthenticationToken(usuario, null, List.of());
-
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> mesaPedidoService.criarPedido(request, authentication)
-        );
-
-        assertEquals(ErrorEnum.ACESSO_NEGADO, exception.getErrorEnum());
-        verifyNoInteractions(mesaClient, produtoClient, pedidoClient);
     }
 
     private CriarPedidoMesaRequest criarRequest() {
         return new CriarPedidoMesaRequest(
+                1,
                 123456,
-                List.of(new ItemPedidoMesaRequest(10, 2, "Sem cebola"))
+                List.of(new ItemPedidoMesaRequest(10, 2, new BigDecimal("29.90"), "Sem cebola"))
         );
-    }
-
-    private Authentication criarAuthenticationMesa() {
-        UsuarioAutenticado usuario = new UsuarioAutenticado(
-                101L,
-                "Mesa 1",
-                "mesa01@fourkitchen.com",
-                "MESA",
-                1
-        );
-
-        return new UsernamePasswordAuthenticationToken(usuario, null, List.of());
     }
 
     private FeignException feignException(int status) {

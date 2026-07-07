@@ -20,6 +20,4 @@ public interface NotificacaoRepository extends JpaRepository<Notificacao, Intege
             DestinoNotificacao destino,
             Collection<Integer> idsAtendimento
     );
-
-    long countByTipoAndDestinoAndLidaFalse(String tipo, DestinoNotificacao destino);
 }

@@ -11,7 +11,6 @@ import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.mapper.ItemPedidoTotemRequestMapper;
 import br.com.fourkitchen.bff_restaurante.mapper.PedidoTotemResponseMapper;
-import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
@@ -21,8 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -72,7 +69,7 @@ class TotemPedidoServiceTest {
                         "TOTEM",
                         "ENVIADO_COZINHA",
                         null,
-                        201,
+                        null,
                         null
         );
 
@@ -80,7 +77,7 @@ class TotemPedidoServiceTest {
                 .thenReturn(new ProdutoDisponibilidadeResponse(10, true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenReturn(pedidoResponse);
 
-        PedidoTotemResponse response = totemPedidoService.criarPedido(request, criarAuthenticationTotem());
+        PedidoTotemResponse response = totemPedidoService.criarPedido(request);
 
         assertEquals(25, response.id());
         assertEquals(100025, response.codigo());
@@ -94,7 +91,7 @@ class TotemPedidoServiceTest {
         assertEquals("TOTEM", pedidoRequest.canal());
         assertEquals("ENVIADO_COZINHA", pedidoRequest.status());
         assertNull(pedidoRequest.idMesa());
-        assertEquals(201, pedidoRequest.idUsuario());
+        assertNull(pedidoRequest.idUsuario());
         assertNull(pedidoRequest.idAtendimento());
         assertEquals(1, pedidoRequest.itens().size());
         assertEquals(10, pedidoRequest.itens().getFirst().idProduto());
@@ -109,10 +106,7 @@ class TotemPedidoServiceTest {
         when(produtoClient.verificarDisponibilidade(10))
                 .thenReturn(new ProdutoDisponibilidadeResponse(10, false, new BigDecimal("29.90")));
 
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> totemPedidoService.criarPedido(request, criarAuthenticationTotem())
-        );
+        BaseException exception = assertThrows(BaseException.class, () -> totemPedidoService.criarPedido(request));
 
         assertEquals(ErrorEnum.PRODUTO_INDISPONIVEL, exception.getErrorEnum());
         verify(produtoClient).verificarDisponibilidade(10);
@@ -125,10 +119,7 @@ class TotemPedidoServiceTest {
 
         when(produtoClient.verificarDisponibilidade(10)).thenThrow(feignException(404));
 
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> totemPedidoService.criarPedido(request, criarAuthenticationTotem())
-        );
+        BaseException exception = assertThrows(BaseException.class, () -> totemPedidoService.criarPedido(request));
 
         assertEquals(ErrorEnum.PRODUTO_INDISPONIVEL, exception.getErrorEnum());
         verify(produtoClient).verificarDisponibilidade(10);
@@ -141,10 +132,7 @@ class TotemPedidoServiceTest {
 
         when(produtoClient.verificarDisponibilidade(10)).thenThrow(feignException(500));
 
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> totemPedidoService.criarPedido(request, criarAuthenticationTotem())
-        );
+        BaseException exception = assertThrows(BaseException.class, () -> totemPedidoService.criarPedido(request));
 
         assertEquals(ErrorEnum.MS_PRODUTOS_INDISPONIVEL, exception.getErrorEnum());
         verify(produtoClient).verificarDisponibilidade(10);
@@ -159,53 +147,17 @@ class TotemPedidoServiceTest {
                 .thenReturn(new ProdutoDisponibilidadeResponse(10, true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenThrow(feignException(500));
 
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> totemPedidoService.criarPedido(request, criarAuthenticationTotem())
-        );
+        BaseException exception = assertThrows(BaseException.class, () -> totemPedidoService.criarPedido(request));
 
         assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
         verify(produtoClient).verificarDisponibilidade(10);
         verify(pedidoClient).criarPedido(any(CriarPedidoRequest.class));
     }
 
-    @Test
-    void criarPedidoDeveBloquearPerfilDiferenteDeTotem() {
-        CriarPedidoTotemRequest request = criarRequest();
-        UsuarioAutenticado usuario = new UsuarioAutenticado(
-                201L,
-                "Garcom",
-                "garcom01",
-                "GARCOM",
-                null
-        );
-        Authentication authentication = new UsernamePasswordAuthenticationToken(usuario, null, List.of());
-
-        BaseException exception = assertThrows(
-                BaseException.class,
-                () -> totemPedidoService.criarPedido(request, authentication)
-        );
-
-        assertEquals(ErrorEnum.ACESSO_NEGADO, exception.getErrorEnum());
-        verifyNoInteractions(produtoClient, pedidoClient);
-    }
-
     private CriarPedidoTotemRequest criarRequest() {
         return new CriarPedidoTotemRequest(
                 List.of(new ItemPedidoTotemRequest(10, 2, "Sem cebola"))
         );
-    }
-
-    private Authentication criarAuthenticationTotem() {
-        UsuarioAutenticado usuario = new UsuarioAutenticado(
-                201L,
-                "Totem 1",
-                "totem01@fourkitchen.com",
-                "TOTEM",
-                null
-        );
-
-        return new UsernamePasswordAuthenticationToken(usuario, null, List.of());
     }
 
     private FeignException feignException(int status) {

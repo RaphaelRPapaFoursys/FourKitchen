@@ -18,8 +18,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
         </processorPath>
         <module name="ms-produtos" />
-        <module name="ms-mesas" />
         <module name="ms-notificacoes" />
+        <module name="ms-mesas" />
         <module name="ms-usuarios" />
         <module name="ms-cozinha" />
         <module name="bff-restaurante" />

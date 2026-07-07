@@ -88,8 +88,7 @@ class GarcomChamadaServiceTest {
                 idGarcom,
                 "Amanda",
                 "amanda@fourkitchen.com",
-                "GARCOM",
-                null
+                "GARCOM"
         );
 
         return new UsernamePasswordAuthenticationToken(usuario, null, List.of());

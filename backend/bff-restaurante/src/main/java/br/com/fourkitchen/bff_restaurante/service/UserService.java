@@ -41,8 +41,7 @@ public class UserService {
                         usuarioLoginResponse.id(),
                         usuarioLoginResponse.nome(),
                         usuarioLoginResponse.useremail(),
-                        usuarioLoginResponse.perfil(),
-                        usuarioLoginResponse.idMesa()
+                        usuarioLoginResponse.perfil()
                 )
         );
     }
@@ -57,8 +56,7 @@ public class UserService {
                 usuarioAutenticado.id(),
                 usuarioAutenticado.nome(),
                 usuarioAutenticado.email(),
-                usuarioAutenticado.perfil(),
-                usuarioAutenticado.idMesa()
+                usuarioAutenticado.perfil()
         );
     }
 

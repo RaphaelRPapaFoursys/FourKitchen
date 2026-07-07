@@ -13,7 +13,6 @@ public class CriarUsuarioRequestMapper implements Mapper<CriarUsuarioRequest, Us
                 .email(source.email())
                 .senha(source.senha())
                 .perfilUsuario(source.perfilUsuario())
-                .idMesa(source.idMesa())
                 .build();
     }
 }

@@ -14,10 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 class CardapioMapperTest {
 
-    private final ImagemBase64Mapper imagemBase64Mapper = new ImagemBase64Mapper();
-
-    private final ProdutoCardapioResponseMapper produtoCardapioResponseMapper =
-            new ProdutoCardapioResponseMapper(imagemBase64Mapper);
+    private final ProdutoCardapioResponseMapper produtoCardapioResponseMapper = new ProdutoCardapioResponseMapper();
 
     private final CategoriaCardapioResponseMapper categoriaCardapioResponseMapper = new CategoriaCardapioResponseMapper();
 
@@ -27,7 +24,6 @@ class CardapioMapperTest {
                 .id(1)
                 .nome("Hamburguer")
                 .descricao("Artesanal")
-                .imagem("imagem".getBytes())
                 .preco(new BigDecimal("29.90"))
                 .build();
 
@@ -36,7 +32,6 @@ class CardapioMapperTest {
         assertEquals(1, response.id());
         assertEquals("Hamburguer", response.nome());
         assertEquals("Artesanal", response.descricao());
-        assertEquals("aW1hZ2Vt", response.imagem());
         assertEquals(new BigDecimal("29.90"), response.preco());
     }
 
@@ -45,10 +40,9 @@ class CardapioMapperTest {
         Categoria categoria = Categoria.builder()
                 .id(1)
                 .nome("Lanches")
-                .descricao("Sanduiches")
                 .build();
         List<ProdutoCardapioResponse> produtos = List.of(
-                new ProdutoCardapioResponse(1, "Hamburguer", "Artesanal", null, new BigDecimal("29.90"))
+                new ProdutoCardapioResponse(1, "Hamburguer", "Artesanal", new BigDecimal("29.90"))
         );
 
         CategoriaCardapioResponse response = categoriaCardapioResponseMapper.map(
@@ -57,7 +51,6 @@ class CardapioMapperTest {
 
         assertEquals(1, response.categoriaId());
         assertEquals("Lanches", response.categoriaNome());
-        assertEquals("Sanduiches", response.categoriaDescricao());
         assertSame(produtos, response.produtos());
     }
 }

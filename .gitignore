@@ -119,12 +119,6 @@ surefire-reports/
 
 .cache/
 .tmp/
-.m2repo/
-.m2-workspace/
-.npm-cache/
-**/.m2repo/
-**/.m2-workspace/
-**/.npm-cache/
 
 .github/copilot-instructions.md
 .github/skills/

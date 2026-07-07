@@ -5,7 +5,6 @@ import br.com.fourkitchen.bff_restaurante.dto.response.PedidoTotemResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.TotemPedidoService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,7 +15,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,10 +68,9 @@ public class TotemPedidoController {
                             examples = @ExampleObject(value = "{\"itens\":[{\"idProduto\":10,\"quantidade\":2,\"observacao\":\"Sem cebola\"}]}")
                     )
             )
-            @RequestBody @Valid CriarPedidoTotemRequest request,
-            @Parameter(hidden = true) Authentication authentication
+            @RequestBody @Valid CriarPedidoTotemRequest request
     ) {
-        PedidoTotemResponse response = totemPedidoService.criarPedido(request, authentication);
+        PedidoTotemResponse response = totemPedidoService.criarPedido(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

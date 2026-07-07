@@ -34,7 +34,7 @@ class AuthControllerTest {
         LoginResponse loginResponse = new LoginResponse(
                 "jwt-token",
                 "Bearer",
-                new UsuarioAutenticadoResponse(1L, "Lucas", "garcom@fourkitchen.com", "GARCOM", null)
+                new UsuarioAutenticadoResponse(1L, "Lucas", "garcom@fourkitchen.com", "GARCOM")
         );
 
         when(userService.login(request)).thenReturn(loginResponse);
@@ -57,8 +57,7 @@ class AuthControllerTest {
                 1L,
                 "Lucas",
                 "garcom@fourkitchen.com",
-                "GARCOM",
-                null
+                "GARCOM"
         );
 
         when(userService.me(authentication)).thenReturn(usuarioResponse);

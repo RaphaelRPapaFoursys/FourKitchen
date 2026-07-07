@@ -17,9 +17,6 @@ public record UsuarioResponse(
         @Schema(description = "Perfil de acesso do usuario", example = "GARCOM")
         PerfilUsuario perfilUsuario,
 
-        @Schema(description = "Mesa vinculada ao usuario dispositivo quando perfil for MESA", example = "1")
-        Integer idMesa,
-
         @Schema(description = "Indica se o usuario esta ativo", example = "true")
         Boolean ativo
 ) {

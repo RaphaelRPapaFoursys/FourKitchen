@@ -41,7 +41,6 @@ class JwtServiceTest {
         assertEquals("Lucas", usuarioAutenticado.nome());
         assertEquals("garcom@fourkitchen.com", usuarioAutenticado.email());
         assertEquals("GARCOM", usuarioAutenticado.perfil());
-        assertEquals(1, usuarioAutenticado.idMesa());
     }
 
     @Test
@@ -73,7 +72,6 @@ class JwtServiceTest {
                 .claim("id", id)
                 .claim("nome", "Lucas")
                 .claim("perfil", "GARCOM")
-                .claim("idMesa", 1)
                 .issuedAt(new Date())
                 .expiration(expiration)
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes()))

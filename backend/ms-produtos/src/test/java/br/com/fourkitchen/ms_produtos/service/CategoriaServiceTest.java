@@ -58,7 +58,7 @@ class CategoriaServiceTest {
 
     @Test
     void criarCategoriaDeveSalvarCategoriaAtiva() {
-        CriarCategoriaRequest request = new CriarCategoriaRequest("Lanches", "Sanduiches");
+        CriarCategoriaRequest request = new CriarCategoriaRequest("Lanches");
         Categoria categoriaMapeada = criarCategoria(null, "Lanches", null);
         Categoria categoriaSalva = criarCategoria(1, "Lanches", true);
         CategoriaResponse response = criarResponse(categoriaSalva);
@@ -84,7 +84,7 @@ class CategoriaServiceTest {
 
     @Test
     void criarCategoriaDeveBloquearNomeDuplicado() {
-        CriarCategoriaRequest request = new CriarCategoriaRequest("Lanches", "Sanduiches");
+        CriarCategoriaRequest request = new CriarCategoriaRequest("Lanches");
 
         when(categoriaRepository.existsByNomeIgnoreCase("Lanches")).thenReturn(true);
 
@@ -108,7 +108,6 @@ class CategoriaServiceTest {
         return new CategoriaResponse(
                 categoria.getId(),
                 categoria.getNome(),
-                categoria.getDescricao(),
                 categoria.getAtivo()
         );
     }

@@ -17,7 +17,6 @@ class GarcomResumoResponseMapperTest {
                 "Amanda Souza",
                 "amanda@fourkitchen.com",
                 "GARCOM",
-                null,
                 true
         );
 

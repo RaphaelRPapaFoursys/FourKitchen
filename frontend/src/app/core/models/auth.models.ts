@@ -13,7 +13,6 @@ export interface UsuarioAutenticadoResponse {
   nome: string;
   email: string;
   perfil: string;
-  idMesa?: number | null;
 }
 
 export interface LoginResponse {

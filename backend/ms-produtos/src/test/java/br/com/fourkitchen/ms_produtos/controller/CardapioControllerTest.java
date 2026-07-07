@@ -27,8 +27,7 @@ class CardapioControllerTest {
 
     @Test
     void buscarCardapioDeveRetornarCardapio() {
-        List<CategoriaCardapioResponse> cardapio =
-                List.of(new CategoriaCardapioResponse(1, "Lanches", "Sanduiches", List.of()));
+        List<CategoriaCardapioResponse> cardapio = List.of(new CategoriaCardapioResponse(1, "Lanches", List.of()));
 
         when(cardapioService.buscarCardapio()).thenReturn(cardapio);
 

@@ -5,7 +5,6 @@ import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.MesaChamadaGarcomService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,7 +15,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,7 +49,7 @@ public class MesaChamadaGarcomController {
                             schema = @Schema(implementation = ErrorObject.class),
                             examples = {
                                     @ExampleObject(name = "Sessao invalida", value = "{\"codError\":\"006\",\"msgError\":\"Sessao da mesa invalida\"}"),
-                                    @ExampleObject(name = "Mesa sem garcom", value = "{\"codError\":\"018\",\"msgError\":\"Mesa sem garcom responsavel\"}")
+                                    @ExampleObject(name = "Mesa sem garcom", value = "{\"codError\":\"016\",\"msgError\":\"Mesa sem garcom responsavel\"}")
                             }
                     )
             ),
@@ -62,10 +60,9 @@ public class MesaChamadaGarcomController {
             )
     })
     public ResponseEntity<NotificacaoResponse> chamarGarcom(
-            @RequestBody @Valid ChamarGarcomRequest request,
-            @Parameter(hidden = true) Authentication authentication
+            @RequestBody @Valid ChamarGarcomRequest request
     ) {
-        NotificacaoResponse response = mesaChamadaGarcomService.chamarGarcom(request, authentication);
+        NotificacaoResponse response = mesaChamadaGarcomService.chamarGarcom(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

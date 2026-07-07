@@ -33,18 +33,12 @@ public class JwtService {
      * @return signed JWT string
      */
     public String gerarToken(Usuario usuario) {
-        var tokenBuilder = Jwts.builder()
+        return Jwts.builder()
                 .subject(usuario.getEmail())
                 .claim("id", usuario.getId())
                 .claim("nome", usuario.getNome())
                 .claim("perfil", usuario.getPerfilUsuario().name())
-                .issuedAt(new Date());
-
-        if (usuario.getIdMesa() != null) {
-            tokenBuilder.claim("idMesa", usuario.getIdMesa());
-        }
-
-        return tokenBuilder
+                .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes()))
                 .compact();

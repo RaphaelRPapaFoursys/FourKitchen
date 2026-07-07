@@ -5,7 +5,6 @@ import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
-import br.com.fourkitchen.ms_mesas.dto.response.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
 import br.com.fourkitchen.ms_mesas.enums.StatusMesa;
 import br.com.fourkitchen.ms_mesas.exception.BaseException;
@@ -59,10 +58,6 @@ public class MesaService {
                 .stream()
                 .map(mesaGarcomResponseMapper::map)
                 .toList();
-    }
-
-    public ResumoMesasOperacaoResponse buscarResumoOperacao() {
-        return new ResumoMesasOperacaoResponse(mesaRepository.countByDisponivelFalse());
     }
 
     @Transactional

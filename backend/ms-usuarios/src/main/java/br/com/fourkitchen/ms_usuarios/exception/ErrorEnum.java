@@ -36,24 +36,6 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
-    USUARIO_NAO_ENCONTRADO(
-            "006",
-            "Usuario nao encontrado",
-            HttpStatus.NOT_FOUND
-    ),
-
-    USUARIO_JA_INATIVO(
-            "007",
-            "Usuario ja esta inativo",
-            HttpStatus.BAD_REQUEST
-    ),
-
-    NAO_PODE_EXCLUIR_PROPRIO_USUARIO(
-            "008",
-            "Nao e permitido excluir o proprio usuario autenticado",
-            HttpStatus.FORBIDDEN
-    ),
-
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

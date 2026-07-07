@@ -32,11 +32,8 @@ public class Produto {
     @Column(name = "nome", length = 150, nullable = false)
     private String nome;
 
-    @Column(name = "descricao", length = 255)
+    @Column(name = "descricao")
     private String descricao;
-
-    @Column(name = "imagem")
-    private byte[] imagem;
 
     @Column(name = "preco", precision = 10, scale = 2, nullable = false)
     private BigDecimal preco;

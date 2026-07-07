@@ -10,7 +10,6 @@ public class CriarCategoriaRequestMapper implements Mapper<CriarCategoriaRequest
     public Categoria map(CriarCategoriaRequest source) {
         return Categoria.builder()
                 .nome(source.nome().trim())
-                .descricao(source.descricao())
                 .build();
     }
 }

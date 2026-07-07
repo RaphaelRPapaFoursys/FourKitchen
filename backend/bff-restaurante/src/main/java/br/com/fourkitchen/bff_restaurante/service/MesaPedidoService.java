@@ -6,17 +6,13 @@ import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.CriarPedidoRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ProdutoPedidoRequest;
-import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
-import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.request.ItemPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
-import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,19 +25,13 @@ public class MesaPedidoService {
 
     private static final String STATUS_ENVIADO_COZINHA = "ENVIADO_COZINHA";
 
-    private static final String PERFIL_MESA = "MESA";
-
     private final MesaClient mesaClient;
-
-    private final ProdutoClient produtoClient;
 
     private final PedidoClient pedidoClient;
 
-    public PedidoMesaResponse criarPedido(CriarPedidoMesaRequest request, Authentication authentication) {
-        UsuarioAutenticado usuario = obterUsuarioMesa(authentication);
-        SessaoMesaResponse sessao = validarSessaoMesa(usuario.idMesa(), request.codigoSessao());
-        List<ProdutoPedidoRequest> itens = mapearItensComPrecoAtual(request.itens());
-        PedidoResponse pedido = criarPedidoNoMsPedidos(usuario, sessao, itens);
+    public PedidoMesaResponse criarPedido(CriarPedidoMesaRequest request) {
+        SessaoMesaResponse sessao = validarSessaoMesa(request);
+        PedidoResponse pedido = criarPedidoNoMsPedidos(request, sessao);
 
         return new PedidoMesaResponse(
                 pedido.id(),
@@ -53,21 +43,9 @@ public class MesaPedidoService {
         );
     }
 
-    private UsuarioAutenticado obterUsuarioMesa(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof UsuarioAutenticado usuario)) {
-            throw new BaseException(ErrorEnum.TOKEN_INVALIDO);
-        }
-
-        if (!PERFIL_MESA.equals(usuario.perfil()) || usuario.idMesa() == null || usuario.idMesa() <= 0) {
-            throw new BaseException(ErrorEnum.ACESSO_NEGADO);
-        }
-
-        return usuario;
-    }
-
-    private SessaoMesaResponse validarSessaoMesa(Integer idMesa, Integer codigoSessao) {
+    private SessaoMesaResponse validarSessaoMesa(CriarPedidoMesaRequest request) {
         try {
-            return mesaClient.validarSessaoMesa(idMesa, codigoSessao);
+            return mesaClient.validarSessaoMesa(request.idMesa(), request.codigoSessao());
         } catch (FeignException e) {
             if (e.status() == 400 || e.status() == 404) {
                 throw new BaseException(ErrorEnum.SESSAO_MESA_INVALIDA);
@@ -77,11 +55,7 @@ public class MesaPedidoService {
         }
     }
 
-    private PedidoResponse criarPedidoNoMsPedidos(
-            UsuarioAutenticado usuario,
-            SessaoMesaResponse sessao,
-            List<ProdutoPedidoRequest> itens
-    ) {
+    private PedidoResponse criarPedidoNoMsPedidos(CriarPedidoMesaRequest request, SessaoMesaResponse sessao) {
         try {
             return pedidoClient.criarPedido(new CriarPedidoRequest(
                     null,
@@ -89,9 +63,9 @@ public class MesaPedidoService {
                     CANAL_MESA,
                     STATUS_ENVIADO_COZINHA,
                     sessao.idMesa(),
-                    Math.toIntExact(usuario.id()),
+                    null,
                     sessao.idAtendimento(),
-                    itens
+                    mapearItens(request.itens())
             ));
         } catch (FeignException e) {
             if (e.status() == 400) {
@@ -102,36 +76,14 @@ public class MesaPedidoService {
         }
     }
 
-    private List<ProdutoPedidoRequest> mapearItensComPrecoAtual(List<ItemPedidoMesaRequest> itens) {
+    private List<ProdutoPedidoRequest> mapearItens(List<ItemPedidoMesaRequest> itens) {
         return itens.stream()
-                .map(this::mapearItemComPrecoAtual)
+                .map(item -> new ProdutoPedidoRequest(
+                        item.idProduto(),
+                        item.quantidade(),
+                        item.precoUnitario(),
+                        item.observacao()
+                ))
                 .toList();
-    }
-
-    private ProdutoPedidoRequest mapearItemComPrecoAtual(ItemPedidoMesaRequest item) {
-        ProdutoDisponibilidadeResponse disponibilidade = buscarDisponibilidade(item.idProduto());
-
-        if (disponibilidade == null || !Boolean.TRUE.equals(disponibilidade.disponivel())) {
-            throw new BaseException(ErrorEnum.PRODUTO_INDISPONIVEL);
-        }
-
-        return new ProdutoPedidoRequest(
-                item.idProduto(),
-                item.quantidade(),
-                disponibilidade.preco(),
-                item.observacao()
-        );
-    }
-
-    private ProdutoDisponibilidadeResponse buscarDisponibilidade(Integer idProduto) {
-        try {
-            return produtoClient.verificarDisponibilidade(idProduto);
-        } catch (FeignException e) {
-            if (e.status() == 400 || e.status() == 404) {
-                throw new BaseException(ErrorEnum.PRODUTO_INDISPONIVEL);
-            }
-
-            throw new BaseException(ErrorEnum.MS_PRODUTOS_INDISPONIVEL);
-        }
     }
 }

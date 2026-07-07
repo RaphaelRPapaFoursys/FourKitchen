@@ -10,13 +10,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +32,6 @@ class TotemPedidoControllerTest {
         CriarPedidoTotemRequest request = new CriarPedidoTotemRequest(
                 List.of(new ItemPedidoTotemRequest(10, 2, null))
         );
-        Authentication authentication = mock(Authentication.class);
         PedidoTotemResponse pedidoResponse = new PedidoTotemResponse(
                 25,
                 100025,
@@ -42,12 +39,12 @@ class TotemPedidoControllerTest {
                 "ENVIADO_COZINHA"
         );
 
-        when(totemPedidoService.criarPedido(request, authentication)).thenReturn(pedidoResponse);
+        when(totemPedidoService.criarPedido(request)).thenReturn(pedidoResponse);
 
-        ResponseEntity<PedidoTotemResponse> response = totemPedidoController.criarPedido(request, authentication);
+        ResponseEntity<PedidoTotemResponse> response = totemPedidoController.criarPedido(request);
 
         assertEquals(201, response.getStatusCode().value());
         assertSame(pedidoResponse, response.getBody());
-        verify(totemPedidoService).criarPedido(request, authentication);
+        verify(totemPedidoService).criarPedido(request);
     }
 }
