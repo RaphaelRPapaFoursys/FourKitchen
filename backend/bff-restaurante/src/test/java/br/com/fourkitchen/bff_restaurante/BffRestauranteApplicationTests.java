@@ -63,6 +63,13 @@ class BffRestauranteApplicationTests {
 	}
 
 	@Test
+	@WithMockUser(roles = "ADMIN")
+	void rotaDeGarcomDevePermitirPerfilAdmin() throws Exception {
+		mockMvc.perform(get("/api/garcom/painel"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
 	void rotaDeMesaDeveExigirAutenticacao() throws Exception {
 		mockMvc.perform(get("/api/mesa/painel"))
 				.andExpect(status().isUnauthorized());
@@ -83,6 +90,13 @@ class BffRestauranteApplicationTests {
 	}
 
 	@Test
+	@WithMockUser(roles = "ADMIN")
+	void rotaDeMesaDevePermitirPerfilAdmin() throws Exception {
+		mockMvc.perform(get("/api/mesa/painel"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
 	@WithMockUser(roles = "MESA")
 	void rotaDeTotemDeveBloquearUsuarioSemPerfilPermitido() throws Exception {
 		mockMvc.perform(get("/api/totem/painel"))
@@ -98,9 +112,9 @@ class BffRestauranteApplicationTests {
 
 	@Test
 	@WithMockUser(roles = "ADMIN")
-	void rotaDeGarcomDeveBloquearPerfilAdmin() throws Exception {
-		mockMvc.perform(get("/api/garcom/painel"))
-				.andExpect(status().isForbidden());
+	void rotaDeTotemDevePermitirPerfilAdmin() throws Exception {
+		mockMvc.perform(get("/api/totem/painel"))
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -113,6 +127,13 @@ class BffRestauranteApplicationTests {
 	@Test
 	@WithMockUser(roles = "COZINHA")
 	void rotaDeCozinhaDevePermitirPerfilCozinha() throws Exception {
+		mockMvc.perform(get("/api/cozinha/painel"))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(roles = "ADMIN")
+	void rotaDeCozinhaDevePermitirPerfilAdmin() throws Exception {
 		mockMvc.perform(get("/api/cozinha/painel"))
 				.andExpect(status().isOk());
 	}
