@@ -1,11 +1,11 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { nivelCargaGarcom, NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgencia.constants';
-import { MesaPainel, StatusMesaPainel } from '../../core/models/painel.models';
+import { NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgencia.constants';
+import { AcaoMesaPainel, MesaPainel, StatusMesaPainel } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { PainelService } from '../../core/services/painel';
 import { Avatar } from '../../shared/components/avatar/avatar';
@@ -15,15 +15,34 @@ import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 import { ProgressBar } from '../../shared/components/progress-bar/progress-bar';
 import { WaiterLoadItem } from '../../shared/components/waiter-load-item/waiter-load-item';
 
-type Ordenacao = 'CRITICO' | 'NUMERO';
+type Ordenacao = 'CRITICO' | 'NUMERO' | 'MAIOR_VALOR' | 'MENOR_VALOR';
 type Criticidade = ReturnType<typeof resolverCriticidadeMesa>;
-type FiltroEstado = 'PROBLEMAS' | 'PRONTOS' | 'EM_PREPARO' | 'LIVRE' | null;
+type FiltroEstado =
+  | 'PROBLEMAS'
+  | 'PRONTOS'
+  | 'EM_PREPARO'
+  | 'LIVRE'
+  | 'SEM_GARCOM'
+  | 'CONTA_ABERTA'
+  | 'ATRASADAS'
+  | 'AGUARDANDO_PEDIDO'
+  | null;
 type ModoSelecaoGarcom = 'ABRIR' | 'REATRIBUIR';
+type AcaoCritica = Extract<AcaoMesaPainel, 'FECHAR_CONTA' | 'MARCAR_ENTREGUE'>;
 
 interface SelecaoGarcomEstado {
   mesaId: number;
   numeroMesa: number;
   modo: ModoSelecaoGarcom;
+}
+
+interface ConfirmacaoAcaoEstado {
+  mesaId: number;
+  numeroMesa: number;
+  tipo: AcaoCritica;
+  titulo: string;
+  mensagem: string;
+  confirmarLabel: string;
 }
 
 const NOMES_ETAPAS: Record<number, string> = {
@@ -74,20 +93,22 @@ export class Gestor {
 
   protected readonly buscaTermo = signal('');
   protected readonly filtroGarcom = signal<number | null>(null);
-  protected readonly valorMin = signal<number | null>(null);
-  protected readonly valorMax = signal<number | null>(null);
   protected readonly ordenacao = signal<Ordenacao>('CRITICO');
   protected readonly filtroEstado = signal<FiltroEstado>(null);
+  protected readonly paginaAtual = signal(1);
+  protected readonly itensPorPagina = signal(10);
+  protected readonly limiarCargaLaranja = signal(5);
+  protected readonly limiarCargaVermelho = signal(10);
+  protected readonly configCargaAberta = signal(false);
   protected readonly fechamentoExpandido = signal(false);
   protected readonly selecaoGarcom = signal<SelecaoGarcomEstado | null>(null);
   protected readonly mesaDestacada = signal<number | null>(null);
   protected readonly confirmandoFechamento = signal(false);
+  protected readonly confirmacaoAcao = signal<ConfirmacaoAcaoEstado | null>(null);
 
   protected readonly mesasFiltradas = computed(() => {
     const termo = this.buscaTermo().trim().toLowerCase();
     const garcom = this.filtroGarcom();
-    const min = this.valorMin();
-    const max = this.valorMax();
     const estado = this.filtroEstado();
     const ordenacao = this.ordenacao();
 
@@ -99,28 +120,68 @@ export class Gestor {
         if (!correspondeNumero && !correspondeGarcom && !correspondePedido) return false;
       }
       if (garcom !== null && item.garcomId !== garcom) return false;
-      const valorConta = this.valorContaMesa(item);
-      if (min !== null && (valorConta === null || valorConta < min)) return false;
-      if (max !== null && (valorConta === null || valorConta > max)) return false;
       if (estado === 'PROBLEMAS' && this.criticidadeCard(item) !== 'critico') return false;
       if (estado === 'PRONTOS' && item.statusPedido !== 'PRONTO_ENTREGA') return false;
       if (estado === 'EM_PREPARO' && item.statusPedido !== 'EM_PREPARO') return false;
       if (estado === 'LIVRE' && item.status !== 'LIVRE') return false;
+      if (estado === 'SEM_GARCOM' && (item.status !== 'OCUPADA' || item.garcomId !== null)) return false;
+      if (estado === 'CONTA_ABERTA' && item.statusPedido !== 'CONTA_ABERTA') return false;
+      if (estado === 'ATRASADAS' && this.criticidadeCard(item) !== 'critico') return false;
+      if (
+        estado === 'AGUARDANDO_PEDIDO' &&
+        (item.status !== 'OCUPADA' || item.garcomId === null || item.pedidos.length > 0)
+      ) {
+        return false;
+      }
       return true;
     });
 
     return [...filtradas].sort((a, b) => {
       if (ordenacao === 'NUMERO') return a.numero - b.numero;
+      if (ordenacao === 'MAIOR_VALOR') {
+        return (this.valorContaMesa(b) ?? -Infinity) - (this.valorContaMesa(a) ?? -Infinity);
+      }
+      if (ordenacao === 'MENOR_VALOR') {
+        return (this.valorContaMesa(a) ?? Infinity) - (this.valorContaMesa(b) ?? Infinity);
+      }
       return CRITICIDADE_RANK[a.status](a) - CRITICIDADE_RANK[b.status](b);
     });
   });
+
+  protected readonly totalPaginas = computed(() =>
+    Math.max(1, Math.ceil(this.mesasFiltradas().length / this.itensPorPagina())),
+  );
+
+  /** Página válida: nunca abaixo de 1 nem acima do total (protege contra lista encolher). */
+  protected readonly paginaEfetiva = computed(() =>
+    Math.min(Math.max(1, this.paginaAtual()), this.totalPaginas()),
+  );
+
+  /** Fatia da lista filtrada/ordenada correspondente à página atual. */
+  protected readonly mesasPagina = computed(() => {
+    const inicio = (this.paginaEfetiva() - 1) * this.itensPorPagina();
+    return this.mesasFiltradas().slice(inicio, inicio + this.itensPorPagina());
+  });
+
+  protected readonly temPaginaAnterior = computed(() => this.paginaEfetiva() > 1);
+  protected readonly temProximaPagina = computed(() => this.paginaEfetiva() < this.totalPaginas());
+
+  constructor() {
+    // Qualquer mudança de busca/filtro/ordenação/tamanho volta para a primeira página.
+    effect(() => {
+      this.buscaTermo();
+      this.filtroGarcom();
+      this.filtroEstado();
+      this.ordenacao();
+      this.itensPorPagina();
+      this.paginaAtual.set(1);
+    });
+  }
 
   protected readonly temFiltrosAtivos = computed(
     () =>
       this.buscaTermo().trim() !== '' ||
       this.filtroGarcom() !== null ||
-      this.valorMin() !== null ||
-      this.valorMax() !== null ||
       this.filtroEstado() !== null,
   );
 
@@ -148,7 +209,7 @@ export class Gestor {
     );
   }
 
-  protected acaoPrimaria(mesa: MesaPainel): { tipo: string; label: string } {
+  protected acaoPrimaria(mesa: MesaPainel): { tipo: AcaoMesaPainel; label: string } {
     return this.painelService.acaoPrimaria(mesa);
   }
 
@@ -168,10 +229,10 @@ export class Gestor {
         this.abrirReatribuicao(mesa);
         break;
       case 'FECHAR_CONTA':
-        void this.painelService.fecharConta(mesa.id);
+        this.abrirConfirmacaoAcao(mesa, 'FECHAR_CONTA');
         break;
       case 'MARCAR_ENTREGUE':
-        void this.painelService.marcarEntregue(mesa.id);
+        this.abrirConfirmacaoAcao(mesa, 'MARCAR_ENTREGUE');
         break;
       case 'VER_PEDIDO':
         this.verPedido();
@@ -185,6 +246,49 @@ export class Gestor {
 
   protected verPedido(): void {
     // TODO: sem tela de detalhe do pedido ainda (Fase 2 / integração com backend).
+  }
+
+  protected abrirConfirmacaoAcao(mesa: MesaPainel, tipo: AcaoCritica): void {
+    const numeroMesa = mesa.numero.toString().padStart(2, '0');
+
+    if (tipo === 'FECHAR_CONTA') {
+      this.confirmacaoAcao.set({
+        mesaId: mesa.id,
+        numeroMesa: mesa.numero,
+        tipo,
+        titulo: `Fechar conta da Mesa ${numeroMesa}`,
+        mensagem: 'Confirme o fechamento da conta. O atendimento será registrado no resumo do expediente e a mesa será liberada.',
+        confirmarLabel: 'Fechar conta',
+      });
+      return;
+    }
+
+    this.confirmacaoAcao.set({
+      mesaId: mesa.id,
+      numeroMesa: mesa.numero,
+      tipo,
+      titulo: `Marcar entrega da Mesa ${numeroMesa}`,
+      mensagem: 'Confirme que o pedido pronto foi entregue ao cliente. Essa ação avança o pedido para entregue.',
+      confirmarLabel: 'Marcar entregue',
+    });
+  }
+
+  protected cancelarConfirmacaoAcao(): void {
+    this.confirmacaoAcao.set(null);
+  }
+
+  protected confirmarAcaoCritica(): void {
+    const confirmacao = this.confirmacaoAcao();
+    if (!confirmacao || this.expedienteFechado() || this.acaoEmAndamento()) return;
+
+    this.confirmacaoAcao.set(null);
+
+    if (confirmacao.tipo === 'FECHAR_CONTA') {
+      void this.painelService.fecharConta(confirmacao.mesaId);
+      return;
+    }
+
+    void this.painelService.marcarEntregue(confirmacao.mesaId);
   }
 
   protected destacarMesa(numero: number): void {
@@ -233,11 +337,35 @@ export class Gestor {
     this.filtroEstado.update(atual => (atual === estado ? null : estado));
   }
 
+  protected paginaAnterior(): void {
+    this.paginaAtual.set(Math.max(1, this.paginaEfetiva() - 1));
+  }
+
+  protected proximaPagina(): void {
+    this.paginaAtual.set(Math.min(this.totalPaginas(), this.paginaEfetiva() + 1));
+  }
+
+  protected aoDigitarItensPorPagina(raw: string): void {
+    if (raw.trim() === '') return; // vazio é permitido enquanto digita; normaliza só no blur
+    const numero = Number.parseInt(raw, 10);
+    if (Number.isNaN(numero)) return;
+    this.itensPorPagina.set(this.limitarItens(numero));
+  }
+
+  protected aoSairItensPorPagina(raw: string): void {
+    const numero = Number.parseInt(raw, 10);
+    this.itensPorPagina.set(Number.isNaN(numero) ? 1 : this.limitarItens(numero));
+  }
+
+  private limitarItens(valor: number): number {
+    const total = this.painelService.mesas().length;
+    const minimo = Math.max(1, Math.floor(valor));
+    return total > 0 ? Math.min(minimo, total) : minimo;
+  }
+
   protected limparFiltros(): void {
     this.buscaTermo.set('');
     this.filtroGarcom.set(null);
-    this.valorMin.set(null);
-    this.valorMax.set(null);
     this.filtroEstado.set(null);
   }
 
@@ -337,6 +465,25 @@ export class Gestor {
   }
 
   protected nivelCarga(mesasAtivas: number): NivelCarga {
-    return nivelCargaGarcom(mesasAtivas);
+    if (mesasAtivas >= this.limiarCargaVermelho()) return 'ALTA';
+    if (mesasAtivas >= this.limiarCargaLaranja()) return 'MEDIA';
+    return 'BAIXA';
+  }
+
+  protected alternarConfigCarga(): void {
+    this.configCargaAberta.update(aberta => !aberta);
+  }
+
+  protected atualizarLimiarLaranja(valor: number): void {
+    const laranja = Math.max(1, Math.floor(valor) || 1);
+    this.limiarCargaLaranja.set(laranja);
+    if (this.limiarCargaVermelho() <= laranja) {
+      this.limiarCargaVermelho.set(laranja + 1);
+    }
+  }
+
+  protected atualizarLimiarVermelho(valor: number): void {
+    const minimo = this.limiarCargaLaranja() + 1;
+    this.limiarCargaVermelho.set(Math.max(minimo, Math.floor(valor) || minimo));
   }
 }
