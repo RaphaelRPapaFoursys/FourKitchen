@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.AtribuirGarcomClientRequest;
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.HistoricoAtendimentoClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaPaginadaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
@@ -11,6 +12,7 @@ import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoGestorResponse;
@@ -89,6 +91,15 @@ public class GestorMesaService {
         return buscarGarcons(authorization);
     }
 
+    public List<HistoricoAtendimentoResponse> listarHistoricoAtendimentos(String authorization) {
+        List<HistoricoAtendimentoClientResponse> historicos = buscarHistoricoAtendimentos();
+        Map<Integer, String> nomesGarconsPorId = buscarNomesGarconsPorIdQuandoNecessario(authorization, historicos);
+
+        return historicos.stream()
+                .map(historico -> mapearHistoricoAtendimento(historico, nomesGarconsPorId))
+                .toList();
+    }
+
     public MesaGestorResponse abrirMesa(Integer id, String authorization) {
         MesaClientResponse mesa = executarAlteracaoMesa(() -> mesaClient.abrirMesa(id));
         return mapearMesa(
@@ -163,6 +174,15 @@ public class GestorMesaService {
     private MesaPaginadaClientResponse buscarMesasPaginadas(Integer page, Integer size, String sort) {
         try {
             return mesaClient.listarMesasPaginadas(page, size, sort);
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_MESAS_INDISPONIVEL);
+        }
+    }
+
+    private List<HistoricoAtendimentoClientResponse> buscarHistoricoAtendimentos() {
+        try {
+            List<HistoricoAtendimentoClientResponse> historicos = mesaClient.listarHistoricoAtendimentos();
+            return historicos == null ? List.of() : historicos;
         } catch (FeignException e) {
             throw new BaseException(ErrorEnum.MS_MESAS_INDISPONIVEL);
         }
@@ -258,6 +278,22 @@ public class GestorMesaService {
                 .collect(Collectors.toMap(GarcomResumoResponse::id, Function.identity()));
     }
 
+    private Map<Integer, String> buscarNomesGarconsPorIdQuandoNecessario(
+            String authorization,
+            List<HistoricoAtendimentoClientResponse> historicos
+    ) {
+        boolean precisaBuscarGarcom = historicos.stream()
+                .anyMatch(historico -> historico.idGarcom() != null && nomeEmBranco(historico.nomeGarcom()));
+
+        if (!precisaBuscarGarcom) {
+            return Map.of();
+        }
+
+        return buscarGarcons(authorization)
+                .stream()
+                .collect(Collectors.toMap(GarcomResumoResponse::id, GarcomResumoResponse::nome));
+    }
+
     private GarcomResumoResponse buscarGarcomPorId(Integer garcomId, String authorization) {
         Optional<GarcomResumoResponse> garcom = buscarGarcons(authorization)
                 .stream()
@@ -282,6 +318,35 @@ public class GestorMesaService {
                 garcom == null ? null : garcom.nome(),
                 pedidos
         ));
+    }
+
+    private HistoricoAtendimentoResponse mapearHistoricoAtendimento(
+            HistoricoAtendimentoClientResponse historico,
+            Map<Integer, String> nomesGarconsPorId
+    ) {
+        String nomeGarcom = nomeEmBranco(historico.nomeGarcom())
+                ? nomesGarconsPorId.get(historico.idGarcom())
+                : historico.nomeGarcom();
+
+        return new HistoricoAtendimentoResponse(
+                historico.id(),
+                historico.idAtendimento(),
+                historico.codigoSessao(),
+                historico.idMesa(),
+                historico.numeroMesa(),
+                historico.idGarcom(),
+                nomeGarcom,
+                historico.valorFinal(),
+                historico.totalPedidos(),
+                historico.totalItens(),
+                historico.dataAbertura(),
+                historico.dataFechamento(),
+                historico.duracaoMinutos()
+        );
+    }
+
+    private boolean nomeEmBranco(String nome) {
+        return nome == null || nome.isBlank();
     }
 
     private MesaClientResponse executarAlteracaoMesa(AlteracaoMesa alteracaoMesa) {

@@ -23,4 +23,9 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
             Collection<Integer> idsAtendimento,
             Collection<StatusPedido> status
     );
+
+    List<Pedido> findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+            Integer idAtendimento,
+            StatusPedido status
+    );
 }
