@@ -5,6 +5,7 @@ import java.util.List;
 public record CategoriaCardapioResponse(
         Integer categoriaId,
         String categoriaNome,
+        String categoriaDescricao,
         List<ProdutoCardapioResponse> produtos
 ) {
 }

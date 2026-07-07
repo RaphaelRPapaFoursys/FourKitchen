@@ -1,13 +1,16 @@
 package br.com.fourkitchen.ms_pedidos;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 class MsPedidosApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void applicationClassDeveExistir() {
+        MsPedidosApplication application = new MsPedidosApplication();
+
+        assertNotNull(application);
+    }
 
 }

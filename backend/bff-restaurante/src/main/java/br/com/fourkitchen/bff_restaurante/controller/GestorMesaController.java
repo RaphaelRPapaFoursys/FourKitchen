@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.GestorMesaService;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -60,6 +62,36 @@ public class GestorMesaController {
             @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
         return ResponseEntity.ok(gestorMesaService.listarMesas(authorization));
+    }
+
+    @GetMapping("/mesas/paginadas")
+    @Operation(
+            summary = "Lista mesas paginadas para o painel do gestor",
+            description = "Retorna uma pagina de mesas com numero, status, garcom atribuido, dados da sessao aberta e metadados de paginacao."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Pagina de mesas retornada com sucesso",
+                    content = @Content(
+                            schema = @Schema(implementation = MesaGestorPaginadaResponse.class),
+                            examples = @ExampleObject(value = "{\"content\":[{\"id\":1,\"numero\":10,\"status\":\"OCUPADA\",\"garcomId\":7,\"garcomNome\":\"Amanda Souza\",\"codigoSessao\":123456,\"dataAbertura\":\"2026-07-02T10:00:00\",\"dataFechamento\":null,\"pedidos\":[]}],\"page\":0,\"size\":10,\"totalElements\":48,\"totalPages\":5,\"first\":true,\"last\":false}")
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil GESTOR ou ADMIN", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas, pedidos ou usuarios indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<MesaGestorPaginadaResponse> listarMesasPaginadas(
+            @Parameter(description = "Pagina solicitada, iniciando em zero", example = "0")
+            @RequestParam(defaultValue = "0") Integer page,
+            @Parameter(description = "Quantidade de itens por pagina", example = "10")
+            @RequestParam(defaultValue = "10") Integer size,
+            @Parameter(description = "Ordenacao no formato campo,direcao", example = "numero,asc")
+            @RequestParam(defaultValue = "numero,asc") String sort,
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        return ResponseEntity.ok(gestorMesaService.listarMesasPaginadas(authorization, page, size, sort));
     }
 
     @GetMapping("/garcons")

@@ -3,6 +3,7 @@ package br.com.fourkitchen.bff_restaurante.service;
 import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.AtribuirGarcomClientRequest;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaPaginadaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
@@ -10,6 +11,7 @@ import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
@@ -56,6 +58,31 @@ public class GestorMesaService {
                 .sorted(Comparator.comparing(MesaClientResponse::numero))
                 .map(mesa -> mapearMesa(mesa, garconsPorId, pedidosPorAtendimento))
                 .toList();
+    }
+
+    // RESPOSTA MESA GESTOR
+    public MesaGestorPaginadaResponse listarMesasPaginadas(
+            String authorization,
+            Integer page,
+            Integer size,
+            String sort
+    ) {
+        MesaPaginadaClientResponse pagina = buscarMesasPaginadas(page, size, sort);
+        List<MesaClientResponse> mesas = pagina.content() == null ? List.of() : pagina.content();
+        Map<Integer, GarcomResumoResponse> garconsPorId = buscarGarconsPorIdQuandoNecessario(authorization, mesas);
+        Map<Integer, List<PedidoGestorResponse>> pedidosPorAtendimento = buscarPedidosPorAtendimento(mesas);
+
+        return new MesaGestorPaginadaResponse(
+                mesas.stream()
+                        .map(mesa -> mapearMesa(mesa, garconsPorId, pedidosPorAtendimento))
+                        .toList(),
+                pagina.page(),
+                pagina.size(),
+                pagina.totalElements(),
+                pagina.totalPages(),
+                pagina.first(),
+                pagina.last()
+        );
     }
 
     public List<GarcomResumoResponse> listarGarcons(String authorization) {
@@ -128,6 +155,14 @@ public class GestorMesaService {
     private List<MesaClientResponse> buscarMesas() {
         try {
             return mesaClient.listarMesas();
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_MESAS_INDISPONIVEL);
+        }
+    }
+
+    private MesaPaginadaClientResponse buscarMesasPaginadas(Integer page, Integer size, String sort) {
+        try {
+            return mesaClient.listarMesasPaginadas(page, size, sort);
         } catch (FeignException e) {
             throw new BaseException(ErrorEnum.MS_MESAS_INDISPONIVEL);
         }

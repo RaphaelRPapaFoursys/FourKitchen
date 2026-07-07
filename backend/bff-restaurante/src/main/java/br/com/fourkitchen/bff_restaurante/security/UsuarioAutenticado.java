@@ -4,6 +4,7 @@ public record UsuarioAutenticado(
         Long id,
         String nome,
         String email,
-        String perfil
+        String perfil,
+        Integer idMesa
 ) {
 }

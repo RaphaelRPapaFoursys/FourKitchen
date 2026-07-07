@@ -1,1 +1,139 @@
-<p>garcom works!</p>
+<main class="waiter-shell">
+  <aside class="sidebar" aria-label="Menu principal">
+    <div class="brand">
+      <span class="brand__mark">FK</span>
+      <strong>FourKitchen</strong>
+    </div>
+
+    <nav class="nav">
+      <a class="nav__item nav__item--active" href="/garcom">
+        <span aria-hidden="true">[]</span>
+        Dashboard
+      </a>
+      <a class="nav__item" href="/pedidos">
+        <span aria-hidden="true">#</span>
+        Pedidos
+      </a>
+      <a class="nav__item" href="/profile">
+        <span aria-hidden="true">o</span>
+        Profile
+      </a>
+    </nav>
+
+    <button type="button" class="logout">
+      <span aria-hidden="true">]</span>
+      Sair
+    </button>
+  </aside>
+
+  <section class="dashboard">
+    <header class="topbar">
+      <div class="title">
+        <span aria-hidden="true">=</span>
+        <h1>Dashboard do Garcom</h1>
+      </div>
+
+      <label class="search" aria-label="Buscar mesa">
+        <span aria-hidden="true">*</span>
+        <input
+          type="search"
+          placeholder="Buscar mesa..."
+          [value]="busca()"
+          (input)="atualizarBusca($event)"
+        />
+      </label>
+
+      <div class="user">
+        <span>{{ nomeUsuario() }}</span>
+        <span class="avatar" aria-hidden="true">o</span>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="filters" aria-label="Filtros de mesas">
+        <button type="button" [class.filter--active]="filtro() === 'todas'" (click)="alterarFiltro('todas')">
+          Todas as Mesas
+          <span>{{ totalMesas() }}</span>
+        </button>
+        <button type="button" [class.filter--active]="filtro() === 'ocupadas'" (click)="alterarFiltro('ocupadas')">
+          Ocupadas
+          <span>{{ mesasOcupadas() }}</span>
+        </button>
+        <button type="button" [class.filter--active]="filtro() === 'livres'" (click)="alterarFiltro('livres')">
+          Livres
+          <span>{{ mesasLivres() }}</span>
+        </button>
+      </div>
+
+      @if (erro()) {
+        <p class="feedback feedback--error">{{ erro() }}</p>
+      } @else if (carregando()) {
+        <p class="feedback">Carregando mesas...</p>
+      }
+
+      <section class="tables-grid" aria-label="Mesas do garcom">
+        @for (mesa of mesasFiltradas(); track trackMesa($index, mesa)) {
+          @let status = statusVisual(mesa);
+          @let notificacao = notificacaoDaMesa(mesa);
+
+          <article
+            class="table-card"
+            [class.table-card--occupied]="status === 'OCUPADA'"
+            [class.table-card--calling]="status === 'CHAMANDO'"
+          >
+            <header class="table-card__header">
+              <div>
+                <span>Mesa</span>
+                <strong>{{ mesa.numero.toString().padStart(2, '0') }}</strong>
+              </div>
+
+              <span class="status-pill" [class.status-pill--occupied]="status === 'OCUPADA'" [class.status-pill--calling]="status === 'CHAMANDO'">
+                {{ status }}
+              </span>
+            </header>
+
+            @if (notificacao) {
+              <p class="call-message">{{ notificacao.mensagem }}</p>
+              <button
+                type="button"
+                class="primary-action primary-action--danger"
+                (click)="atenderNotificacao(mesa, notificacao)"
+                [disabled]="notificacaoEmAcao() === notificacao.id"
+              >
+                Atender
+              </button>
+            } @else if (mesa.status === 'OCUPADA') {
+              <div class="table-details">
+                <span>Tempo: {{ tempoAberta(mesa) || 'em aberto' }}</span>
+                <span>Codigo: {{ mesa.codigoSessao || '-' }}</span>
+                <span>{{ pedidosAtivosLabel(mesa) }}</span>
+              </div>
+              <button type="button" class="secondary-action" disabled>
+                Mesa em Atendimento
+              </button>
+            } @else {
+              <div class="table-capacity">
+                <span aria-hidden="true">o</span>
+                <span>Sem atendimento ativo</span>
+              </div>
+              <button type="button" class="primary-action" disabled>
+                Aguardando Gestor
+              </button>
+            }
+          </article>
+        } @empty {
+          <p class="empty">Nenhuma mesa encontrada.</p>
+        }
+
+        <button type="button" class="new-table" aria-label="Atualizar mesas" (click)="carregarDashboard()" [disabled]="carregando()">
+          <span aria-hidden="true">+</span>
+          Atualizar Mesas
+        </button>
+      </section>
+    </section>
+
+    <button type="button" class="floating-action" aria-label="Atualizar mesas" (click)="carregarDashboard()" [disabled]="carregando()">
+      +
+    </button>
+  </section>
+</main>

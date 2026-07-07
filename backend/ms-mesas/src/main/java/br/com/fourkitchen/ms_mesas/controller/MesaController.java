@@ -3,11 +3,16 @@ package br.com.fourkitchen.ms_mesas.controller;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.MesaPaginadaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
 import br.com.fourkitchen.ms_mesas.service.MesaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,10 +44,22 @@ public class MesaController {
     public ResponseEntity<List<MesaResponse>> listarMesas() {
         return ResponseEntity.ok(mesaService.listarMesas());
     }
+    //devolve page
+    @GetMapping("/paginadas")
+    public ResponseEntity<MesaPaginadaResponse> listarMesasPaginadas(
+            @PageableDefault(size = 10, sort = "numero", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(mesaService.listarMesasPaginadas(pageable));
+    }
 
     @GetMapping("/garcons/{idGarcom}")
     public ResponseEntity<List<MesaGarcomResponse>> listarMesasPorGarcom(@PathVariable Integer idGarcom) {
         return ResponseEntity.ok(mesaService.listarMesasPorGarcom(idGarcom));
+    }
+
+    @GetMapping("/resumo-operacao")
+    public ResponseEntity<ResumoMesasOperacaoResponse> buscarResumoOperacao() {
+        return ResponseEntity.ok(mesaService.buscarResumoOperacao());
     }
 
     @PatchMapping("/{id}/abrir")
@@ -61,7 +78,7 @@ public class MesaController {
             @RequestBody @Valid AtribuirGarcomRequest request
     ) {
         return ResponseEntity.ok(mesaService.atribuirGarcom(id, request));
-    }
+    } 
 
     @GetMapping("/{id}/sessoes/{codigoSessao}/validar")
     public ResponseEntity<SessaoMesaResponse> validarSessaoMesa(

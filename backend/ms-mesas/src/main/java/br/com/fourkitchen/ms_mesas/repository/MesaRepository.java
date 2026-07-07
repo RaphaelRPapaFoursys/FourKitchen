@@ -11,6 +11,8 @@ public interface MesaRepository extends JpaRepository<Mesa, Integer> {
 
     boolean existsByNumero(Integer numero);
 
+    long countByDisponivelFalse();
+
     List<Mesa> findByDisponivelFalseAndAtendimento_GarcomIdAndAtendimento_DataFechamentoIsNullOrderByNumeroAsc(
             Integer garcomId
     );

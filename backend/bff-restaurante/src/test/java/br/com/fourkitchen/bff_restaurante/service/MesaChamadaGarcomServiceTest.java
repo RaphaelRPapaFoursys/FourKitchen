@@ -9,6 +9,7 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
@@ -17,9 +18,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,7 +47,7 @@ class MesaChamadaGarcomServiceTest {
 
     @Test
     void chamarGarcomDeveValidarSessaoECriarNotificacaoParaGarcomResponsavel() {
-        ChamarGarcomRequest request = new ChamarGarcomRequest(1, 123456);
+        ChamarGarcomRequest request = new ChamarGarcomRequest(123456);
         SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
         NotificacaoResponse notificacao = criarNotificacaoResponse();
 
@@ -56,7 +60,7 @@ class MesaChamadaGarcomServiceTest {
                 7
         ))).thenReturn(notificacao);
 
-        NotificacaoResponse response = mesaChamadaGarcomService.chamarGarcom(request);
+        NotificacaoResponse response = mesaChamadaGarcomService.chamarGarcom(request, criarAuthenticationMesa());
 
         assertSame(notificacao, response);
         verify(mesaClient).validarSessaoMesa(1, 123456);
@@ -71,12 +75,15 @@ class MesaChamadaGarcomServiceTest {
 
     @Test
     void chamarGarcomDeveBloquearMesaSemGarcomResponsavel() {
-        ChamarGarcomRequest request = new ChamarGarcomRequest(1, 123456);
+        ChamarGarcomRequest request = new ChamarGarcomRequest(123456);
         SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, null, "OCUPADA");
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
 
-        BaseException exception = assertThrows(BaseException.class, () -> mesaChamadaGarcomService.chamarGarcom(request));
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> mesaChamadaGarcomService.chamarGarcom(request, criarAuthenticationMesa())
+        );
 
         assertEquals(ErrorEnum.MESA_SEM_GARCOM, exception.getErrorEnum());
         verify(mesaClient).validarSessaoMesa(1, 123456);
@@ -85,15 +92,60 @@ class MesaChamadaGarcomServiceTest {
 
     @Test
     void chamarGarcomDeveMapearSessaoMesaInvalida() {
-        ChamarGarcomRequest request = new ChamarGarcomRequest(1, 123456);
+        ChamarGarcomRequest request = new ChamarGarcomRequest(123456);
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenThrow(feignException(400));
 
-        BaseException exception = assertThrows(BaseException.class, () -> mesaChamadaGarcomService.chamarGarcom(request));
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> mesaChamadaGarcomService.chamarGarcom(request, criarAuthenticationMesa())
+        );
 
         assertEquals(ErrorEnum.SESSAO_MESA_INVALIDA, exception.getErrorEnum());
         verify(mesaClient).validarSessaoMesa(1, 123456);
         verifyNoInteractions(notificacaoService);
+    }
+
+    @Test
+    void chamarGarcomDeveBloquearUsuarioMesaSemVinculo() {
+        ChamarGarcomRequest request = new ChamarGarcomRequest(123456);
+        UsuarioAutenticado usuario = new UsuarioAutenticado(
+                101L,
+                "Mesa sem vinculo",
+                "mesa@fourkitchen.com",
+                "MESA",
+                null
+        );
+        Authentication authentication = new UsernamePasswordAuthenticationToken(usuario, null, List.of());
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> mesaChamadaGarcomService.chamarGarcom(request, authentication)
+        );
+
+        assertEquals(ErrorEnum.ACESSO_NEGADO, exception.getErrorEnum());
+        verifyNoInteractions(mesaClient, notificacaoService);
+    }
+
+    @Test
+    void chamarGarcomDeveBloquearPerfilDiferenteDeMesa() {
+        ChamarGarcomRequest request = new ChamarGarcomRequest(123456);
+        UsuarioAutenticado usuario = new UsuarioAutenticado(
+                101L,
+                "Garcom",
+                "garcom01",
+                "GARCOM",
+                1
+        );
+        Authentication authentication = new UsernamePasswordAuthenticationToken(usuario, null, List.of());
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> mesaChamadaGarcomService.chamarGarcom(request, authentication)
+        );
+
+        assertEquals(ErrorEnum.ACESSO_NEGADO, exception.getErrorEnum());
+        verifyNoInteractions(mesaClient, notificacaoService);
     }
 
     private NotificacaoResponse criarNotificacaoResponse() {
@@ -127,5 +179,17 @@ class MesaChamadaGarcomServiceTest {
                 .build();
 
         return FeignException.errorStatus("validarSessaoMesa", response);
+    }
+
+    private Authentication criarAuthenticationMesa() {
+        UsuarioAutenticado usuario = new UsuarioAutenticado(
+                101L,
+                "Mesa 1",
+                "mesa01@fourkitchen.com",
+                "MESA",
+                1
+        );
+
+        return new UsernamePasswordAuthenticationToken(usuario, null, List.of());
     }
 }

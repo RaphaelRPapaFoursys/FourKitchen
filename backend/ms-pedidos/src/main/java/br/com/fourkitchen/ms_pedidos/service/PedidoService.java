@@ -7,6 +7,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
@@ -51,9 +52,7 @@ public class PedidoService {
 
     private static final Collection<StatusPedido> STATUS_COZINHA = List.of(
             StatusPedido.ENVIADO_COZINHA,
-            StatusPedido.EM_PREPARO,
-            StatusPedido.PRONTO,
-            StatusPedido.AGUARDANDO_DECISAO
+            StatusPedido.EM_PREPARO
     );
 
     @Autowired
@@ -80,7 +79,7 @@ public class PedidoService {
         pedidoRepository.save(pedido);
 
         if (pedidoRequest.itens() != null) {
-            for(ProdutoPedidoRequest item : pedidoRequest.itens()) {
+            for (ProdutoPedidoRequest item : pedidoRequest.itens()) {
                 ProdutoPedido produtoPedido = ProdutoPedido
                         .builder()
                         .quantidade(item.quantidade())
@@ -157,6 +156,14 @@ public class PedidoService {
                 .toList();
     }
 
+    public ResumoPedidosOperacaoResponse buscarResumoOperacao() {
+        return new ResumoPedidosOperacaoResponse(
+                pedidoRepository.countByStatus(StatusPedido.EM_PREPARO),
+                pedidoRepository.countByStatus(StatusPedido.PRONTO),
+                pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)
+        );
+    }
+
     public List<PedidoCozinhaResponse> findPedidosAtivosDetalhadosPorAtendimentos(List<Integer> idsAtendimento) {
         if (idsAtendimento == null || idsAtendimento.isEmpty()) {
             return List.of();
@@ -221,31 +228,30 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(PedidoInexistenteException::new);
 
-        if(alterarPedidoRequest.canal() != null) {
+        if (alterarPedidoRequest.canal() != null) {
             pedido.setCanal(alterarPedidoRequest.canal());
         }
 
-       validarPedidoNaoAguardandoDecisao(pedido);
+        validarPedidoNaoAguardandoDecisao(pedido);
 
-        if(alterarPedidoRequest.status() != null) {
+        if (alterarPedidoRequest.status() != null) {
             pedido.setStatus(alterarPedidoRequest.status());
         }
 
-        if(alterarPedidoRequest.idMesa() != null) {
+        if (alterarPedidoRequest.idMesa() != null) {
             pedido.setIdMesa(alterarPedidoRequest.idMesa());
         }
 
-        if(alterarPedidoRequest.idUsuario() != null) {
+        if (alterarPedidoRequest.idUsuario() != null) {
             pedido.setIdUsuario(alterarPedidoRequest.idUsuario());
         }
 
-        if(alterarPedidoRequest.idAtendimento() != null) {
+        if (alterarPedidoRequest.idAtendimento() != null) {
             pedido.setIdAtendimento(alterarPedidoRequest.idAtendimento());
         }
-        //return pedidoResponseMapper.map(pedido);
     }
 
-   @Transactional
+    @Transactional
     public void softDelete(Integer id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(PedidoInexistenteException::new);
@@ -298,6 +304,7 @@ public class PedidoService {
                 item.getObservacao()
         );
     }
+
     private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {
         if (pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO) {
             throw new PedidoAguardandoDecisaoException();
@@ -314,6 +321,13 @@ public class PedidoService {
                         request.idPedido(),
                         request.idProdutoPedido()
                 ).orElseThrow(ProdutoPedidoInexistenteException::new);
+
+        StatusPedido status = pedido.getStatus();
+
+        if (status != StatusPedido.ENVIADO_COZINHA
+                && status != StatusPedido.EM_PREPARO) {
+            throw new PedidoEncerradoException();
+        }
 
         pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
         produtoPedido.setStatus(request.statusProdutoPedido());

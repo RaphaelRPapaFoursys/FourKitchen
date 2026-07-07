@@ -4,7 +4,9 @@ import br.com.fourkitchen.ms_mesas.client.PedidosAtivosClient;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.MesaPaginadaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.ms_mesas.enums.StatusMesa;
 import br.com.fourkitchen.ms_mesas.exception.BaseException;
 import br.com.fourkitchen.ms_mesas.exception.ErrorEnum;
@@ -21,6 +23,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +77,28 @@ class MesaServiceTest {
 
         assertEquals(List.of(response), resultado);
         verify(mesaRepository).findAll();
+        verify(mesaResponseMapper).map(mesa);
+    }
+
+    @Test
+    void listarMesasPaginadasDeveRetornarPaginaMapeada() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Mesa mesa = criarMesa(1, 10, true, null);
+        MesaResponse response = new MesaResponse(1, 10, StatusMesa.DISPONIVEL, null, null, null, null, null);
+
+        when(mesaRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(mesa), pageable, 1));
+        when(mesaResponseMapper.map(mesa)).thenReturn(response);
+
+        MesaPaginadaResponse resultado = mesaService.listarMesasPaginadas(pageable);
+
+        assertEquals(List.of(response), resultado.content());
+        assertEquals(0, resultado.page());
+        assertEquals(10, resultado.size());
+        assertEquals(1L, resultado.totalElements());
+        assertEquals(1, resultado.totalPages());
+        assertEquals(true, resultado.first());
+        assertEquals(true, resultado.last());
+        verify(mesaRepository).findAll(pageable);
         verify(mesaResponseMapper).map(mesa);
     }
 
@@ -383,6 +410,17 @@ class MesaServiceTest {
         assertEquals(ErrorEnum.MESA_NAO_ENCONTRADA, exception.getErrorEnum());
         verify(mesaRepository).findById(99);
         verify(mesaRepository, never()).save(any());
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
+    void buscarResumoOperacaoDeveContarMesasOcupadas() {
+        when(mesaRepository.countByDisponivelFalse()).thenReturn(8L);
+
+        ResumoMesasOperacaoResponse resultado = mesaService.buscarResumoOperacao();
+
+        assertEquals(8L, resultado.mesasOcupadas());
+        verify(mesaRepository).countByDisponivelFalse();
         verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
     }
 

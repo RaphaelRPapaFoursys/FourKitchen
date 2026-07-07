@@ -3,10 +3,12 @@ package br.com.fourkitchen.bff_restaurante.service;
 import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.AtribuirGarcomClientRequest;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaPaginadaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
@@ -98,6 +100,45 @@ class GestorMesaServiceTest {
         assertEquals(List.of(response), resultado);
         verify(mesaClient).listarMesas();
         verifyNoInteractions(usuarioClient, garcomResumoResponseMapper);
+    }
+
+    @Test
+    void listarMesasPaginadasDevePreservarMetadadosEMapearConteudo() {
+        MesaClientResponse mesa = criarMesa(1, 10, 7);
+        UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
+        GarcomResumoResponse garcom = criarGarcom(7, "Amanda Souza");
+        MesaGestorResponse mesaResponse = criarMesaResponse(1, "Amanda Souza");
+        MesaPaginadaClientResponse pagina = new MesaPaginadaClientResponse(
+                List.of(mesa),
+                0,
+                10,
+                15L,
+                2,
+                true,
+                false
+        );
+
+        when(mesaClient.listarMesasPaginadas(0, 10, "numero,asc")).thenReturn(pagina);
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of(usuario));
+        when(garcomResumoResponseMapper.map(usuario)).thenReturn(garcom);
+        when(mesaGestorResponseMapper.map(any(MesaGestorMapperSource.class))).thenReturn(mesaResponse);
+
+        MesaGestorPaginadaResponse resultado = gestorMesaService.listarMesasPaginadas(
+                AUTHORIZATION,
+                0,
+                10,
+                "numero,asc"
+        );
+
+        assertEquals(List.of(mesaResponse), resultado.content());
+        assertEquals(0, resultado.page());
+        assertEquals(10, resultado.size());
+        assertEquals(15L, resultado.totalElements());
+        assertEquals(2, resultado.totalPages());
+        assertEquals(true, resultado.first());
+        assertEquals(false, resultado.last());
+        verify(mesaClient).listarMesasPaginadas(0, 10, "numero,asc");
+        verify(usuarioClient).listarUsuariosAtivos(AUTHORIZATION);
     }
 
     @Test
@@ -238,6 +279,7 @@ class GestorMesaServiceTest {
                 nome,
                 nome.toLowerCase().replace(" ", ".") + "@fourkitchen.com",
                 perfil,
+                null,
                 ativo
         );
     }
