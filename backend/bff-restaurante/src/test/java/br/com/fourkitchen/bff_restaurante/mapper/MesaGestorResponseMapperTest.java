@@ -21,10 +21,11 @@ class MesaGestorResponseMapperTest {
                 7,
                 123456,
                 LocalDateTime.of(2026, 7, 2, 10, 0),
+                null,
                 null
         );
 
-        MesaGestorResponse response = mapper.map(new MesaGestorMapperSource(mesa, "Amanda Souza"));
+        MesaGestorResponse response = mapper.map(new MesaGestorMapperSource(mesa, "Amanda Souza", java.util.List.of()));
 
         assertEquals(1, response.id());
         assertEquals(10, response.numero());

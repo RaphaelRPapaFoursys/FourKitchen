@@ -16,7 +16,8 @@ public class MesaGestorResponseMapper implements Mapper<MesaGestorMapperSource, 
                 source.garcomNome(),
                 source.mesa().codigoSessao(),
                 source.mesa().dataAbertura(),
-                source.mesa().dataFechamento()
+                source.mesa().dataFechamento(),
+                source.pedidos()
         );
     }
 }

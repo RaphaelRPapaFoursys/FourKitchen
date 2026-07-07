@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Dados necessarios para cadastrar um usuario.")
@@ -35,6 +36,10 @@ public record CriarUsuarioRequest(
 
         @Schema(description = "Perfil de acesso do usuario", example = "GARCOM")
         @NotNull(message = "Perfil e obrigatorio")
-        PerfilUsuario perfilUsuario
+        PerfilUsuario perfilUsuario,
+
+        @Schema(description = "Mesa vinculada ao usuario dispositivo quando perfil for MESA", example = "1")
+        @Positive(message = "O campo idMesa deve ser positivo")
+        Integer idMesa
 ) {
 }

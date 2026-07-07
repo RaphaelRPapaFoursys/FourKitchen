@@ -14,6 +14,9 @@ public record UsuarioAutenticadoResponse(
         String email,
 
         @Schema(description = "Perfil do usuario", example = "GARCOM")
-        String perfil
+        String perfil,
+
+        @Schema(description = "Mesa vinculada ao usuario dispositivo quando perfil for MESA", example = "1")
+        Integer idMesa
 ) {
 }

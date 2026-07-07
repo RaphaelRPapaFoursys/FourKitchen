@@ -7,5 +7,7 @@ public enum PerfilUsuario {
     GARCOM,
     COZINHA,
     GESTOR,
-    ADMIN
+    ADMIN,
+    MESA,
+    TOTEM
 }

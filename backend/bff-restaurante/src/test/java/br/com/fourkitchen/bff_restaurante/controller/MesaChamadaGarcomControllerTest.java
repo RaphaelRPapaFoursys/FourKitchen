@@ -10,11 +10,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +31,8 @@ class MesaChamadaGarcomControllerTest {
 
     @Test
     void chamarGarcomDeveRetornarCreated() {
-        ChamarGarcomRequest request = new ChamarGarcomRequest(1, 123456);
+        ChamarGarcomRequest request = new ChamarGarcomRequest(123456);
+        Authentication authentication = mock(Authentication.class);
         NotificacaoResponse notificacao = new NotificacaoResponse(
                 3,
                 "CHAMADA_GARCOM",
@@ -42,12 +45,12 @@ class MesaChamadaGarcomControllerTest {
                 7
         );
 
-        when(mesaChamadaGarcomService.chamarGarcom(request)).thenReturn(notificacao);
+        when(mesaChamadaGarcomService.chamarGarcom(request, authentication)).thenReturn(notificacao);
 
-        ResponseEntity<NotificacaoResponse> response = mesaChamadaGarcomController.chamarGarcom(request);
+        ResponseEntity<NotificacaoResponse> response = mesaChamadaGarcomController.chamarGarcom(request, authentication);
 
         assertEquals(201, response.getStatusCode().value());
         assertSame(notificacao, response.getBody());
-        verify(mesaChamadaGarcomService).chamarGarcom(request);
+        verify(mesaChamadaGarcomService).chamarGarcom(request, authentication);
     }
 }

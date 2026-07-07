@@ -14,6 +14,7 @@ public class UsuarioResponseMapper implements Mapper<Usuario, UsuarioResponse> {
                 source.getNome(),
                 source.getEmail(),
                 source.getPerfilUsuario(),
+                source.getIdMesa(),
                 source.getAtivo()
         );
     }

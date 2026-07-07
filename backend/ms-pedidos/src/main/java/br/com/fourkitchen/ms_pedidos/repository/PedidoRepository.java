@@ -13,6 +13,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
 
     boolean existsByIdAtendimentoAndStatusIn(Integer idAtendimento, Collection<StatusPedido> status);
 
+    long countByStatus(StatusPedido status);
+
     List<Pedido> findByStatusIn(Collection<StatusPedido> status);
 
     List<Pedido> findByStatusInOrderByDataCriacaoAscIdAsc(Collection<StatusPedido> status);
