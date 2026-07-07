@@ -470,11 +470,39 @@
   font-size: 0.78rem;
 }
 
+.mesas-grid-wrapper {
+  position: relative;
+}
+
 .mesas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 0.85rem;
   align-items: start;
+}
+
+.mesas-grid--carregando {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/** Aviso fixo na tela enquanto a lista de mesas está sendo atualizada (troca de filtro/página). */
+.atualizando-toast {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--fk-radius-card);
+  background: var(--fk-card);
+  box-shadow: var(--fk-shadow-overlay);
+  color: var(--fk-text-2);
+  font-size: 0.9rem;
 }
 
 .mesas-grid__vazio {

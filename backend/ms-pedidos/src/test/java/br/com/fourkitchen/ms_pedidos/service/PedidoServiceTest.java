@@ -231,6 +231,62 @@ class PedidoServiceTest {
     }
 
     @Test
+    void findPedidosAtivosDetalhadosPorAtendimentosDeveRetornarPedidosComItens() {
+        LocalDateTime dataCriacao = LocalDateTime.of(2026, 7, 2, 10, 30);
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(123456)
+                .canal(CanaisPedido.GARCOM)
+                .status(StatusPedido.PRONTO)
+                .idMesa(1)
+                .idUsuario(7)
+                .idAtendimento(8)
+                .dataCriacao(dataCriacao)
+                .build();
+        ProdutoPedido item = ProdutoPedido.builder()
+                .id(5)
+                .idPedido(25)
+                .idProduto(10)
+                .quantidade(2)
+                .precoUnitario(new BigDecimal("29.90"))
+                .observacao("Sem cebola")
+                .build();
+
+        when(pedidoRepository.findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(
+                eq(List.of(8)),
+                anyStatusCollection()
+        )).thenReturn(List.of(pedido));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25))).thenReturn(List.of(item));
+
+        List<PedidoCozinhaResponse> resultado = pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(List.of(8));
+
+        assertEquals(1, resultado.size());
+        PedidoCozinhaResponse pedidoResponse = resultado.getFirst();
+        assertEquals(25, pedidoResponse.id());
+        assertEquals(123456, pedidoResponse.codigo());
+        assertEquals(CanaisPedido.GARCOM, pedidoResponse.canal());
+        assertEquals(StatusPedido.PRONTO, pedidoResponse.status());
+        assertEquals(1, pedidoResponse.idMesa());
+        assertEquals(8, pedidoResponse.idAtendimento());
+        assertEquals(dataCriacao, pedidoResponse.dataCriacao());
+        assertEquals(1, pedidoResponse.itens().size());
+        assertEquals(5, pedidoResponse.itens().getFirst().id());
+        assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
+        assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
+        assertEquals(new BigDecimal("29.90"), pedidoResponse.itens().getFirst().precoUnitario());
+        assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
+        verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25));
+    }
+
+    @Test
+    void findPedidosAtivosDetalhadosPorAtendimentosDeveRetornarListaVaziaQuandoNaoReceberAtendimentos() {
+        List<PedidoCozinhaResponse> resultado = pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(List.of());
+
+        assertEquals(List.of(), resultado);
+        verifyNoInteractions(pedidoRepository, produtoPedidoRepository);
+    }
+
+    @Test
     void findPedidosCozinhaDeveRetornarPedidosEmStatusDeCozinha() {
         Pedido pedido = Pedido.builder()
                 .id(25)

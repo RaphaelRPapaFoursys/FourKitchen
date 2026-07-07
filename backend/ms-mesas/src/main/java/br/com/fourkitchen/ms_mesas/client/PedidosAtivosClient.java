@@ -20,7 +20,7 @@ public class PedidosAtivosClient {
 
     public boolean possuiPedidosAtivos(Integer atendimentoId) {
         Boolean possuiPedidosAtivos = restClient.get()
-                .uri("/pedidos/atendimentos/{atendimentoId}/possui-ativos", atendimentoId)
+                .uri("/api/pedidos/atendimentos/{atendimentoId}/possui-ativos", atendimentoId)
                 .retrieve()
                 .body(Boolean.class);
 

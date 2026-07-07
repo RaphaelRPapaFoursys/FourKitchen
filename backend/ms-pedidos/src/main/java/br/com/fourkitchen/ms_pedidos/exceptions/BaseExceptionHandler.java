@@ -8,6 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -45,6 +46,13 @@ public class BaseExceptionHandler {
                 .orElse(ErrorEnum.DADOS_INVALIDOS.getErrorMessage());
 
         return buildErrorResponse(ErrorEnum.DADOS_INVALIDOS, errorMessage);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorObject> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.warn("Recurso nao encontrado no ms-pedidos: {}", e.getResourcePath());
+
+        return buildErrorResponse(ErrorEnum.RECURSO_NAO_ENCONTRADO);
     }
 
     @ExceptionHandler(Exception.class)

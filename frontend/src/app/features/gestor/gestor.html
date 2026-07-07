@@ -216,7 +216,8 @@
               </label>
             </div>
 
-            <div class="mesas-grid">
+            <div class="mesas-grid-wrapper">
+              <div class="mesas-grid" [class.mesas-grid--carregando]="carregandoMesas()">
               @for (mesa of mesasPagina(); track mesa.numero) {
                 <article
                   class="mesa-card"
@@ -358,6 +359,7 @@
                   }
                 </p>
               }
+              </div>
             </div>
 
             @if (totalPaginas() > 1) {
@@ -637,6 +639,13 @@
         <span class="carregando-overlay__spinner" aria-hidden="true"></span>
         <span>{{ descricaoAcao() ?? 'Processando...' }}</span>
       </div>
+    </div>
+  }
+
+  @if (carregandoMesas()) {
+    <div class="atualizando-toast" role="status" aria-live="polite">
+      <span class="carregando-overlay__spinner" aria-hidden="true"></span>
+      <span>Atualizando mesas...</span>
     </div>
   }
 

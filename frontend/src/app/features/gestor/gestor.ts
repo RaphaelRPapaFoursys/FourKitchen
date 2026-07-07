@@ -1,13 +1,13 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgencia.constants';
-import { AcaoMesaPainel, MesaPainel, StatusMesaPainel } from '../../core/models/painel.models';
+import { AcaoMesaPainel, MesaPainel } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
-import { PainelService } from '../../core/services/painel';
+import { FiltroEstadoPainel, OrdenacaoPainel, PainelService } from '../../core/services/painel';
 import { Avatar } from '../../shared/components/avatar/avatar';
 import { Badge } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
@@ -17,16 +17,7 @@ import { WaiterLoadItem } from '../../shared/components/waiter-load-item/waiter-
 
 type Ordenacao = 'CRITICO' | 'NUMERO' | 'MAIOR_VALOR' | 'MENOR_VALOR';
 type Criticidade = ReturnType<typeof resolverCriticidadeMesa>;
-type FiltroEstado =
-  | 'PROBLEMAS'
-  | 'PRONTOS'
-  | 'EM_PREPARO'
-  | 'LIVRE'
-  | 'SEM_GARCOM'
-  | 'CONTA_ABERTA'
-  | 'ATRASADAS'
-  | 'AGUARDANDO_PEDIDO'
-  | null;
+type FiltroEstado = FiltroEstadoPainel | null;
 type ModoSelecaoGarcom = 'ABRIR' | 'REATRIBUIR';
 type AcaoCritica = Extract<AcaoMesaPainel, 'FECHAR_CONTA' | 'MARCAR_ENTREGUE'>;
 
@@ -50,15 +41,6 @@ const NOMES_ETAPAS: Record<number, string> = {
   2: 'Em preparo',
   3: 'Finalização',
   4: 'Pronto para entrega',
-};
-
-const CRITICIDADE_RANK: Record<StatusMesaPainel, (mesa: MesaPainel) => number> = {
-  OCUPADA: mesa => {
-    if (mesa.statusPedido === 'EM_PREPARO') return 1;
-    if (mesa.statusPedido === 'PRONTO_ENTREGA') return 2;
-    return 3;
-  },
-  LIVRE: () => 4,
 };
 
 @Component({
@@ -87,6 +69,7 @@ export class Gestor {
   protected readonly pedidosPendentesEntrega = this.painelService.pedidosPendentesEntrega;
   protected readonly resumoExpediente = this.painelService.resumoExpediente;
   protected readonly carregando = this.painelService.carregando;
+  protected readonly carregandoMesas = this.painelService.carregandoMesas;
   protected readonly acaoEmAndamento = this.painelService.acaoEmAndamento;
   protected readonly descricaoAcao = this.painelService.descricaoAcao;
   protected readonly mensagemErro = this.painelService.mensagemErro;
@@ -106,65 +89,11 @@ export class Gestor {
   protected readonly confirmandoFechamento = signal(false);
   protected readonly confirmacaoAcao = signal<ConfirmacaoAcaoEstado | null>(null);
 
-  protected readonly mesasFiltradas = computed(() => {
-    const termo = this.buscaTermo().trim().toLowerCase();
-    const garcom = this.filtroGarcom();
-    const estado = this.filtroEstado();
-    const ordenacao = this.ordenacao();
-
-    const filtradas = this.painelService.mesas().filter(item => {
-      if (termo) {
-        const correspondeNumero = item.numero.toString().includes(termo);
-        const correspondeGarcom = item.garcom?.toLowerCase().includes(termo) ?? false;
-        const correspondePedido = this.statusPedidoLabel(item).toLowerCase().includes(termo);
-        if (!correspondeNumero && !correspondeGarcom && !correspondePedido) return false;
-      }
-      if (garcom !== null && item.garcomId !== garcom) return false;
-      if (estado === 'PROBLEMAS' && this.criticidadeCard(item) !== 'critico') return false;
-      if (estado === 'PRONTOS' && item.statusPedido !== 'PRONTO_ENTREGA') return false;
-      if (estado === 'EM_PREPARO' && item.statusPedido !== 'EM_PREPARO') return false;
-      if (estado === 'LIVRE' && item.status !== 'LIVRE') return false;
-      if (estado === 'SEM_GARCOM' && (item.status !== 'OCUPADA' || item.garcomId !== null)) return false;
-      if (estado === 'CONTA_ABERTA' && item.statusPedido !== 'CONTA_ABERTA') return false;
-      if (estado === 'ATRASADAS' && this.criticidadeCard(item) !== 'critico') return false;
-      if (
-        estado === 'AGUARDANDO_PEDIDO' &&
-        (item.status !== 'OCUPADA' || item.garcomId === null || item.pedidos.length > 0)
-      ) {
-        return false;
-      }
-      return true;
-    });
-
-    return [...filtradas].sort((a, b) => {
-      if (ordenacao === 'NUMERO') return a.numero - b.numero;
-      if (ordenacao === 'MAIOR_VALOR') {
-        return (this.valorContaMesa(b) ?? -Infinity) - (this.valorContaMesa(a) ?? -Infinity);
-      }
-      if (ordenacao === 'MENOR_VALOR') {
-        return (this.valorContaMesa(a) ?? Infinity) - (this.valorContaMesa(b) ?? Infinity);
-      }
-      return CRITICIDADE_RANK[a.status](a) - CRITICIDADE_RANK[b.status](b);
-    });
-  });
-
-  protected readonly totalPaginas = computed(() =>
-    Math.max(1, Math.ceil(this.mesasFiltradas().length / this.itensPorPagina())),
-  );
-
-  /** Página válida: nunca abaixo de 1 nem acima do total (protege contra lista encolher). */
-  protected readonly paginaEfetiva = computed(() =>
-    Math.min(Math.max(1, this.paginaAtual()), this.totalPaginas()),
-  );
-
-  /** Fatia da lista filtrada/ordenada correspondente à página atual. */
-  protected readonly mesasPagina = computed(() => {
-    const inicio = (this.paginaEfetiva() - 1) * this.itensPorPagina();
-    return this.mesasFiltradas().slice(inicio, inicio + this.itensPorPagina());
-  });
-
-  protected readonly temPaginaAnterior = computed(() => this.paginaEfetiva() > 1);
-  protected readonly temProximaPagina = computed(() => this.paginaEfetiva() < this.totalPaginas());
+  protected readonly mesasPagina = this.painelService.mesas;
+  protected readonly totalPaginas = this.painelService.totalPaginas;
+  protected readonly paginaEfetiva = this.painelService.paginaEfetiva;
+  protected readonly temPaginaAnterior = this.painelService.temPaginaAnterior;
+  protected readonly temProximaPagina = this.painelService.temProximaPagina;
 
   constructor() {
     // Qualquer mudança de busca/filtro/ordenação/tamanho volta para a primeira página.
@@ -175,6 +104,21 @@ export class Gestor {
       this.ordenacao();
       this.itensPorPagina();
       this.paginaAtual.set(1);
+    });
+
+    effect(() => {
+      const consulta = {
+        page: this.paginaAtual() - 1,
+        size: this.itensPorPagina(),
+        sort: this.ordenacaoApi(),
+        filtroEstado: this.filtroEstado(),
+        garcomId: this.filtroGarcom(),
+        busca: this.buscaTermo(),
+      };
+
+      untracked(() => {
+        void this.painelService.atualizarConsulta(consulta);
+      });
     });
   }
 
@@ -358,9 +302,21 @@ export class Gestor {
   }
 
   private limitarItens(valor: number): number {
-    const total = this.painelService.mesas().length;
-    const minimo = Math.max(1, Math.floor(valor));
-    return total > 0 ? Math.min(minimo, total) : minimo;
+    return Math.max(1, Math.floor(valor));
+  }
+
+  private ordenacaoApi(): OrdenacaoPainel {
+    switch (this.ordenacao()) {
+      case 'NUMERO':
+        return 'numero,asc';
+      case 'MAIOR_VALOR':
+        return 'valor,desc';
+      case 'MENOR_VALOR':
+        return 'valor,asc';
+      case 'CRITICO':
+      default:
+        return 'criticidade';
+    }
   }
 
   protected limparFiltros(): void {

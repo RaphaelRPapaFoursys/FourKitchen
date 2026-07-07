@@ -44,10 +44,27 @@ const MESAS_API = [
   },
 ];
 
-const GARCONS_API = [
-  { id: 7, nome: 'Carlos', email: 'carlos@fourkitchen.com' },
-  { id: 8, nome: 'Julia', email: 'julia@fourkitchen.com' },
-];
+const PAGINA_MESAS_API = {
+  content: MESAS_API,
+  page: 0,
+  size: 10,
+  totalElements: 3,
+  totalPages: 1,
+  first: true,
+  last: true,
+};
+
+const RESUMO_API = {
+  mesasLivres: 1,
+  emPreparo: 0,
+  prontos: 0,
+  problemas: 0,
+  ticketMedio: 65,
+  cargaGarcons: [
+    { id: 7, nome: 'Carlos', mesasAtivas: 1 },
+    { id: 8, nome: 'Julia', mesasAtivas: 1 },
+  ],
+};
 
 describe('Gestor', () => {
   let component: Gestor;
@@ -56,13 +73,14 @@ describe('Gestor', () => {
   let httpMock: HttpTestingController;
 
   function flushCargaInicial(): void {
-    httpMock.expectOne(`${BASE_URL}/mesas`).flush(MESAS_API);
-    httpMock.expectOne(`${BASE_URL}/garcons`).flush(GARCONS_API);
+    flushPainel();
   }
 
-  /** As ações só recarregam as mesas — a lista de garçons não muda por causa delas. */
-  function flushMesas(): void {
-    httpMock.expectOne(`${BASE_URL}/mesas`).flush(MESAS_API);
+  function flushPainel(): void {
+    httpMock
+      .expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`)
+      .flush(PAGINA_MESAS_API);
+    httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
   }
 
   beforeEach(async () => {
@@ -94,7 +112,7 @@ describe('Gestor', () => {
     const promise = painelService.fecharConta(1);
     httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
     await esperarMicrotarefas();
-    flushMesas();
+    flushPainel();
     await promise;
 
     const pedidos = painelService.ultimosPedidos();
@@ -114,7 +132,7 @@ describe('Gestor', () => {
 
     httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
     await esperarMicrotarefas();
-    flushMesas();
+    flushPainel();
     await promise;
   });
 
@@ -125,7 +143,7 @@ describe('Gestor', () => {
     await esperarMicrotarefas();
     httpMock.expectOne(`${BASE_URL}/mesas/3/atribuir-garcom`).flush({});
     await esperarMicrotarefas();
-    flushMesas();
+    flushPainel();
     await promise;
   });
 
