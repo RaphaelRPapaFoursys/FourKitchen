@@ -105,11 +105,6 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(idsAtendimento));
     }
 
-    @GetMapping("/resumo-operacao")
-    public ResponseEntity<ResumoPedidosOperacaoResponse> buscarResumoOperacao() {
-        return ResponseEntity.ok(pedidoService.buscarResumoOperacao());
-    }
-
     @PatchMapping("/{id}")
     public ResponseEntity<Void> alterarPedido(
             @PathVariable Integer id,
