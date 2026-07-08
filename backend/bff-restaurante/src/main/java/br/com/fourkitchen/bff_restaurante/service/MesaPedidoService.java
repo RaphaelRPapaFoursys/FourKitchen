@@ -43,7 +43,7 @@ public class MesaPedidoService {
 
     public PedidoMesaResponse criarPedido(CriarPedidoMesaRequest request, Authentication authentication) {
         UsuarioAutenticado usuario = obterUsuarioMesa(authentication);
-        SessaoMesaResponse sessao = validarSessaoMesa(usuario.idMesa(), request.codigoSessao());
+        SessaoMesaResponse sessao = validarSessaoMesa(usuario.idMesa(), request.codigoAtendimento());
         List<ProdutoPedidoRequest> itens = mapearItensComPrecoAtual(request.itens());
         PedidoResponse pedido = criarPedidoNoMsPedidos(usuario, sessao, itens);
 

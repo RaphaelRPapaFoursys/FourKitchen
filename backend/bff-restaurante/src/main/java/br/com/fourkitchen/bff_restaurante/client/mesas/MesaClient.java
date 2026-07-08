@@ -47,6 +47,9 @@ public interface MesaClient {
             @PathVariable Integer codigoSessao
     );
 
+    @GetMapping("/api/mesas/{idMesa}/atendimento-atual")
+    SessaoMesaResponse buscarAtendimentoAtual(@PathVariable Integer idMesa);
+
     @GetMapping("/api/mesas/{idMesa}/garcons/{idGarcom}/validar")
     SessaoMesaResponse validarMesaAtribuidaGarcom(
             @PathVariable Integer idMesa,

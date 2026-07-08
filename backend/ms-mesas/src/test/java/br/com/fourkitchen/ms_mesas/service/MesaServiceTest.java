@@ -440,6 +440,38 @@ class MesaServiceTest {
     }
 
     @Test
+    void buscarAtendimentoAtualDeveRetornarSessaoDaMesaOcupada() {
+        Atendimento atendimento = criarAtendimento(8, 123456);
+        atendimento.setGarcomId(7);
+        Mesa mesa = criarMesa(1, 10, false, atendimento);
+
+        when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
+
+        var response = mesaService.buscarAtendimentoAtual(1);
+
+        assertEquals(1, response.idMesa());
+        assertEquals(8, response.idAtendimento());
+        assertEquals(123456, response.codigoSessao());
+        assertEquals(7, response.idGarcom());
+        assertEquals(StatusMesa.OCUPADA, response.status());
+        verify(mesaRepository).findById(1);
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
+    void buscarAtendimentoAtualDeveBloquearMesaDisponivel() {
+        Mesa mesa = criarMesa(1, 10, true, null);
+
+        when(mesaRepository.findById(1)).thenReturn(Optional.of(mesa));
+
+        BaseException exception = assertThrows(BaseException.class, () -> mesaService.buscarAtendimentoAtual(1));
+
+        assertEquals(ErrorEnum.MESA_NAO_OCUPADA, exception.getErrorEnum());
+        verify(mesaRepository).findById(1);
+        verifyNoInteractions(atendimentoRepository, pedidosAtivosClient, mesaResponseMapper);
+    }
+
+    @Test
     void validarMesaAtribuidaGarcomDeveBloquearMesaDeOutroGarcom() {
         Atendimento atendimento = criarAtendimento(8, 123456);
         atendimento.setGarcomId(9);

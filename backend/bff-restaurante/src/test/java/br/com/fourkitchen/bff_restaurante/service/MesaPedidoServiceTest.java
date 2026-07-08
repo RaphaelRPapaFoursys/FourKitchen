@@ -77,6 +77,7 @@ class MesaPedidoServiceTest {
 
         PedidoMesaResponse response = mesaPedidoService.criarPedido(request, criarAuthenticationMesa());
 
+        assertEquals(123456, request.codigoAtendimento());
         assertEquals(25, response.id());
         assertEquals(100025, response.codigo());
         assertEquals("MESA", response.canal());
