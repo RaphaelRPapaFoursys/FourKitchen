@@ -1,0 +1,115 @@
+:host {
+  display: block;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+}
+
+.topbar__search {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  max-width: 680px;
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-card);
+  box-shadow: var(--fk-shadow-card);
+}
+
+.topbar__search fk-icon {
+  color: var(--fk-muted);
+}
+
+.topbar__search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--fk-text);
+}
+
+.topbar__acoes {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbar__notificacao {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-card);
+  box-shadow: var(--fk-shadow-card);
+  color: var(--fk-text-2);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.topbar__notificacao:hover {
+  background: var(--fk-surface-muted);
+}
+
+.topbar__notificacao:focus-visible {
+  outline: 2px solid var(--fk-blue);
+  outline-offset: 2px;
+}
+
+.topbar__notificacao-contagem {
+  position: absolute;
+  top: -0.15rem;
+  right: -0.15rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-orange);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 2px solid var(--fk-bg);
+}
+
+.topbar__notificacao-dot {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.65rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--fk-radius-pill);
+  background: var(--fk-red);
+  border: 2px solid var(--fk-card);
+}
+
+.topbar__usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  cursor: pointer;
+}
+
+.topbar__usuario-nome {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fk-text);
+}
+
+.topbar__usuario-chevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--fk-muted);
+}

@@ -44,10 +44,27 @@ const MESAS_API = [
   },
 ];
 
-const GARCONS_API = [
-  { id: 7, nome: 'Carlos', email: 'carlos@fourkitchen.com' },
-  { id: 8, nome: 'Julia', email: 'julia@fourkitchen.com' },
-];
+const PAGINA_MESAS_API = {
+  content: MESAS_API,
+  page: 0,
+  size: 10,
+  totalElements: 3,
+  totalPages: 1,
+  first: true,
+  last: true,
+};
+
+const RESUMO_API = {
+  mesasLivres: 1,
+  emPreparo: 0,
+  prontos: 0,
+  problemas: 0,
+  ticketMedio: 65,
+  cargaGarcons: [
+    { id: 7, nome: 'Carlos', mesasAtivas: 1 },
+    { id: 8, nome: 'Julia', mesasAtivas: 1 },
+  ],
+};
 
 describe('Gestor', () => {
   let component: Gestor;
@@ -56,42 +73,69 @@ describe('Gestor', () => {
   let httpMock: HttpTestingController;
 
   function flushCargaInicial(): void {
-    httpMock.expectOne(`${BASE_URL}/mesas`).flush(MESAS_API);
-    httpMock.expectOne(`${BASE_URL}/garcons`).flush(GARCONS_API);
+    flushPainel();
   }
 
-  /** As ações só recarregam as mesas — a lista de garçons não muda por causa delas. */
-  function flushMesas(): void {
-    httpMock.expectOne(`${BASE_URL}/mesas`).flush(MESAS_API);
+  function flushPainel(historico: unknown[] = []): void {
+    httpMock
+      .expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`)
+      .flush(PAGINA_MESAS_API);
+    httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
+    httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush(historico);
   }
 
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [Gestor],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
-    painelService = TestBed.inject(PainelService);
     httpMock = TestBed.inject(HttpTestingController);
-    flushCargaInicial();
 
     fixture = TestBed.createComponent(Gestor);
     component = fixture.componentInstance;
+    painelService = fixture.debugElement.injector.get(PainelService);
+    flushCargaInicial();
     await fixture.whenStable();
   });
 
   afterEach(() => {
-    httpMock.verify();
+    httpMock?.verify();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('lista os últimos pedidos das mesas ocupadas', () => {
-    const pedidos = painelService.ultimosPedidos();
+  it('reflete os atendimentos finalizados retornados pelo histórico do backend', async () => {
+    expect(painelService.ultimosPedidos().length).toBe(0);
 
-    expect(pedidos.length).toBe(2);
+    const promise = painelService.fecharConta(1);
+    httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
+    await esperarMicrotarefas();
+    flushPainel([
+      {
+        id: 99,
+        idAtendimento: 5,
+        codigoSessao: 123,
+        idMesa: 1,
+        numeroMesa: 3,
+        idGarcom: 7,
+        nomeGarcom: 'Carlos',
+        valorFinal: 90,
+        totalPedidos: 1,
+        totalItens: 2,
+        dataAbertura: '2026-07-03T10:00:00',
+        dataFechamento: '2026-07-03T11:00:00',
+        duracaoMinutos: 60,
+      },
+    ]);
+    await promise;
+
+    const pedidos = painelService.ultimosPedidos();
+    expect(pedidos.length).toBe(1);
+    expect(pedidos[0].numeroMesa).toBe(3);
   });
 
   /** Cada `await` numa promise resolvida via `firstValueFrom` só retoma no próximo microtask. */
@@ -106,7 +150,7 @@ describe('Gestor', () => {
 
     httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
     await esperarMicrotarefas();
-    flushMesas();
+    flushPainel();
     await promise;
   });
 
@@ -117,7 +161,7 @@ describe('Gestor', () => {
     await esperarMicrotarefas();
     httpMock.expectOne(`${BASE_URL}/mesas/3/atribuir-garcom`).flush({});
     await esperarMicrotarefas();
-    flushMesas();
+    flushPainel();
     await promise;
   });
 

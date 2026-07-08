@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.GestorMesaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -88,11 +89,49 @@ public class GestorMesaController {
             @RequestParam(defaultValue = "0") Integer page,
             @Parameter(description = "Quantidade de itens por pagina", example = "10")
             @RequestParam(defaultValue = "10") Integer size,
-            @Parameter(description = "Ordenacao no formato campo,direcao", example = "numero,asc")
+            @Parameter(description = "Ordenacao: numero,asc; numero,desc; criticidade; valor,desc; valor,asc", example = "numero,asc")
             @RequestParam(defaultValue = "numero,asc") String sort,
+            @Parameter(description = "Filtro de estado das mesas", example = "PRONTOS")
+            @RequestParam(required = false) String filtroEstado,
+            @Parameter(description = "Identificador do garcom atribuido", example = "7")
+            @RequestParam(required = false) Integer garcomId,
+            @Parameter(description = "Busca por numero, garcom ou status", example = "em preparo")
+            @RequestParam(required = false) String busca,
             @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
-        return ResponseEntity.ok(gestorMesaService.listarMesasPaginadas(authorization, page, size, sort));
+        return ResponseEntity.ok(gestorMesaService.listarMesasPaginadas(
+                authorization,
+                page,
+                size,
+                sort,
+                filtroEstado,
+                garcomId,
+                busca
+        ));
+    }
+
+    @GetMapping("/mesas/resumo")
+    @Operation(
+            summary = "Consulta KPIs do painel do gestor",
+            description = "Retorna os KPIs de mesas e a carga por garcom considerando todas as mesas, sem filtros."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Resumo retornado com sucesso",
+                    content = @Content(
+                            schema = @Schema(implementation = ResumoPainelResponse.class),
+                            examples = @ExampleObject(value = "{\"mesasLivres\":12,\"emPreparo\":5,\"prontos\":3,\"problemas\":2,\"ticketMedio\":82.50,\"cargaGarcons\":[{\"id\":7,\"nome\":\"Amanda Souza\",\"mesasAtivas\":3}]}")
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil GESTOR ou ADMIN", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas, pedidos ou usuarios indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<ResumoPainelResponse> buscarResumoPainel(
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        return ResponseEntity.ok(gestorMesaService.buscarResumoPainel(authorization));
     }
 
     @GetMapping("/garcons")

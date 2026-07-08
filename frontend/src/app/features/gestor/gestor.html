@@ -2,210 +2,122 @@
   <div class="painel__carregando">Carregando painel...</div>
 } @else {
 <div class="painel">
-  <aside class="painel__sidebar">
-    <div class="painel__brand">
-      <span class="painel__brand-mark" aria-hidden="true"></span>
-      <span class="painel__brand-name">FourKitchen</span>
-    </div>
-
-    <nav class="painel__nav">
-      <a class="painel__nav-item painel__nav-item--active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <rect x="3" y="4" width="7" height="7" rx="1.5" />
-          <rect x="14" y="4" width="7" height="7" rx="1.5" />
-          <rect x="3" y="13" width="7" height="7" rx="1.5" />
-          <rect x="14" y="13" width="7" height="7" rx="1.5" />
-        </svg>
-        Pedidos
-      </a>
-      <a class="painel__nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <circle cx="12" cy="8" r="3.5" />
-          <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" />
-        </svg>
-        Perfil
-      </a>
-    </nav>
-
-    <button class="painel__sair" type="button" (click)="sair()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-        <path d="M9 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H9" />
-        <path d="M15.5 16.5 20 12l-4.5-4.5" />
-        <path d="M20 12H9" />
-      </svg>
-      Sair
-    </button>
-  </aside>
+  <fk-sidebar (sair)="sair()" />
 
   <div class="painel__main">
-    <header class="painel__topbar">
-      <div class="painel__search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <circle cx="11" cy="11" r="7" />
-          <path d="m20 20-3.5-3.5" />
-        </svg>
-        <input
-          type="search"
-          placeholder="Pesquisar mesa, pedido ou garçom"
-          [ngModel]="buscaTermo()"
-          (ngModelChange)="buscaTermo.set($event)"
-        />
-      </div>
+    <img
+      class="painel__onda"
+      src="assets/images/listra-fourkitchen.png"
+      alt=""
+      aria-hidden="true"
+    />
 
-      <div class="painel__usuario">
-        <span class="painel__avatar">{{ iniciais(usuario()?.nome) }}</span>
-        <span class="painel__usuario-nome">{{ usuario()?.nome ?? 'Usuário' }}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </div>
-    </header>
+    <fk-topbar
+      [busca]="buscaTermo()"
+      (buscaChange)="buscaTermo.set($event)"
+      [usuarioNome]="usuario()?.nome ?? 'Usuário'"
+      [usuarioInicial]="iniciais(usuario()?.nome)"
+    />
 
     <main class="painel__content">
-      <h1 class="painel__titulo">Pedidos</h1>
-
       @if (expedienteFechado()) {
         <div class="aviso-expediente">
           Expediente encerrado. Ações nas mesas estão bloqueadas até a reabertura.
         </div>
       }
 
-      @if (mensagemErro(); as erro) {
-        <div class="aviso-erro">
-          {{ erro }}
-          <button type="button" class="aviso-erro__fechar" (click)="fecharErro()" aria-label="Fechar">✕</button>
-        </div>
-      }
-
-      <section class="secao">
-        <div class="secao__cabecalho">
-          <div>
-            <h2>1. Atendimento</h2>
-            <p>Durante o horário de operação</p>
-          </div>
-          <span class="badge-tempo-real">
-            <span class="badge-tempo-real__dot" aria-hidden="true"></span>
-            Tempo real
-          </span>
-        </div>
-
+      <div class="painel-grid">
+        <div class="painel-grid__main">
         <div class="resumo-cards">
-          <article class="resumo-card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path d="M5 11V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5" />
-              <path d="M3 11h18v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3Z" />
-              <path d="M6 20v-4" />
-              <path d="M18 20v-4" />
-            </svg>
-            <div>
-              <strong>{{ resumo().mesasLivres.toString().padStart(2, '0') }}</strong>
-              <span>Mesas livres</span>
-            </div>
-          </article>
-
-          <button
-            class="resumo-card resumo-card--clicavel"
-            type="button"
-            [class.resumo-card--ativo]="filtroEstado() === 'EM_PREPARO'"
-            (click)="alternarFiltroEstado('EM_PREPARO')"
+          <fk-kpi-card
+            [clickable]="true"
+            tint="orange"
+            [active]="filtroEstado() === 'LIVRE'"
+            [value]="resumo().mesasLivres.toString().padStart(2, '0')"
+            label="Mesas livres"
+            (select)="alternarFiltroEstado('LIVRE')"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path d="M4 9h16l-1.2 8.4A2 2 0 0 1 16.8 19H7.2a2 2 0 0 1-2-1.6L4 9Z" />
-              <path d="M9 9V6a3 3 0 0 1 6 0v3" />
-            </svg>
-            <div>
-              <strong>{{ resumo().emPreparo.toString().padStart(2, '0') }}</strong>
-              <span>Em preparo</span>
-            </div>
-          </button>
+            <fk-icon icon class="kpi-icon kpi-icon--laranja" name="picnic-table" size="1.5rem" />
+          </fk-kpi-card>
 
-          <button
-            class="resumo-card resumo-card--clicavel"
-            type="button"
-            [class.resumo-card--ativo]="filtroEstado() === 'PRONTOS'"
-            (click)="alternarFiltroEstado('PRONTOS')"
+          <fk-kpi-card
+            [clickable]="true"
+            tint="orange"
+            [active]="filtroEstado() === 'EM_PREPARO'"
+            [value]="resumo().emPreparo.toString().padStart(2, '0')"
+            label="Em preparo"
+            (select)="alternarFiltroEstado('EM_PREPARO')"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path d="m8.5 12.5 2.3 2.3 4.7-5" />
-            </svg>
-            <div>
-              <strong>{{ resumo().prontos.toString().padStart(2, '0') }}</strong>
-              <span>Prontos</span>
-            </div>
-          </button>
+            <fk-icon icon class="kpi-icon kpi-icon--laranja" name="cooking-pot" size="1.5rem" />
+          </fk-kpi-card>
 
-          <button
-            class="resumo-card resumo-card--clicavel resumo-card--alerta"
-            type="button"
-            [class.resumo-card--ativo]="filtroEstado() === 'PROBLEMAS'"
-            (click)="alternarFiltroEstado('PROBLEMAS')"
+          <fk-kpi-card
+            [clickable]="true"
+            tint="green"
+            [active]="filtroEstado() === 'PRONTOS'"
+            [value]="resumo().prontos.toString().padStart(2, '0')"
+            label="Prontos"
+            (select)="alternarFiltroEstado('PRONTOS')"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 8v5" />
-              <path d="M12 16h.01" />
-            </svg>
-            <div>
-              <strong>{{ resumo().problemas.toString().padStart(2, '0') }}</strong>
-              <span>Problemas</span>
-            </div>
-          </button>
+            <fk-icon icon class="kpi-icon kpi-icon--verde" name="check-circle" size="1.5rem" />
+          </fk-kpi-card>
 
-          <article class="resumo-card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path d="M12 3v3" />
-              <path d="M12 18v3" />
-              <path d="M8 8c0-1.4 1.6-2.5 4-2.5s4 1.1 4 2.5-1.6 2.2-4 2.5c-2.4.3-4 1.1-4 2.5s1.6 2.5 4 2.5 4-1.1 4-2.5" />
-            </svg>
-            <div>
-              <strong>{{ resumo().ticketMedio !== null ? (resumo().ticketMedio | currency: 'BRL') : '—' }}</strong>
-              <span>Ticket médio</span>
-            </div>
-          </article>
+          <fk-kpi-card
+            [clickable]="true"
+            tint="red"
+            [alert]="true"
+            [active]="filtroEstado() === 'PROBLEMAS'"
+            [value]="resumo().problemas.toString().padStart(2, '0')"
+            label="Problemas"
+            (select)="alternarFiltroEstado('PROBLEMAS')"
+          >
+            <fk-icon icon class="kpi-icon kpi-icon--vermelho" name="warning-circle" size="1.5rem" />
+          </fk-kpi-card>
+
+          <fk-kpi-card
+            [value]="resumo().ticketMedio !== null ? ((resumo().ticketMedio | currency: 'BRL') ?? '—') : '—'"
+            label="Ticket médio"
+          >
+            <fk-icon icon class="kpi-icon" name="piggy-bank" size="1.5rem" />
+          </fk-kpi-card>
         </div>
-      </section>
 
-      <section class="secao secao--monitoramento">
-        <div class="monitoramento">
-          <div class="monitoramento__mesas">
-            <h2>Monitoramento de mesas</h2>
+        <div class="monitoramento__mesas">
+          <h2>Monitoramento de mesas</h2>
 
-            <div class="filtros">
-              <div class="filtros__campo">
-                <label for="filtro-garcom">Garçom</label>
-                <select
-                  id="filtro-garcom"
-                  [ngModel]="filtroGarcom()"
-                  (ngModelChange)="filtroGarcom.set($event)"
-                >
-                  <option [ngValue]="null">Todos</option>
-                  @for (nome of nomesGarcons(); track nome) {
-                    <option [ngValue]="nome">{{ nome }}</option>
-                  }
-                </select>
-              </div>
-
-              <div class="filtros__campo filtros__campo--valor">
-                <label>Valor da conta</label>
-                <div class="filtros__valor-range">
-                  <input
-                    type="number"
-                    placeholder="R$ mín."
-                    min="0"
-                    [ngModel]="valorMin()"
-                    (ngModelChange)="valorMin.set($event)"
-                  />
-                  <span>—</span>
-                  <input
-                    type="number"
-                    placeholder="R$ máx."
-                    min="0"
-                    [ngModel]="valorMax()"
-                    (ngModelChange)="valorMax.set($event)"
-                  />
-                </div>
-              </div>
+            <div class="filtros-rapidos" aria-label="Filtros rápidos de status">
+              <button
+                type="button"
+                class="filtros-rapidos__botao"
+                [class.filtros-rapidos__botao--active]="filtroEstado() === 'SEM_GARCOM'"
+                (click)="alternarFiltroEstado('SEM_GARCOM')"
+              >
+                Sem garçom
+              </button>
+              <button
+                type="button"
+                class="filtros-rapidos__botao"
+                [class.filtros-rapidos__botao--active]="filtroEstado() === 'CONTA_ABERTA'"
+                (click)="alternarFiltroEstado('CONTA_ABERTA')"
+              >
+                Conta aberta
+              </button>
+              <button
+                type="button"
+                class="filtros-rapidos__botao"
+                [class.filtros-rapidos__botao--active]="filtroEstado() === 'ATRASADAS'"
+                (click)="alternarFiltroEstado('ATRASADAS')"
+              >
+                Atrasadas
+              </button>
+              <button
+                type="button"
+                class="filtros-rapidos__botao"
+                [class.filtros-rapidos__botao--active]="filtroEstado() === 'AGUARDANDO_PEDIDO'"
+                (click)="alternarFiltroEstado('AGUARDANDO_PEDIDO')"
+              >
+                Aguardando pedido
+              </button>
 
               <button
                 class="filtros__limpar"
@@ -213,10 +125,7 @@
                 [disabled]="!temFiltrosAtivos()"
                 (click)="limparFiltros()"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                  <path d="M3 12a9 9 0 1 1 2.6 6.3" />
-                  <path d="M3 18v-5h5" />
-                </svg>
+                <fk-icon name="arrows-counter-clockwise" size="1rem" />
                 Limpar filtros
               </button>
             </div>
@@ -229,200 +138,163 @@
               >
                 <option value="CRITICO">Mais crítico</option>
                 <option value="NUMERO">Número da mesa</option>
+                <option value="MAIOR_VALOR">Maior valor</option>
+                <option value="MENOR_VALOR">Menor valor</option>
               </select>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="ordenacao__info" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 11v5" />
                 <path d="M12 8h.01" />
               </svg>
-            </div>
 
-            <div class="mesas-grid">
-              @for (mesa of mesasFiltradas(); track mesa.numero) {
-                <article
-                  class="mesa-card"
-                  [id]="'mesa-card-' + mesa.numero"
-                  [class]="'mesa-card--' + criticidadeCard(mesa)"
-                  [class.mesa-card--destacada]="mesaDestacada() === mesa.numero"
-                >
-                  <header class="mesa-card__header">
-                    <h3>Mesa {{ mesa.numero.toString().padStart(2, '0') }}</h3>
-
-                    @if (mesa.status === 'LIVRE') {
-                      <span class="mesa-card__status-pill mesa-card__status-pill--livre">Livre</span>
-                    } @else if (urgenciaBadgeLabel(mesa); as badge) {
-                      <span
-                        class="mesa-card__status-pill mesa-card__status-pill--urgencia"
-                        [class.mesa-card__status-pill--critico]="criticidadeCard(mesa) === 'critico'"
-                      >
-                        {{ badge }}
-                      </span>
-                    }
-
-                    @if (mesa.tempoLabel) {
-                      <span class="mesa-card__tempo">
-                        {{ mesa.tempoLabel }}
-                        <strong>{{ tempoAtrasLabel(mesa.tempoMinutos ?? 0) }}</strong>
-                      </span>
-                    }
-                  </header>
-
-                  @if (mesa.status === 'OCUPADA') {
-                    <p class="mesa-card__garcom">
-                      Garçom: {{ mesa.garcom }}
-                      <button
-                        type="button"
-                        class="mesa-card__trocar-garcom"
-                        [disabled]="expedienteFechado() || acaoEmAndamento()"
-                        (click)="abrirReatribuicao(mesa)"
-                      >
-                        Trocar
-                      </button>
-                    </p>
-
-                    @if (mesa.statusPedido) {
-                      <div class="mesa-card__andamento">
-                        <span class="mesa-card__andamento-label">
-                          @if (mesa.statusPedido === 'PRONTO_ENTREGA') {
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                              <circle cx="12" cy="12" r="9" />
-                              <path d="m8.5 12.5 2.3 2.3 4.7-5" />
-                            </svg>
-                          } @else if (mesa.statusPedido === 'CONTA_ABERTA') {
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                              <circle cx="12" cy="12" r="9" />
-                              <path d="M9.5 12h5" />
-                            </svg>
-                          } @else {
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                              <circle cx="12" cy="12" r="9" />
-                              <path d="M12 7v5l3 2" />
-                            </svg>
-                          }
-                          {{ statusPedidoLabel(mesa) }}
-                        </span>
-
-                        @if (mesa.totalEtapas) {
-                          <span
-                            class="mesa-card__etapas"
-                            [title]="'Etapa ' + mesa.etapaAtual + ' de ' + mesa.totalEtapas + ': ' + nomeEtapa(mesa.etapaAtual)"
-                          >
-                            {{ mesa.etapaAtual }}/{{ mesa.totalEtapas }} etapas
-                          </span>
-                        }
-                      </div>
-
-                      @if (mesa.totalEtapas) {
-                        <div class="mesa-card__progresso">
-                          <div
-                            class="mesa-card__progresso-fill"
-                            [style.width.%]="((mesa.etapaAtual ?? 0) / mesa.totalEtapas) * 100"
-                          ></div>
-                        </div>
-                      }
-                    }
-
-                    @if (mesa.pedidos.length > 0) {
-                      <p class="mesa-card__itens">Pedido: {{ itensResumoLabel(mesa) }}</p>
-                    }
-
-                    @if (valorContaMesa(mesa); as valorConta) {
-                      <p class="mesa-card__conta">Conta: {{ valorConta | currency: 'BRL' }}</p>
-                    }
-
-                    <div class="mesa-card__acoes">
-                      <button
-                        class="mesa-card__acao"
-                        [class]="'mesa-card__acao--' + criticidadeCard(mesa)"
-                        type="button"
-                        [disabled]="acaoPrimariaIndisponivel(mesa)"
-                        [title]="acaoPrimaria(mesa).tipo === 'VER_PEDIDO' ? 'Em breve' : ''"
-                        (click)="executarAcao(mesa)"
-                      >
-                        {{ acaoPrimaria(mesa).label }}
-                      </button>
-
-                      @if (temAcaoSecundaria(mesa)) {
-                        <button
-                          class="mesa-card__acao mesa-card__acao--secundaria"
-                          type="button"
-                          disabled
-                          title="Em breve"
-                          (click)="verPedido()"
-                        >
-                          Ver pedido
-                        </button>
-                      }
-                    </div>
-                  } @else {
-                    <p class="mesa-card__garcom">Garçom: —</p>
-                    <p class="mesa-card__disponivel">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <circle cx="12" cy="8" r="3.5" />
-                        <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" />
-                      </svg>
-                      Livre para atendimento
-                    </p>
-                    <button
-                      class="mesa-card__acao mesa-card__acao--livre"
-                      type="button"
-                      [disabled]="expedienteFechado() || acaoEmAndamento()"
-                      (click)="executarAcao(mesa)"
-                    >
-                      {{ acaoPrimaria(mesa).label }}
-                    </button>
-                  }
-                </article>
-              }
-            </div>
-          </div>
-
-          <aside class="coluna-lateral">
-            <div class="carga-garcons">
-              <h3>
-                Carga dos garçons
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 11v5" />
-                  <path d="M12 8h.01" />
-                </svg>
-              </h3>
-              <p>Mesas ativas por garçom</p>
-
-              <ul class="carga-garcons__lista">
-                @for (garcom of cargaGarcons(); track garcom.nome) {
-                  <li>
-                    <span class="carga-garcons__avatar" [style.background]="garcom.cor">
-                      {{ iniciais(garcom.nome) }}
-                    </span>
-                    <div class="carga-garcons__info">
-                      <div class="carga-garcons__linha">
-                        <span class="carga-garcons__nome">{{ garcom.nome }}</span>
-                        <span class="carga-garcons__contagem">
-                          {{ garcom.mesasAtivas }} {{ garcom.mesasAtivas === 1 ? 'mesa' : 'mesas' }}
-                        </span>
-                      </div>
-                      <div class="carga-garcons__barra">
-                        <div
-                          class="carga-garcons__barra-fill"
-                          [class]="'carga-garcons__barra-fill--' + nivelCarga(garcom.mesasAtivas)"
-                          [style.width.%]="larguraBarraCarga(garcom.mesasAtivas)"
-                        ></div>
-                      </div>
-                    </div>
-                  </li>
+              <span class="ordenacao__garcom-label">Garçom:</span>
+              <select
+                id="filtro-garcom"
+                [ngModel]="filtroGarcom()"
+                (ngModelChange)="filtroGarcom.set($event)"
+              >
+                <option [ngValue]="null">Todos</option>
+                @for (garcom of cargaGarcons(); track garcom.id) {
+                  <option [ngValue]="garcom.id">{{ garcom.nome }}</option>
                 }
-              </ul>
+              </select>
 
-              <div class="carga-garcons__disponiveis">
-                <span>Garçons disponíveis</span>
-                <strong>{{ resumo().garconsDisponiveis }} disponíveis</strong>
+              <label class="ordenacao__paginacao paginacao__itens">
+                Mostrar:
+                <input
+                  #itensInput
+                  type="number"
+                  min="1"
+                  [value]="itensPorPagina()"
+                  (input)="aoDigitarItensPorPagina(itensInput.value)"
+                  (blur)="aoSairItensPorPagina(itensInput.value)"
+                />
+                mesas
+              </label>
+            </div>
+
+            <div class="mesas-grid-wrapper">
+              <div class="mesas-grid" [class.mesas-grid--carregando]="carregandoMesas()">
+              @for (mesa of mesasPagina(); track mesa.numero) {
+                <fk-mesa-card
+                  [mesa]="mesa"
+                  [criticidade]="criticidadeCard(mesa)"
+                  [acaoPrimaria]="acaoPrimaria(mesa)"
+                  [bloqueado]="expedienteFechado() || acaoEmAndamento()"
+                  [destacada]="mesaDestacada() === mesa.numero"
+                  (acao)="executarAcao(mesa)"
+                  (trocar)="abrirReatribuicao(mesa)"
+                  (verPedido)="verPedido()"
+                />
+              } @empty {
+                <p class="mesas-grid__vazio">
+                  @if (temFiltrosAtivos()) {
+                    Nenhuma mesa corresponde aos filtros aplicados.
+                  } @else {
+                    Nenhuma mesa para exibir no momento.
+                  }
+                </p>
+              }
               </div>
             </div>
 
-            <div class="ultimos-pedidos">
+            @if (totalPaginas() > 1) {
+              <div class="paginacao__nav">
+                <button
+                  type="button"
+                  class="paginacao__botao"
+                  [disabled]="!temPaginaAnterior()"
+                  (click)="paginaAnterior()"
+                >
+                  ‹ Anterior
+                </button>
+                <span class="paginacao__status">Página {{ paginaEfetiva() }} de {{ totalPaginas() }}</span>
+                <button
+                  type="button"
+                  class="paginacao__botao"
+                  [disabled]="!temProximaPagina()"
+                  (click)="proximaPagina()"
+                >
+                  Próxima ›
+                </button>
+              </div>
+            }
+        </div>
+        </div>
+
+        <aside class="coluna-lateral">
+          <div class="carga-garcons">
+            <h3>
+              Carga dos garçons
+              <button
+                type="button"
+                class="carga-garcons__config-botao"
+                [class.carga-garcons__config-botao--ativo]="configCargaAberta()"
+                [attr.aria-expanded]="configCargaAberta()"
+                aria-label="Ajustar limites de carga"
+                (click)="alternarConfigCarga()"
+              >
+                <fk-icon name="gear-six" size="1rem" />
+              </button>
+            </h3>
+            <p>Mesas ativas por garçom</p>
+
+            @if (configCargaAberta()) {
+              <div class="carga-garcons__config">
+                <label class="carga-garcons__config-campo">
+                  <span><span class="carga-garcons__ponto carga-garcons__ponto--laranja"></span> Laranja a partir de</span>
+                  <input
+                    type="number"
+                    min="1"
+                    [ngModel]="limiarCargaLaranja()"
+                    (ngModelChange)="atualizarLimiarLaranja($event)"
+                  />
+                </label>
+                <label class="carga-garcons__config-campo">
+                  <span><span class="carga-garcons__ponto carga-garcons__ponto--vermelho"></span> Vermelho a partir de</span>
+                  <input
+                    type="number"
+                    [min]="limiarCargaLaranja() + 1"
+                    [ngModel]="limiarCargaVermelho()"
+                    (ngModelChange)="atualizarLimiarVermelho($event)"
+                  />
+                </label>
+              </div>
+            }
+
+            <ul class="carga-garcons__lista">
+              @for (garcom of cargaGarcons(); track garcom.id) {
+                <li>
+                  <fk-waiter-load-item
+                    [name]="garcom.nome"
+                    [initial]="iniciais(garcom.nome)"
+                    [color]="garcom.cor"
+                    [count]="garcom.mesasAtivas"
+                    [barWidth]="larguraBarraCarga(garcom.mesasAtivas)"
+                    [level]="nivelCarga(garcom.mesasAtivas)"
+                  />
+                </li>
+              }
+            </ul>
+
+            <div class="carga-garcons__disponiveis">
+              <fk-icon name="user-circle" size="1.1rem" />
+              <span>Garçons disponíveis</span>
+              <strong>{{ resumo().garconsDisponiveis }} disponíveis</strong>
+            </div>
+          </div>
+
+          <div class="ultimos-pedidos">
               <h3>Últimos pedidos</h3>
-              <p>Mostrando os 5 mais recentes</p>
+              <p>
+                @if (ultimosPedidos().length === 0) {
+                  Nenhum pedido fechado ainda
+                } @else if (ultimosPedidos().length === 1) {
+                  Mostrando o pedido mais recente
+                } @else {
+                  Mostrando os {{ ultimosPedidos().length }} mais recentes
+                }
+              </p>
 
               <ul class="ultimos-pedidos__lista">
                 @for (pedido of ultimosPedidos(); track pedido.pedidoId) {
@@ -435,7 +307,7 @@
                       <span class="ultimos-pedidos__mesa">Mesa {{ pedido.numeroMesa.toString().padStart(2, '0') }}</span>
                       <span>{{ pedido.valor | currency: 'BRL' }}</span>
                       <span>{{ pedido.garcom }}</span>
-                      <span>{{ tempoAtrasLabel(pedido.minutosAtras) }}</span>
+                      <span>{{ tempoAtrasLabel(pedido.tempoAtendimentoMinutos) }}</span>
                     </button>
                   </li>
                 }
@@ -447,8 +319,7 @@
               </div>
             </div>
           </aside>
-        </div>
-      </section>
+      </div>
 
       <section class="secao secao--fechamento">
         <button type="button" class="secao--fechamento__cabecalho" (click)="alternarFechamentoExpediente()">
@@ -489,54 +360,43 @@
             } @else {
               <div class="fechamento-resumo">
                 <div class="fechamento-acao">
-                  <button type="button" class="fechamento-acao__botao" (click)="reabrirExpediente()">
-                    Reabrir expediente
+                  <button type="button" class="fechamento-acao__botao" (click)="abrirNovoExpediente()">
+                    Abrir novo expediente
                   </button>
-                  <p class="fechamento-acao__aviso">Reabrir desbloqueia as ações operacionais nas mesas.</p>
+                  <p class="fechamento-acao__aviso">
+                    Inicia um novo expediente do zero: reabre as mesas e limpa as métricas acumuladas.
+                  </p>
                 </div>
 
                 <div class="resumo-cards">
-                  <article class="resumo-card">
-                    <div>
-                      <strong>{{ resumoExpediente().valorTotal | currency: 'BRL' }}</strong>
-                      <span>Valor total do expediente</span>
-                    </div>
-                  </article>
+                  <fk-kpi-card
+                    size="md"
+                    [value]="(resumoExpediente().valorTotal | currency: 'BRL') ?? '—'"
+                    label="Valor total do expediente"
+                  />
 
-                  <article class="resumo-card">
-                    <div>
-                      <strong>{{ resumoExpediente().atendimentosRealizados }}</strong>
-                      <span>Atendimentos realizados</span>
-                    </div>
-                  </article>
+                  <fk-kpi-card
+                    size="md"
+                    [value]="resumoExpediente().atendimentosRealizados.toString()"
+                    label="Atendimentos realizados"
+                  />
 
-                  <article class="resumo-card">
-                    <div>
-                      <strong>{{ resumoExpediente().pedidosFeitos }}</strong>
-                      <span>Pedidos feitos</span>
-                    </div>
-                  </article>
+                  <fk-kpi-card
+                    size="md"
+                    [value]="resumoExpediente().pedidosFeitos.toString()"
+                    label="Pedidos feitos"
+                  />
 
-                  <article class="resumo-card" [class.resumo-card--alerta]="resumoExpediente().problemas > 0">
-                    <div>
-                      <strong>{{ resumoExpediente().problemas }}</strong>
-                      <span>Problemas</span>
-                    </div>
-                  </article>
+                  <fk-kpi-card
+                    size="md"
+                    [alert]="resumoExpediente().problemas > 0"
+                    [value]="resumoExpediente().problemas.toString()"
+                    label="Problemas"
+                  />
 
-                  <article class="resumo-card">
-                    <div>
-                      <strong>{{ garcomDestaqueLabel() }}</strong>
-                      <span>Garçom com mais atendimentos</span>
-                    </div>
-                  </article>
+                  <fk-kpi-card size="md" [value]="garcomDestaqueLabel()" label="Garçom com mais atendimentos" />
 
-                  <article class="resumo-card">
-                    <div>
-                      <strong>{{ tempoMedioPreparoLabel() }}</strong>
-                      <span>Tempo médio de preparo</span>
-                    </div>
-                  </article>
+                  <fk-kpi-card size="md" [value]="tempoMedioPreparoLabel()" label="Tempo médio de preparo" />
                 </div>
 
                 <div class="grafico-mesas">
@@ -549,12 +409,11 @@
                       @for (item of resumoExpediente().mesasMaisOcupadas; track item.numeroMesa) {
                         <li>
                           <span class="grafico-mesas__label">Mesa {{ item.numeroMesa.toString().padStart(2, '0') }}</span>
-                          <div class="grafico-mesas__barra">
-                            <div
-                              class="grafico-mesas__barra-fill"
-                              [style.width.%]="larguraBarraMesaOcupada(item.pedidos)"
-                            ></div>
-                          </div>
+                          <fk-progress-bar
+                            thickness="lg"
+                            variant="blue"
+                            [value]="larguraBarraMesaOcupada(item.pedidos)"
+                          />
                           <span class="grafico-mesas__valor">
                             {{ item.pedidos }} {{ item.pedidos === 1 ? 'pedido' : 'pedidos' }}
                           </span>
@@ -585,37 +444,57 @@
         </header>
 
         <ul class="reatribuicao-modal__lista">
-          @for (garcom of cargaGarcons(); track garcom.nome) {
+          @for (garcom of cargaGarcons(); track garcom.id) {
             <li>
               <button
                 type="button"
                 class="reatribuicao-modal__opcao"
-                [disabled]="garcomJaAtribuido(garcom.nome)"
-                [title]="garcomJaAtribuido(garcom.nome) ? 'Já atribuído a esta mesa' : ''"
-                (click)="confirmarSelecaoGarcom(garcom.nome)"
+                [disabled]="garcomJaAtribuido(garcom.id)"
+                [title]="garcomJaAtribuido(garcom.id) ? 'Já atribuído a esta mesa' : ''"
+                (click)="confirmarSelecaoGarcom(garcom.id)"
               >
-                <span class="carga-garcons__avatar" [style.background]="garcom.cor">
-                  {{ iniciais(garcom.nome) }}
-                </span>
-                <div class="carga-garcons__info">
-                  <div class="carga-garcons__linha">
-                    <span class="carga-garcons__nome">{{ garcom.nome }}</span>
-                    <span class="carga-garcons__contagem">
-                      {{ garcom.mesasAtivas }} {{ garcom.mesasAtivas === 1 ? 'mesa' : 'mesas' }}
-                    </span>
-                  </div>
-                  <div class="carga-garcons__barra">
-                    <div
-                      class="carga-garcons__barra-fill"
-                      [class]="'carga-garcons__barra-fill--' + nivelCarga(garcom.mesasAtivas)"
-                      [style.width.%]="garcom.mesasAtivas * 20"
-                    ></div>
-                  </div>
-                </div>
+                <fk-waiter-load-item
+                  [name]="garcom.nome"
+                  [initial]="iniciais(garcom.nome)"
+                  [color]="garcom.cor"
+                  [count]="garcom.mesasAtivas"
+                  [barWidth]="garcom.mesasAtivas * 20"
+                  [level]="nivelCarga(garcom.mesasAtivas)"
+                />
               </button>
             </li>
           }
         </ul>
+      </div>
+    </div>
+  }
+
+  @if (acaoEmAndamento()) {
+    <div class="carregando-overlay">
+      <div class="carregando-overlay__caixa">
+        <span class="carregando-overlay__spinner" aria-hidden="true"></span>
+        <span>{{ descricaoAcao() ?? 'Processando...' }}</span>
+      </div>
+    </div>
+  }
+
+  @if (carregandoMesas()) {
+    <div class="atualizando-toast" role="status" aria-live="polite">
+      <span class="carregando-overlay__spinner" aria-hidden="true"></span>
+      <span>Atualizando mesas...</span>
+    </div>
+  }
+
+  @if (mensagemErro(); as erro) {
+    <div class="erro-overlay" (click)="fecharErro()">
+      <div class="erro-modal" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <button type="button" class="erro-modal__fechar" (click)="fecharErro()" aria-label="Fechar">✕</button>
+        <span class="erro-modal__icone" aria-hidden="true">
+          <fk-icon name="warning-circle" size="1.6rem" />
+        </span>
+        <h3 class="erro-modal__titulo">Não foi possível concluir a ação</h3>
+        <p class="erro-modal__mensagem">{{ erro }}</p>
+        <button type="button" class="erro-modal__botao" (click)="fecharErro()">Entendi</button>
       </div>
     </div>
   }
@@ -640,6 +519,43 @@
           </button>
           <button type="button" class="mesa-card__acao mesa-card__acao--info" (click)="confirmarFechamento()">
             Fechar expediente
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (confirmacaoAcao(); as confirmacao) {
+    <div class="reatribuicao-overlay" (click)="cancelarConfirmacaoAcao()">
+      <div class="reatribuicao-modal" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <header class="reatribuicao-modal__header">
+          <h3>{{ confirmacao.titulo }}</h3>
+          <button
+            type="button"
+            class="reatribuicao-modal__fechar"
+            (click)="cancelarConfirmacaoAcao()"
+            aria-label="Fechar"
+          >
+            ✕
+          </button>
+        </header>
+
+        <p class="fechamento-confirmacao__texto">
+          {{ confirmacao.mensagem }}
+        </p>
+
+        <div class="fechamento-confirmacao__acoes">
+          <button type="button" class="mesa-card__acao mesa-card__acao--secundaria" (click)="cancelarConfirmacaoAcao()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="mesa-card__acao"
+            [class.mesa-card__acao--conta]="confirmacao.tipo === 'FECHAR_CONTA'"
+            [class.mesa-card__acao--entrega]="confirmacao.tipo === 'MARCAR_ENTREGUE'"
+            (click)="confirmarAcaoCritica()"
+          >
+            {{ confirmacao.confirmarLabel }}
           </button>
         </div>
       </div>
