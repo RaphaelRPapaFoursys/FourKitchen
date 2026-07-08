@@ -76,14 +76,16 @@ describe('Gestor', () => {
     flushPainel();
   }
 
-  function flushPainel(): void {
+  function flushPainel(historico: unknown[] = []): void {
     httpMock
       .expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`)
       .flush(PAGINA_MESAS_API);
     httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
+    httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush(historico);
   }
 
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [Gestor],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -106,13 +108,29 @@ describe('Gestor', () => {
     expect(component).toBeTruthy();
   });
 
-  it('lista apenas os pedidos de atendimentos já fechados', async () => {
+  it('reflete os atendimentos finalizados retornados pelo histórico do backend', async () => {
     expect(painelService.ultimosPedidos().length).toBe(0);
 
     const promise = painelService.fecharConta(1);
     httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
     await esperarMicrotarefas();
-    flushPainel();
+    flushPainel([
+      {
+        id: 99,
+        idAtendimento: 5,
+        codigoSessao: 123,
+        idMesa: 1,
+        numeroMesa: 3,
+        idGarcom: 7,
+        nomeGarcom: 'Carlos',
+        valorFinal: 90,
+        totalPedidos: 1,
+        totalItens: 2,
+        dataAbertura: '2026-07-03T10:00:00',
+        dataFechamento: '2026-07-03T11:00:00',
+        duracaoMinutos: 60,
+      },
+    ]);
     await promise;
 
     const pedidos = painelService.ultimosPedidos();

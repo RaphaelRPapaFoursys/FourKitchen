@@ -21,97 +21,9 @@
   font-size: 1.1rem;
 }
 
-/* ---- Sidebar (navy) ---------------------------------------------------- */
-.painel__sidebar {
-  display: flex;
-  flex-direction: column;
-  width: fit-content;
-  padding: 1rem;
-  background: var(--fk-navy);
-  color: var(--fk-on-navy);
-}
-
-.painel__brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  color: var(--fk-on-navy);
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-
-.painel__brand-mark {
-  display: grid;
-  place-items: center;
-  width: 1.7rem;
-  height: 1.7rem;
-}
-
-.painel__brand-mark img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.painel__nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.painel__nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.7rem;
-  border-radius: var(--fk-radius-control);
-  color: var(--fk-on-navy-muted);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
-}
-
-.painel__nav-item:hover {
-  background: var(--fk-navy-hover);
-  color: var(--fk-on-navy);
-}
-
-.painel__nav-item--active {
-  background: var(--fk-navy-active);
-  color: var(--fk-on-navy);
-  font-weight: 600;
-}
-
-.painel__nav-item:focus-visible,
-.painel__sair:focus-visible {
-  outline: 2px solid var(--fk-orange);
-  outline-offset: 2px;
-}
-
-.painel__sair {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.7rem;
-  border: 0;
-  border-radius: var(--fk-radius-control);
-  background: transparent;
-  color: var(--fk-on-navy-muted);
-  font: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: color 120ms ease;
-}
-
-.painel__sair:hover {
-  color: var(--fk-on-navy);
-}
-
-
 /* ---- Área principal ---------------------------------------------------- */
 .painel__main {
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -120,126 +32,38 @@
   background: var(--fk-bg);
 }
 
-.painel__topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1.5rem;
-  background: var(--fk-card);
-  border-bottom: 1px solid var(--fk-border);
-}
-
-.painel__search {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-  max-width: 620px;
-  padding: 0.55rem 0.85rem;
-  border: 1px solid var(--fk-border);
-  border-radius: var(--fk-radius-control);
-  background: var(--fk-surface-muted);
-}
-
-.painel__search:focus-within {
-  border-color: var(--fk-border-strong);
-}
-
-.painel__search fk-icon {
-  color: var(--fk-muted);
-}
-
-.painel__search input {
-  flex: 1;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font: inherit;
-  color: var(--fk-text);
-}
-
-.painel__topbar-acoes {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.painel__notificacao {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border: 0;
-  border-radius: var(--fk-radius-control);
-  background: transparent;
-  color: var(--fk-text-2);
-  cursor: pointer;
-  transition: background 120ms ease;
-}
-
-.painel__notificacao:hover {
-  background: var(--fk-surface-muted);
-}
-
-.painel__notificacao:focus-visible {
-  outline: 2px solid var(--fk-blue);
-  outline-offset: 2px;
-}
-
-.painel__notificacao-badge {
+/* Onda laranja decorativa: faixa sutil confinada ao header, atrás da busca. */
+.painel__onda {
   position: absolute;
-  top: 0.4rem;
-  right: 0.45rem;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: var(--fk-radius-pill);
-  background: var(--fk-red);
-  border: 2px solid var(--fk-card);
+  top: 0;
+  right: 0;
+  left: 0;
+  width: 100%;
+  height: 72px;
+  object-fit: cover;
+  object-position: center center;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.55;
+  z-index: 0;
 }
 
-.painel__usuario {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
+/* A topbar (fk-topbar) e o conteúdo ficam acima da onda decorativa. */
+fk-topbar {
+  position: relative;
+  z-index: 1;
 }
-
 
 .painel__content {
+  position: relative;
+  z-index: 1;
   flex: 1;
   overflow-y: auto;
   padding: 1.25rem 1.5rem 2rem;
 }
 
-.painel__titulo {
-  margin: 0 0 1rem;
-  font-size: 1.75rem;
-  font-weight: 700;
-}
-
 .secao {
   margin-bottom: 1.5rem;
-}
-
-.secao__cabecalho {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.85rem;
-}
-
-.secao__cabecalho h2 {
-  margin: 0 0 0.15rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.secao__cabecalho p {
-  margin: 0;
-  color: var(--fk-muted);
-  font-size: 0.85rem;
 }
 
 /* Topo: 5 KPIs à esquerda + Carga dos garçons à direita. */
@@ -478,7 +302,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 0.85rem;
-  align-items: start;
 }
 
 .mesas-grid--carregando {
@@ -517,138 +340,10 @@
   text-align: center;
 }
 
-.mesa-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.7rem 0.85rem;
-  border: 1px solid var(--fk-border);
-  border-radius: var(--fk-radius-card);
-  background: var(--fk-card);
-  box-shadow: var(--fk-shadow-card);
-}
-
-.mesa-card--destacada {
-  outline: 2px solid var(--fk-orange);
-  outline-offset: 2px;
-  transition: outline-color 200ms ease;
-}
-
-.mesa-card__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.mesa-card__header h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.mesa-card__tempo {
-  margin-left: auto;
-  text-align: right;
-  font-size: 0.72rem;
-  color: var(--fk-muted);
-}
-
-.mesa-card__tempo strong {
-  display: block;
-  color: var(--fk-text);
-  font-size: 0.82rem;
-}
-
-.mesa-card__garcom {
-  margin: 0;
-  font-size: 0.82rem;
-  color: var(--fk-text-2);
-}
-
-.mesa-card__trocar-garcom {
-  margin-left: 0.35rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--fk-blue);
-  font: inherit;
-  font-size: 0.76rem;
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.mesa-card__trocar-garcom:hover:not(:disabled) {
-  color: var(--fk-navy-active);
-}
-
-.mesa-card__trocar-garcom:focus-visible {
-  outline: 2px solid var(--fk-blue);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-.mesa-card__trocar-garcom:disabled {
-  color: var(--fk-muted);
-  cursor: not-allowed;
-  text-decoration: none;
-}
-
-.mesa-card__andamento {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.8rem;
-}
-
-.mesa-card__andamento-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: var(--fk-text-2);
-}
-
-
-.mesa-card__etapas {
-  color: var(--fk-muted);
-}
-
-.mesa-card__itens,
-.mesa-card__conta {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--fk-text-2);
-}
-
-.mesa-card__conta {
-  font-weight: 600;
-  color: var(--fk-text);
-}
-
-.mesa-card__vazio {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  min-height: 56px;
-  color: var(--fk-muted);
-  text-align: center;
-}
-
-.mesa-card__vazio span {
-  font-size: 0.82rem;
-}
-
-
-.mesa-card__acoes {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: auto;
-}
-
+/* NOTA: os estilos estruturais do card de mesa migraram para o componente
+   fk-mesa-card (mesa-card.scss). As regras `.mesa-card__acao*` abaixo permanecem
+   aqui porque os modais de confirmação (fechamento/ação crítica) reutilizam essas
+   classes para os botões. */
 .mesa-card__acao {
   flex: 1;
   margin-top: auto;
@@ -730,10 +425,9 @@
 .carga-garcons,
 .ultimos-pedidos {
   padding: 1rem;
-  border: 1px solid var(--fk-border);
-  border-radius: var(--fk-radius-card);
+  border-radius: var(--fk-radius-card-lg);
   background: var(--fk-card);
-  box-shadow: var(--fk-shadow-card);
+  box-shadow: var(--fk-shadow-card-lg);
 }
 
 .carga-garcons h3 {
@@ -1086,10 +780,9 @@
 
 /* ---- Fechamento do expediente ----------------------------------------- */
 .secao--fechamento {
-  border: 1px solid var(--fk-border);
-  border-radius: var(--fk-radius-card);
+  border-radius: var(--fk-radius-card-lg);
   background: var(--fk-card);
-  box-shadow: var(--fk-shadow-card);
+  box-shadow: var(--fk-shadow-card-lg);
 }
 
 .secao--fechamento__cabecalho {
@@ -1099,7 +792,7 @@
   width: 100%;
   padding: 0.85rem 1rem;
   border: 0;
-  border-radius: var(--fk-radius-card);
+  border-radius: var(--fk-radius-card-lg);
   background: transparent;
   font: inherit;
   text-align: left;
@@ -1312,17 +1005,11 @@
 }
 
 @media (max-width: 960px) {
-  .painel__sidebar {
-    width: 72px;
-  }
-
-  .painel__brand-name,
-  .painel__nav-item span,
-  .painel__sair span {
-    display: none;
-  }
-
   .painel-grid {
     grid-template-columns: 1fr;
+  }
+
+  .painel__onda {
+    display: none;
   }
 }

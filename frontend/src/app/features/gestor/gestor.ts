@@ -8,11 +8,12 @@ import { NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgenc
 import { AcaoMesaPainel, MesaPainel } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { FiltroEstadoPainel, OrdenacaoPainel, PainelService } from '../../core/services/painel';
-import { Avatar } from '../../shared/components/avatar/avatar';
-import { Badge } from '../../shared/components/badge/badge';
+import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { MesaCard } from '../../shared/components/mesa-card/mesa-card';
 import { ProgressBar } from '../../shared/components/progress-bar/progress-bar';
+import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { WaiterLoadItem } from '../../shared/components/waiter-load-item/waiter-load-item';
 
 type Ordenacao = 'CRITICO' | 'NUMERO' | 'MAIOR_VALOR' | 'MENOR_VALOR';
@@ -36,16 +37,9 @@ interface ConfirmacaoAcaoEstado {
   confirmarLabel: string;
 }
 
-const NOMES_ETAPAS: Record<number, string> = {
-  1: 'Pedido enviado à cozinha',
-  2: 'Em preparo',
-  3: 'Finalização',
-  4: 'Pronto para entrega',
-};
-
 @Component({
   selector: 'app-gestor',
-  imports: [FormsModule, CurrencyPipe, Avatar, Badge, Icon, KpiCard, ProgressBar, WaiterLoadItem],
+  imports: [FormsModule, CurrencyPipe, Icon, KpiCard, ProgressBar, WaiterLoadItem, Sidebar, Topbar, MesaCard],
   templateUrl: './gestor.html',
   styleUrl: './gestor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,7 +73,7 @@ export class Gestor {
   protected readonly ordenacao = signal<Ordenacao>('CRITICO');
   protected readonly filtroEstado = signal<FiltroEstado>(null);
   protected readonly paginaAtual = signal(1);
-  protected readonly itensPorPagina = signal(10);
+  protected readonly itensPorPagina = signal(12);
   protected readonly limiarCargaLaranja = signal(5);
   protected readonly limiarCargaVermelho = signal(10);
   protected readonly configCargaAberta = signal(false);
@@ -138,27 +132,8 @@ export class Gestor {
     return resolverCriticidadeMesa(mesa);
   }
 
-  protected urgenciaBadgeLabel(mesa: MesaPainel): string | null {
-    const criticidade = this.criticidadeCard(mesa);
-    if (criticidade === 'critico') return 'Atrasada';
-    if (criticidade === 'atencao') return 'Atenção';
-    return null;
-  }
-
-  protected temAcaoSecundaria(mesa: MesaPainel): boolean {
-    return (
-      mesa.status === 'OCUPADA' &&
-      this.acaoPrimaria(mesa).tipo !== 'VER_PEDIDO' &&
-      (this.criticidadeCard(mesa) === 'critico' || this.criticidadeCard(mesa) === 'atencao')
-    );
-  }
-
   protected acaoPrimaria(mesa: MesaPainel): { tipo: AcaoMesaPainel; label: string } {
     return this.painelService.acaoPrimaria(mesa);
-  }
-
-  protected acaoPrimariaIndisponivel(mesa: MesaPainel): boolean {
-    return this.expedienteFechado() || this.acaoEmAndamento() || this.acaoPrimaria(mesa).tipo === 'VER_PEDIDO';
   }
 
   protected executarAcao(mesa: MesaPainel): void {
@@ -376,33 +351,6 @@ export class Gestor {
   protected sair(): void {
     this.authService.logout();
     void this.router.navigateByUrl('/login');
-  }
-
-  protected valorContaMesa(mesa: MesaPainel): number | null {
-    return this.painelService.valorContaMesa(mesa);
-  }
-
-  protected itensResumoLabel(mesa: MesaPainel): string {
-    const totalItens = this.painelService.totalItensMesa(mesa);
-    return totalItens === null ? '' : `${totalItens} itens`;
-  }
-
-  protected statusPedidoLabel(mesa: MesaPainel): string {
-    switch (mesa.statusPedido) {
-      case 'EM_PREPARO':
-        return 'Em preparo';
-      case 'PRONTO_ENTREGA':
-        return 'Pronto para entrega';
-      case 'CONTA_ABERTA':
-        return 'Conta aberta';
-      default:
-        return '';
-    }
-  }
-
-  protected nomeEtapa(etapa: number | null): string {
-    if (etapa === null) return '';
-    return NOMES_ETAPAS[etapa] ?? '';
   }
 
   protected tempoAtrasLabel(minutos: number): string {

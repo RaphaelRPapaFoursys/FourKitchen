@@ -7,9 +7,10 @@
    ========================================================================== */
 :root {
   /* Marca */
-  --fk-navy: #0f1f3d; /* fundo da sidebar */
-  --fk-navy-hover: #16294d; /* hover de item de menu */
-  --fk-navy-active: #1b3b6f; /* item de menu ativo */
+  --fk-navy: #0c1322; /* fundo da sidebar (quase preto azulado, conforme mockup) */
+  --fk-navy-hover: #16223b; /* hover de item de menu */
+  --fk-navy-active: #1b3b6f; /* legado; a sidebar ativa agora usa --fk-sidebar-active */
+  --fk-sidebar-active: #f26a21; /* item de menu ativo = pill laranja preenchido */
   --fk-orange: #f26a21; /* laranja primário (logo, botões outline, seleção) */
   --fk-orange-progress: #f97316; /* barra de progresso */
   --fk-orange-soft: #fdece0; /* fundo suave da seleção (mesmo matiz da marca) */
@@ -37,7 +38,7 @@
   --fk-blue-soft: #eaf1fe;
 
   /* Superfícies */
-  --fk-bg: #f7f8fa; /* fundo da página */
+  --fk-bg: #faf7f4; /* fundo da página (creme quente, conforme mockup) */
   --fk-card: #ffffff; /* fundo de card */
   --fk-surface-muted: #f1f5f9; /* busca, trilhos de barra */
   --fk-border: #e5e7eb; /* borda de card / controle */
@@ -53,9 +54,11 @@
 
   /* Formas */
   --fk-radius-card: 12px;
+  --fk-radius-card-lg: 16px; /* cards do novo design (mesa, coluna lateral) */
   --fk-radius-control: 8px;
   --fk-radius-pill: 999px;
   --fk-shadow-card: 0 1px 3px rgb(0 0 0 / 6%);
+  --fk-shadow-card-lg: 0 8px 24px rgb(15 23 42 / 6%); /* sombra difusa dos cards do novo design */
   --fk-shadow-overlay: 0 24px 60px rgb(15 23 42 / 18%);
 
   /* Espaçamento base (múltiplos de 4px) */

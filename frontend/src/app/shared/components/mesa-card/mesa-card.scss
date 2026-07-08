@@ -1,0 +1,215 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 220px;
+  padding: 0.95rem 1rem;
+  border-radius: var(--fk-radius-card-lg);
+  background: var(--fk-card);
+  box-shadow: var(--fk-shadow-card-lg);
+}
+
+:host(.mesa-card--destacada) {
+  outline: 2px solid var(--fk-orange);
+  outline-offset: 2px;
+  transition: outline-color 200ms ease;
+}
+
+.mesa-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mesa-card__header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.mesa-card__tempo {
+  margin-left: auto;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--fk-muted);
+}
+
+.mesa-card__tempo strong {
+  display: block;
+  color: var(--fk-text);
+  font-size: 0.82rem;
+}
+
+.mesa-card__garcom {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--fk-text-2);
+}
+
+/* No novo design o "Trocar" é laranja (destaque de ação sobre o card). */
+.mesa-card__trocar-garcom {
+  margin-left: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fk-orange);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mesa-card__trocar-garcom:hover:not(:disabled) {
+  color: var(--fk-orange-strong);
+}
+
+.mesa-card__trocar-garcom:focus-visible {
+  outline: 2px solid var(--fk-orange);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.mesa-card__trocar-garcom:disabled {
+  color: var(--fk-muted);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.mesa-card__andamento {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.mesa-card__andamento-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--fk-text-2);
+}
+
+.mesa-card__etapas {
+  color: var(--fk-muted);
+}
+
+.mesa-card__itens,
+.mesa-card__conta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--fk-text-2);
+}
+
+.mesa-card__conta {
+  font-weight: 600;
+  color: var(--fk-text);
+}
+
+.mesa-card__vazio {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 56px;
+  color: var(--fk-muted);
+  text-align: center;
+}
+
+.mesa-card__vazio span {
+  font-size: 0.82rem;
+}
+
+/* Ações full-width empilhadas, com chevron ancorado à direita (conforme mockup). */
+.mesa-card__acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.mesa-card__acao {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--fk-border);
+  border-radius: var(--fk-radius-control);
+  background: var(--fk-card);
+  color: var(--fk-text-2);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 120ms ease, border-color 120ms ease;
+}
+
+.mesa-card__acao-chevron {
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  transform: translateY(-50%);
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.mesa-card__acao:hover:not(:disabled) {
+  filter: brightness(0.97);
+  border-color: var(--fk-border-strong);
+}
+
+.mesa-card__acao:focus-visible {
+  outline: 2px solid var(--fk-blue);
+  outline-offset: 2px;
+}
+
+.mesa-card__acao:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.mesa-card__acao--secundaria {
+  background: var(--fk-card);
+  color: var(--fk-text-2);
+}
+
+/* Ver pedido (mesa ocupada, ação padrão) → laranja suave, conforme mockup. */
+.mesa-card__acao--ver {
+  border-color: var(--fk-orange-soft);
+  background: var(--fk-tint-orange);
+  color: var(--fk-orange);
+}
+
+/* Fechar conta → laranja. */
+.mesa-card__acao--conta {
+  border-color: var(--fk-orange);
+  background: var(--fk-tint-orange);
+  color: var(--fk-orange);
+}
+
+/* Marcar entrega → vermelho preenchido (CTA forte). */
+.mesa-card__acao--entrega {
+  border-color: var(--fk-red);
+  background: var(--fk-red);
+  color: #fff;
+}
+
+.mesa-card__acao--entrega:focus-visible {
+  outline-color: var(--fk-red);
+}
+
+/* Abrir mesa / Atribuir garçom → verde suave. */
+.mesa-card__acao--abrir {
+  border-color: var(--fk-green-soft);
+  background: var(--fk-tint-green);
+  color: var(--fk-green-strong);
+}
+
+.mesa-card__acao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

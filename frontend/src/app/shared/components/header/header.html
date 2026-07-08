@@ -1,1 +1,37 @@
-<p>header works!</p>
+<header class="topbar">
+  <div class="topbar__search">
+    <fk-icon name="magnifying-glass" size="1.15rem" />
+    <input
+      type="search"
+      [placeholder]="buscaPlaceholder()"
+      [ngModel]="busca()"
+      (ngModelChange)="busca.set($event)"
+    />
+  </div>
+
+  <div class="topbar__acoes">
+    <button class="topbar__notificacao" type="button" aria-label="Notificações">
+      <fk-icon name="bell-ringing" size="1.3rem" />
+      @if (notificacoes(); as total) {
+        <span class="topbar__notificacao-contagem" aria-hidden="true">{{ total }}</span>
+      } @else {
+        <span class="topbar__notificacao-dot" aria-hidden="true"></span>
+      }
+    </button>
+
+    <div class="topbar__usuario">
+      <fk-avatar [initial]="usuarioInicial()" color="var(--fk-navy)" />
+      <span class="topbar__usuario-nome">{{ usuarioNome() }}</span>
+      <svg
+        class="topbar__usuario-chevron"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </div>
+  </div>
+</header>

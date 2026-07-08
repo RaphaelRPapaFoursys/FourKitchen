@@ -14,7 +14,6 @@ import {
   StatusPedidoPainel,
 } from '../models/painel.models';
 import {
-  AtendimentoFinalizado,
   contarMesasComContaAberta,
   contarPedidosPendentesEntrega,
   mesasComAtendimentoAtivo,
@@ -66,6 +65,23 @@ interface ResumoPainelApiResponse {
   cargaGarcons: CargaGarcomApiResponse[];
 }
 
+/** Atendimento finalizado (`GET /api/gestor/atendimentos/historico`) — persistido pelo ms-mesas a cada fechamento de mesa. */
+interface HistoricoAtendimentoApiResponse {
+  id: number;
+  idAtendimento: number;
+  codigoSessao: number;
+  idMesa: number;
+  numeroMesa: number;
+  idGarcom: number | null;
+  nomeGarcom: string | null;
+  valorFinal: number;
+  totalPedidos: number;
+  totalItens: number;
+  dataAbertura: string;
+  dataFechamento: string;
+  duracaoMinutos: number;
+}
+
 export type FiltroEstadoPainel =
   | 'PROBLEMAS'
   | 'PRONTOS'
@@ -103,6 +119,10 @@ const PALETA_CORES_GARCOM = ['#2f6fed', '#8b5cf6', '#2fb673', '#f59e0b', '#ec489
 
 const MAXIMO_ULTIMOS_PEDIDOS = 5;
 
+/** Chaves de localStorage do estado do expediente (paliativo até o backend persistir o expediente). */
+const STORAGE_EXPEDIENTE_FECHADO = 'fk.expediente.fechado';
+const STORAGE_EXPEDIENTE_INICIO = 'fk.expediente.inicio';
+
 const INTERVALO_POLLING_MS = 10000;
 
 /** Intervalo entre os prefetch das páginas vizinhas — evita disparar as duas requisições coladas. */
@@ -127,7 +147,7 @@ const TOTAL_ETAPAS_PEDIDO = 4;
 
 const CONSULTA_INICIAL: ConsultaMesasPainel = {
   page: 0,
-  size: 10,
+  size: 12,
   sort: 'criticidade',
   filtroEstado: null,
   garcomId: null,
@@ -145,7 +165,7 @@ const RESUMO_INICIAL: ResumoAtendimento = {
 
 const PAGINACAO_INICIAL: PaginacaoMesasPainel = {
   page: 0,
-  size: 10,
+  size: 12,
   totalElements: 0,
   totalPages: 0,
   first: true,
@@ -175,9 +195,13 @@ export class PainelService {
   private readonly descricaoAcaoSignal = signal<string | null>(null);
   private readonly mensagemErroSignal = signal<string | null>(null);
 
+  /** Atendimentos finalizados vindos do backend (mais recentes primeiro), fonte de últimos pedidos e do resumo do expediente. */
+  private readonly historicoAtendimentosSignal = signal<HistoricoAtendimentoApiResponse[]>([]);
+
   /** Sequência das requisições em voo: só a mais recente pode escrever na tela (evita piscar por resposta atrasada). */
   private sequenciaMesas = 0;
   private sequenciaResumo = 0;
+  private sequenciaHistorico = 0;
   private atualizacaoPainelPromise: Promise<void> | null = null;
   private consultaMesasEmAndamento = false;
 
@@ -286,20 +310,17 @@ export class PainelService {
     }
   }
 
-  /** Pedidos de atendimentos já fechados no expediente (mais recentes primeiro). */
+  /** Últimos atendimentos fechados no expediente atual (mais recentes primeiro, já ordenados pelo backend). */
   readonly ultimosPedidos = computed<PedidoRecente[]>(() =>
-    [...this.historicoExpediente()]
-      .reverse()
-      .flatMap(atendimento =>
-        atendimento.pedidos.map(pedido => ({
-          pedidoId: pedido.id,
-          numeroMesa: atendimento.numeroMesa,
-          garcom: atendimento.garcom,
-          valor: pedido.valor,
-          tempoAtendimentoMinutos: atendimento.duracaoMinutos ?? 0,
-        })),
-      )
-      .slice(0, MAXIMO_ULTIMOS_PEDIDOS),
+    this.historicoExpedienteAtual()
+      .slice(0, MAXIMO_ULTIMOS_PEDIDOS)
+      .map(atendimento => ({
+        pedidoId: atendimento.id,
+        numeroMesa: atendimento.numeroMesa,
+        garcom: atendimento.nomeGarcom ?? '—',
+        valor: atendimento.valorFinal,
+        tempoAtendimentoMinutos: atendimento.duracaoMinutos,
+      })),
   );
 
   /** Conta mesas com atendimento ativo (não linhas da lista de últimos pedidos). */
@@ -323,25 +344,41 @@ export class PainelService {
     () => this.pedidosPendentesEntrega() === 0 && this.mesasComContaAberta() === 0,
   );
 
-  /** TODO: sem persistência no backend ainda; o estado do expediente não sobrevive a um reload. */
-  readonly expedienteFechado = signal(false);
+  /**
+   * Estado aberto/fechado do expediente. TODO: ainda não há expediente persistido no backend;
+   * mantemos em localStorage para sobreviver ao reload (limitação: é por navegador, não compartilhado entre gestores).
+   */
+  readonly expedienteFechado = signal(lerExpedienteFechado());
 
-  /** Atendimentos cuja conta já foi fechada — mantém as métricas do expediente após liberar a mesa. */
-  private readonly historicoExpediente = signal<AtendimentoFinalizado[]>([]);
+  /**
+   * Marco (epoch ms) do início do expediente atual. O histórico do backend é permanente, então
+   * "zerar as métricas" ao abrir um novo expediente vira um filtro por data de fechamento.
+   */
+  private readonly inicioExpedienteSignal = signal<number | null>(lerInicioExpediente());
 
-  readonly resumoExpediente = computed(() =>
-    montarResumoExpediente(this.mesasSignal(), this.historicoExpediente()),
-  );
+  /** Histórico do backend restrito ao expediente atual (fechados a partir do início do expediente). */
+  private readonly historicoExpedienteAtual = computed(() => {
+    const inicio = this.inicioExpedienteSignal();
+    const historico = this.historicoAtendimentosSignal();
+    if (inicio === null) return historico;
+    return historico.filter(item => new Date(item.dataFechamento).getTime() >= inicio);
+  });
+
+  readonly resumoExpediente = computed(() => montarResumoExpediente(this.historicoExpedienteAtual()));
 
   fecharExpediente(): void {
     if (!this.podeFecharExpediente()) return;
     this.expedienteFechado.set(true);
+    localStorage.setItem(STORAGE_EXPEDIENTE_FECHADO, 'true');
   }
 
-  /** Inicia um expediente do zero: reabre a operação e descarta o histórico/métricas acumulados. */
+  /** Inicia um expediente do zero: reabre a operação e marca o início para descartar as métricas anteriores. */
   abrirNovoExpediente(): void {
-    this.historicoExpediente.set([]);
+    const inicio = Date.now();
+    this.inicioExpedienteSignal.set(inicio);
     this.expedienteFechado.set(false);
+    localStorage.setItem(STORAGE_EXPEDIENTE_INICIO, String(inicio));
+    localStorage.setItem(STORAGE_EXPEDIENTE_FECHADO, 'false');
   }
 
   acaoPrimaria(mesa: MesaPainel): { tipo: AcaoMesaPainel; label: string } {
@@ -375,14 +412,9 @@ export class PainelService {
   async fecharConta(idMesa: number): Promise<void> {
     if (this.expedienteFechado()) return;
 
-    // Captura o snapshot antes do PATCH, mas só registra no histórico após o fechamento dar certo.
-    const atendimento = this.snapshotHistorico(idMesa);
-
     await this.executarComFeedback('Fechando conta...', async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/fechar`, {}));
-      if (atendimento) {
-        this.historicoExpediente.update(historico => [...historico, atendimento]);
-      }
+      // O fechamento grava o atendimento no histórico do ms-mesas; recarregar o painel puxa esse registro.
       await this.atualizarPainelForcado();
     });
   }
@@ -431,19 +463,6 @@ export class PainelService {
     }
 
     return 'Ocorreu um erro. Tente novamente.';
-  }
-
-  /** Monta (sem gravar) o registro de histórico da mesa; devolve null quando não há o que registrar. */
-  private snapshotHistorico(idMesa: number): AtendimentoFinalizado | null {
-    const mesa = this.mesasSignal().find(item => item.id === idMesa);
-    if (!mesa || mesa.garcom === null || mesa.pedidos.length === 0) return null;
-
-    return {
-      numeroMesa: mesa.numero,
-      garcom: mesa.garcom,
-      pedidos: mesa.pedidos,
-      duracaoMinutos: mesa.abertaEm === null ? 0 : minutosDesde(mesa.abertaEm),
-    };
   }
 
   private async atualizarMesas(): Promise<void> {
@@ -581,6 +600,18 @@ export class PainelService {
     });
   }
 
+  private async atualizarHistoricoAtendimentos(): Promise<void> {
+    const seq = ++this.sequenciaHistorico;
+    const historico = await firstValueFrom(
+      this.http.get<HistoricoAtendimentoApiResponse[]>(`${this.baseUrl}/atendimentos/historico`),
+    );
+
+    // Resposta atrasada não pode sobrescrever um histórico mais recente.
+    if (seq !== this.sequenciaHistorico) return;
+
+    this.historicoAtendimentosSignal.set(historico ?? []);
+  }
+
   private async atualizarPainel(): Promise<void> {
     if (this.atualizacaoPainelPromise !== null) {
       return this.atualizacaoPainelPromise;
@@ -594,7 +625,11 @@ export class PainelService {
   }
 
   private async iniciarAtualizacaoPainel(): Promise<void> {
-    const promessa = Promise.all([this.atualizarMesas(), this.atualizarResumoPainel()]).then(() => undefined);
+    const promessa = Promise.all([
+      this.atualizarMesas(),
+      this.atualizarResumoPainel(),
+      this.atualizarHistoricoAtendimentos(),
+    ]).then(() => undefined);
     this.atualizacaoPainelPromise = promessa;
 
     try {
@@ -614,6 +649,19 @@ export class PainelService {
       // ignora falha de polling (o próximo tick tenta de novo)
     }
   }
+}
+
+/** Lê o estado fechado/aberto do expediente persistido no navegador (paliativo até o backend expor isso). */
+function lerExpedienteFechado(): boolean {
+  return localStorage.getItem(STORAGE_EXPEDIENTE_FECHADO) === 'true';
+}
+
+/** Lê o marco (epoch ms) de início do expediente atual; `null` quando nunca foi definido. */
+function lerInicioExpediente(): number | null {
+  const raw = localStorage.getItem(STORAGE_EXPEDIENTE_INICIO);
+  if (raw === null) return null;
+  const valor = Number.parseInt(raw, 10);
+  return Number.isNaN(valor) ? null : valor;
 }
 
 function mapearMesa(mesa: MesaGestorApiResponse): MesaPainel {

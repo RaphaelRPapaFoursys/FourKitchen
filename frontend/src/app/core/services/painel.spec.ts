@@ -50,7 +50,7 @@ const MESAS_API = [
 const PAGINA_MESAS_API = {
   content: MESAS_API,
   page: 0,
-  size: 10,
+  size: 12,
   totalElements: 3,
   totalPages: 1,
   first: true,
@@ -77,14 +77,16 @@ describe('PainelService', () => {
     flushPainel();
   }
 
-  function flushPainel(): void {
+  function flushPainel(historico: unknown[] = []): void {
     httpMock
       .expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`)
       .flush(PAGINA_MESAS_API);
     httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
+    httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush(historico);
   }
 
   beforeEach(() => {
+    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), PainelService],
     });
@@ -122,7 +124,7 @@ describe('PainelService', () => {
   });
 
   describe('ultimosPedidos', () => {
-    it('mostra apenas pedidos de atendimentos já fechados', async () => {
+    it('reflete os atendimentos finalizados retornados pelo histórico do backend', async () => {
       expect(service.ultimosPedidos()).toHaveLength(0);
 
       const promise = service.fecharConta(1);
@@ -130,12 +132,30 @@ describe('PainelService', () => {
       for (let i = 0; i < 3; i++) {
         await Promise.resolve();
       }
-      flushPainel();
+      flushPainel([
+        {
+          id: 99,
+          idAtendimento: 5,
+          codigoSessao: 123,
+          idMesa: 1,
+          numeroMesa: 3,
+          idGarcom: 7,
+          nomeGarcom: 'Carlos',
+          valorFinal: 80,
+          totalPedidos: 2,
+          totalItens: 3,
+          dataAbertura: '2026-07-03T10:00:00',
+          dataFechamento: '2026-07-03T11:00:00',
+          duracaoMinutos: 60,
+        },
+      ]);
       await promise;
 
       const pedidos = service.ultimosPedidos();
       expect(pedidos).toHaveLength(1);
       expect(pedidos[0].numeroMesa).toBe(3);
+      expect(pedidos[0].valor).toBe(80);
+      expect(pedidos[0].garcom).toBe('Carlos');
     });
   });
 
@@ -195,7 +215,7 @@ describe('PainelService', () => {
       httpMock.expectNone(`${BASE_URL}/mesas/1/fechar`);
     });
 
-    it('não registra no histórico quando o fecharConta falha', async () => {
+    it('não recarrega o histórico quando o fecharConta falha', async () => {
       expect(service.ultimosPedidos()).toHaveLength(0);
 
       const promise = service.fecharConta(1);
@@ -205,7 +225,7 @@ describe('PainelService', () => {
       await esperarMicrotarefas();
       await promise;
 
-      // Sem sucesso no PATCH, nada entra no histórico e não há recarga de mesas.
+      // Sem sucesso no PATCH, o painel (e o histórico) não é recarregado e a lista continua vazia.
       expect(service.ultimosPedidos()).toHaveLength(0);
       expect(service.mensagemErro()).not.toBeNull();
     });
@@ -246,6 +266,16 @@ describe('PainelService', () => {
 
       expect(service.acaoPrimaria(mesaComContaAberta).tipo).toBe('FECHAR_CONTA');
     });
+
+    it('abrirNovoExpediente reabre o expediente e persiste o início no localStorage', () => {
+      service.expedienteFechado.set(true);
+
+      service.abrirNovoExpediente();
+
+      expect(service.expedienteFechado()).toBe(false);
+      expect(localStorage.getItem('fk.expediente.fechado')).toBe('false');
+      expect(localStorage.getItem('fk.expediente.inicio')).not.toBeNull();
+    });
   });
 });
 
@@ -255,19 +285,19 @@ describe('PainelService — cache e prefetch de páginas', () => {
 
   const TOTAL_PAGINAS = 6;
 
-  function paginaComTotal(page: number) {
+  function paginaComTotal(page: number, size = 12) {
     return {
       content: MESAS_API,
       page,
-      size: 10,
-      totalElements: TOTAL_PAGINAS * 10,
+      size,
+      totalElements: TOTAL_PAGINAS * size,
       totalPages: TOTAL_PAGINAS,
       first: page === 0,
       last: page === TOTAL_PAGINAS - 1,
     };
   }
 
-  function consultaPagina(page: number, size = 10) {
+  function consultaPagina(page: number, size = 12) {
     return { page, size, sort: 'criticidade' as const, filtroEstado: null, garcomId: null, busca: '' };
   }
 
@@ -275,7 +305,8 @@ describe('PainelService — cache e prefetch de páginas', () => {
   function flushPaginadasPendentes(): void {
     httpMock.match(request => request.url === `${BASE_URL}/mesas/paginadas`).forEach(req => {
       const page = Number(req.request.params.get('page') ?? '0');
-      req.flush(paginaComTotal(page));
+      const size = Number(req.request.params.get('size') ?? '12');
+      req.flush(paginaComTotal(page, size));
     });
   }
 
@@ -289,6 +320,7 @@ describe('PainelService — cache e prefetch de páginas', () => {
   }
 
   beforeEach(async () => {
+    localStorage.clear();
     vi.useFakeTimers();
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), PainelService],
@@ -296,11 +328,12 @@ describe('PainelService — cache e prefetch de páginas', () => {
     service = TestBed.inject(PainelService);
     httpMock = TestBed.inject(HttpTestingController);
 
-    // Load inicial: página 0 + resumo.
+    // Load inicial: página 0 + resumo + histórico.
     httpMock.expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`).flush(paginaComTotal(0));
     httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
+    httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush([]);
 
-    // Com 10 mesas por página (raio 2), o prefetch inicial cacheia as páginas 1 e 2.
+    // Com 12 mesas por página (raio 2), o prefetch inicial cacheia as páginas 1 e 2.
     await estabilizar();
   });
 
@@ -334,7 +367,7 @@ describe('PainelService — cache e prefetch de páginas', () => {
     // Muda um filtro (nova base) → o cache é invalidado.
     void service.atualizarConsulta({
       page: 0,
-      size: 10,
+      size: 12,
       sort: 'criticidade',
       filtroEstado: 'PROBLEMAS',
       garcomId: null,

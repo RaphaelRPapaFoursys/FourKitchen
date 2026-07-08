@@ -2,59 +2,24 @@
   <div class="painel__carregando">Carregando painel...</div>
 } @else {
 <div class="painel">
-  <aside class="painel__sidebar">
-    <div class="painel__brand">
-      <span class="painel__brand-mark" aria-hidden="true">
-        <img src="favicon.ico" alt="" />
-      </span>
-      <span class="painel__brand-name">FourKitchen</span>
-    </div>
-
-    <nav class="painel__nav">
-      <a class="painel__nav-item painel__nav-item--active">
-        <fk-icon name="shirt-folded" size="1.15rem" />
-        Gestão
-      </a>
-      <a class="painel__nav-item">
-        <fk-icon name="bag" size="1.15rem" />
-        Pedidos
-      </a>
-    </nav>
-
-    <button class="painel__sair" type="button" (click)="sair()">
-      <fk-icon name="sign-out" size="1.15rem" />
-      Sair
-    </button>
-  </aside>
+  <fk-sidebar (sair)="sair()" />
 
   <div class="painel__main">
-    <header class="painel__topbar">
-      <div class="painel__search">
-        <fk-icon name="magnifying-glass" size="1.15rem" />
-        <input
-          type="search"
-          placeholder="Pesquisar mesa, pedido ou garçom"
-          [ngModel]="buscaTermo()"
-          (ngModelChange)="buscaTermo.set($event)"
-        />
-      </div>
+    <img
+      class="painel__onda"
+      src="assets/images/listra-fourkitchen.png"
+      alt=""
+      aria-hidden="true"
+    />
 
-      <div class="painel__topbar-acoes">
-        <button type="button" class="painel__notificacao" aria-label="Notificações">
-          <fk-icon name="bell-ringing" size="1.3rem" />
-          <span class="painel__notificacao-badge" aria-hidden="true"></span>
-        </button>
-
-        <div class="painel__usuario">
-          <fk-avatar [initial]="iniciais(usuario()?.nome)" />
-          <span class="painel__usuario-nome">{{ usuario()?.nome ?? 'Usuário' }}</span>
-        </div>
-      </div>
-    </header>
+    <fk-topbar
+      [busca]="buscaTermo()"
+      (buscaChange)="buscaTermo.set($event)"
+      [usuarioNome]="usuario()?.nome ?? 'Usuário'"
+      [usuarioInicial]="iniciais(usuario()?.nome)"
+    />
 
     <main class="painel__content">
-      <h1 class="painel__titulo">Pedidos</h1>
-
       @if (expedienteFechado()) {
         <div class="aviso-expediente">
           Expediente encerrado. Ações nas mesas estão bloqueadas até a reabertura.
@@ -63,14 +28,6 @@
 
       <div class="painel-grid">
         <div class="painel-grid__main">
-        <div class="secao__cabecalho">
-          <div>
-            <h2>1. Atendimento</h2>
-            <p>Durante o horário de operação</p>
-          </div>
-          <fk-badge variant="tempo-real" [dot]="true">Tempo real</fk-badge>
-        </div>
-
         <div class="resumo-cards">
           <fk-kpi-card
             [clickable]="true"
@@ -219,137 +176,16 @@
             <div class="mesas-grid-wrapper">
               <div class="mesas-grid" [class.mesas-grid--carregando]="carregandoMesas()">
               @for (mesa of mesasPagina(); track mesa.numero) {
-                <article
-                  class="mesa-card"
-                  [id]="'mesa-card-' + mesa.numero"
-                  [class]="'mesa-card--' + criticidadeCard(mesa)"
-                  [class.mesa-card--destacada]="mesaDestacada() === mesa.numero"
-                >
-                  <header class="mesa-card__header">
-                    <h3>Mesa {{ mesa.numero.toString().padStart(2, '0') }}</h3>
-
-                    @if (mesa.status === 'LIVRE') {
-                      <fk-badge variant="livre">Livre</fk-badge>
-                    } @else if (urgenciaBadgeLabel(mesa); as badge) {
-                      <fk-badge [variant]="criticidadeCard(mesa) === 'critico' ? 'critico' : 'atencao'">
-                        <fk-icon name="siren" size="0.85rem" />
-                        {{ badge }}
-                      </fk-badge>
-                    }
-
-                    @if (mesa.tempoLabel) {
-                      <span class="mesa-card__tempo">
-                        {{ mesa.tempoLabel }}
-                        <strong>{{ tempoAtrasLabel(mesa.tempoMinutos ?? 0) }}</strong>
-                      </span>
-                    }
-                  </header>
-
-                  @if (mesa.status === 'OCUPADA') {
-                    <p class="mesa-card__garcom">
-                      Garçom: {{ mesa.garcom }}
-                      <button
-                        type="button"
-                        class="mesa-card__trocar-garcom"
-                        [disabled]="expedienteFechado() || acaoEmAndamento()"
-                        (click)="abrirReatribuicao(mesa)"
-                      >
-                        Trocar
-                      </button>
-                    </p>
-
-                    @if (mesa.statusPedido) {
-                      <div class="mesa-card__andamento">
-                        <span class="mesa-card__andamento-label">
-                          @if (mesa.statusPedido === 'PRONTO_ENTREGA') {
-                            <fk-icon name="check-circle" size="1rem" />
-                          } @else if (mesa.statusPedido === 'CONTA_ABERTA') {
-                            <fk-icon name="cash-register" size="1rem" />
-                          } @else {
-                            <fk-icon name="cooking-pot" size="1rem" />
-                          }
-                          {{ statusPedidoLabel(mesa) }}
-                        </span>
-
-                        @if (mesa.totalEtapas) {
-                          <span
-                            class="mesa-card__etapas"
-                            [title]="'Etapa ' + mesa.etapaAtual + ' de ' + mesa.totalEtapas + ': ' + nomeEtapa(mesa.etapaAtual)"
-                          >
-                            {{ mesa.etapaAtual }}/{{ mesa.totalEtapas }} etapas
-                          </span>
-                        }
-                      </div>
-
-                      @if (mesa.totalEtapas) {
-                        <fk-progress-bar
-                          thickness="sm"
-                          [variant]="mesa.statusPedido === 'PRONTO_ENTREGA' || criticidadeCard(mesa) === 'critico' ? 'load-high' : 'orange'"
-                          [value]="((mesa.etapaAtual ?? 0) / mesa.totalEtapas) * 100"
-                        />
-                      }
-                    } @else {
-                      <div class="mesa-card__vazio">
-                        @if (mesa.garcomId !== null) {
-                          <fk-icon name="call-bell" size="2rem" />
-                          <span>Aguardando pedido</span>
-                        } @else {
-                          <fk-icon name="picnic-table" size="2rem" />
-                          <span>Mesa disponível</span>
-                        }
-                      </div>
-                    }
-
-                    @if (mesa.pedidos.length > 0) {
-                      <p class="mesa-card__itens">Pedido: {{ itensResumoLabel(mesa) }}</p>
-                    }
-
-                    @if (valorContaMesa(mesa); as valorConta) {
-                      <p class="mesa-card__conta">Conta: {{ valorConta | currency: 'BRL' }}</p>
-                    }
-
-                    <div class="mesa-card__acoes">
-                      <button
-                        class="mesa-card__acao"
-                        [class.mesa-card__acao--entrega]="acaoPrimaria(mesa).tipo === 'MARCAR_ENTREGUE'"
-                        [class.mesa-card__acao--conta]="acaoPrimaria(mesa).tipo === 'FECHAR_CONTA'"
-                        [class.mesa-card__acao--abrir]="acaoPrimaria(mesa).tipo === 'ABRIR_MESA' || acaoPrimaria(mesa).tipo === 'REATRIBUIR_GARCOM'"
-                        type="button"
-                        [disabled]="acaoPrimariaIndisponivel(mesa)"
-                        [title]="acaoPrimaria(mesa).tipo === 'VER_PEDIDO' ? 'Em breve' : ''"
-                        (click)="executarAcao(mesa)"
-                      >
-                        {{ acaoPrimaria(mesa).label }}
-                      </button>
-
-                      @if (temAcaoSecundaria(mesa)) {
-                        <button
-                          class="mesa-card__acao mesa-card__acao--secundaria"
-                          type="button"
-                          disabled
-                          title="Em breve"
-                          (click)="verPedido()"
-                        >
-                          Ver pedido
-                        </button>
-                      }
-                    </div>
-                  } @else {
-                    <p class="mesa-card__garcom">Garçom: —</p>
-                    <div class="mesa-card__vazio">
-                      <fk-icon name="picnic-table" size="2rem" />
-                      <span>Mesa disponível</span>
-                    </div>
-                    <button
-                      class="mesa-card__acao mesa-card__acao--abrir"
-                      type="button"
-                      [disabled]="expedienteFechado() || acaoEmAndamento()"
-                      (click)="executarAcao(mesa)"
-                    >
-                      {{ acaoPrimaria(mesa).label }}
-                    </button>
-                  }
-                </article>
+                <fk-mesa-card
+                  [mesa]="mesa"
+                  [criticidade]="criticidadeCard(mesa)"
+                  [acaoPrimaria]="acaoPrimaria(mesa)"
+                  [bloqueado]="expedienteFechado() || acaoEmAndamento()"
+                  [destacada]="mesaDestacada() === mesa.numero"
+                  (acao)="executarAcao(mesa)"
+                  (trocar)="abrirReatribuicao(mesa)"
+                  (verPedido)="verPedido()"
+                />
               } @empty {
                 <p class="mesas-grid__vazio">
                   @if (temFiltrosAtivos()) {
