@@ -103,6 +103,13 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(idsAtendimento));
     }
 
+    @GetMapping("/atendimentos/{atendimentoId}/detalhado")
+    public ResponseEntity<List<PedidoCozinhaResponse>> listarPedidosDetalhadosPorAtendimento(
+            @PathVariable Integer atendimentoId
+    ) {
+        return ResponseEntity.ok(pedidoService.findPedidosDetalhadosPorAtendimento(atendimentoId));
+    }
+  
     @GetMapping("/atendimentos/{atendimentoId}/resumo-conta")
     public ResponseEntity<ResumoContaAtendimentoResponse> buscarResumoContaAtendimento(
             @PathVariable Integer atendimentoId
