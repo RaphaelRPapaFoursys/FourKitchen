@@ -32,7 +32,7 @@ public enum ErrorEnum {
 
     PEDIDO_NAO_PERMITE_DECISAO(
             "021",
-            "O pedido deve estar com status AGUARDANDO_DECISAO para receber uma decisão.",
+            "O pedido deve estar com status AGUARDANDO_DECISAO ou PROBLEMA_COZINHA para receber uma decisão.",
             HttpStatus.BAD_REQUEST
     ),
       
