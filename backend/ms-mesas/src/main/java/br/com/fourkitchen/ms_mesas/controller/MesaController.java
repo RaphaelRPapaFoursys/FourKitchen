@@ -2,6 +2,7 @@ package br.com.fourkitchen.ms_mesas.controller;
 
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
+import br.com.fourkitchen.ms_mesas.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaPaginadaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
@@ -60,6 +61,11 @@ public class MesaController {
     @GetMapping("/resumo-operacao")
     public ResponseEntity<ResumoMesasOperacaoResponse> buscarResumoOperacao() {
         return ResponseEntity.ok(mesaService.buscarResumoOperacao());
+    }
+
+    @GetMapping("/atendimentos/historico")
+    public ResponseEntity<List<HistoricoAtendimentoResponse>> listarHistoricoAtendimentos() {
+        return ResponseEntity.ok(mesaService.listarHistoricoAtendimentos());
     }
 
     @PatchMapping("/{id}/abrir")

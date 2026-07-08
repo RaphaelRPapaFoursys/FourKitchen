@@ -6,6 +6,8 @@ import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.CriarPedidoRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ProdutoPedidoRequest;
+import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
+import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarPedidoGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.request.ItemPedidoGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoGarcomResponse;
@@ -28,6 +30,8 @@ public class GarcomPedidoService {
     private static final String STATUS_ENVIADO_COZINHA = "ENVIADO_COZINHA";
 
     private final MesaClient mesaClient;
+
+    private final ProdutoClient produtoClient;
 
     private final PedidoClient pedidoClient;
 
@@ -106,12 +110,35 @@ public class GarcomPedidoService {
 
     private List<ProdutoPedidoRequest> mapearItens(List<ItemPedidoGarcomRequest> itens) {
         return itens.stream()
-                .map(item -> new ProdutoPedidoRequest(
-                        item.idProduto(),
-                        item.quantidade(),
-                        item.precoUnitario(),
-                        item.observacao()
-                ))
+                .map(this::mapearItem)
                 .toList();
+    }
+
+    private ProdutoPedidoRequest mapearItem(ItemPedidoGarcomRequest item) {
+        ProdutoDisponibilidadeResponse disponibilidade = buscarDisponibilidade(item.idProduto());
+
+        if (disponibilidade == null || !Boolean.TRUE.equals(disponibilidade.disponivel())) {
+            throw new BaseException(ErrorEnum.PRODUTO_INDISPONIVEL);
+        }
+
+        return new ProdutoPedidoRequest(
+                item.idProduto(),
+                disponibilidade.nome(),
+                item.quantidade(),
+                item.precoUnitario(),
+                item.observacao()
+        );
+    }
+
+    private ProdutoDisponibilidadeResponse buscarDisponibilidade(Integer idProduto) {
+        try {
+            return produtoClient.verificarDisponibilidade(idProduto);
+        } catch (FeignException e) {
+            if (e.status() == 400 || e.status() == 404) {
+                throw new BaseException(ErrorEnum.PRODUTO_INDISPONIVEL);
+            }
+
+            throw new BaseException(ErrorEnum.MS_PRODUTOS_INDISPONIVEL);
+        }
     }
 }

@@ -20,10 +20,17 @@ public class PedidosAtivosClient {
 
     public boolean possuiPedidosAtivos(Integer atendimentoId) {
         Boolean possuiPedidosAtivos = restClient.get()
-                .uri("/pedidos/atendimentos/{atendimentoId}/possui-ativos", atendimentoId)
+                .uri("/api/pedidos/atendimentos/{atendimentoId}/possui-ativos", atendimentoId)
                 .retrieve()
                 .body(Boolean.class);
 
         return Boolean.TRUE.equals(possuiPedidosAtivos);
+    }
+
+    public ResumoContaAtendimentoResponse buscarResumoConta(Integer atendimentoId) {
+        return restClient.get()
+                .uri("/api/pedidos/atendimentos/{atendimentoId}/resumo-conta", atendimentoId)
+                .retrieve()
+                .body(ResumoContaAtendimentoResponse.class);
     }
 }
