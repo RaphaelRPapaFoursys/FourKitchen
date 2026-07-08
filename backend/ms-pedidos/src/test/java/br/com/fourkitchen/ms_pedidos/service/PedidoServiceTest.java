@@ -331,6 +331,56 @@ class PedidoServiceTest {
     }
 
     @Test
+    void findPedidosDetalhadosPorAtendimentoDeveRetornarPedidosComItensOrdenadosPorChegada() {
+        LocalDateTime dataCriacao = LocalDateTime.of(2026, 7, 2, 10, 30);
+
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(123456)
+                .canal(CanaisPedido.MESA)
+                .status(StatusPedido.PROBLEMA_COZINHA)
+                .idMesa(1)
+                .idAtendimento(8)
+                .dataCriacao(dataCriacao)
+                .build();
+
+        ProdutoPedido item = ProdutoPedido.builder()
+                .id(5)
+                .idPedido(25)
+                .idProduto(10)
+                .quantidade(2)
+                .precoUnitario(new BigDecimal("29.90"))
+                .observacao("Sem cebola")
+                .build();
+
+        when(pedidoRepository.findByIdAtendimentoOrderByDataCriacaoAscIdAsc(8))
+                .thenReturn(List.of(pedido));
+
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25)))
+                .thenReturn(List.of(item));
+
+        List<PedidoCozinhaResponse> resultado = pedidoService.findPedidosDetalhadosPorAtendimento(8);
+
+        assertEquals(1, resultado.size());
+
+        PedidoCozinhaResponse pedidoResponse = resultado.getFirst();
+
+        assertEquals(25, pedidoResponse.id());
+        assertEquals(123456, pedidoResponse.codigo());
+        assertEquals(CanaisPedido.MESA, pedidoResponse.canal());
+        assertEquals(StatusPedido.PROBLEMA_COZINHA, pedidoResponse.status());
+        assertEquals(1, pedidoResponse.idMesa());
+        assertEquals(8, pedidoResponse.idAtendimento());
+        assertEquals(dataCriacao, pedidoResponse.dataCriacao());
+        assertEquals(1, pedidoResponse.itens().size());
+        assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
+        assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
+        assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
+        verify(pedidoRepository).findByIdAtendimentoOrderByDataCriacaoAscIdAsc(8);
+        verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25));
+    }
+
+    @Test
     void findFilaCozinhaDeveRetornarListaVaziaSemBuscarItensQuandoNaoHaPedidos() {
         when(pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection())).thenReturn(List.of());
 
@@ -443,15 +493,17 @@ class PedidoServiceTest {
         when(pedidoRepository.countByStatus(StatusPedido.EM_PREPARO)).thenReturn(5L);
         when(pedidoRepository.countByStatus(StatusPedido.PRONTO)).thenReturn(3L);
         when(pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)).thenReturn(2L);
+        when(pedidoRepository.countByStatus(StatusPedido.PROBLEMA_COZINHA)).thenReturn(1L);
 
         ResumoPedidosOperacaoResponse resultado = pedidoService.buscarResumoOperacao();
 
         assertEquals(5L, resultado.pedidosEmPreparo());
         assertEquals(3L, resultado.pedidosProntos());
-        assertEquals(2L, resultado.problemasPendentes());
+        assertEquals(3L, resultado.problemasPendentes());
         verify(pedidoRepository).countByStatus(StatusPedido.EM_PREPARO);
         verify(pedidoRepository).countByStatus(StatusPedido.PRONTO);
         verify(pedidoRepository).countByStatus(StatusPedido.AGUARDANDO_DECISAO);
+        verify(pedidoRepository).countByStatus(StatusPedido.PROBLEMA_COZINHA);
     }
 
     @Test
@@ -540,13 +592,13 @@ class PedidoServiceTest {
         SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);
 
         // Assert
-        assertEquals(StatusPedido.AGUARDANDO_DECISAO, pedido.getStatus());
+        assertEquals(StatusPedido.PROBLEMA_COZINHA, pedido.getStatus());
         assertEquals(statusProblema, produtoPedido.getStatus());
 
         assertNotNull(response);
         assertEquals(1, response.idPedido());
         assertEquals(10, response.idProdutoPedido());
-        assertEquals(StatusPedido.AGUARDANDO_DECISAO, response.statusPedido());
+        assertEquals(StatusPedido.PROBLEMA_COZINHA, response.statusPedido());
         assertEquals(statusProblema, response.statusProdutoPedido());
 
         verify(pedidoRepository).findById(1);
