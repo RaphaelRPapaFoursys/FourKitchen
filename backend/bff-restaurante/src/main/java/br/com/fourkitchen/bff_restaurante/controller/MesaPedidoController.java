@@ -33,7 +33,7 @@ public class MesaPedidoController {
     @PostMapping
     @Operation(
             summary = "Cria pedido pela mesa",
-            description = "Identifica a mesa pelo token, valida o codigo de sessao, consulta o preco atual no ms-produtos e cria um pedido com canal MESA enviado para a cozinha."
+            description = "Identifica a mesa pelo token, valida o codigoAtendimento, consulta o preco atual no ms-produtos e cria um pedido com canal MESA enviado para a cozinha. O campo legado codigoSessao tambem e aceito como alias."
     )
     @ApiResponses(value = {
             @ApiResponse(

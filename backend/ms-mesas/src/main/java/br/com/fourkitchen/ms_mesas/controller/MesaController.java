@@ -88,6 +88,11 @@ public class MesaController {
         return ResponseEntity.ok(mesaService.validarSessaoMesa(id, codigoSessao));
     }
 
+    @GetMapping("/{id}/atendimento-atual")
+    public ResponseEntity<SessaoMesaResponse> buscarAtendimentoAtual(@PathVariable Integer id) {
+        return ResponseEntity.ok(mesaService.buscarAtendimentoAtual(id));
+    }
+
     @GetMapping("/{id}/garcons/{idGarcom}/validar")
     public ResponseEntity<SessaoMesaResponse> validarMesaAtribuidaGarcom(
             @PathVariable Integer id,
