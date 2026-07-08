@@ -72,6 +72,7 @@ public class PedidoService {
                         .quantidade(item.quantidade())
                         .idPedido(pedido.getId())
                         .idProduto(item.idProduto())
+                        .nomeProduto(item.nomeProduto())
                         .precoUnitario(item.precoUnitario())
                         .observacao(item.observacao())
                         .build();
@@ -318,6 +319,7 @@ public class PedidoService {
         return new ItemPedidoCozinhaResponse(
                 item.getId(),
                 item.getIdProduto(),
+                item.getNomeProduto(),
                 item.getQuantidade(),
                 item.getPrecoUnitario(),
                 item.getObservacao()
@@ -390,6 +392,7 @@ public class PedidoService {
 
         if(decisaoProblemaRequest.idNovoProduto() != null) {
             produtoPedido.setIdProduto(decisaoProblemaRequest.idNovoProduto());
+            produtoPedido.setNomeProduto(decisaoProblemaRequest.nomeNovoProduto());
         }
 
         if(pedido.getStatus() != StatusPedido.AGUARDANDO_DECISAO) {

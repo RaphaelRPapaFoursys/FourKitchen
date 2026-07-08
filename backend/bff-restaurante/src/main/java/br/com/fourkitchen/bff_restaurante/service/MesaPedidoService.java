@@ -117,6 +117,7 @@ public class MesaPedidoService {
 
         return new ProdutoPedidoRequest(
                 item.idProduto(),
+                disponibilidade.nome(),
                 item.quantidade(),
                 disponibilidade.preco(),
                 item.observacao()
