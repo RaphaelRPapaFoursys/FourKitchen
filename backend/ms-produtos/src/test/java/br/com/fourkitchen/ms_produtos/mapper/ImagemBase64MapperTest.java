@@ -4,6 +4,8 @@ import br.com.fourkitchen.ms_produtos.exception.BaseException;
 import br.com.fourkitchen.ms_produtos.exception.ErrorEnum;
 import org.junit.jupiter.api.Test;
 
+import static br.com.fourkitchen.ms_produtos.support.ImagemTesteFactory.criarPng;
+import static br.com.fourkitchen.ms_produtos.support.ImagemTesteFactory.paraBase64;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -15,15 +17,17 @@ class ImagemBase64MapperTest {
 
     @Test
     void paraBytesDeveConverterBase64Puro() {
-        assertArrayEquals("imagem".getBytes(), imagemBase64Mapper.paraBytes("aW1hZ2Vt"));
+        byte[] imagem = criarPng(800, 600);
+
+        assertArrayEquals(imagem, imagemBase64Mapper.paraBytes(paraBase64(imagem)));
     }
 
     @Test
     void paraBytesDeveConverterDataUrlBase64() {
-        assertArrayEquals(
-                "imagem".getBytes(),
-                imagemBase64Mapper.paraBytes("data:image/png;base64,aW1hZ2Vt")
-        );
+        byte[] imagem = criarPng(800, 600);
+        String dataUrl = "data:image/png;base64," + paraBase64(imagem);
+
+        assertArrayEquals(imagem, imagemBase64Mapper.paraBytes(dataUrl));
     }
 
     @Test
@@ -37,6 +41,16 @@ class ImagemBase64MapperTest {
         BaseException exception = assertThrows(
                 BaseException.class,
                 () -> imagemBase64Mapper.paraBytes("base64-invalido")
+        );
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+    }
+
+    @Test
+    void paraBytesDeveLancarDadosInvalidosQuandoImagemNaoAtenderAsRegras() {
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> imagemBase64Mapper.paraBytes(paraBase64("imagem".getBytes()))
         );
 
         assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
