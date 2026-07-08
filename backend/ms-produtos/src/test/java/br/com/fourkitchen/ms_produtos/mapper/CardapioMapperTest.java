@@ -19,7 +19,8 @@ class CardapioMapperTest {
     private final ProdutoCardapioResponseMapper produtoCardapioResponseMapper =
             new ProdutoCardapioResponseMapper(imagemBase64Mapper);
 
-    private final CategoriaCardapioResponseMapper categoriaCardapioResponseMapper = new CategoriaCardapioResponseMapper();
+    private final CategoriaCardapioResponseMapper categoriaCardapioResponseMapper =
+            new CategoriaCardapioResponseMapper(imagemBase64Mapper);
 
     @Test
     void produtoCardapioResponseMapperDeveMapearProduto() {
@@ -58,6 +59,7 @@ class CardapioMapperTest {
         assertEquals(1, response.categoriaId());
         assertEquals("Lanches", response.categoriaNome());
         assertEquals("Sanduiches", response.categoriaDescricao());
+        assertEquals(null, response.categoriaImagem());
         assertSame(produtos, response.produtos());
     }
 }

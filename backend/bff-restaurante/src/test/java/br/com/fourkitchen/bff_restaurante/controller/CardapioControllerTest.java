@@ -28,7 +28,7 @@ class CardapioControllerTest {
     @Test
     void buscarCardapioMesaDeveRetornarCardapio() {
         List<CategoriaCardapioResponse> cardapio =
-                List.of(new CategoriaCardapioResponse(1, "Lanches", "Sanduiches", List.of()));
+                List.of(new CategoriaCardapioResponse(1, "Lanches", "Sanduiches", null, List.of()));
 
         when(cardapioService.buscarCardapio()).thenReturn(cardapio);
 
@@ -42,7 +42,7 @@ class CardapioControllerTest {
     @Test
     void buscarCardapioTotemDeveRetornarCardapio() {
         List<CategoriaCardapioResponse> cardapio =
-                List.of(new CategoriaCardapioResponse(1, "Lanches", "Sanduiches", List.of()));
+                List.of(new CategoriaCardapioResponse(1, "Lanches", "Sanduiches", null, List.of()));
 
         when(cardapioService.buscarCardapio()).thenReturn(cardapio);
 
@@ -56,7 +56,7 @@ class CardapioControllerTest {
     @Test
     void buscarCardapioGarcomDeveRetornarCardapio() {
         List<CategoriaCardapioResponse> cardapio =
-                List.of(new CategoriaCardapioResponse(1, "Lanches", "Sanduiches", List.of()));
+                List.of(new CategoriaCardapioResponse(1, "Lanches", "Sanduiches", null, List.of()));
 
         when(cardapioService.buscarCardapio()).thenReturn(cardapio);
 

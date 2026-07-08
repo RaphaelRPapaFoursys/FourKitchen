@@ -1,0 +1,2 @@
+ALTER TABLE categorias
+ADD COLUMN IF NOT EXISTS imagem BYTEA;

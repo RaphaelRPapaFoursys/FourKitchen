@@ -40,7 +40,7 @@ public class CardapioController {
                     description = "Cardapio retornado com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = CategoriaCardapioResponse.class)),
-                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":\"iVBORw0KGgoAAAANSUhEUgAA...\",\"preco\":29.90}]}]")
+                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"categoriaImagem\":\"iVBORw0KGgoAAAANSUhEUgAA...\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":\"iVBORw0KGgoAAAANSUhEUgAA...\",\"preco\":29.90}]}]")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
@@ -62,7 +62,7 @@ public class CardapioController {
                     description = "Cardapio retornado com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = CategoriaCardapioResponse.class)),
-                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":null,\"preco\":29.90}]}]")
+                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"categoriaImagem\":null,\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":null,\"preco\":29.90}]}]")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
@@ -84,7 +84,7 @@ public class CardapioController {
                     description = "Cardapio retornado com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = CategoriaCardapioResponse.class)),
-                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":null,\"preco\":29.90}]}]")
+                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"categoriaImagem\":null,\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":null,\"preco\":29.90}]}]")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),

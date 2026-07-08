@@ -45,6 +45,7 @@ class CardapioServiceTest {
                 1,
                 "Lanches",
                 "Sanduiches",
+                "categoriaBase64",
                 List.of(new ProdutoCardapioClientResponse(
                         10,
                         "X-Burger",
@@ -57,6 +58,7 @@ class CardapioServiceTest {
                 1,
                 "Lanches",
                 "Sanduiches",
+                "categoriaBase64",
                 List.of(new ProdutoCardapioResponse(
                         10,
                         "X-Burger",

@@ -15,6 +15,9 @@ public record CategoriaCardapioResponse(
         @Schema(description = "Descricao da categoria", example = "Sanduiches, porcoes e combinados", nullable = true)
         String categoriaDescricao,
 
+        @Schema(description = "Imagem da categoria em Base64", example = "iVBORw0KGgoAAAANSUhEUgAA...", nullable = true)
+        String categoriaImagem,
+
         @Schema(description = "Produtos disponiveis da categoria")
         List<ProdutoCardapioResponse> produtos
 ) {

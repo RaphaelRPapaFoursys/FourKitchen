@@ -20,6 +20,7 @@ class CardapioResponseMapperTest {
                 1,
                 "Lanches",
                 "Sanduiches",
+                "categoriaBase64",
                 List.of(new ProdutoCardapioClientResponse(
                         10,
                         "X-Burger",
@@ -34,6 +35,7 @@ class CardapioResponseMapperTest {
         assertEquals(1, response.categoriaId());
         assertEquals("Lanches", response.categoriaNome());
         assertEquals("Sanduiches", response.categoriaDescricao());
+        assertEquals("categoriaBase64", response.categoriaImagem());
         assertEquals(1, response.produtos().size());
         assertEquals(10, response.produtos().getFirst().id());
         assertEquals("X-Burger", response.produtos().getFirst().nome());
@@ -48,6 +50,7 @@ class CardapioResponseMapperTest {
                 1,
                 "Lanches",
                 "Sanduiches",
+                null,
                 null
         );
 

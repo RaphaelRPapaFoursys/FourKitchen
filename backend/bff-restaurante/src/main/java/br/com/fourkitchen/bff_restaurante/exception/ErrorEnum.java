@@ -162,6 +162,24 @@ public enum ErrorEnum {
             HttpStatus.FORBIDDEN
     ),
 
+    PRODUTO_NAO_ENCONTRADO(
+            "024",
+            "Produto nao encontrado",
+            HttpStatus.NOT_FOUND
+    ),
+
+    CATEGORIA_NAO_ENCONTRADA(
+            "025",
+            "Categoria nao encontrada",
+            HttpStatus.NOT_FOUND
+    ),
+
+    CATEGORIA_NOME_DUPLICADO(
+            "026",
+            "Nome da categoria ja cadastrado",
+            HttpStatus.CONFLICT
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

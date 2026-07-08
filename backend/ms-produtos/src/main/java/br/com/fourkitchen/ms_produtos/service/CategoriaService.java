@@ -1,9 +1,11 @@
 package br.com.fourkitchen.ms_produtos.service;
 
+import br.com.fourkitchen.ms_produtos.dto.request.AtualizarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.request.CriarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaResponse;
 import br.com.fourkitchen.ms_produtos.exception.BaseException;
 import br.com.fourkitchen.ms_produtos.exception.ErrorEnum;
+import br.com.fourkitchen.ms_produtos.mapper.AtualizarCategoriaRequestMapper;
 import br.com.fourkitchen.ms_produtos.mapper.CategoriaResponseMapper;
 import br.com.fourkitchen.ms_produtos.mapper.CriarCategoriaRequestMapper;
 import br.com.fourkitchen.ms_produtos.model.Categoria;
@@ -23,6 +25,8 @@ public class CategoriaService {
 
     private final CriarCategoriaRequestMapper criarCategoriaRequestMapper;
 
+    private final AtualizarCategoriaRequestMapper atualizarCategoriaRequestMapper;
+
     public List<CategoriaResponse> listarCategorias() {
         return categoriaRepository.findAll()
                 .stream()
@@ -41,9 +45,48 @@ public class CategoriaService {
         return categoriaResponseMapper.map(categoriaSalva);
     }
 
+    public CategoriaResponse atualizarCategoria(Integer id, AtualizarCategoriaRequest request) {
+        Categoria categoria = buscarPorId(id);
+        validarNomeDisponivelParaAtualizacao(request.nome(), id);
+        atualizarCategoriaRequestMapper.map(request, categoria);
+
+        Categoria categoriaSalva = categoriaRepository.save(categoria);
+
+        return categoriaResponseMapper.map(categoriaSalva);
+    }
+
+    public CategoriaResponse ativarCategoria(Integer id) {
+        Categoria categoria = buscarPorId(id);
+        categoria.setAtivo(true);
+
+        Categoria categoriaSalva = categoriaRepository.save(categoria);
+
+        return categoriaResponseMapper.map(categoriaSalva);
+    }
+
+    public CategoriaResponse desativarCategoria(Integer id) {
+        Categoria categoria = buscarPorId(id);
+        categoria.setAtivo(false);
+
+        Categoria categoriaSalva = categoriaRepository.save(categoria);
+
+        return categoriaResponseMapper.map(categoriaSalva);
+    }
+
     private void validarNomeDisponivel(String nome) {
         if (categoriaRepository.existsByNomeIgnoreCase(nome.trim())) {
             throw new BaseException(ErrorEnum.CATEGORIA_NOME_DUPLICADO);
         }
+    }
+
+    private void validarNomeDisponivelParaAtualizacao(String nome, Integer id) {
+        if (categoriaRepository.existsByNomeIgnoreCaseAndIdNot(nome.trim(), id)) {
+            throw new BaseException(ErrorEnum.CATEGORIA_NOME_DUPLICADO);
+        }
+    }
+
+    private Categoria buscarPorId(Integer id) {
+        return categoriaRepository.findById(id)
+                .orElseThrow(() -> new BaseException(ErrorEnum.CATEGORIA_NAO_ENCONTRADA));
     }
 }

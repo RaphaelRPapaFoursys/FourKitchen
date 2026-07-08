@@ -39,6 +39,9 @@ public class Categoria {
     @Column(name = "descricao", length = 255)
     private String descricao;
 
+    @Column(name = "imagem")
+    private byte[] imagem;
+
     @Column(name = "ativo", nullable = false)
     private Boolean ativo;
 
