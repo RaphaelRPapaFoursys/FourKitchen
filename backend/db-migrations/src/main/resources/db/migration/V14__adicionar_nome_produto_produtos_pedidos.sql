@@ -1,5 +1,5 @@
 ALTER TABLE produtos_pedidos
-ADD COLUMN IF NOT EXISTS nome_produto VARCHAR(150);
+ADD COLUMN IF NOT EXISTS nome_produto VARCHAR(50);
 
 UPDATE produtos_pedidos pp
 SET nome_produto = p.nome

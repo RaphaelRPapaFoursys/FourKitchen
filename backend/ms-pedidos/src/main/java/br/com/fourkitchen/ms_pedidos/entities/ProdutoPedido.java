@@ -32,7 +32,7 @@ public class ProdutoPedido {
     @Column(name = "id_produto", nullable = false)
     private Integer idProduto;
 
-    @Column(name = "nome_produto", length = 150)
+    @Column(name = "nome_produto", length = 50)
     private String nomeProduto;
 
     @Column(name = "preco_unitario", precision = 10, scale = 2)
