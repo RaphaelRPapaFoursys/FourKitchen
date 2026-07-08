@@ -4,7 +4,8 @@ import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.AtribuirGarcomClientRequest;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.HistoricoAtendimentoClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
-import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaPaginadaClientResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
@@ -12,6 +13,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.mapper.GarcomResumoResponseMapper;
@@ -29,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +43,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,22 +110,13 @@ class GestorMesaServiceTest {
     }
 
     @Test
-    void listarMesasPaginadasDevePreservarMetadadosEMapearConteudo() {
+    void listarMesasPaginadasDeveFiltrarOrdenarPaginarEmMemoria() {
         MesaClientResponse mesa = criarMesa(1, 10, 7);
         UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
         GarcomResumoResponse garcom = criarGarcom(7, "Amanda Souza");
         MesaGestorResponse mesaResponse = criarMesaResponse(1, "Amanda Souza");
-        MesaPaginadaClientResponse pagina = new MesaPaginadaClientResponse(
-                List.of(mesa),
-                0,
-                10,
-                15L,
-                2,
-                true,
-                false
-        );
 
-        when(mesaClient.listarMesasPaginadas(0, 10, "numero,asc")).thenReturn(pagina);
+        when(mesaClient.listarMesas()).thenReturn(List.of(mesa));
         when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of(usuario));
         when(garcomResumoResponseMapper.map(usuario)).thenReturn(garcom);
         when(mesaGestorResponseMapper.map(any(MesaGestorMapperSource.class))).thenReturn(mesaResponse);
@@ -130,18 +125,84 @@ class GestorMesaServiceTest {
                 AUTHORIZATION,
                 0,
                 10,
-                "numero,asc"
+                "numero,asc",
+                null,
+                7,
+                "Amanda"
         );
 
         assertEquals(List.of(mesaResponse), resultado.content());
         assertEquals(0, resultado.page());
         assertEquals(10, resultado.size());
-        assertEquals(15L, resultado.totalElements());
-        assertEquals(2, resultado.totalPages());
+        assertEquals(1L, resultado.totalElements());
+        assertEquals(1, resultado.totalPages());
         assertEquals(true, resultado.first());
-        assertEquals(false, resultado.last());
-        verify(mesaClient).listarMesasPaginadas(0, 10, "numero,asc");
+        assertEquals(true, resultado.last());
+        verify(mesaClient).listarMesas();
         verify(usuarioClient).listarUsuariosAtivos(AUTHORIZATION);
+    }
+
+    @Test
+    void buscarResumoPainelDeveCalcularKpisECargaDosGarcons() {
+        MesaClientResponse mesa = criarMesaComAtendimento(1, 10, 7, 100);
+        UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
+        GarcomResumoResponse garcom = criarGarcom(7, "Amanda Souza");
+        PedidoCozinhaResponse pedido = criarPedido(1, 100, "PRONTO", 2, BigDecimal.TEN);
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(mesa));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of(usuario));
+        when(garcomResumoResponseMapper.map(usuario)).thenReturn(garcom);
+        when(pedidoClient.listarPedidosAtivosDetalhadosPorAtendimentos(List.of(100))).thenReturn(List.of(pedido));
+
+        ResumoPainelResponse resultado = gestorMesaService.buscarResumoPainel(AUTHORIZATION);
+
+        assertEquals(0, resultado.mesasLivres());
+        assertEquals(0, resultado.emPreparo());
+        assertEquals(1, resultado.prontos());
+        assertEquals(0, resultado.problemas());
+        assertEquals(new BigDecimal("20.00"), resultado.ticketMedio());
+        assertEquals(1, resultado.cargaGarcons().getFirst().mesasAtivas());
+    }
+
+    @Test
+    void listarMesasPaginadasEBuscarResumoPainelDevemReutilizarSnapshotDentroDoTtl() {
+        MesaClientResponse mesa = criarMesaComAtendimento(1, 10, 7, 100);
+        UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
+        GarcomResumoResponse garcom = criarGarcom(7, "Amanda Souza");
+        PedidoCozinhaResponse pedido = criarPedido(1, 100, "EM_PREPARO", 1, BigDecimal.TEN);
+        MesaGestorResponse mesaResponse = criarMesaResponse(1, "Amanda Souza");
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(mesa));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of(usuario));
+        when(garcomResumoResponseMapper.map(usuario)).thenReturn(garcom);
+        when(pedidoClient.listarPedidosAtivosDetalhadosPorAtendimentos(List.of(100))).thenReturn(List.of(pedido));
+        when(mesaGestorResponseMapper.map(any(MesaGestorMapperSource.class))).thenReturn(mesaResponse);
+
+        gestorMesaService.listarMesasPaginadas(AUTHORIZATION, 0, 10, "criticidade", null, null, null);
+        ResumoPainelResponse resumo = gestorMesaService.buscarResumoPainel(AUTHORIZATION);
+
+        assertEquals(1, resumo.emPreparo());
+        verify(mesaClient, times(1)).listarMesas();
+        verify(usuarioClient, times(1)).listarUsuariosAtivos(AUTHORIZATION);
+        verify(pedidoClient, times(1)).listarPedidosAtivosDetalhadosPorAtendimentos(List.of(100));
+    }
+
+    @Test
+    void abrirMesaDeveInvalidarSnapshotDoPainel() {
+        MesaClientResponse mesa = criarMesa(1, 10, null);
+        MesaGestorResponse mesaResponse = criarMesaResponse(1, null);
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(mesa));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of());
+        when(mesaGestorResponseMapper.map(any(MesaGestorMapperSource.class))).thenReturn(mesaResponse);
+        when(mesaClient.abrirMesa(1)).thenReturn(mesa);
+
+        gestorMesaService.listarMesasPaginadas(AUTHORIZATION, 0, 10, "criticidade", null, null, null);
+        gestorMesaService.abrirMesa(1, AUTHORIZATION);
+        gestorMesaService.buscarResumoPainel(AUTHORIZATION);
+
+        verify(mesaClient, times(2)).listarMesas();
+        verify(usuarioClient, times(2)).listarUsuariosAtivos(AUTHORIZATION);
     }
 
     @Test
@@ -311,6 +372,38 @@ class GestorMesaServiceTest {
                 LocalDateTime.of(2026, 7, 2, 10, 0),
                 null,
                 null
+        );
+    }
+
+    private MesaClientResponse criarMesaComAtendimento(Integer id, Integer numero, Integer garcomId, Integer idAtendimento) {
+        return new MesaClientResponse(
+                id,
+                numero,
+                "OCUPADA",
+                garcomId,
+                123456,
+                LocalDateTime.of(2026, 7, 2, 10, 0),
+                null,
+                idAtendimento
+        );
+    }
+
+    private PedidoCozinhaResponse criarPedido(
+            Integer id,
+            Integer idAtendimento,
+            String status,
+            Integer quantidade,
+            BigDecimal precoUnitario
+    ) {
+        return new PedidoCozinhaResponse(
+                id,
+                10,
+                "MESA",
+                status,
+                1,
+                idAtendimento,
+                LocalDateTime.now().minusMinutes(3),
+                List.of(new ItemPedidoCozinhaResponse(1, 1, quantidade, precoUnitario, null))
         );
     }
 

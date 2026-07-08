@@ -1,12 +1,16 @@
-import { MesaPainel, Pedido, ResumoExpediente, StatusPedidoPainel } from '../models/painel.models';
+import { MesaPainel, ResumoExpediente, StatusPedidoPainel } from '../models/painel.models';
 
 const MAXIMO_MESAS_MAIS_OCUPADAS = 5;
 
-/** Snapshot de um atendimento no momento em que a conta foi fechada — preserva as métricas do expediente mesmo depois que a mesa é liberada. */
-export interface AtendimentoFinalizado {
+/**
+ * Registro de atendimento finalizado vindo do backend (`GET /api/gestor/atendimentos/historico`).
+ * Só os campos usados no resumo do expediente; a API devolve mais atributos.
+ */
+export interface HistoricoAtendimentoExpediente {
   numeroMesa: number;
-  garcom: string;
-  pedidos: Pedido[];
+  nomeGarcom: string | null;
+  valorFinal: number;
+  totalPedidos: number;
 }
 
 /** Status do pedido em que a mesa ainda não recebeu tudo o que pediu. */
@@ -33,23 +37,21 @@ export function contarMesasComContaAberta(mesas: MesaPainel[]): number {
   return mesas.filter(mesa => mesa.status === 'OCUPADA' && mesa.statusPedido === 'CONTA_ABERTA').length;
 }
 
+/**
+ * Monta o resumo do expediente a partir dos atendimentos já finalizados no expediente atual
+ * (histórico persistido no backend). Atendimentos ainda em andamento não entram: só contam
+ * os que foram efetivamente fechados.
+ */
 export function montarResumoExpediente(
-  mesas: MesaPainel[],
-  historico: AtendimentoFinalizado[],
+  atendimentos: HistoricoAtendimentoExpediente[],
 ): ResumoExpediente {
-  const atendimentos: AtendimentoFinalizado[] = [
-    ...historico,
-    ...mesasComAtendimentoAtivo(mesas).map(mesa => ({
-      numeroMesa: mesa.numero,
-      garcom: mesa.garcom as string,
-      pedidos: mesa.pedidos,
-    })),
-  ];
-  const todosPedidos = atendimentos.flatMap(atendimento => atendimento.pedidos);
+  const valorTotal = atendimentos.reduce((total, item) => total + item.valorFinal, 0);
+  const pedidosFeitos = atendimentos.reduce((total, item) => total + item.totalPedidos, 0);
 
   const atendimentosPorGarcom = new Map<string, number>();
-  for (const atendimento of atendimentos) {
-    atendimentosPorGarcom.set(atendimento.garcom, (atendimentosPorGarcom.get(atendimento.garcom) ?? 0) + 1);
+  for (const item of atendimentos) {
+    const nome = item.nomeGarcom ?? '—';
+    atendimentosPorGarcom.set(nome, (atendimentosPorGarcom.get(nome) ?? 0) + 1);
   }
 
   const garcomDestaque =
@@ -57,20 +59,9 @@ export function montarResumoExpediente(
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([nome, atendimentos]) => ({ nome, atendimentos }))[0] ?? null;
 
-  const temposPreparo = todosPedidos
-    .map(pedido => pedido.tempoPreparoMinutos)
-    .filter((tempo): tempo is number => tempo !== null);
-  const tempoMedioPreparoMin =
-    temposPreparo.length > 0
-      ? Math.round(temposPreparo.reduce((total, tempo) => total + tempo, 0) / temposPreparo.length)
-      : null;
-
   const pedidosPorMesa = new Map<number, number>();
-  for (const atendimento of atendimentos) {
-    pedidosPorMesa.set(
-      atendimento.numeroMesa,
-      (pedidosPorMesa.get(atendimento.numeroMesa) ?? 0) + atendimento.pedidos.length,
-    );
+  for (const item of atendimentos) {
+    pedidosPorMesa.set(item.numeroMesa, (pedidosPorMesa.get(item.numeroMesa) ?? 0) + item.totalPedidos);
   }
   const mesasMaisOcupadas = [...pedidosPorMesa.entries()]
     .sort((a, b) => b[1] - a[1] || a[0] - b[0])
@@ -78,14 +69,15 @@ export function montarResumoExpediente(
     .map(([numeroMesa, pedidos]) => ({ numeroMesa, pedidos }));
 
   return {
-    valorTotal: todosPedidos.reduce((total, pedido) => total + pedido.valor, 0),
+    valorTotal,
     atendimentosRealizados: atendimentos.length,
-    pedidosFeitos: todosPedidos.length,
+    pedidosFeitos,
     // TODO: regra de "problema" no resumo do expediente ainda não foi definida (não é a mesma
     // coisa que a criticidade por tempo usada no grid ao vivo — precisa de decisão à parte).
     problemas: 0,
     garcomDestaque,
-    tempoMedioPreparoMin,
+    // TODO: backend ainda não registra o tempo de preparo por pedido no histórico.
+    tempoMedioPreparoMin: null,
     mesasMaisOcupadas,
   };
 }

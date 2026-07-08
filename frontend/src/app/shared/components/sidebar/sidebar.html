@@ -1,0 +1,31 @@
+<aside class="sidebar">
+  <div class="sidebar__brand">
+    <span class="sidebar__brand-mark" aria-hidden="true">
+      <img src="favicon.ico" alt="" />
+    </span>
+    <span class="sidebar__brand-name">FourKitchen</span>
+  </div>
+
+  <nav class="sidebar__nav">
+    <a class="sidebar__nav-item sidebar__nav-item--active">
+      <fk-icon name="shirt-folded" size="1.15rem" />
+      <span class="sidebar__label">Gestão</span>
+    </a>
+    <a class="sidebar__nav-item">
+      <fk-icon name="bag" size="1.15rem" />
+      <span class="sidebar__label">Pedidos</span>
+    </a>
+  </nav>
+
+  <img
+    class="sidebar__decor"
+    src="assets/images/flor-e-listra-fourkitchen.png"
+    alt=""
+    aria-hidden="true"
+  />
+
+  <button class="sidebar__sair" type="button" (click)="sair.emit()">
+    <fk-icon name="sign-out" size="1.15rem" />
+    <span class="sidebar__label">Sair</span>
+  </button>
+</aside>

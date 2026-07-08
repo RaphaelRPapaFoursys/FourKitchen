@@ -20,8 +20,7 @@ describe('Garcom', () => {
     fixture = TestBed.createComponent(Garcom);
     component = fixture.componentInstance;
 
-    httpMock.expectOne(`${environment.apiUrl}/api/mesas`).flush([]);
-    httpMock.expectOne(`${environment.apiUrl}/api/notificacoes/pendentes?destino=GARCOM`).flush([]);
+    httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([]);
     fixture.detectChanges();
   });
 

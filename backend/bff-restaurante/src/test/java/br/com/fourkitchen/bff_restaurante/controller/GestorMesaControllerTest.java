@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.service.GestorMesaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,18 +60,50 @@ class GestorMesaControllerTest {
                 true
         );
 
-        when(gestorMesaService.listarMesasPaginadas(AUTHORIZATION, 0, 10, "numero,asc")).thenReturn(pagina);
+        when(gestorMesaService.listarMesasPaginadas(
+                AUTHORIZATION,
+                0,
+                10,
+                "numero,asc",
+                "PRONTOS",
+                7,
+                "Amanda"
+        )).thenReturn(pagina);
 
         ResponseEntity<MesaGestorPaginadaResponse> response = gestorMesaController.listarMesasPaginadas(
                 0,
                 10,
                 "numero,asc",
+                "PRONTOS",
+                7,
+                "Amanda",
                 AUTHORIZATION
         );
 
         assertEquals(200, response.getStatusCode().value());
         assertSame(pagina, response.getBody());
-        verify(gestorMesaService).listarMesasPaginadas(AUTHORIZATION, 0, 10, "numero,asc");
+        verify(gestorMesaService).listarMesasPaginadas(
+                AUTHORIZATION,
+                0,
+                10,
+                "numero,asc",
+                "PRONTOS",
+                7,
+                "Amanda"
+        );
+    }
+
+    @Test
+    void buscarResumoPainelDeveRetornarOk() {
+        ResumoPainelResponse resumo = new ResumoPainelResponse(1, 2, 3, 4, null, List.of());
+
+        when(gestorMesaService.buscarResumoPainel(AUTHORIZATION)).thenReturn(resumo);
+
+        ResponseEntity<ResumoPainelResponse> response = gestorMesaController.buscarResumoPainel(AUTHORIZATION);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertSame(resumo, response.getBody());
+        verify(gestorMesaService).buscarResumoPainel(AUTHORIZATION);
     }
 
     @Test

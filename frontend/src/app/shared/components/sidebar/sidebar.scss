@@ -1,0 +1,136 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.sidebar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  min-width: 210px;
+  height: 100%;
+  padding: 1rem;
+  background: var(--fk-navy);
+  color: var(--fk-on-navy);
+  overflow: hidden;
+}
+
+.sidebar__brand {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--fk-on-navy);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.sidebar__brand-mark {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+}
+
+.sidebar__brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sidebar__nav {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--fk-radius-control);
+  color: var(--fk-on-navy-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.sidebar__nav-item:hover {
+  background: var(--fk-navy-hover);
+  color: var(--fk-on-navy);
+}
+
+.sidebar__nav-item--active {
+  background: var(--fk-sidebar-active);
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar__nav-item--active:hover {
+  background: var(--fk-sidebar-active);
+  color: #fff;
+}
+
+.sidebar__nav-item:focus-visible,
+.sidebar__sair:focus-visible {
+  outline: 2px solid var(--fk-orange);
+  outline-offset: 2px;
+}
+
+.sidebar__sair {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  border: 0;
+  border-radius: var(--fk-radius-control);
+  background: transparent;
+  color: var(--fk-on-navy-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.sidebar__sair:hover {
+  color: var(--fk-on-navy);
+}
+
+/* Folhas + onda decorativas ancoradas logo acima do botão "Sair" (fora do fluxo,
+   para não esticar a sidebar). */
+.sidebar__decor {
+  position: absolute;
+  left: 0;
+  bottom: 3.4rem;
+  z-index: 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.9;
+}
+
+@media (max-width: 960px) {
+  .sidebar {
+    min-width: 0;
+    width: 72px;
+  }
+
+  .sidebar__brand-name,
+  .sidebar__label {
+    display: none;
+  }
+
+  .sidebar__decor {
+    display: none;
+  }
+}

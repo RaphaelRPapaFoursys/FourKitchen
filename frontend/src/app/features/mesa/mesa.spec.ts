@@ -22,7 +22,13 @@ describe('Mesa', () => {
     fixture = TestBed.createComponent(Mesa);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
-    httpMock.expectOne(`${environment.apiUrl}/api/mesas`).flush([]);
+    httpMock.expectOne(`${environment.apiUrl}/api/auth/me`).flush({
+      id: 1,
+      nome: 'Mesa 3',
+      email: 'mesa3@fourkitchen.com',
+      perfil: 'MESA',
+      idMesa: 3,
+    });
     await fixture.whenStable();
   });
 

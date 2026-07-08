@@ -24,6 +24,12 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    RECURSO_NAO_ENCONTRADO(
+            "404",
+            "Recurso nao encontrado",
+            HttpStatus.NOT_FOUND
+    ),
+
     PEDIDO_AGUARDANDO_DECISAO(
             "004",
             "Produto esta aguardando decisão.",

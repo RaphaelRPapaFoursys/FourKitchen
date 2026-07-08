@@ -38,6 +38,19 @@ public class PedidoService {
             StatusPedido.AGUARDANDO_DECISAO
     );
 
+    // TODO: provisorio ate existir o passo de "pagar conta" (ENTREGUE -> FINALIZADO).
+    // Enquanto o pagamento nao existe, pedidos ENTREGUE NAO bloqueiam o fechamento do
+    // atendimento (validarMesaSemPedidosAtivos no ms-mesas); senao a mesa nunca fecharia.
+    // Quando "pagar conta" for implementado, remover esta constante e voltar o
+    // possuiPedidosAtivos a usar STATUS_ATIVOS (ENTREGUE deve voltar a bloquear; so
+    // FINALIZADO/CANCELADO liberam o fechamento).
+    private static final Collection<StatusPedido> STATUS_BLOQUEIA_FECHAMENTO = List.of(
+            StatusPedido.ENVIADO_COZINHA,
+            StatusPedido.EM_PREPARO,
+            StatusPedido.PRONTO,
+            StatusPedido.AGUARDANDO_DECISAO
+    );
+
     private static final Collection<StatusPedido> STATUS_COZINHA = List.of(
             StatusPedido.ENVIADO_COZINHA,
             StatusPedido.EM_PREPARO
@@ -129,7 +142,7 @@ public class PedidoService {
     }
 
     public boolean possuiPedidosAtivos(Integer atendimentoId) {
-        return pedidoRepository.existsByIdAtendimentoAndStatusIn(atendimentoId, STATUS_ATIVOS);
+        return pedidoRepository.existsByIdAtendimentoAndStatusIn(atendimentoId, STATUS_BLOQUEIA_FECHAMENTO);
     }
 
     public List<PedidoResponse> findPedidosAtivosPorAtendimentos(List<Integer> idsAtendimento) {

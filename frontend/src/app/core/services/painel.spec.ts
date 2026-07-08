@@ -47,28 +47,48 @@ const MESAS_API = [
   },
 ];
 
-const GARCONS_API = [
-  { id: 7, nome: 'Carlos', email: 'carlos@fourkitchen.com' },
-  { id: 8, nome: 'Julia', email: 'julia@fourkitchen.com' },
-];
+const PAGINA_MESAS_API = {
+  content: MESAS_API,
+  page: 0,
+  size: 12,
+  totalElements: 3,
+  totalPages: 1,
+  first: true,
+  last: true,
+};
+
+const RESUMO_API = {
+  mesasLivres: 1,
+  emPreparo: 1,
+  prontos: 0,
+  problemas: 0,
+  ticketMedio: 40,
+  cargaGarcons: [
+    { id: 7, nome: 'Carlos', mesasAtivas: 1 },
+    { id: 8, nome: 'Julia', mesasAtivas: 1 },
+  ],
+};
 
 describe('PainelService', () => {
   let service: PainelService;
   let httpMock: HttpTestingController;
 
   function flushCargaInicial(): void {
-    httpMock.expectOne(`${BASE_URL}/mesas`).flush(MESAS_API);
-    httpMock.expectOne(`${BASE_URL}/garcons`).flush(GARCONS_API);
+    flushPainel();
   }
 
-  /** As ações só recarregam as mesas — a lista de garçons não muda por causa delas. */
-  function flushMesas(): void {
-    httpMock.expectOne(`${BASE_URL}/mesas`).flush(MESAS_API);
+  function flushPainel(historico: unknown[] = []): void {
+    httpMock
+      .expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`)
+      .flush(PAGINA_MESAS_API);
+    httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
+    httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush(historico);
   }
 
   beforeEach(() => {
+    localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), PainelService],
     });
     service = TestBed.inject(PainelService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -104,15 +124,38 @@ describe('PainelService', () => {
   });
 
   describe('ultimosPedidos', () => {
-    it('inclui apenas pedidos de mesas ocupadas com atendimento ativo', () => {
-      const numerosDeMesasNaoOcupadas = service
-        .mesas()
-        .filter(mesa => mesa.status !== 'OCUPADA')
-        .map(mesa => mesa.numero);
+    it('reflete os atendimentos finalizados retornados pelo histórico do backend', async () => {
+      expect(service.ultimosPedidos()).toHaveLength(0);
 
-      for (const pedido of service.ultimosPedidos()) {
-        expect(numerosDeMesasNaoOcupadas).not.toContain(pedido.numeroMesa);
+      const promise = service.fecharConta(1);
+      httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
+      for (let i = 0; i < 3; i++) {
+        await Promise.resolve();
       }
+      flushPainel([
+        {
+          id: 99,
+          idAtendimento: 5,
+          codigoSessao: 123,
+          idMesa: 1,
+          numeroMesa: 3,
+          idGarcom: 7,
+          nomeGarcom: 'Carlos',
+          valorFinal: 80,
+          totalPedidos: 2,
+          totalItens: 3,
+          dataAbertura: '2026-07-03T10:00:00',
+          dataFechamento: '2026-07-03T11:00:00',
+          duracaoMinutos: 60,
+        },
+      ]);
+      await promise;
+
+      const pedidos = service.ultimosPedidos();
+      expect(pedidos).toHaveLength(1);
+      expect(pedidos[0].numeroMesa).toBe(3);
+      expect(pedidos[0].valor).toBe(80);
+      expect(pedidos[0].garcom).toBe('Carlos');
     });
   });
 
@@ -129,7 +172,7 @@ describe('PainelService', () => {
 
       httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
       await esperarMicrotarefas();
-      flushMesas();
+      flushPainel();
       await promise;
     });
 
@@ -138,7 +181,7 @@ describe('PainelService', () => {
 
       httpMock.expectOne(`${BASE_URL}/mesas/1/marcar-entregue`).flush({});
       await esperarMicrotarefas();
-      flushMesas();
+      flushPainel();
       await promise;
     });
 
@@ -149,7 +192,7 @@ describe('PainelService', () => {
       expect(request.request.body).toEqual({ garcomId: 8 });
       request.flush({});
       await esperarMicrotarefas();
-      flushMesas();
+      flushPainel();
       await promise;
     });
 
@@ -160,7 +203,7 @@ describe('PainelService', () => {
       await esperarMicrotarefas();
       httpMock.expectOne(`${BASE_URL}/mesas/3/atribuir-garcom`).flush({});
       await esperarMicrotarefas();
-      flushMesas();
+      flushPainel();
       await promise;
     });
 
@@ -170,6 +213,37 @@ describe('PainelService', () => {
       await service.fecharConta(1);
 
       httpMock.expectNone(`${BASE_URL}/mesas/1/fechar`);
+    });
+
+    it('não recarrega o histórico quando o fecharConta falha', async () => {
+      expect(service.ultimosPedidos()).toHaveLength(0);
+
+      const promise = service.fecharConta(1);
+      httpMock
+        .expectOne(`${BASE_URL}/mesas/1/fechar`)
+        .flush({ msgError: 'Falha ao fechar' }, { status: 500, statusText: 'Server Error' });
+      await esperarMicrotarefas();
+      await promise;
+
+      // Sem sucesso no PATCH, o painel (e o histórico) não é recarregado e a lista continua vazia.
+      expect(service.ultimosPedidos()).toHaveLength(0);
+      expect(service.mensagemErro()).not.toBeNull();
+    });
+
+    it('abrirMesa recarrega as mesas mesmo quando a atribuição falha', async () => {
+      const promise = service.abrirMesa(3, 7);
+
+      httpMock.expectOne(`${BASE_URL}/mesas/3/abrir`).flush({});
+      await esperarMicrotarefas();
+      httpMock
+        .expectOne(`${BASE_URL}/mesas/3/atribuir-garcom`)
+        .flush({ msgError: 'Falha ao atribuir' }, { status: 500, statusText: 'Server Error' });
+      await esperarMicrotarefas();
+      // O finally dispara atualizarMesas mesmo com a atribuição falhando.
+      flushPainel();
+      await promise;
+
+      expect(service.mensagemErro()).not.toBeNull();
     });
   });
 
@@ -192,5 +266,135 @@ describe('PainelService', () => {
 
       expect(service.acaoPrimaria(mesaComContaAberta).tipo).toBe('FECHAR_CONTA');
     });
+
+    it('abrirNovoExpediente reabre o expediente e persiste o início no localStorage', () => {
+      service.expedienteFechado.set(true);
+
+      service.abrirNovoExpediente();
+
+      expect(service.expedienteFechado()).toBe(false);
+      expect(localStorage.getItem('fk.expediente.fechado')).toBe('false');
+      expect(localStorage.getItem('fk.expediente.inicio')).not.toBeNull();
+    });
+  });
+});
+
+describe('PainelService — cache e prefetch de páginas', () => {
+  let service: PainelService;
+  let httpMock: HttpTestingController;
+
+  const TOTAL_PAGINAS = 6;
+
+  function paginaComTotal(page: number, size = 12) {
+    return {
+      content: MESAS_API,
+      page,
+      size,
+      totalElements: TOTAL_PAGINAS * size,
+      totalPages: TOTAL_PAGINAS,
+      first: page === 0,
+      last: page === TOTAL_PAGINAS - 1,
+    };
+  }
+
+  function consultaPagina(page: number, size = 12) {
+    return { page, size, sort: 'criticidade' as const, filtroEstado: null, garcomId: null, busca: '' };
+  }
+
+  /** Responde toda `/mesas/paginadas` pendente com a página que ela de fato pediu. */
+  function flushPaginadasPendentes(): void {
+    httpMock.match(request => request.url === `${BASE_URL}/mesas/paginadas`).forEach(req => {
+      const page = Number(req.request.params.get('page') ?? '0');
+      const size = Number(req.request.params.get('size') ?? '12');
+      req.flush(paginaComTotal(page, size));
+    });
+  }
+
+  /** Roda os timers escalonados do prefetch e responde cada requisição conforme aparece. */
+  async function estabilizar(): Promise<void> {
+    for (let i = 0; i < 6; i++) {
+      flushPaginadasPendentes();
+      await vi.advanceTimersByTimeAsync(450);
+    }
+    flushPaginadasPendentes();
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    vi.useFakeTimers();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), PainelService],
+    });
+    service = TestBed.inject(PainelService);
+    httpMock = TestBed.inject(HttpTestingController);
+
+    // Load inicial: página 0 + resumo + histórico.
+    httpMock.expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`).flush(paginaComTotal(0));
+    httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
+    httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush([]);
+
+    // Com 12 mesas por página (raio 2), o prefetch inicial cacheia as páginas 1 e 2.
+    await estabilizar();
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    vi.useRealTimers();
+  });
+
+  it('prefetcha 2 páginas à frente: trocar para a página 2 não liga o loading', async () => {
+    expect(service.carregandoMesas()).toBe(false);
+
+    void service.atualizarConsulta(consultaPagina(2));
+    // Página 2 já está em cache (raio 2): troca instantânea, sem spinner.
+    expect(service.carregandoMesas()).toBe(false);
+    expect(service.mesas().length).toBeGreaterThan(0);
+
+    await estabilizar();
+  });
+
+  it('trocar para uma página fora do raio liga o loading durante o fetch', async () => {
+    // Página 5 está fora do cache {0,1,2}.
+    void service.atualizarConsulta(consultaPagina(5));
+    expect(service.carregandoMesas()).toBe(true);
+
+    await estabilizar();
+
+    expect(service.carregandoMesas()).toBe(false);
+  });
+
+  it('trocar um filtro carrega a página atual primeiro e só depois prefetcha as vizinhas', async () => {
+    // Muda um filtro (nova base) → o cache é invalidado.
+    void service.atualizarConsulta({
+      page: 0,
+      size: 12,
+      sort: 'criticidade',
+      filtroEstado: 'PROBLEMAS',
+      garcomId: null,
+      busca: '',
+    });
+
+    // Enquanto a página atual carrega: spinner ligado e apenas ela foi pedida (nenhuma vizinha ainda).
+    expect(service.carregandoMesas()).toBe(true);
+    const atual = httpMock.expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`);
+    expect(atual.request.params.get('page')).toBe('0');
+    atual.flush(paginaComTotal(0));
+
+    // Concluída a página atual, as vizinhas começam a ser prefetchadas (de forma escalonada).
+    await estabilizar();
+    expect(service.carregandoMesas()).toBe(false);
+  });
+
+  it('com 30+ mesas por página, o raio cai para 1: a página +2 não fica em cache', async () => {
+    // Nova base com size 30 (raio 1): recarrega a página 0 e prefetcha só a página 1.
+    void service.atualizarConsulta(consultaPagina(0, 30));
+    await estabilizar();
+
+    // A página 2 não foi prefetchada com size grande, então liga o loading.
+    void service.atualizarConsulta(consultaPagina(2, 30));
+    expect(service.carregandoMesas()).toBe(true);
+
+    await estabilizar();
+    expect(service.carregandoMesas()).toBe(false);
   });
 });
