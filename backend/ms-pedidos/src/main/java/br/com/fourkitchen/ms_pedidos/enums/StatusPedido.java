@@ -10,5 +10,6 @@ public enum StatusPedido {
     ENTREGUE,
     FINALIZADO,
     CANCELADO,
+    PROBLEMA_COZINHA,
     AGUARDANDO_DECISAO;
 }

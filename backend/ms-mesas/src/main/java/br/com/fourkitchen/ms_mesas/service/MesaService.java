@@ -193,6 +193,24 @@ public class MesaService {
         );
     }
 
+    public SessaoMesaResponse buscarAtendimentoAtual(Integer idMesa) {
+        Mesa mesa = buscarPorId(idMesa);
+
+        if (Boolean.TRUE.equals(mesa.getDisponivel())) {
+            throw new BaseException(ErrorEnum.MESA_NAO_OCUPADA);
+        }
+
+        Atendimento atendimento = buscarAtendimentoAberto(mesa);
+
+        return new SessaoMesaResponse(
+                mesa.getId(),
+                atendimento.getId(),
+                atendimento.getCodigoSessao(),
+                atendimento.getGarcomId(),
+                StatusMesa.OCUPADA
+        );
+    }
+
     public SessaoMesaResponse validarMesaAtribuidaGarcom(Integer idMesa, Integer idGarcom) {
         Mesa mesa = buscarPorId(idMesa);
 

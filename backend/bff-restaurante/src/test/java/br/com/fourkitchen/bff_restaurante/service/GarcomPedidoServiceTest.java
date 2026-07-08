@@ -4,6 +4,8 @@ import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.SessaoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.CriarPedidoRequest;
+import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
+import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarPedidoGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.request.ItemPedidoGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoGarcomResponse;
@@ -43,6 +45,9 @@ class GarcomPedidoServiceTest {
     @Mock
     private PedidoClient pedidoClient;
 
+    @Mock
+    private ProdutoClient produtoClient;
+
     @InjectMocks
     private GarcomPedidoService garcomPedidoService;
 
@@ -63,6 +68,8 @@ class GarcomPedidoServiceTest {
                 );
 
         when(mesaClient.validarMesaAtribuidaGarcom(1, 7)).thenReturn(sessao);
+        when(produtoClient.verificarDisponibilidade(10))
+                .thenReturn(new ProdutoDisponibilidadeResponse(10, "X-Burger", true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenReturn(pedidoResponse);
 
         PedidoGarcomResponse response = garcomPedidoService.criarPedido(request, authentication);
@@ -85,8 +92,11 @@ class GarcomPedidoServiceTest {
         assertEquals(7, pedidoRequest.idUsuario());
         assertEquals(8, pedidoRequest.idAtendimento());
         assertEquals(1, pedidoRequest.itens().size());
+        assertEquals(10, pedidoRequest.itens().getFirst().idProduto());
+        assertEquals("X-Burger", pedidoRequest.itens().getFirst().nomeProduto());
         assertEquals("Sem cebola", pedidoRequest.itens().getFirst().observacao());
         verify(mesaClient).validarMesaAtribuidaGarcom(1, 7);
+        verify(produtoClient).verificarDisponibilidade(10);
     }
 
     @Test
@@ -100,7 +110,7 @@ class GarcomPedidoServiceTest {
 
         assertEquals(ErrorEnum.MESA_NAO_ATRIBUIDA_AO_GARCOM, exception.getErrorEnum());
         verify(mesaClient).validarMesaAtribuidaGarcom(1, 7);
-        verifyNoInteractions(pedidoClient);
+        verifyNoInteractions(produtoClient, pedidoClient);
     }
 
     @Test
@@ -110,13 +120,34 @@ class GarcomPedidoServiceTest {
         SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
 
         when(mesaClient.validarMesaAtribuidaGarcom(1, 7)).thenReturn(sessao);
+        when(produtoClient.verificarDisponibilidade(10))
+                .thenReturn(new ProdutoDisponibilidadeResponse(10, "X-Burger", true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenThrow(feignException(500));
 
         BaseException exception = assertThrows(BaseException.class, () -> garcomPedidoService.criarPedido(request, authentication));
 
         assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
         verify(mesaClient).validarMesaAtribuidaGarcom(1, 7);
+        verify(produtoClient).verificarDisponibilidade(10);
         verify(pedidoClient).criarPedido(any(CriarPedidoRequest.class));
+    }
+
+    @Test
+    void criarPedidoDeveBloquearProdutoIndisponivel() {
+        CriarPedidoGarcomRequest request = criarRequest();
+        Authentication authentication = criarAuthentication(7L);
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
+
+        when(mesaClient.validarMesaAtribuidaGarcom(1, 7)).thenReturn(sessao);
+        when(produtoClient.verificarDisponibilidade(10))
+                .thenReturn(new ProdutoDisponibilidadeResponse(10, "X-Burger", false, new BigDecimal("29.90")));
+
+        BaseException exception = assertThrows(BaseException.class, () -> garcomPedidoService.criarPedido(request, authentication));
+
+        assertEquals(ErrorEnum.PRODUTO_INDISPONIVEL, exception.getErrorEnum());
+        verify(mesaClient).validarMesaAtribuidaGarcom(1, 7);
+        verify(produtoClient).verificarDisponibilidade(10);
+        verifyNoInteractions(pedidoClient);
     }
 
     private CriarPedidoGarcomRequest criarRequest() {

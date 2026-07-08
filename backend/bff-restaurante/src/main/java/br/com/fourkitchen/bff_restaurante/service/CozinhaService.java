@@ -95,13 +95,13 @@ public class CozinhaService {
                 pedido.idMesa(),
                 pedido.idAtendimento(),
                 pedido.dataCriacao(),
-                itensDoPedido(pedido).stream()
+                listarItensDoPedido(pedido).stream()
                         .map(this::mapearItem)
                         .toList()
         );
     }
 
-    private List<ItemPedidoCozinhaResponse> itensDoPedido(PedidoCozinhaResponse pedido) {
+    private List<ItemPedidoCozinhaResponse> listarItensDoPedido(PedidoCozinhaResponse pedido) {
         if (pedido.itens() == null) {
             return List.of();
         }
@@ -113,6 +113,7 @@ public class CozinhaService {
         return new ItemFilaCozinhaResponse(
                 item.id(),
                 item.idProduto(),
+                item.nomeProduto(),
                 item.quantidade(),
                 item.precoUnitario(),
                 item.observacao()
@@ -159,19 +160,37 @@ public class CozinhaService {
 
     public void decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
         try {
+            ProdutoDisponibilidadeResponse produtoDisponibilidadeResponse = null;
+
             if(decisaoProblemaRequest.idNovoProduto() != null) {
-                ProdutoDisponibilidadeResponse produtoDisponibilidadeResponse = produtoClient.verificarDisponibilidade(decisaoProblemaRequest.idNovoProduto());
+                produtoDisponibilidadeResponse = produtoClient.verificarDisponibilidade(decisaoProblemaRequest.idNovoProduto());
 
                 if(!Boolean.TRUE.equals(produtoDisponibilidadeResponse.disponivel())) {
                     throw new BaseException(ErrorEnum.PRODUTO_INDISPONIVEL);
                 }
             }
 
-            pedidoClient.decisaoProblema(decisaoProblemaRequest);
+            pedidoClient.decisaoProblema(mapearDecisaoProblema(decisaoProblemaRequest, produtoDisponibilidadeResponse));
         } catch (FeignException error) {
             if(error.status() == 400) {
                 throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
             }
         }
+    }
+
+    private DecisaoProblemaPedidoRequest mapearDecisaoProblema(
+            DecisaoProblemaRequest request,
+            ProdutoDisponibilidadeResponse produtoDisponibilidade
+    ) {
+        String nomeNovoProduto = produtoDisponibilidade == null ? null : produtoDisponibilidade.nome();
+
+        return new DecisaoProblemaPedidoRequest(
+                request.idPedido(),
+                request.idProdutoPedido(),
+                request.novoStatusProdutoPedido(),
+                request.pedidoCancelado(),
+                request.idNovoProduto(),
+                nomeNovoProduto
+        );
     }
 }
