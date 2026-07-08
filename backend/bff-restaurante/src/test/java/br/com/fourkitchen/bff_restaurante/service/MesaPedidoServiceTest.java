@@ -197,6 +197,7 @@ class MesaPedidoServiceTest {
                 List.of(new ItemPedidoCozinhaResponse(
                         5,
                         10,
+                        "Produto teste",
                         2,
                         new BigDecimal("29.90"),
                         "Sem cebola"
