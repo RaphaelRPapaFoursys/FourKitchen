@@ -18,6 +18,7 @@ class ItemPedidoTotemRequestMapperTest {
         ItemPedidoTotemRequest item = new ItemPedidoTotemRequest(10, 2, "Sem cebola");
         ProdutoDisponibilidadeResponse disponibilidade = new ProdutoDisponibilidadeResponse(
                 10,
+                "X-Burger",
                 true,
                 new BigDecimal("29.90")
         );
@@ -25,6 +26,7 @@ class ItemPedidoTotemRequestMapperTest {
         ProdutoPedidoRequest response = mapper.map(new ItemPedidoTotemMapperSource(item, disponibilidade));
 
         assertEquals(10, response.idProduto());
+        assertEquals("X-Burger", response.nomeProduto());
         assertEquals(2, response.quantidade());
         assertEquals(new BigDecimal("29.90"), response.precoUnitario());
         assertEquals("Sem cebola", response.observacao());

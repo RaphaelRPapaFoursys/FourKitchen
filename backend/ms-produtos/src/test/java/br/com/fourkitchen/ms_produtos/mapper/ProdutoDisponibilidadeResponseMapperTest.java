@@ -16,6 +16,7 @@ class ProdutoDisponibilidadeResponseMapperTest {
     void mapDeveRetornarDisponibilidadeEPrecoAtual() {
         Produto produto = Produto.builder()
                 .id(10)
+                .nome("X-Burger")
                 .preco(new BigDecimal("29.90"))
                 .disponivel(true)
                 .build();
@@ -23,6 +24,7 @@ class ProdutoDisponibilidadeResponseMapperTest {
         ProdutoDisponibilidadeResponse response = mapper.map(produto);
 
         assertEquals(10, response.produtoId());
+        assertEquals("X-Burger", response.nome());
         assertEquals(true, response.disponivel());
         assertEquals(new BigDecimal("29.90"), response.preco());
     }

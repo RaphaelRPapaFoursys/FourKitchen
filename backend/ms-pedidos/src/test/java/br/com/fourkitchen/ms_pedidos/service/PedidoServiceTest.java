@@ -64,7 +64,7 @@ class PedidoServiceTest {
 
     @Test
     void createPedidoDeveGerarCodigoEnviarParaCozinhaVincularAtendimentoESalvarItens() {
-        ProdutoPedidoRequest item = new ProdutoPedidoRequest(10, 2, new BigDecimal("29.90"), "Sem cebola");
+        ProdutoPedidoRequest item = new ProdutoPedidoRequest(10, "X-Burger", 2, new BigDecimal("29.90"), "Sem cebola");
         CriarPedidoRequest request = new CriarPedidoRequest(
                 null,
                 null,
@@ -111,6 +111,7 @@ class PedidoServiceTest {
         ProdutoPedido produtoPedido = produtoPedidoCaptor.getValue();
         assertEquals(25, produtoPedido.getIdPedido());
         assertEquals(10, produtoPedido.getIdProduto());
+        assertEquals("X-Burger", produtoPedido.getNomeProduto());
         assertEquals(2, produtoPedido.getQuantidade());
         assertEquals(new BigDecimal("29.90"), produtoPedido.getPrecoUnitario());
         assertEquals("Sem cebola", produtoPedido.getObservacao());
@@ -120,7 +121,7 @@ class PedidoServiceTest {
 
     @Test
     void createPedidoTotemDevePermitirPedidoSemMesa() {
-        ProdutoPedidoRequest item = new ProdutoPedidoRequest(10, 2, new BigDecimal("29.90"), "Sem cebola");
+        ProdutoPedidoRequest item = new ProdutoPedidoRequest(10, "X-Burger", 2, new BigDecimal("29.90"), "Sem cebola");
         CriarPedidoRequest request = new CriarPedidoRequest(
                 null,
                 null,
@@ -166,6 +167,7 @@ class PedidoServiceTest {
         ProdutoPedido produtoPedido = produtoPedidoCaptor.getValue();
         assertEquals(25, produtoPedido.getIdPedido());
         assertEquals(10, produtoPedido.getIdProduto());
+        assertEquals("X-Burger", produtoPedido.getNomeProduto());
         assertEquals(2, produtoPedido.getQuantidade());
         assertEquals(new BigDecimal("29.90"), produtoPedido.getPrecoUnitario());
         assertEquals("Sem cebola", produtoPedido.getObservacao());
@@ -276,6 +278,7 @@ class PedidoServiceTest {
                 .id(5)
                 .idPedido(25)
                 .idProduto(10)
+                .nomeProduto("X-Burger")
                 .quantidade(2)
                 .precoUnitario(new BigDecimal("29.90"))
                 .observacao("Sem cebola")
@@ -304,6 +307,7 @@ class PedidoServiceTest {
         assertEquals(1, pedidoResponse.itens().size());
         assertEquals(5, pedidoResponse.itens().getFirst().id());
         assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
+        assertEquals("X-Burger", pedidoResponse.itens().getFirst().nomeProduto());
         assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
         assertEquals(new BigDecimal("29.90"), pedidoResponse.itens().getFirst().precoUnitario());
         assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
@@ -318,9 +322,7 @@ class PedidoServiceTest {
         assertIterableEquals(
                 List.of(
                         StatusPedido.ENVIADO_COZINHA,
-                        StatusPedido.EM_PREPARO,
-                        StatusPedido.PRONTO,
-                        StatusPedido.AGUARDANDO_DECISAO
+                        StatusPedido.EM_PREPARO
                 ),
                 statusCaptor.getValue()
         );
@@ -603,6 +605,7 @@ class PedidoServiceTest {
                         10,
                         StatusProdutoPedido.REMOVIDO,
                         false,
+                        null,
                         null
                 );
 
@@ -626,6 +629,7 @@ class PedidoServiceTest {
                         10,
                         StatusProdutoPedido.REMOVIDO,
                         false,
+                        null,
                         null
                 );
 
@@ -657,6 +661,7 @@ class PedidoServiceTest {
                         10,
                         StatusProdutoPedido.DISPONIVEL,
                         false,
+                        null,
                         null
                 );
 
@@ -697,6 +702,7 @@ class PedidoServiceTest {
                         10,
                         StatusProdutoPedido.DISPONIVEL,
                         true,
+                        null,
                         null
                 );
 
@@ -734,6 +740,7 @@ class PedidoServiceTest {
                         10,
                         StatusProdutoPedido.REMOVIDO,
                         false,
+                        null,
                         null
                 );
 
@@ -785,6 +792,7 @@ class PedidoServiceTest {
                         10,
                         StatusProdutoPedido.REMOVIDO,
                         false,
+                        null,
                         null
                 );
 
@@ -825,7 +833,8 @@ class PedidoServiceTest {
                         10,
                         StatusProdutoPedido.DISPONIVEL,
                         false,
-                        99
+                        99,
+                        "Batata"
                 );
 
         Pedido pedido = Pedido.builder()
@@ -849,6 +858,11 @@ class PedidoServiceTest {
         assertEquals(
                 99,
                 produtoPedido.getIdProduto()
+        );
+
+        assertEquals(
+                "Batata",
+                produtoPedido.getNomeProduto()
         );
 
         assertEquals(

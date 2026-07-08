@@ -11,6 +11,7 @@ public record CriarProdutoPedidoRequest(
         Integer idPedido,
         @NotNull
         Integer idProduto,
+        String nomeProduto,
         @NotNull
         BigDecimal precoUnitario,
         String observacao

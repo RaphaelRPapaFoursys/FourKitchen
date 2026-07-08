@@ -10,6 +10,7 @@ public class ItemPedidoTotemRequestMapper implements Mapper<ItemPedidoTotemMappe
     public ProdutoPedidoRequest map(ItemPedidoTotemMapperSource source) {
         return new ProdutoPedidoRequest(
                 source.item().idProduto(),
+                source.disponibilidade().nome(),
                 source.item().quantidade(),
                 source.disponibilidade().preco(),
                 source.item().observacao()

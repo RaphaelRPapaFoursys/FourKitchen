@@ -11,7 +11,8 @@ public class ProdutoPedidoResponseMapper implements Mapper<ProdutoPedido, Produt
         ProdutoPedidoResponse produtoPedidoResponse = new ProdutoPedidoResponse(
                 itemPedido.getId(),
                 itemPedido.getIdPedido(),
-                itemPedido.getIdProduto()
+                itemPedido.getIdProduto(),
+                itemPedido.getNomeProduto()
         );
 
         return produtoPedidoResponse;

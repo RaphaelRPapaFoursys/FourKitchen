@@ -63,6 +63,7 @@ class CozinhaServiceTest {
         assertEquals(8, pedido.idAtendimento());
         assertEquals(LocalDateTime.of(2026, 7, 2, 10, 30), pedido.dataCriacao());
         assertEquals(1, pedido.itens().size());
+        assertEquals("X-Burger", pedido.itens().getFirst().nomeProduto());
         assertEquals("Sem cebola", pedido.itens().getFirst().observacao());
         verify(pedidoClient).listarFilaCozinha();
     }
@@ -156,6 +157,7 @@ class CozinhaServiceTest {
                 List.of(new ItemPedidoCozinhaResponse(
                         5,
                         10,
+                        "X-Burger",
                         2,
                         new BigDecimal("29.90"),
                         "Sem cebola"

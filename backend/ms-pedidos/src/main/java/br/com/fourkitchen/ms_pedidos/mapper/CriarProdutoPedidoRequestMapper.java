@@ -13,6 +13,7 @@ public class CriarProdutoPedidoRequestMapper implements Mapper<CriarProdutoPedid
                 .quantidade(produtoPedidoRequest.quantidade())
                 .idPedido(produtoPedidoRequest.idPedido())
                 .idProduto(produtoPedidoRequest.idProduto())
+                .nomeProduto(produtoPedidoRequest.nomeProduto())
                 .precoUnitario(produtoPedidoRequest.precoUnitario())
                 .observacao(produtoPedidoRequest.observacao())
                 .build();
