@@ -32,6 +32,7 @@ public class PedidoService {
             StatusPedido.EM_PREPARO,
             StatusPedido.PRONTO,
             StatusPedido.ENTREGUE,
+            StatusPedido.PROBLEMA_COZINHA,
             StatusPedido.AGUARDANDO_DECISAO
     );
 
@@ -144,7 +145,8 @@ public class PedidoService {
         return new ResumoPedidosOperacaoResponse(
                 pedidoRepository.countByStatus(StatusPedido.EM_PREPARO),
                 pedidoRepository.countByStatus(StatusPedido.PRONTO),
-                pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)
+                pedidoRepository.countByStatus(StatusPedido.PROBLEMA_COZINHA)
+                        + pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)
         );
     }
 
@@ -155,6 +157,30 @@ public class PedidoService {
 
         List<Pedido> pedidos = pedidoRepository
                 .findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(idsAtendimento, STATUS_ATIVOS);
+
+        if (pedidos.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> idsPedidos = pedidos.stream()
+                .map(Pedido::getId)
+                .toList();
+
+        Map<Integer, List<ProdutoPedido>> itensPorPedido = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
+                .stream()
+                .collect(Collectors.groupingBy(ProdutoPedido::getIdPedido));
+
+        return pedidos.stream()
+                .map(pedido -> mapearPedidoCozinha(pedido, itensPorPedido.getOrDefault(pedido.getId(), List.of())))
+                .toList();
+    }
+
+    public List<PedidoCozinhaResponse> findPedidosDetalhadosPorAtendimento(Integer idAtendimento) {
+        if (idAtendimento == null || idAtendimento <= 0) {
+            return List.of();
+        }
+
+        List<Pedido> pedidos = pedidoRepository.findByIdAtendimentoOrderByDataCriacaoAscIdAsc(idAtendimento);
 
         if (pedidos.isEmpty()) {
             return List.of();
@@ -290,7 +316,7 @@ public class PedidoService {
     }
 
     private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {
-        if (pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO) {
+        if (pedidoPermiteDecisao(pedido)) {
             throw new BaseException(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
         }
     }
@@ -314,7 +340,7 @@ public class PedidoService {
             throw new BaseException(ErrorEnum.PEDIDO_ENCERRADO);
         }
 
-        pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
+        pedido.setStatus(StatusPedido.PROBLEMA_COZINHA);
         produtoPedido.setStatus(request.statusProdutoPedido());
 
         return new SinalizarProblemaResponse(
@@ -349,7 +375,7 @@ public class PedidoService {
             produtoPedido.setIdProduto(decisaoProblemaRequest.idNovoProduto());
         }
 
-        if(pedido.getStatus() != StatusPedido.AGUARDANDO_DECISAO) {
+        if(!pedidoPermiteDecisao(pedido)) {
             throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
         }
 
@@ -368,5 +394,10 @@ public class PedidoService {
 
         pedidoRepository.save(pedido);
         produtoPedidoRepository.save(produtoPedido);
+    }
+
+    private boolean pedidoPermiteDecisao(Pedido pedido) {
+        return pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO
+                || pedido.getStatus() == StatusPedido.PROBLEMA_COZINHA;
     }
 }

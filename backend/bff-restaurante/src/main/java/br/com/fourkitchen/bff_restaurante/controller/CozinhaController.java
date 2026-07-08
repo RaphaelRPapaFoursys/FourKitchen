@@ -172,7 +172,7 @@ public class CozinhaController {
     @PatchMapping("/pedidos/sinalizar-problema")
     @Operation(
             summary = "Sinaliza problema em um item de pedido",
-            description = "Altera o status do pedido para AGUARDANDO_DECISAO e o status do item para o problema especificado (FALTA_PRODUTO, ERRO, INDISPONIVEL). Também cria uma notificação sobre o problema para o canal apropriado.",
+            description = "Altera o status do pedido para PROBLEMA_COZINHA e o status do item para o problema especificado (FALTA_PRODUTO, ERRO, INDISPONIVEL). Também cria uma notificação sobre o problema para o canal apropriado.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Dados para sinalizar o problema. O status do produto deve ser um dos valores permitidos para problema.",
                     required = true,
@@ -188,7 +188,7 @@ public class CozinhaController {
                     description = "Problema sinalizado com sucesso",
                     content = @Content(
                             schema = @Schema(implementation = SinalizarProblemaResponse.class),
-                            examples = @ExampleObject(value = "{\"idPedido\":1,\"idProdutoPedido\":10,\"statusPedido\":\"AGUARDANDO_DECISAO\",\"statusProdutoPedido\":\"FALTA_PRODUTO\"}")
+                            examples = @ExampleObject(value = "{\"idPedido\":1,\"idProdutoPedido\":10,\"statusPedido\":\"PROBLEMA_COZINHA\",\"statusProdutoPedido\":\"FALTA_PRODUTO\"}")
                     )
             ),
             @ApiResponse(

@@ -4,11 +4,14 @@ import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.SessaoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.CriarPedidoRequest;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.request.ItemPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaStatusResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
@@ -26,6 +29,7 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -175,6 +179,69 @@ class MesaPedidoServiceTest {
 
         assertEquals(ErrorEnum.ACESSO_NEGADO, exception.getErrorEnum());
         verifyNoInteractions(mesaClient, produtoClient, pedidoClient);
+    }
+
+    @Test
+    void listarPedidosDoAtendimentoAtualDeveValidarSessaoEMapearPedidos() {
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
+        LocalDateTime dataCriacao = LocalDateTime.of(2026, 7, 2, 10, 30);
+        PedidoCozinhaResponse pedido = new PedidoCozinhaResponse(
+                25,
+                100025,
+                "MESA",
+                "PROBLEMA_COZINHA",
+                1,
+                8,
+                dataCriacao,
+                List.of(new ItemPedidoCozinhaResponse(
+                        5,
+                        10,
+                        2,
+                        new BigDecimal("29.90"),
+                        "Sem cebola"
+                ))
+        );
+
+        when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
+        when(pedidoClient.listarPedidosDetalhadosPorAtendimento(8)).thenReturn(List.of(pedido));
+
+        List<PedidoMesaStatusResponse> response =
+                mesaPedidoService.listarPedidosDoAtendimentoAtual(123456, criarAuthenticationMesa());
+
+        assertEquals(1, response.size());
+        PedidoMesaStatusResponse pedidoResponse = response.getFirst();
+        assertEquals(25, pedidoResponse.id());
+        assertEquals(100025, pedidoResponse.codigo());
+        assertEquals("MESA", pedidoResponse.canal());
+        assertEquals("PROBLEMA_COZINHA", pedidoResponse.status());
+        assertEquals(1, pedidoResponse.idMesa());
+        assertEquals(8, pedidoResponse.idAtendimento());
+        assertEquals(123456, pedidoResponse.codigoAtendimento());
+        assertEquals(dataCriacao, pedidoResponse.dataCriacao());
+        assertEquals(1, pedidoResponse.itens().size());
+        assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
+        assertEquals(null, pedidoResponse.itens().getFirst().nome());
+        assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
+        assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
+        verify(mesaClient).validarSessaoMesa(1, 123456);
+        verify(pedidoClient).listarPedidosDetalhadosPorAtendimento(8);
+    }
+
+    @Test
+    void listarPedidosDoAtendimentoAtualDeveMapearFalhaDoMsPedidos() {
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
+
+        when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
+        when(pedidoClient.listarPedidosDetalhadosPorAtendimento(8)).thenThrow(feignException(500));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> mesaPedidoService.listarPedidosDoAtendimentoAtual(123456, criarAuthenticationMesa())
+        );
+
+        assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
+        verify(mesaClient).validarSessaoMesa(1, 123456);
+        verify(pedidoClient).listarPedidosDetalhadosPorAtendimento(8);
     }
 
     private CriarPedidoMesaRequest criarRequest() {
