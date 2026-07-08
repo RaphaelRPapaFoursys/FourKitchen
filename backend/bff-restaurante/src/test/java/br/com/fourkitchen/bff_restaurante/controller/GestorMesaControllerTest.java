@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.service.GestorMesaService;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -86,6 +88,34 @@ class GestorMesaControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertSame(garcom, response.getBody().getFirst());
         verify(gestorMesaService).listarGarcons(AUTHORIZATION);
+    }
+
+    @Test
+    void listarHistoricoAtendimentosDeveRetornarOk() {
+        HistoricoAtendimentoResponse historico = new HistoricoAtendimentoResponse(
+                1,
+                8,
+                123456,
+                1,
+                10,
+                7,
+                "Amanda Souza",
+                new BigDecimal("149.70"),
+                3,
+                7,
+                LocalDateTime.of(2026, 7, 2, 10, 0),
+                LocalDateTime.of(2026, 7, 2, 11, 20),
+                80
+        );
+
+        when(gestorMesaService.listarHistoricoAtendimentos(AUTHORIZATION)).thenReturn(List.of(historico));
+
+        ResponseEntity<List<HistoricoAtendimentoResponse>> response =
+                gestorMesaController.listarHistoricoAtendimentos(AUTHORIZATION);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertSame(historico, response.getBody().getFirst());
+        verify(gestorMesaService).listarHistoricoAtendimentos(AUTHORIZATION);
     }
 
     @Test

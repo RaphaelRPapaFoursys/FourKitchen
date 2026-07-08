@@ -2,7 +2,6 @@ package br.com.fourkitchen.bff_restaurante.client.pedidos;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.*;
 
-import br.com.fourkitchen.bff_restaurante.dto.request.DecisaoProblemaRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -47,8 +46,8 @@ public interface PedidoClient {
     @PatchMapping("/api/pedidos/sinalizar-problema")
     SinalizarProblemaResponse sinalizarProblema(@RequestBody SinalizarProblemaRequest request);
 
-    @PatchMapping("/pedidos/decisao-problema")
+    @PatchMapping("/api/pedidos/decisao-problema")
     Void decisaoProblema(
-            @RequestBody DecisaoProblemaRequest decisaoProblemaRequest
+            @RequestBody DecisaoProblemaPedidoRequest decisaoProblemaRequest
     );
 }
