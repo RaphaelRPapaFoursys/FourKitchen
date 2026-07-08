@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { signal } from '@angular/core';
 
 import { CartItem, CartSummary, CustomerContext } from '../models/cart.models';
 
@@ -7,6 +8,9 @@ import { CartItem, CartSummary, CustomerContext } from '../models/cart.models';
 })
 export class CartService {
   private readonly storagePrefix = 'fourkitchen-cart';
+  private readonly cartVersionSignal = signal(0);
+
+  readonly cartVersion = this.cartVersionSignal.asReadonly();
 
   getCart(context: CustomerContext): CartItem[] {
     const storedCart = localStorage.getItem(this.getStorageKey(context));
@@ -85,6 +89,7 @@ export class CartService {
 
   clearCart(context: CustomerContext): void {
     localStorage.removeItem(this.getStorageKey(context));
+    this.bumpCartVersion();
   }
 
   getTotal(context: CustomerContext): number {
@@ -93,6 +98,7 @@ export class CartService {
 
   private saveCart(context: CustomerContext, items: CartItem[]): void {
     localStorage.setItem(this.getStorageKey(context), JSON.stringify(items));
+    this.bumpCartVersion();
   }
 
   private getStorageKey(context: CustomerContext): string {
@@ -101,5 +107,9 @@ export class CartService {
 
   private normalizeObservation(observation?: string): string {
     return observation?.trim() ?? '';
+  }
+
+  private bumpCartVersion(): void {
+    this.cartVersionSignal.update(version => version + 1);
   }
 }

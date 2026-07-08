@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, catchError, map, startWith, switchMap } from 'rxjs';
@@ -25,7 +25,7 @@ type MenuLoadState =
   styleUrl: './customer-home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CustomerHome {
+export class CustomerHome implements AfterViewInit {
   @ViewChild('menuSection') private menuSection?: ElementRef<HTMLElement>;
   @ViewChild('categoriesCarousel') private categoriesCarousel?: ElementRef<HTMLElement>;
 
@@ -42,6 +42,8 @@ export class CustomerHome {
   protected readonly selectedObservation = signal('');
   protected readonly cartItemsCount = signal(0);
   protected readonly cartFeedback = signal('');
+  protected readonly canScrollCategoriesLeft = signal(false);
+  protected readonly canScrollCategoriesRight = signal(false);
 
   protected readonly menuState = toSignal(
     this.reloadMenuSubject.pipe(
@@ -86,11 +88,24 @@ export class CustomerHome {
 
   constructor() {
     this.refreshCartCount();
+    effect(() => {
+      this.categories();
+      window.setTimeout(() => this.updateCategoriesScrollState());
+    });
   }
 
   @HostListener('document:keydown.escape')
   protected closeProductDetailsOnEscape(): void {
     this.closeProductDetails();
+  }
+
+  @HostListener('window:resize')
+  protected updateCategoriesScrollOnResize(): void {
+    this.updateCategoriesScrollState();
+  }
+
+  ngAfterViewInit(): void {
+    window.setTimeout(() => this.updateCategoriesScrollState());
   }
 
   protected loadMenu(): void {
@@ -131,8 +146,29 @@ export class CustomerHome {
       destination,
       'left',
       760,
-      () => carousel.classList.remove('categories__grid--animating'),
+      () => {
+        carousel.classList.remove('categories__grid--animating');
+        this.updateCategoriesScrollState();
+      },
     );
+  }
+
+  protected updateCategoriesScrollState(): void {
+    const carousel = this.categoriesCarousel?.nativeElement;
+
+    if (!carousel) {
+      this.canScrollCategoriesLeft.set(false);
+      this.canScrollCategoriesRight.set(false);
+
+      return;
+    }
+
+    const maxScrollLeft = Math.max(carousel.scrollWidth - carousel.clientWidth, 0);
+    const currentScroll = carousel.scrollLeft;
+    const threshold = 2;
+
+    this.canScrollCategoriesLeft.set(currentScroll > threshold);
+    this.canScrollCategoriesRight.set(currentScroll < maxScrollLeft - threshold);
   }
 
   protected scrollToSection(sectionId: string, event: Event): void {
@@ -189,28 +225,13 @@ export class CustomerHome {
       return;
     }
 
-    const cartItem: CartItem = {
-      cartItemId: this.createCartItemId(product.id),
-      productId: product.id,
-      name: product.nome,
-      description: product.descricao,
-      image: product.imagem,
-      unitPrice: product.preco,
-      quantity: this.selectedQuantity(),
-      observation: this.selectedObservation(),
-      categoryId: product.categoriaId,
-      categoryName: product.categoriaNome,
-    };
-
-    this.cartService.addItem(this.getCurrentContext(), cartItem);
-    this.refreshCartCount();
+    this.addProductToCart(product, this.selectedQuantity(), this.selectedObservation());
     this.closeProductDetails();
-    this.showCartFeedback('Item adicionado ao carrinho.');
   }
 
-  protected openDetailsFromAddButton(product: ProdutoCardapioView, event: Event): void {
+  protected addProductFromCard(product: ProdutoCardapioView, event: Event): void {
     event.stopPropagation();
-    this.openProductDetails(product);
+    this.addProductToCart(product, 1);
   }
 
   protected trackByCategoryId(_index: number, category: CategoriaCardapioResponse): number {
@@ -266,6 +287,29 @@ export class CustomerHome {
       : Math.random().toString(36).slice(2);
 
     return `${productId}-${Date.now()}-${randomId}`;
+  }
+
+  private addProductToCart(
+    product: ProdutoCardapioView,
+    quantity: number,
+    observation = '',
+  ): void {
+    const cartItem: CartItem = {
+      cartItemId: this.createCartItemId(product.id),
+      productId: product.id,
+      name: product.nome,
+      description: product.descricao,
+      image: product.imagem,
+      unitPrice: product.preco,
+      quantity,
+      observation,
+      categoryId: product.categoriaId,
+      categoryName: product.categoriaNome,
+    };
+
+    this.cartService.addItem(this.getCurrentContext(), cartItem);
+    this.refreshCartCount();
+    this.showCartFeedback('Item adicionado ao carrinho.');
   }
 
   private showCartFeedback(message: string): void {

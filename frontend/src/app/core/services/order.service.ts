@@ -7,12 +7,7 @@ import {
   CriarPedidoMesaRequest,
   CriarPedidoTotemRequest,
 } from '../models/menu.models';
-
-interface PedidoResponse {
-  id?: number;
-  status?: string;
-  mensagem?: string;
-}
+import { PedidoMesaStatusResponse, PedidoResponse } from '../models/order.models';
 
 @Injectable({
   providedIn: 'root',
@@ -26,5 +21,13 @@ export class OrderService {
 
   createTotemOrder(request: CriarPedidoTotemRequest): Observable<PedidoResponse> {
     return this.http.post<PedidoResponse>(`${environment.apiUrl}/api/totem/pedidos`, request);
+  }
+
+  getMesaOrders(codigoAtendimento: number): Observable<PedidoMesaStatusResponse[]> {
+    // TODO: ajustar o nome do parametro se o BFF oficializar outro contrato.
+    return this.http.get<PedidoMesaStatusResponse[]>(
+      `${environment.apiUrl}/api/mesa/pedidos`,
+      { params: { codigoAtendimento } },
+    );
   }
 }

@@ -24,8 +24,13 @@ export class OrderSuccess {
   }
 
   protected followOrder(): void {
-    // TODO: navegar para acompanhamento quando a rota existir.
-    this.router.navigate([`/${this.getCurrentContext()}`]);
+    if (this.isMesaContext()) {
+      this.router.navigate(['/mesa/pedidos']);
+    }
+  }
+
+  protected isMesaContext(): boolean {
+    return this.getCurrentContext() === 'mesa';
   }
 
   private getCurrentContext(): CustomerContext {

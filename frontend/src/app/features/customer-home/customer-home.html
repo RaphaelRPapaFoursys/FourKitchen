@@ -54,11 +54,13 @@
         <p class="state-message">Nenhum item disponivel no momento.</p>
       } @else {
         <div class="categories-carousel">
-          <button class="categories-carousel__button categories-carousel__button--left" type="button" aria-label="Ver categorias anteriores" (click)="scrollCategories('left')">
-            ‹
-          </button>
+          @if (canScrollCategoriesLeft()) {
+            <button class="categories-carousel__button categories-carousel__button--left" type="button" aria-label="Ver categorias anteriores" (click)="scrollCategories('left')">
+              ‹
+            </button>
+          }
 
-          <div class="categories__grid" #categoriesCarousel>
+          <div class="categories__grid" #categoriesCarousel (scroll)="updateCategoriesScrollState()">
             @for (category of categories(); track trackByCategoryId($index, category)) {
               <button
                 class="category-card"
@@ -77,9 +79,11 @@
             }
           </div>
 
-          <button class="categories-carousel__button categories-carousel__button--right" type="button" aria-label="Ver proximas categorias" (click)="scrollCategories('right')">
-            ›
-          </button>
+          @if (canScrollCategoriesRight()) {
+            <button class="categories-carousel__button categories-carousel__button--right" type="button" aria-label="Ver proximas categorias" (click)="scrollCategories('right')">
+              ›
+            </button>
+          }
         </div>
       }
     </div>
@@ -147,7 +151,7 @@
 
                 <div class="product-card__footer">
                   <strong>{{ formatPrice(product.preco) }}</strong>
-                  <button type="button" (click)="openDetailsFromAddButton(product, $event)" aria-label="Adicionar item">
+                  <button type="button" (click)="addProductFromCard(product, $event)" aria-label="Adicionar item">
                     <img src="assets/icons/plus.svg" alt="" aria-hidden="true" />
                   </button>
                 </div>

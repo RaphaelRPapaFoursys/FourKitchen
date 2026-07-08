@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import { CartItem, CustomerContext } from '../../core/models/cart.models';
 import { CartService } from '../../core/services/cart.service';
+import { CustomerOrderCacheService } from '../../core/services/customer-order-cache.service';
+import { OrderService } from '../../core/services/order.service';
 
 @Component({
   selector: 'app-customer-cart',
@@ -14,6 +17,8 @@ import { CartService } from '../../core/services/cart.service';
 })
 export class CustomerCart {
   private readonly cartService = inject(CartService);
+  private readonly orderService = inject(OrderService);
+  private readonly orderCacheService = inject(CustomerOrderCacheService);
   private readonly router = inject(Router);
 
   protected readonly items = signal<CartItem[]>(this.cartService.getCart(this.getCurrentContext()));
@@ -23,6 +28,8 @@ export class CustomerCart {
   protected readonly totalItems = computed(() =>
     this.items().reduce((total, item) => total + item.quantity, 0),
   );
+  protected readonly isConfirmingOrder = signal(false);
+  protected readonly confirmOrderError = signal('');
 
   protected increaseQuantity(item: CartItem): void {
     this.items.set(
@@ -69,14 +76,12 @@ export class CustomerCart {
     const context = this.getCurrentContext();
 
     if (context === 'totem') {
-      this.items().map(item => ({
-        idProduto: item.productId,
-        quantidade: item.quantity,
-        observacao: item.observation,
-      }));
+      this.confirmTotemOrder();
+
+      return;
     }
 
-    // TODO: chamar OrderService quando a origem do codigoSessao da mesa estiver definida.
+    // TODO: chamar OrderService.createMesaOrder quando a origem de idMesa/codigoAtendimento estiver definida.
     this.router.navigate([`/${context}/pedido-criado`]);
   }
 
@@ -103,5 +108,34 @@ export class CustomerCart {
 
   protected getCurrentContext(): CustomerContext {
     return this.router.url.startsWith('/totem') ? 'totem' : 'mesa';
+  }
+
+  private confirmTotemOrder(): void {
+    if (this.items().length === 0 || this.isConfirmingOrder()) {
+      return;
+    }
+
+    this.confirmOrderError.set('');
+    this.isConfirmingOrder.set(true);
+
+    this.orderService.createTotemOrder({
+      itens: this.items().map(item => ({
+        idProduto: item.productId,
+        quantidade: item.quantity,
+        observacao: item.observation,
+      })),
+    })
+      .pipe(finalize(() => this.isConfirmingOrder.set(false)))
+      .subscribe({
+        next: order => {
+          this.orderCacheService.addOrder('totem', order);
+          this.cartService.clearCart('totem');
+          this.items.set([]);
+          this.router.navigate(['/totem/pedido-criado']);
+        },
+        error: () => {
+          this.confirmOrderError.set('Nao foi possivel confirmar o pedido. Tente novamente.');
+        },
+      });
   }
 }

@@ -9,7 +9,9 @@
     <p>Acompanhe o status no painel ou aqui mesmo.</p>
 
     <div class="order-success__actions">
-      <button class="order-success__primary" type="button" (click)="followOrder()">Acompanhar Pedido</button>
+      @if (isMesaContext()) {
+        <button class="order-success__primary" type="button" (click)="followOrder()">Acompanhar Pedido</button>
+      }
       <button class="order-success__secondary" type="button" (click)="startNewOrder()">Novo Pedido</button>
     </div>
   </section>

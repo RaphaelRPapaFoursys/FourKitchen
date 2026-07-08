@@ -24,6 +24,11 @@ export const protectedRoutes: Routes = [
     loadComponent: () =>
       import('../../features/home/home').then(m => m.Home),
   }),
+  {
+    path: 'totem/pedidos',
+    pathMatch: 'full',
+    redirectTo: 'totem',
+  },
   protectedRoute(
     {
       path: 'totem/carrinho',
@@ -47,6 +52,14 @@ export const protectedRoutes: Routes = [
         import('../../features/customer-home/customer-home').then(m => m.CustomerHome),
     },
     ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
+      path: 'mesa/pedidos',
+      loadComponent: () =>
+        import('../../features/customer-orders/customer-orders').then(m => m.CustomerOrders),
+    },
+    ['ADMIN', 'MESA'],
   ),
   protectedRoute(
     {

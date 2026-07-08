@@ -70,7 +70,13 @@
             <strong>{{ formatPrice(subtotal()) }}</strong>
           </div>
 
-          <button class="cart-summary__confirm" type="button" (click)="confirmOrder()">Confirmar Pedido</button>
+          @if (confirmOrderError()) {
+            <p class="cart-summary__error" role="alert">{{ confirmOrderError() }}</p>
+          }
+
+          <button class="cart-summary__confirm" type="button" (click)="confirmOrder()" [disabled]="isConfirmingOrder()">
+            {{ isConfirmingOrder() ? 'Confirmando...' : 'Confirmar Pedido' }}
+          </button>
           <button class="cart-summary__secondary" type="button" (click)="continueShopping()">Continuar Comprando</button>
         </aside>
       </div>
