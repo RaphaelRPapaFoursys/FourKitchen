@@ -26,4 +26,11 @@ public class PedidosAtivosClient {
 
         return Boolean.TRUE.equals(possuiPedidosAtivos);
     }
+
+    public ResumoContaAtendimentoResponse buscarResumoConta(Integer atendimentoId) {
+        return restClient.get()
+                .uri("/api/pedidos/atendimentos/{atendimentoId}/resumo-conta", atendimentoId)
+                .retrieve()
+                .body(ResumoContaAtendimentoResponse.class);
+    }
 }

@@ -1,8 +1,10 @@
 package br.com.fourkitchen.ms_mesas.service;
 
 import br.com.fourkitchen.ms_mesas.client.PedidosAtivosClient;
+import br.com.fourkitchen.ms_mesas.client.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_mesas.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.ms_mesas.dto.request.CriarMesaRequest;
+import br.com.fourkitchen.ms_mesas.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaPaginadaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
@@ -15,14 +17,18 @@ import br.com.fourkitchen.ms_mesas.mapper.CriarMesaRequestMapper;
 import br.com.fourkitchen.ms_mesas.mapper.MesaGarcomResponseMapper;
 import br.com.fourkitchen.ms_mesas.mapper.MesaResponseMapper;
 import br.com.fourkitchen.ms_mesas.model.Atendimento;
+import br.com.fourkitchen.ms_mesas.model.HistoricoAtendimento;
 import br.com.fourkitchen.ms_mesas.model.Mesa;
 import br.com.fourkitchen.ms_mesas.repository.AtendimentoRepository;
+import br.com.fourkitchen.ms_mesas.repository.HistoricoAtendimentoRepository;
 import br.com.fourkitchen.ms_mesas.repository.MesaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +41,8 @@ public class MesaService {
     private final MesaRepository mesaRepository;
 
     private final AtendimentoRepository atendimentoRepository;
+
+    private final HistoricoAtendimentoRepository historicoAtendimentoRepository;
 
     private final PedidosAtivosClient pedidosAtivosClient;
 
@@ -73,6 +81,13 @@ public class MesaService {
 
     public ResumoMesasOperacaoResponse buscarResumoOperacao() {
         return new ResumoMesasOperacaoResponse(mesaRepository.countByDisponivelFalse());
+    }
+
+    public List<HistoricoAtendimentoResponse> listarHistoricoAtendimentos() {
+        return historicoAtendimentoRepository.findAllByOrderByDataFechamentoDescIdDesc()
+                .stream()
+                .map(this::mapearHistoricoAtendimento)
+                .toList();
     }
 
     @Transactional
@@ -124,8 +139,10 @@ public class MesaService {
         validarMesaSemPedidosAtivos(mesa);
 
         Atendimento atendimento = buscarAtendimentoAberto(mesa);
-        atendimento.setDataFechamento(LocalDateTime.now());
+        LocalDateTime dataFechamento = LocalDateTime.now();
+        atendimento.setDataFechamento(dataFechamento);
         atendimentoRepository.save(atendimento);
+        salvarHistoricoAtendimento(mesa, atendimento);
 
         mesa.setDisponivel(true);
         mesa.setAtendimento(null);
@@ -227,6 +244,60 @@ public class MesaService {
         Atendimento atendimento = buscarAtendimentoAberto(mesa);
 
         return pedidosAtivosClient.possuiPedidosAtivos(atendimento.getId());
+    }
+
+    private void salvarHistoricoAtendimento(Mesa mesa, Atendimento atendimento) {
+        ResumoContaAtendimentoResponse resumo = pedidosAtivosClient.buscarResumoConta(atendimento.getId());
+
+        HistoricoAtendimento historico = HistoricoAtendimento.builder()
+                .idAtendimento(atendimento.getId())
+                .codigoSessao(atendimento.getCodigoSessao())
+                .idMesa(mesa.getId())
+                .numeroMesa(mesa.getNumero())
+                .idGarcom(atendimento.getGarcomId())
+                .nomeGarcom(null)
+                .valorFinal(resumo != null && resumo.valorFinal() != null ? resumo.valorFinal() : BigDecimal.ZERO)
+                .totalPedidos(resumo != null && resumo.totalPedidos() != null ? resumo.totalPedidos() : 0)
+                .totalItens(resumo != null && resumo.totalItens() != null ? resumo.totalItens() : 0)
+                .dataAbertura(dataAberturaHistorico(atendimento))
+                .dataFechamento(atendimento.getDataFechamento())
+                .duracaoMinutos(calcularDuracaoMinutos(atendimento))
+                .build();
+
+        historicoAtendimentoRepository.save(historico);
+    }
+
+    private LocalDateTime dataAberturaHistorico(Atendimento atendimento) {
+        return atendimento.getDataAbertura() == null
+                ? atendimento.getDataFechamento()
+                : atendimento.getDataAbertura();
+    }
+
+    private Integer calcularDuracaoMinutos(Atendimento atendimento) {
+        long minutos = Duration.between(
+                dataAberturaHistorico(atendimento),
+                atendimento.getDataFechamento()
+        ).toMinutes();
+
+        return Math.toIntExact(Math.max(0, minutos));
+    }
+
+    private HistoricoAtendimentoResponse mapearHistoricoAtendimento(HistoricoAtendimento historico) {
+        return new HistoricoAtendimentoResponse(
+                historico.getId(),
+                historico.getIdAtendimento(),
+                historico.getCodigoSessao(),
+                historico.getIdMesa(),
+                historico.getNumeroMesa(),
+                historico.getIdGarcom(),
+                historico.getNomeGarcom(),
+                historico.getValorFinal(),
+                historico.getTotalPedidos(),
+                historico.getTotalItens(),
+                historico.getDataAbertura(),
+                historico.getDataFechamento(),
+                historico.getDuracaoMinutos()
+        );
     }
 
     private Atendimento buscarAtendimentoAberto(Mesa mesa) {

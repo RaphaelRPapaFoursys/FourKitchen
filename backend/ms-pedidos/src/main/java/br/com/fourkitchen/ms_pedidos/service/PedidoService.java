@@ -1,17 +1,16 @@
 package br.com.fourkitchen.ms_pedidos.service;
 
-import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
-import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
-import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.*;
 import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
-import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
+import br.com.fourkitchen.ms_pedidos.enums.StatusProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.exceptions.*;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
@@ -21,6 +20,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -98,8 +98,7 @@ public class PedidoService {
 
     public PedidoResponse findById(Integer id) {
         Pedido pedido = pedidoRepository.findById(id)
-
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         return pedidoResponseMapper.map(pedido);
     }
@@ -161,6 +160,39 @@ public class PedidoService {
                 pedidoRepository.countByStatus(StatusPedido.EM_PREPARO),
                 pedidoRepository.countByStatus(StatusPedido.PRONTO),
                 pedidoRepository.countByStatus(StatusPedido.AGUARDANDO_DECISAO)
+        );
+    }
+
+    public ResumoContaAtendimentoResponse buscarResumoContaAtendimento(Integer idAtendimento) {
+        List<Pedido> pedidos = pedidoRepository
+                .findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                        idAtendimento,
+                        StatusPedido.CANCELADO
+                );
+
+        if (pedidos.isEmpty()) {
+            return new ResumoContaAtendimentoResponse(idAtendimento, BigDecimal.ZERO, 0, 0);
+        }
+
+        List<Integer> idsPedidos = pedidos.stream()
+                .map(Pedido::getId)
+                .toList();
+
+        List<ProdutoPedido> itens = produtoPedidoRepository.findByIdPedidoIn(idsPedidos);
+
+        BigDecimal valorFinal = itens.stream()
+                .map(this::valorItem)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        int totalItens = itens.stream()
+                .mapToInt(item -> item.getQuantidade() == null ? 0 : item.getQuantidade())
+                .sum();
+
+        return new ResumoContaAtendimentoResponse(
+                idAtendimento,
+                valorFinal,
+                pedidos.size(),
+                totalItens
         );
     }
 
@@ -226,7 +258,7 @@ public class PedidoService {
     @Transactional
     public void patchPedido(Integer id, AlterarPedidoRequest alterarPedidoRequest) {
         Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         if (alterarPedidoRequest.canal() != null) {
             pedido.setCanal(alterarPedidoRequest.canal());
@@ -254,7 +286,7 @@ public class PedidoService {
     @Transactional
     public void softDelete(Integer id) {
         Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         pedido.setStatus(StatusPedido.CANCELADO);
     }
@@ -271,7 +303,7 @@ public class PedidoService {
 
     private Pedido buscarPedido(Integer id) {
         return pedidoRepository.findById(id)
-                .orElseThrow(PedidoInexistenteException::new);
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
     }
 
     private void validarStatusAtual(Pedido pedido, StatusPedido statusEsperado) {
@@ -305,28 +337,37 @@ public class PedidoService {
         );
     }
 
+    private BigDecimal valorItem(ProdutoPedido item) {
+        if (item.getPrecoUnitario() == null || item.getQuantidade() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade()));
+    }
+
     private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {
         if (pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO) {
-            throw new PedidoAguardandoDecisaoException();
+            throw new BaseException(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
         }
     }
 
     @Transactional
     public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
 
-        Pedido pedido = pedidoRepository.findById(request.idPedido()).orElseThrow(PedidoInexistenteException::new);
+        Pedido pedido = pedidoRepository.findById(request.idPedido())
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
         ProdutoPedido produtoPedido = produtoPedidoRepository
                 .findByIdPedidoAndId(
                         request.idPedido(),
                         request.idProdutoPedido()
-                ).orElseThrow(ProdutoPedidoInexistenteException::new);
+                ).orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
 
         StatusPedido status = pedido.getStatus();
 
         if (status != StatusPedido.ENVIADO_COZINHA
                 && status != StatusPedido.EM_PREPARO) {
-            throw new PedidoEncerradoException();
+            throw new BaseException(ErrorEnum.PEDIDO_ENCERRADO);
         }
 
         pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
@@ -340,4 +381,48 @@ public class PedidoService {
         );
     }
 
+    @Transactional
+    public void decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
+        Pedido pedido = pedidoRepository.findById(decisaoProblemaRequest.idPedido())
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
+
+        ProdutoPedido produtoPedido = produtoPedidoRepository.findById(decisaoProblemaRequest.idProdutoPedido())
+                .orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
+
+        if(decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
+            produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);
+
+            List<ProdutoPedido> listaProdutos = produtoPedidoRepository
+                    .findByIdPedidoAndStatus(decisaoProblemaRequest.idPedido(), StatusProdutoPedido.DISPONIVEL);
+
+            if(listaProdutos.isEmpty()) {
+                pedido.setStatus(StatusPedido.CANCELADO);
+                return;
+            }
+        }
+
+        if(decisaoProblemaRequest.idNovoProduto() != null) {
+            produtoPedido.setIdProduto(decisaoProblemaRequest.idNovoProduto());
+        }
+
+        if(pedido.getStatus() != StatusPedido.AGUARDANDO_DECISAO) {
+            throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
+        }
+
+        if(decisaoProblemaRequest.pedidoCancelado()) {
+            pedido.setStatus(StatusPedido.CANCELADO);
+
+            return;
+        }
+
+        if(decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
+            produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);
+        }
+
+        produtoPedido.setStatus(decisaoProblemaRequest.novoStatusProdutoPedido());
+        pedido.setStatus(StatusPedido.ENVIADO_COZINHA);
+
+        pedidoRepository.save(pedido);
+        produtoPedidoRepository.save(produtoPedido);
+    }
 }

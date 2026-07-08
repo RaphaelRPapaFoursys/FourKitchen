@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.AtribuirGarcomClientRequest;
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.HistoricoAtendimentoClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
@@ -9,6 +10,7 @@ import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
@@ -27,6 +29,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -221,6 +224,44 @@ class GestorMesaServiceTest {
         assertEquals(List.of(garcom), resultado);
         verify(usuarioClient).listarUsuariosAtivos(AUTHORIZATION);
         verify(garcomResumoResponseMapper).map(garcomUsuario);
+    }
+
+    @Test
+    void listarHistoricoAtendimentosDeveBuscarHistoricoEEnriquecerNomeDoGarcom() {
+        HistoricoAtendimentoClientResponse historico = new HistoricoAtendimentoClientResponse(
+                1,
+                8,
+                123456,
+                1,
+                10,
+                7,
+                null,
+                new BigDecimal("149.70"),
+                3,
+                7,
+                LocalDateTime.of(2026, 7, 2, 10, 0),
+                LocalDateTime.of(2026, 7, 2, 11, 20),
+                80
+        );
+        UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
+        GarcomResumoResponse garcom = criarGarcom(7, "Amanda Souza");
+
+        when(mesaClient.listarHistoricoAtendimentos()).thenReturn(List.of(historico));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of(usuario));
+        when(garcomResumoResponseMapper.map(usuario)).thenReturn(garcom);
+
+        List<HistoricoAtendimentoResponse> resultado = gestorMesaService.listarHistoricoAtendimentos(AUTHORIZATION);
+
+        assertEquals(1, resultado.size());
+        assertEquals(8, resultado.getFirst().idAtendimento());
+        assertEquals(10, resultado.getFirst().numeroMesa());
+        assertEquals(7, resultado.getFirst().idGarcom());
+        assertEquals("Amanda Souza", resultado.getFirst().nomeGarcom());
+        assertEquals(new BigDecimal("149.70"), resultado.getFirst().valorFinal());
+        assertEquals(80, resultado.getFirst().duracaoMinutos());
+        verify(mesaClient).listarHistoricoAtendimentos();
+        verify(usuarioClient).listarUsuariosAtivos(AUTHORIZATION);
+        verify(garcomResumoResponseMapper).map(usuario);
     }
 
     @Test

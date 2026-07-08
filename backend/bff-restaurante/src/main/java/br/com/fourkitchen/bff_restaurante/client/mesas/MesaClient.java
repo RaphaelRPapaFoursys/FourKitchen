@@ -1,6 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.client.mesas;
 
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.AtribuirGarcomClientRequest;
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.HistoricoAtendimentoClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaGarcomClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaPaginadaClientResponse;
@@ -57,4 +58,7 @@ public interface MesaClient {
 
     @GetMapping("/api/mesas/resumo-operacao")
     ResumoMesasOperacaoResponse buscarResumoOperacao();
+
+    @GetMapping("/api/mesas/atendimentos/historico")
+    List<HistoricoAtendimentoClientResponse> listarHistoricoAtendimentos();
 }

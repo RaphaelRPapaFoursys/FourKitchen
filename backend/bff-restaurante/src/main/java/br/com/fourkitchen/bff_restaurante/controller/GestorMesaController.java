@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
@@ -155,6 +156,30 @@ public class GestorMesaController {
             @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
         return ResponseEntity.ok(gestorMesaService.listarGarcons(authorization));
+    }
+
+    @GetMapping("/atendimentos/historico")
+    @Operation(
+            summary = "Lista historico de atendimentos",
+            description = "Retorna atendimentos finalizados com mesa, garcom, valor final da conta, duracao e horario de finalizacao."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Historico retornado com sucesso",
+                    content = @Content(
+                            array = @ArraySchema(schema = @Schema(implementation = HistoricoAtendimentoResponse.class)),
+                            examples = @ExampleObject(value = "[{\"id\":1,\"idAtendimento\":8,\"codigoSessao\":123456,\"idMesa\":1,\"numeroMesa\":10,\"idGarcom\":7,\"nomeGarcom\":\"Amanda Souza\",\"valorFinal\":149.70,\"totalPedidos\":3,\"totalItens\":7,\"dataAbertura\":\"2026-07-02T10:00:00\",\"dataFechamento\":\"2026-07-02T11:20:00\",\"duracaoMinutos\":80}]")
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil GESTOR ou ADMIN", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou usuarios indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<List<HistoricoAtendimentoResponse>> listarHistoricoAtendimentos(
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        return ResponseEntity.ok(gestorMesaService.listarHistoricoAtendimentos(authorization));
     }
 
     @PatchMapping("/mesas/{id}/abrir")

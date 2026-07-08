@@ -1,10 +1,12 @@
 package br.com.fourkitchen.ms_pedidos.service;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
@@ -12,9 +14,7 @@ import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.CanaisPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusProdutoPedido;
-import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
-import br.com.fourkitchen.ms_pedidos.exceptions.ErrorEnum;
-import br.com.fourkitchen.ms_pedidos.exceptions.PedidoAguardandoDecisaoException;
+import br.com.fourkitchen.ms_pedidos.exceptions.*;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
@@ -31,13 +31,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -319,6 +317,7 @@ class PedidoServiceTest {
     @Test
     void findFilaCozinhaDeveRetornarPedidosComItensOrdenadosPorChegada() {
         LocalDateTime dataCriacao = LocalDateTime.of(2026, 7, 2, 10, 30);
+
         Pedido pedido = Pedido.builder()
                 .id(25)
                 .codigo(123456)
@@ -328,6 +327,7 @@ class PedidoServiceTest {
                 .idAtendimento(8)
                 .dataCriacao(dataCriacao)
                 .build();
+
         ProdutoPedido item = ProdutoPedido.builder()
                 .id(5)
                 .idPedido(25)
@@ -337,13 +337,18 @@ class PedidoServiceTest {
                 .observacao("Sem cebola")
                 .build();
 
-        when(pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection())).thenReturn(List.of(pedido));
-        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25))).thenReturn(List.of(item));
+        when(pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection()))
+                .thenReturn(List.of(pedido));
+
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25)))
+                .thenReturn(List.of(item));
 
         List<PedidoCozinhaResponse> resultado = pedidoService.findFilaCozinha();
 
         assertEquals(1, resultado.size());
+
         PedidoCozinhaResponse pedidoResponse = resultado.getFirst();
+
         assertEquals(25, pedidoResponse.id());
         assertEquals(123456, pedidoResponse.codigo());
         assertEquals(CanaisPedido.MESA, pedidoResponse.canal());
@@ -351,19 +356,31 @@ class PedidoServiceTest {
         assertEquals(1, pedidoResponse.idMesa());
         assertEquals(8, pedidoResponse.idAtendimento());
         assertEquals(dataCriacao, pedidoResponse.dataCriacao());
+
         assertEquals(1, pedidoResponse.itens().size());
         assertEquals(5, pedidoResponse.itens().getFirst().id());
         assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
         assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
         assertEquals(new BigDecimal("29.90"), pedidoResponse.itens().getFirst().precoUnitario());
         assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
+
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<Collection<StatusPedido>> statusCaptor = ArgumentCaptor.forClass(Collection.class);
-        verify(pedidoRepository).findByStatusInOrderByDataCriacaoAscIdAsc(statusCaptor.capture());
-        assertEquals(
-                List.of(StatusPedido.ENVIADO_COZINHA, StatusPedido.EM_PREPARO),
+        ArgumentCaptor<Collection<StatusPedido>> statusCaptor =
+                ArgumentCaptor.forClass(Collection.class);
+
+        verify(pedidoRepository)
+                .findByStatusInOrderByDataCriacaoAscIdAsc(statusCaptor.capture());
+
+        assertIterableEquals(
+                List.of(
+                        StatusPedido.ENVIADO_COZINHA,
+                        StatusPedido.EM_PREPARO,
+                        StatusPedido.PRONTO,
+                        StatusPedido.AGUARDANDO_DECISAO
+                ),
                 statusCaptor.getValue()
         );
+
         verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25));
     }
 
@@ -491,6 +508,68 @@ class PedidoServiceTest {
         verify(pedidoRepository).countByStatus(StatusPedido.AGUARDANDO_DECISAO);
     }
 
+    @Test
+    void buscarResumoContaAtendimentoDeveSomarItensDePedidosNaoCancelados() {
+        Pedido pedido1 = Pedido.builder()
+                .id(25)
+                .idAtendimento(8)
+                .status(StatusPedido.FINALIZADO)
+                .build();
+        Pedido pedido2 = Pedido.builder()
+                .id(26)
+                .idAtendimento(8)
+                .status(StatusPedido.ENTREGUE)
+                .build();
+        ProdutoPedido item1 = ProdutoPedido.builder()
+                .idPedido(25)
+                .quantidade(2)
+                .precoUnitario(new BigDecimal("29.90"))
+                .build();
+        ProdutoPedido item2 = ProdutoPedido.builder()
+                .idPedido(26)
+                .quantidade(1)
+                .precoUnitario(new BigDecimal("15.50"))
+                .build();
+
+        when(pedidoRepository.findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                8,
+                StatusPedido.CANCELADO
+        )).thenReturn(List.of(pedido1, pedido2));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25, 26))).thenReturn(List.of(item1, item2));
+
+        ResumoContaAtendimentoResponse resultado = pedidoService.buscarResumoContaAtendimento(8);
+
+        assertEquals(8, resultado.idAtendimento());
+        assertEquals(new BigDecimal("75.30"), resultado.valorFinal());
+        assertEquals(2, resultado.totalPedidos());
+        assertEquals(3, resultado.totalItens());
+        verify(pedidoRepository).findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                8,
+                StatusPedido.CANCELADO
+        );
+        verify(produtoPedidoRepository).findByIdPedidoIn(List.of(25, 26));
+    }
+
+    @Test
+    void buscarResumoContaAtendimentoDeveRetornarZeroQuandoNaoHouverPedidos() {
+        when(pedidoRepository.findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                8,
+                StatusPedido.CANCELADO
+        )).thenReturn(List.of());
+
+        ResumoContaAtendimentoResponse resultado = pedidoService.buscarResumoContaAtendimento(8);
+
+        assertEquals(8, resultado.idAtendimento());
+        assertEquals(BigDecimal.ZERO, resultado.valorFinal());
+        assertEquals(0, resultado.totalPedidos());
+        assertEquals(0, resultado.totalItens());
+        verify(pedidoRepository).findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
+                8,
+                StatusPedido.CANCELADO
+        );
+        verifyNoInteractions(produtoPedidoRepository);
+    }
+
     @ParameterizedTest
     @EnumSource(value = StatusProdutoPedido.class, names = {"FALTA_PRODUTO", "ERRO", "INDISPONIVEL"})
     void sinalizarProblema_deveAlterarStatusDoPedidoEProduto_paraDiferentesTiposDeProblema(StatusProdutoPedido statusProblema) {
@@ -539,7 +618,7 @@ class PedidoServiceTest {
         when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
 
         // Act & Assert
-        assertThrows(PedidoAguardandoDecisaoException.class, () -> {
+        assertThrows(BaseException.class, () -> {
             pedidoService.iniciarPreparo(25);
         });
 
@@ -559,7 +638,7 @@ class PedidoServiceTest {
         when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
 
         // Act & Assert
-        assertThrows(PedidoAguardandoDecisaoException.class, () -> {
+        assertThrows(BaseException.class, () -> {
             pedidoService.finalizarPreparo(25);
         });
 
@@ -570,5 +649,267 @@ class PedidoServiceTest {
 
     private Collection<StatusPedido> anyStatusCollection() {
         return any();
+    }
+
+    @Test
+    void decisaoProblema_deveLancarExcecao_quandoPedidoNaoExistir() {
+        DecisaoProblemaRequest request =
+                new DecisaoProblemaRequest(
+                        1,
+                        10,
+                        StatusProdutoPedido.REMOVIDO,
+                        false,
+                        null
+                );
+
+        when(pedidoRepository.findById(1))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                BaseException.class,
+                () -> pedidoService.decisaoProblema(request)
+        );
+
+        verify(pedidoRepository).findById(1);
+        verifyNoInteractions(produtoPedidoRepository);
+    }
+
+    @Test
+    void decisaoProblema_deveLancarExcecao_quandoProdutoPedidoNaoExistir() {
+        DecisaoProblemaRequest request =
+                new DecisaoProblemaRequest(
+                        1,
+                        10,
+                        StatusProdutoPedido.REMOVIDO,
+                        false,
+                        null
+                );
+
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .build();
+
+        when(pedidoRepository.findById(1))
+                .thenReturn(Optional.of(pedido));
+
+        when(produtoPedidoRepository.findById(10))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                BaseException.class,
+                () -> pedidoService.decisaoProblema(request)
+        );
+
+        verify(pedidoRepository).findById(1);
+        verify(produtoPedidoRepository).findById(10);
+    }
+
+    @Test
+    void decisaoProblema_deveLancarExcecao_quandoPedidoNaoPermitirDecisao() {
+        DecisaoProblemaRequest request =
+                new DecisaoProblemaRequest(
+                        1,
+                        10,
+                        StatusProdutoPedido.DISPONIVEL,
+                        false,
+                        null
+                );
+
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.EM_PREPARO)
+                .build();
+
+        ProdutoPedido produtoPedido = ProdutoPedido.builder()
+                .id(10)
+                .build();
+
+        when(pedidoRepository.findById(1))
+                .thenReturn(Optional.of(pedido));
+
+        when(produtoPedidoRepository.findById(10))
+                .thenReturn(Optional.of(produtoPedido));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> pedidoService.decisaoProblema(request)
+        );
+
+        assertEquals(
+                ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO,
+                exception.getErrorEnum()
+        );
+
+        verify(pedidoRepository).findById(1);
+        verify(produtoPedidoRepository).findById(10);
+    }
+
+    @Test
+    void decisaoProblema_deveCancelarPedidoQuandoPedidoCancelado() {
+        DecisaoProblemaRequest request =
+                new DecisaoProblemaRequest(
+                        1,
+                        10,
+                        StatusProdutoPedido.DISPONIVEL,
+                        true,
+                        null
+                );
+
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .build();
+
+        ProdutoPedido produtoPedido = ProdutoPedido.builder()
+                .id(10)
+                .build();
+
+        when(pedidoRepository.findById(1))
+                .thenReturn(Optional.of(pedido));
+
+        when(produtoPedidoRepository.findById(10))
+                .thenReturn(Optional.of(produtoPedido));
+
+        pedidoService.decisaoProblema(request);
+
+        assertEquals(
+                StatusPedido.CANCELADO,
+                pedido.getStatus()
+        );
+
+        verify(pedidoRepository).findById(1);
+        verify(produtoPedidoRepository).findById(10);
+    }
+
+    @Test
+    void decisaoProblema_deveRemoverProdutoEEnviarPedidoParaCozinha() {
+        DecisaoProblemaRequest request =
+                new DecisaoProblemaRequest(
+                        1,
+                        10,
+                        StatusProdutoPedido.REMOVIDO,
+                        false,
+                        null
+                );
+
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .build();
+
+        ProdutoPedido produtoPedido = ProdutoPedido.builder()
+                .id(10)
+                .status(StatusProdutoPedido.DISPONIVEL)
+                .build();
+
+        when(pedidoRepository.findById(1))
+                .thenReturn(Optional.of(pedido));
+
+        when(produtoPedidoRepository.findById(10))
+                .thenReturn(Optional.of(produtoPedido));
+
+        when(produtoPedidoRepository.findByIdPedidoAndStatus(
+                1,
+                StatusProdutoPedido.DISPONIVEL
+        )).thenReturn(List.of(produtoPedido));
+
+        pedidoService.decisaoProblema(request);
+
+        assertEquals(
+                StatusProdutoPedido.REMOVIDO,
+                produtoPedido.getStatus()
+        );
+
+        assertEquals(
+                StatusPedido.ENVIADO_COZINHA,
+                pedido.getStatus()
+        );
+
+        verify(produtoPedidoRepository)
+                .findByIdPedidoAndStatus(
+                        1,
+                        StatusProdutoPedido.DISPONIVEL
+                );
+    }
+
+    @Test
+    void decisaoProblema_deveCancelarPedidoQuandoNaoExistiremProdutosDisponiveis() {
+        DecisaoProblemaRequest request =
+                new DecisaoProblemaRequest(
+                        1,
+                        10,
+                        StatusProdutoPedido.REMOVIDO,
+                        false,
+                        null
+                );
+
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .build();
+
+        ProdutoPedido produtoPedido = ProdutoPedido.builder()
+                .id(10)
+                .status(StatusProdutoPedido.DISPONIVEL)
+                .build();
+
+        when(pedidoRepository.findById(1))
+                .thenReturn(Optional.of(pedido));
+
+        when(produtoPedidoRepository.findById(10))
+                .thenReturn(Optional.of(produtoPedido));
+
+        when(produtoPedidoRepository.findByIdPedidoAndStatus(
+                1,
+                StatusProdutoPedido.DISPONIVEL
+        )).thenReturn(Collections.emptyList());
+
+        pedidoService.decisaoProblema(request);
+
+        assertEquals(
+                StatusPedido.CANCELADO,
+                pedido.getStatus()
+        );
+    }
+
+    @Test
+    void decisaoProblema_deveSubstituirProduto() {
+        DecisaoProblemaRequest request =
+                new DecisaoProblemaRequest(
+                        1,
+                        10,
+                        StatusProdutoPedido.DISPONIVEL,
+                        false,
+                        99
+                );
+
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .build();
+
+        ProdutoPedido produtoPedido = ProdutoPedido.builder()
+                .id(10)
+                .idProduto(5)
+                .build();
+
+        when(pedidoRepository.findById(1))
+                .thenReturn(Optional.of(pedido));
+
+        when(produtoPedidoRepository.findById(10))
+                .thenReturn(Optional.of(produtoPedido));
+
+        pedidoService.decisaoProblema(request);
+
+        assertEquals(
+                99,
+                produtoPedido.getIdProduto()
+        );
+
+        assertEquals(
+                StatusPedido.ENVIADO_COZINHA,
+                pedido.getStatus()
+        );
     }
 }

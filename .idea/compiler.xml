@@ -30,9 +30,11 @@
         </processorPath>
         <module name="ms-produtos" />
         <module name="ms-mesas" />
+        <module name="ms-notificacoes" />
         <module name="ms-usuarios" />
-        <module name="ms-pedidos" />
+        <module name="ms-cozinha" />
         <module name="bff-restaurante" />
+        <module name="ms-pedidos" />
       </profile>
     </annotationProcessing>
   </component>
