@@ -2,8 +2,11 @@
   <app-customer-home-header
     [cartItemsCount]="cartItemsCount()"
     [cartRoute]="cartRoute()"
+    [ordersRoute]="ordersRoute()"
+    [showOrdersLink]="showOrdersLink()"
     (sectionSelected)="scrollToSection($event.sectionId, $event.event)"
     (cartSelected)="goToCart($event)"
+    (ordersSelected)="goToOrders($event)"
   />
 
   <app-customer-hero (sectionSelected)="scrollToSection($event.sectionId, $event.event)" />

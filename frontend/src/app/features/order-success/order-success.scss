@@ -23,16 +23,9 @@
   overflow-x: hidden;
 }
 
-.order-success__header {
+app-customer-cart-header {
   width: min(100% - 2rem, 1120px);
   margin-inline: auto;
-  padding-block: 0.85rem 1rem;
-}
-
-.order-success__header img {
-  display: block;
-  width: clamp(7.25rem, 12vw, 9.5rem);
-  height: auto;
 }
 
 app-order-success-content {
@@ -55,14 +48,6 @@ app-order-success-content {
 }
 
 @media (max-width: 560px) {
-  .order-success__header {
-    padding-block: 0.75rem;
-  }
-
-  .order-success__header img {
-    width: 7.5rem;
-  }
-
   app-order-success-content {
     align-items: start;
     padding: 1.5rem 1rem 2rem;

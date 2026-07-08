@@ -1,9 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs';
 
 import { PedidoMesaStatusResponse, PedidoStatus } from '../../core/models/order.models';
-import { CustomerOrderCacheService } from '../../core/services/customer-order-cache.service';
+import { CartService } from '../../core/services/cart.service';
+import { CustomerContextService } from '../../core/services/customer-context.service';
+import { OrderService } from '../../core/services/order.service';
+import { CustomerCartHeaderComponent } from '../customer-cart/components/customer-cart-header/customer-cart-header';
 
 type MesaOrdersState =
   | { status: 'loading'; orders: PedidoMesaStatusResponse[]; message: string }
@@ -13,15 +17,21 @@ type MesaOrdersState =
 
 @Component({
   selector: 'app-customer-orders',
-  imports: [CommonModule],
+  imports: [CommonModule, CustomerCartHeaderComponent],
   templateUrl: './customer-orders.html',
   styleUrl: './customer-orders.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomerOrders {
-  private readonly orderCacheService = inject(CustomerOrderCacheService);
+  private readonly cartService = inject(CartService);
+  private readonly customerContextService = inject(CustomerContextService);
+  private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
 
+  protected readonly homeRoute = '/mesa';
+  protected readonly cartRoute = '/mesa/carrinho';
+  protected readonly ordersRoute = '/mesa/pedidos';
+  protected readonly totalItems = computed(() => this.cartService.getSummary('mesa').totalItems);
   protected readonly state = signal<MesaOrdersState>({
     status: 'loading',
     orders: [],
@@ -39,26 +49,30 @@ export class CustomerOrders {
       message: 'Carregando pedidos...',
     });
 
-    try {
-      // TODO: trocar pelo endpoint oficial do BFF quando a consulta de pedidos da mesa existir.
-      const orders = this.orderCacheService.getMesaOrders();
-
-      this.state.set(
-        orders.length > 0
-          ? { status: 'success', orders, message: '' }
-          : {
-            status: 'empty',
+    this.orderService.getCurrentTableAttendance()
+      .pipe(
+        switchMap(attendance => this.orderService.getMesaOrders(attendance.codigoAtendimento)),
+      )
+      .subscribe({
+        next: orders => {
+          this.state.set(
+            orders.length > 0
+              ? { status: 'success', orders, message: '' }
+              : {
+                status: 'empty',
+                orders: [],
+                message: 'Nenhum pedido encontrado para esta mesa.',
+              },
+          );
+        },
+        error: () => {
+          this.state.set({
+            status: 'error',
             orders: [],
-            message: 'Nenhum pedido encontrado para esta mesa.',
-          },
-      );
-    } catch {
-      this.state.set({
-        status: 'error',
-        orders: [],
-        message: 'Nao foi possivel carregar seus pedidos. Tente novamente.',
+            message: 'Nao foi possivel carregar seus pedidos. Tente novamente.',
+          });
+        },
       });
-    }
   }
 
   protected retryLoadMesaOrders(): void {
@@ -66,7 +80,21 @@ export class CustomerOrders {
   }
 
   protected backToMenu(): void {
-    this.router.navigate(['/mesa']);
+    this.router.navigate([this.customerContextService.getHomeRoute('mesa')]);
+  }
+
+  protected goToMenu(event: Event): void {
+    event.preventDefault();
+    this.backToMenu();
+  }
+
+  protected goToCart(event: Event): void {
+    event.preventDefault();
+    this.router.navigate([this.customerContextService.getCartRoute('mesa')]);
+  }
+
+  protected goToOrders(event: Event): void {
+    event.preventDefault();
   }
 
   protected getStatusLabel(status: PedidoStatus): string {
@@ -101,5 +129,9 @@ export class CustomerOrders {
 
   protected trackByOrderId(_index: number, order: PedidoMesaStatusResponse): number {
     return order.id;
+  }
+
+  protected getItemName(item: PedidoMesaStatusResponse['itens'][number]): string {
+    return item.nome?.trim() || `Produto #${item.idProduto}`;
   }
 }

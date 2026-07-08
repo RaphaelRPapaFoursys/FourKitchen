@@ -2,9 +2,13 @@
   <app-customer-cart-header
     [homeRoute]="homeRoute()"
     [cartRoute]="cartRoute()"
+    [ordersRoute]="ordersRoute()"
+    [showOrdersLink]="showOrdersLink()"
+    activeLink="cart"
     [totalItems]="totalItems()"
     (menuSelected)="goToMenu($event)"
     (cartSelected)="goToCart($event)"
+    (ordersSelected)="goToOrders($event)"
   />
 
   <section class="cart-panel" aria-labelledby="cart-title">

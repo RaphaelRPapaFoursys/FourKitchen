@@ -66,6 +66,10 @@ export class CustomerHome implements AfterViewInit {
   protected readonly cartRoute = computed(() =>
     this.customerContextService.getCartRoute(this.getCurrentContext()),
   );
+  protected readonly ordersRoute = computed(() =>
+    this.customerContextService.getOrdersRoute(this.getCurrentContext()),
+  );
+  protected readonly showOrdersLink = computed(() => this.getCurrentContext() === 'mesa');
 
   protected readonly menuState = toSignal(
     this.reloadMenuSubject.pipe(
@@ -205,6 +209,14 @@ export class CustomerHome implements AfterViewInit {
   protected goToCart(event: Event): void {
     event.preventDefault();
     this.router.navigate([this.customerContextService.getCartRoute(this.getCurrentContext())]);
+  }
+
+  protected goToOrders(event: Event): void {
+    event.preventDefault();
+
+    if (this.getCurrentContext() === 'mesa') {
+      this.router.navigate([this.customerContextService.getOrdersRoute('mesa')]);
+    }
   }
 
   private scrollToMenuSection(): void {

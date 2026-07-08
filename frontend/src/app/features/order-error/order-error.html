@@ -1,0 +1,30 @@
+<main class="order-error">
+  <app-customer-cart-header
+    [homeRoute]="homeRoute()"
+    [cartRoute]="cartRoute()"
+    [ordersRoute]="ordersRoute()"
+    [showOrdersLink]="showOrdersLink()"
+    [activeLink]="null"
+    [totalItems]="totalItems()"
+    (menuSelected)="goToMenu($event)"
+    (cartSelected)="goToCart($event)"
+    (ordersSelected)="goToOrders($event)"
+  />
+
+  <section class="order-error__content" aria-labelledby="order-error-title">
+    <div class="order-error__icon" aria-hidden="true">!</div>
+    <h1 id="order-error-title">Nao foi possivel enviar seu pedido para a cozinha.</h1>
+    <p>{{ message }}</p>
+    <p>Confira os itens do carrinho e tente novamente.</p>
+
+    <div class="order-error__actions">
+      <button class="order-error__primary" type="button" (click)="backToCart()">
+        Voltar para o Carrinho
+      </button>
+    </div>
+  </section>
+
+  <footer class="order-error__footer">
+    FourKitchen
+  </footer>
+</main>

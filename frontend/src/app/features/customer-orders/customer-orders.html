@@ -1,14 +1,15 @@
 <main class="customer-orders">
-  <header class="orders-header">
-    <button class="orders-header__brand" type="button" (click)="backToMenu()" aria-label="Voltar ao menu">
-      <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
-    </button>
-
-    <nav class="orders-nav" aria-label="Navegacao principal">
-      <button type="button" (click)="backToMenu()">Menu</button>
-      <strong>Pedidos</strong>
-    </nav>
-  </header>
+  <app-customer-cart-header
+    [homeRoute]="homeRoute"
+    [cartRoute]="cartRoute"
+    [ordersRoute]="ordersRoute"
+    [showOrdersLink]="true"
+    activeLink="orders"
+    [totalItems]="totalItems()"
+    (menuSelected)="goToMenu($event)"
+    (cartSelected)="goToCart($event)"
+    (ordersSelected)="goToOrders($event)"
+  />
 
   <section class="orders-panel" aria-labelledby="orders-title">
     <div class="orders-panel__heading">
@@ -62,11 +63,11 @@
               }
             </dl>
 
-            @if (order.itens?.length) {
+            @if (order.itens.length) {
               <ul class="order-card__items">
                 @for (item of order.itens; track item.idProduto) {
                   <li>
-                    <span>{{ item.quantidade }}x {{ item.nome || 'Produto' }}</span>
+                    <span>{{ item.quantidade }}x {{ getItemName(item) }}</span>
                     @if (item.observacao) {
                       <small>{{ item.observacao }}</small>
                     }

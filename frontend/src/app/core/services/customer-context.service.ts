@@ -29,6 +29,10 @@ export class CustomerContextService {
     return `/${context}/pedido-criado`;
   }
 
+  getErrorRoute(context: CustomerContext): string {
+    return `/${context}/pedido-erro`;
+  }
+
   getOrdersRoute(context: CustomerContext): string {
     return context === 'mesa' ? '/mesa/pedidos' : '/totem';
   }
@@ -41,6 +45,8 @@ export class CustomerContextService {
       '/totem/carrinho',
       '/mesa/pedido-criado',
       '/totem/pedido-criado',
+      '/mesa/pedido-erro',
+      '/totem/pedido-erro',
       '/mesa/pedidos',
     ].includes(normalizedUrl);
   }

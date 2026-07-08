@@ -4,8 +4,11 @@
   </a>
 
   <nav class="cart-nav" aria-label="Navegacao principal">
-    <a class="cart-nav__link" [href]="homeRoute()" (click)="selectMenu($event)">Menu</a>
-    <a class="cart-nav__link cart-nav__link--active cart-nav__link--icon" [href]="cartRoute()" (click)="selectCart($event)">
+    <a class="cart-nav__link" [class.cart-nav__link--active]="isActive('menu')" [href]="homeRoute()" (click)="selectMenu($event)">Menu</a>
+    @if (showOrdersLink()) {
+      <a class="cart-nav__link" [class.cart-nav__link--active]="isActive('orders')" [href]="ordersRoute()" (click)="selectOrders($event)">Acompanhar Pedido</a>
+    }
+    <a class="cart-nav__link cart-nav__link--icon" [class.cart-nav__link--active]="isActive('cart')" [href]="cartRoute()" (click)="selectCart($event)">
       <span>Carrinho</span>
       @if (totalItems() > 0) {
         <strong class="cart-nav__badge">{{ totalItems() }}</strong>

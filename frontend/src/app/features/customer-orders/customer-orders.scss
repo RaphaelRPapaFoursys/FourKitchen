@@ -26,60 +26,10 @@
   overflow-x: hidden;
 }
 
-.orders-header,
+app-customer-cart-header,
 .orders-panel {
   width: min(100%, var(--content));
   margin-inline: auto;
-}
-
-.orders-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(1rem, 4vw, 2rem);
-  min-height: 6.5rem;
-  margin-bottom: clamp(1rem, 3vw, 2rem);
-}
-
-.orders-header__brand {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.orders-header__brand img {
-  width: clamp(9.5rem, 15vw, 12.5rem);
-}
-
-.orders-nav {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 4vw, 2rem);
-}
-
-.orders-nav button {
-  border: 0;
-  background: transparent;
-  color: var(--muted-text);
-  cursor: pointer;
-  font: inherit;
-}
-
-.orders-nav strong {
-  position: relative;
-  color: var(--primary);
-  font-weight: 400;
-}
-
-.orders-nav strong::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--primary);
-  content: "";
 }
 
 .orders-panel {
@@ -236,15 +186,6 @@
 }
 
 @media (max-width: 640px) {
-  .orders-header {
-    min-height: auto;
-    padding-block: 1rem;
-  }
-
-  .orders-header__brand img {
-    width: clamp(8.3rem, 36vw, 10rem);
-  }
-
   .orders-panel {
     border-radius: 14px;
     padding: 0.9rem;

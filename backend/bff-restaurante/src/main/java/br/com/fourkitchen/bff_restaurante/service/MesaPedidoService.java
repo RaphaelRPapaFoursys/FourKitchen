@@ -132,7 +132,7 @@ public class MesaPedidoService {
     private ItemPedidoMesaStatusResponse mapearItemStatusMesa(ItemPedidoCozinhaResponse item) {
         return new ItemPedidoMesaStatusResponse(
                 item.idProduto(),
-                null,
+                item.nomeProduto(),
                 item.quantidade(),
                 item.observacao()
         );

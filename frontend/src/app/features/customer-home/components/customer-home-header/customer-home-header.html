@@ -6,6 +6,9 @@
   <nav class="customer-nav" aria-label="Navegacao principal">
     <a class="customer-nav__link customer-nav__link--active" href="#home" (click)="selectSection('home', $event)">Home</a>
     <a class="customer-nav__link" href="#menu" (click)="selectSection('menu', $event)">Menu</a>
+    @if (showOrdersLink()) {
+      <a class="customer-nav__link" [href]="ordersRoute()" (click)="selectOrders($event)">Acompanhar Pedido</a>
+    }
     <a class="customer-nav__link customer-nav__link--icon" [href]="cartRoute()" (click)="selectCart($event)">
       <span>Carrinho</span>
       @if (cartItemsCount() > 0) {

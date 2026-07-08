@@ -39,14 +39,12 @@ export interface ItemPedidoTotemRequest {
 }
 
 export interface CriarPedidoMesaRequest {
-  idMesa: number;
-  codigoSessao: number;
+  codigoAtendimento: number;
   itens: ItemPedidoMesaRequest[];
 }
 
 export interface ItemPedidoMesaRequest {
   idProduto: number;
   quantidade: number;
-  precoUnitario: number;
   observacao?: string;
 }

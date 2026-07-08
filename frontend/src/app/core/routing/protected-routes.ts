@@ -47,6 +47,14 @@ export const protectedRoutes: Routes = [
   ),
   protectedRoute(
     {
+      path: 'totem/pedido-erro',
+      loadComponent: () =>
+        import('../../features/order-error/order-error').then(m => m.OrderError),
+    },
+    ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
       path: 'totem',
       loadComponent: () =>
         import('../../features/customer-home/customer-home').then(m => m.CustomerHome),
@@ -74,6 +82,14 @@ export const protectedRoutes: Routes = [
       path: 'mesa/pedido-criado',
       loadComponent: () =>
         import('../../features/order-success/order-success').then(m => m.OrderSuccess),
+    },
+    ['ADMIN', 'MESA'],
+  ),
+  protectedRoute(
+    {
+      path: 'mesa/pedido-erro',
+      loadComponent: () =>
+        import('../../features/order-error/order-error').then(m => m.OrderError),
     },
     ['ADMIN', 'MESA'],
   ),

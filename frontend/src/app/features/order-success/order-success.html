@@ -1,7 +1,15 @@
 <main class="order-success">
-  <header class="order-success__header">
-    <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
-  </header>
+  <app-customer-cart-header
+    [homeRoute]="homeRoute()"
+    [cartRoute]="cartRoute()"
+    [ordersRoute]="ordersRoute()"
+    [showOrdersLink]="showOrdersLink()"
+    [activeLink]="null"
+    [totalItems]="totalItems()"
+    (menuSelected)="goToMenu($event)"
+    (cartSelected)="goToCart($event)"
+    (ordersSelected)="goToOrders($event)"
+  />
 
   <app-order-success-content
     [showFollowOrder]="isMesaContext()"

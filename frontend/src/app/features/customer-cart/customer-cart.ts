@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, Observable, switchMap } from 'rxjs';
 
 import { CartItem, CustomerContext } from '../../core/models/cart.models';
+import { PedidoResponse } from '../../core/models/order.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { CustomerOrderCacheService } from '../../core/services/customer-order-cache.service';
@@ -50,6 +52,10 @@ export class CustomerCart {
   protected readonly cartRoute = computed(() =>
     this.customerContextService.getCartRoute(this.getCurrentContext()),
   );
+  protected readonly ordersRoute = computed(() =>
+    this.customerContextService.getOrdersRoute(this.getCurrentContext()),
+  );
+  protected readonly showOrdersLink = computed(() => this.getCurrentContext() === 'mesa');
 
   protected increaseQuantity(item: CartItem): void {
     this.items.set(
@@ -92,17 +98,56 @@ export class CustomerCart {
     event.preventDefault();
   }
 
+  protected goToOrders(event: Event): void {
+    event.preventDefault();
+
+    if (this.getCurrentContext() === 'mesa') {
+      this.router.navigate([this.customerContextService.getOrdersRoute('mesa')]);
+    }
+  }
+
   protected confirmOrder(): void {
     const context = this.getCurrentContext();
 
-    if (context === 'totem') {
-      this.confirmTotemOrder();
-
+    if (this.items().length === 0 || this.isConfirmingOrder()) {
       return;
     }
 
-    // TODO: chamar OrderService.createMesaOrder quando a origem de idMesa/codigoAtendimento estiver definida.
-    this.router.navigate([this.customerContextService.getSuccessRoute(context)]);
+    this.confirmOrderError.set('');
+    this.isConfirmingOrder.set(true);
+
+    const submitOrder$: Observable<PedidoResponse> = context === 'mesa'
+      ? this.orderService.getCurrentTableAttendance().pipe(
+        switchMap(attendance => this.orderService.createMesaOrder({
+          codigoAtendimento: attendance.codigoAtendimento,
+          itens: this.buildOrderItems(),
+        })),
+      )
+      : this.orderService.createTotemOrder({
+        itens: this.buildOrderItems(),
+      });
+
+    submitOrder$
+      .pipe(finalize(() => this.isConfirmingOrder.set(false)))
+      .subscribe({
+        next: order => {
+          if (!this.isOrderSentToKitchen(order)) {
+            this.navigateToOrderError(context, 'Nao foi possivel enviar seu pedido para a cozinha.');
+
+            return;
+          }
+
+          this.orderCacheService.addOrder(context, order);
+          this.cartService.clearCart(context);
+          this.items.set([]);
+          this.router.navigate([this.customerContextService.getSuccessRoute(context)], {
+            state: { order },
+          });
+        },
+        error: (error: unknown) => {
+          this.navigateToOrderError(context, this.getApiErrorMessage(error));
+        },
+      });
   }
 
   protected getProductImage(item: CartItem): string {
@@ -130,32 +175,43 @@ export class CustomerCart {
     return this.customerContextService.getCurrentContext(this.router.url);
   }
 
-  private confirmTotemOrder(): void {
-    if (this.items().length === 0 || this.isConfirmingOrder()) {
-      return;
+  private buildOrderItems(): { idProduto: number; quantidade: number; observacao?: string }[] {
+    return this.items().map(item => ({
+      idProduto: item.productId,
+      quantidade: item.quantity,
+      observacao: item.observation,
+    }));
+  }
+
+  private isOrderSentToKitchen(response: { status?: string }): boolean {
+    return response.status === 'ENVIADO_COZINHA';
+  }
+
+  private navigateToOrderError(context: CustomerContext, message: string): void {
+    this.router.navigate([this.customerContextService.getErrorRoute(context)], {
+      state: { message },
+    });
+  }
+
+  private getApiErrorMessage(error: unknown): string {
+    const fallbackMessage = 'Nao foi possivel enviar seu pedido para a cozinha.';
+
+    if (!(error instanceof HttpErrorResponse)) {
+      return fallbackMessage;
     }
 
-    this.confirmOrderError.set('');
-    this.isConfirmingOrder.set(true);
+    const apiError = error.error;
 
-    this.orderService.createTotemOrder({
-      itens: this.items().map(item => ({
-        idProduto: item.productId,
-        quantidade: item.quantity,
-        observacao: item.observation,
-      })),
-    })
-      .pipe(finalize(() => this.isConfirmingOrder.set(false)))
-      .subscribe({
-        next: order => {
-          this.orderCacheService.addOrder('totem', order);
-          this.cartService.clearCart('totem');
-          this.items.set([]);
-          this.router.navigate([this.customerContextService.getSuccessRoute('totem')]);
-        },
-        error: () => {
-          this.confirmOrderError.set('Nao foi possivel confirmar o pedido. Tente novamente.');
-        },
-      });
+    if (
+      apiError
+      && typeof apiError === 'object'
+      && 'msgError' in apiError
+      && typeof apiError.msgError === 'string'
+      && apiError.msgError.trim()
+    ) {
+      return apiError.msgError;
+    }
+
+    return fallbackMessage;
   }
 }
