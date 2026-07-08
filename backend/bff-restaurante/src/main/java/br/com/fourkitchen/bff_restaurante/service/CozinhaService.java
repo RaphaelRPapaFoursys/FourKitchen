@@ -95,13 +95,13 @@ public class CozinhaService {
                 pedido.idMesa(),
                 pedido.idAtendimento(),
                 pedido.dataCriacao(),
-                itensDoPedido(pedido).stream()
+                itensDoPedidoOuListaVazia(pedido).stream()
                         .map(this::mapearItem)
                         .toList()
         );
     }
 
-    private List<ItemPedidoCozinhaResponse> itensDoPedido(PedidoCozinhaResponse pedido) {
+    private List<ItemPedidoCozinhaResponse> itensDoPedidoOuListaVazia(PedidoCozinhaResponse pedido) {
         if (pedido.itens() == null) {
             return List.of();
         }
