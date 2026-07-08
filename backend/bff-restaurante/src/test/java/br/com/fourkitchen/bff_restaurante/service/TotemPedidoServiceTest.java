@@ -77,7 +77,7 @@ class TotemPedidoServiceTest {
         );
 
         when(produtoClient.verificarDisponibilidade(10))
-                .thenReturn(new ProdutoDisponibilidadeResponse(10, true, new BigDecimal("29.90")));
+                .thenReturn(new ProdutoDisponibilidadeResponse(10, "X-Burger", true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenReturn(pedidoResponse);
 
         PedidoTotemResponse response = totemPedidoService.criarPedido(request, criarAuthenticationTotem());
@@ -98,6 +98,7 @@ class TotemPedidoServiceTest {
         assertNull(pedidoRequest.idAtendimento());
         assertEquals(1, pedidoRequest.itens().size());
         assertEquals(10, pedidoRequest.itens().getFirst().idProduto());
+        assertEquals("X-Burger", pedidoRequest.itens().getFirst().nomeProduto());
         assertEquals(new BigDecimal("29.90"), pedidoRequest.itens().getFirst().precoUnitario());
         verify(produtoClient).verificarDisponibilidade(10);
     }
@@ -107,7 +108,7 @@ class TotemPedidoServiceTest {
         CriarPedidoTotemRequest request = criarRequest();
 
         when(produtoClient.verificarDisponibilidade(10))
-                .thenReturn(new ProdutoDisponibilidadeResponse(10, false, new BigDecimal("29.90")));
+                .thenReturn(new ProdutoDisponibilidadeResponse(10, "X-Burger", false, new BigDecimal("29.90")));
 
         BaseException exception = assertThrows(
                 BaseException.class,
@@ -156,7 +157,7 @@ class TotemPedidoServiceTest {
         CriarPedidoTotemRequest request = criarRequest();
 
         when(produtoClient.verificarDisponibilidade(10))
-                .thenReturn(new ProdutoDisponibilidadeResponse(10, true, new BigDecimal("29.90")));
+                .thenReturn(new ProdutoDisponibilidadeResponse(10, "X-Burger", true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenThrow(feignException(500));
 
         BaseException exception = assertThrows(

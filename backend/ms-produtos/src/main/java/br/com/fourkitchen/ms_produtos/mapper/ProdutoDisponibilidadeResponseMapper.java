@@ -10,6 +10,7 @@ public class ProdutoDisponibilidadeResponseMapper implements Mapper<Produto, Pro
     public ProdutoDisponibilidadeResponse map(Produto source) {
         return new ProdutoDisponibilidadeResponse(
                 source.getId(),
+                source.getNome(),
                 Boolean.TRUE.equals(source.getDisponivel()),
                 source.getPreco()
         );

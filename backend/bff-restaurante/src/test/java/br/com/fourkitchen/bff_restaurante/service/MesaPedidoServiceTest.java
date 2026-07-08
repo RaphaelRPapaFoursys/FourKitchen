@@ -72,7 +72,7 @@ class MesaPedidoServiceTest {
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
         when(produtoClient.verificarDisponibilidade(10))
-                .thenReturn(new ProdutoDisponibilidadeResponse(10, true, new BigDecimal("29.90")));
+                .thenReturn(new ProdutoDisponibilidadeResponse(10, "X-Burger", true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenReturn(pedidoResponse);
 
         PedidoMesaResponse response = mesaPedidoService.criarPedido(request, criarAuthenticationMesa());
@@ -95,6 +95,7 @@ class MesaPedidoServiceTest {
         assertEquals(101, pedidoRequest.idUsuario());
         assertEquals(1, pedidoRequest.itens().size());
         assertEquals(10, pedidoRequest.itens().getFirst().idProduto());
+        assertEquals("X-Burger", pedidoRequest.itens().getFirst().nomeProduto());
         assertEquals(new BigDecimal("29.90"), pedidoRequest.itens().getFirst().precoUnitario());
         verify(mesaClient).validarSessaoMesa(1, 123456);
         verify(produtoClient).verificarDisponibilidade(10);
@@ -123,7 +124,7 @@ class MesaPedidoServiceTest {
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
         when(produtoClient.verificarDisponibilidade(10))
-                .thenReturn(new ProdutoDisponibilidadeResponse(10, true, new BigDecimal("29.90")));
+                .thenReturn(new ProdutoDisponibilidadeResponse(10, "X-Burger", true, new BigDecimal("29.90")));
         when(pedidoClient.criarPedido(any(CriarPedidoRequest.class))).thenThrow(feignException(500));
 
         BaseException exception = assertThrows(
