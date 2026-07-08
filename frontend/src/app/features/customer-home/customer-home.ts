@@ -11,7 +11,15 @@ import {
 } from '../../core/models/menu.models';
 import { CartItem } from '../../core/models/cart.models';
 import { CartService } from '../../core/services/cart.service';
+import { CustomerContextService } from '../../core/services/customer-context.service';
 import { MenuContext, MenuService } from '../../core/services/menu.service';
+import { CategoryCarouselComponent } from './components/category-carousel/category-carousel';
+import { CustomerFooterComponent } from './components/customer-footer/customer-footer';
+import { CustomerHeroComponent } from './components/customer-hero/customer-hero';
+import { CustomerHomeHeaderComponent } from './components/customer-home-header/customer-home-header';
+import { MenuFilterBarComponent } from './components/menu-filter-bar/menu-filter-bar';
+import { ProductDetailsModalComponent } from './components/product-details-modal/product-details-modal';
+import { ProductGridComponent } from './components/product-grid/product-grid';
 
 type MenuLoadState =
   | { status: 'loading'; data: null; message: string }
@@ -20,17 +28,28 @@ type MenuLoadState =
 
 @Component({
   selector: 'app-customer-home',
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CustomerHomeHeaderComponent,
+    CustomerHeroComponent,
+    CategoryCarouselComponent,
+    MenuFilterBarComponent,
+    ProductGridComponent,
+    ProductDetailsModalComponent,
+    CustomerFooterComponent,
+  ],
   templateUrl: './customer-home.html',
   styleUrl: './customer-home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomerHome implements AfterViewInit {
   @ViewChild('menuSection') private menuSection?: ElementRef<HTMLElement>;
-  @ViewChild('categoriesCarousel') private categoriesCarousel?: ElementRef<HTMLElement>;
+  @ViewChild(CategoryCarouselComponent) private categoryCarouselComponent?: CategoryCarouselComponent;
 
   private readonly menuService = inject(MenuService);
   private readonly cartService = inject(CartService);
+  private readonly customerContextService = inject(CustomerContextService);
   private readonly router = inject(Router);
   private readonly reloadMenuSubject = new Subject<void>();
   private scrollAnimationFrameId: number | null = null;
@@ -44,6 +63,9 @@ export class CustomerHome implements AfterViewInit {
   protected readonly cartFeedback = signal('');
   protected readonly canScrollCategoriesLeft = signal(false);
   protected readonly canScrollCategoriesRight = signal(false);
+  protected readonly cartRoute = computed(() =>
+    this.customerContextService.getCartRoute(this.getCurrentContext()),
+  );
 
   protected readonly menuState = toSignal(
     this.reloadMenuSubject.pipe(
@@ -130,7 +152,7 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected scrollCategories(direction: 'left' | 'right'): void {
-    const carousel = this.categoriesCarousel?.nativeElement;
+    const carousel = this.categoryCarouselComponent?.getCarouselElement();
 
     if (!carousel) {
       return;
@@ -154,7 +176,7 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected updateCategoriesScrollState(): void {
-    const carousel = this.categoriesCarousel?.nativeElement;
+    const carousel = this.categoryCarouselComponent?.getCarouselElement();
 
     if (!carousel) {
       this.canScrollCategoriesLeft.set(false);
@@ -164,8 +186,8 @@ export class CustomerHome implements AfterViewInit {
     }
 
     const maxScrollLeft = Math.max(carousel.scrollWidth - carousel.clientWidth, 0);
-    const currentScroll = carousel.scrollLeft;
-    const threshold = 2;
+    const currentScroll = Math.max(carousel.scrollLeft, 0);
+    const threshold = 16;
 
     this.canScrollCategoriesLeft.set(currentScroll > threshold);
     this.canScrollCategoriesRight.set(currentScroll < maxScrollLeft - threshold);
@@ -182,7 +204,7 @@ export class CustomerHome implements AfterViewInit {
 
   protected goToCart(event: Event): void {
     event.preventDefault();
-    this.router.navigate([`/${this.getCurrentContext()}/carrinho`]);
+    this.router.navigate([this.customerContextService.getCartRoute(this.getCurrentContext())]);
   }
 
   private scrollToMenuSection(): void {
@@ -274,7 +296,7 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected getCurrentContext(): MenuContext {
-    return this.router.url.startsWith('/totem') ? 'totem' : 'mesa';
+    return this.customerContextService.getCurrentContext(this.router.url);
   }
 
   private refreshCartCount(): void {

@@ -4,28 +4,31 @@ import { Router } from '@angular/router';
 
 import { CustomerContext } from '../../core/models/cart.models';
 import { CartService } from '../../core/services/cart.service';
+import { CustomerContextService } from '../../core/services/customer-context.service';
+import { OrderSuccessContentComponent } from './components/order-success-content/order-success-content';
 
 @Component({
   selector: 'app-order-success',
-  imports: [CommonModule],
+  imports: [CommonModule, OrderSuccessContentComponent],
   templateUrl: './order-success.html',
   styleUrl: './order-success.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderSuccess {
   private readonly cartService = inject(CartService);
+  private readonly customerContextService = inject(CustomerContextService);
   private readonly router = inject(Router);
 
   protected startNewOrder(): void {
     const context = this.getCurrentContext();
 
     this.cartService.clearCart(context);
-    this.router.navigate([`/${context}`]);
+    this.router.navigate([this.customerContextService.getHomeRoute(context)]);
   }
 
   protected followOrder(): void {
     if (this.isMesaContext()) {
-      this.router.navigate(['/mesa/pedidos']);
+      this.router.navigate([this.customerContextService.getOrdersRoute('mesa')]);
     }
   }
 
@@ -34,6 +37,6 @@ export class OrderSuccess {
   }
 
   private getCurrentContext(): CustomerContext {
-    return this.router.url.startsWith('/totem') ? 'totem' : 'mesa';
+    return this.customerContextService.getCurrentContext(this.router.url);
   }
 }

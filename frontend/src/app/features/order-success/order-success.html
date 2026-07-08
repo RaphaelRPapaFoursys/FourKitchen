@@ -3,18 +3,11 @@
     <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
   </header>
 
-  <section class="order-success__content" aria-labelledby="success-title">
-    <div class="order-success__icon" aria-hidden="true">✓</div>
-    <h1 id="success-title">Pedido enviado com sucesso!</h1>
-    <p>Acompanhe o status no painel ou aqui mesmo.</p>
-
-    <div class="order-success__actions">
-      @if (isMesaContext()) {
-        <button class="order-success__primary" type="button" (click)="followOrder()">Acompanhar Pedido</button>
-      }
-      <button class="order-success__secondary" type="button" (click)="startNewOrder()">Novo Pedido</button>
-    </div>
-  </section>
+  <app-order-success-content
+    [showFollowOrder]="isMesaContext()"
+    (followOrderSelected)="followOrder()"
+    (newOrderSelected)="startNewOrder()"
+  />
 
   <footer class="order-success__footer">
     Obrigado por escolher FourKitchen!

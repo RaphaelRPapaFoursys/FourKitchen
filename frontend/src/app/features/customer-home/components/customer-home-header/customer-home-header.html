@@ -1,0 +1,17 @@
+<header class="customer-header" id="home">
+  <a class="customer-header__brand" href="#home" (click)="selectSection('home', $event)" aria-label="FourKitchen Home">
+    <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
+  </a>
+
+  <nav class="customer-nav" aria-label="Navegacao principal">
+    <a class="customer-nav__link customer-nav__link--active" href="#home" (click)="selectSection('home', $event)">Home</a>
+    <a class="customer-nav__link" href="#menu" (click)="selectSection('menu', $event)">Menu</a>
+    <a class="customer-nav__link customer-nav__link--icon" [href]="cartRoute()" (click)="selectCart($event)">
+      <span>Carrinho</span>
+      @if (cartItemsCount() > 0) {
+        <strong class="customer-nav__badge">{{ cartItemsCount() }}</strong>
+      }
+      <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
+    </a>
+  </nav>
+</header>

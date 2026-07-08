@@ -1,40 +1,12 @@
 <main class="customer-home">
-  <header class="customer-header" id="home">
-    <a class="customer-header__brand" href="#home" (click)="scrollToSection('home', $event)" aria-label="FourKitchen Home">
-      <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
-    </a>
+  <app-customer-home-header
+    [cartItemsCount]="cartItemsCount()"
+    [cartRoute]="cartRoute()"
+    (sectionSelected)="scrollToSection($event.sectionId, $event.event)"
+    (cartSelected)="goToCart($event)"
+  />
 
-    <nav class="customer-nav" aria-label="Navegacao principal">
-      <a class="customer-nav__link customer-nav__link--active" href="#home" (click)="scrollToSection('home', $event)">Home</a>
-      <a class="customer-nav__link" href="#menu" (click)="scrollToSection('menu', $event)">Menu</a>
-      <a class="customer-nav__link customer-nav__link--icon" href="/{{ getCurrentContext() }}/carrinho" (click)="goToCart($event)">
-        <span>Carrinho</span>
-        @if (cartItemsCount() > 0) {
-          <strong class="customer-nav__badge">{{ cartItemsCount() }}</strong>
-        }
-        <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
-      </a>
-    </nav>
-  </header>
-
-  <section class="hero" aria-labelledby="hero-title">
-    <img class="hero__leaves hero__leaves--left" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
-    <img class="hero__leaves hero__leaves--right" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
-
-    <div class="hero__copy">
-      <h1 id="hero-title">Bem-Vindos ao FourKitchen!</h1>
-      <p>Faca seu pedido de forma rapida, pratica e sem filas.</p>
-
-      <div class="hero__actions" aria-label="Atalhos da home">
-        <a class="hero__button hero__button--primary" href="#categorias" (click)="scrollToSection('categorias', $event)">Categorias</a>
-        <a class="hero__button hero__button--dark" href="#menu" (click)="scrollToSection('menu', $event)">Menu</a>
-      </div>
-    </div>
-
-    <div class="hero__image" aria-hidden="true">
-      <img src="assets/images/menu-cardapio.png" alt="" />
-    </div>
-  </section>
+  <app-customer-hero (sectionSelected)="scrollToSection($event.sectionId, $event.event)" />
 
   <section class="categories" id="categorias" aria-labelledby="categories-title">
     <div class="categories__inner">
@@ -53,38 +25,17 @@
       } @else if (!hasMenuContent()) {
         <p class="state-message">Nenhum item disponivel no momento.</p>
       } @else {
-        <div class="categories-carousel">
-          @if (canScrollCategoriesLeft()) {
-            <button class="categories-carousel__button categories-carousel__button--left" type="button" aria-label="Ver categorias anteriores" (click)="scrollCategories('left')">
-              ‹
-            </button>
-          }
-
-          <div class="categories__grid" #categoriesCarousel (scroll)="updateCategoriesScrollState()">
-            @for (category of categories(); track trackByCategoryId($index, category)) {
-              <button
-                class="category-card"
-                type="button"
-                [class.category-card--active]="selectedCategoryId() === category.categoriaId"
-                (click)="selectCategoryFromCard(category.categoriaId)"
-              >
-                <div class="category-card__media">
-                  <img [src]="getCategoryImage(category)" [alt]="category.categoriaNome" loading="lazy" />
-                </div>
-                <h3>{{ category.categoriaNome }}</h3>
-                @if (category.categoriaDescricao) {
-                  <p>{{ category.categoriaDescricao }}</p>
-                }
-              </button>
-            }
-          </div>
-
-          @if (canScrollCategoriesRight()) {
-            <button class="categories-carousel__button categories-carousel__button--right" type="button" aria-label="Ver proximas categorias" (click)="scrollCategories('right')">
-              ›
-            </button>
-          }
-        </div>
+        <app-category-carousel
+          [categories]="categories()"
+          [selectedCategoryId]="selectedCategoryId()"
+          [canScrollLeft]="canScrollCategoriesLeft()"
+          [canScrollRight]="canScrollCategoriesRight()"
+          [categoryImage]="getCategoryImage.bind(this)"
+          [trackCategory]="trackByCategoryId.bind(this)"
+          (categorySelected)="selectCategoryFromCard($event)"
+          (scrollRequested)="scrollCategories($event)"
+          (scrolled)="updateCategoriesScrollState()"
+        />
       }
     </div>
   </section>
@@ -105,135 +56,42 @@
     } @else if (!hasMenuContent()) {
       <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
     } @else {
-      <div class="menu-filters" aria-label="Filtros do cardapio">
-        <button
-          class="menu-filters__button"
-          type="button"
-          [class.menu-filters__button--active]="selectedCategoryId() === null"
-          (click)="selectCategoryFromFilter(null)"
-        >
-          Todos
-        </button>
+      <app-menu-filter-bar
+        [categories]="categories()"
+        [selectedCategoryId]="selectedCategoryId()"
+        [trackCategory]="trackByCategoryId.bind(this)"
+        (categorySelected)="selectCategoryFromFilter($event)"
+      />
 
-        @for (category of categories(); track trackByCategoryId($index, category)) {
-          <button
-            class="menu-filters__button"
-            type="button"
-            [class.menu-filters__button--active]="selectedCategoryId() === category.categoriaId"
-            (click)="selectCategoryFromFilter(category.categoriaId)"
-          >
-            {{ category.categoriaNome }}
-          </button>
-        }
-      </div>
-
-      @if (filteredProducts().length === 0) {
-        <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
-      } @else {
-        <div class="products-grid">
-          @for (product of filteredProducts(); track trackByProductId($index, product)) {
-            <article
-              class="product-card"
-              tabindex="0"
-              role="button"
-              [attr.aria-label]="'Ver detalhes de ' + product.nome"
-              (click)="openProductDetails(product)"
-              (keydown.enter)="openProductDetails(product)"
-              (keydown.space)="$event.preventDefault(); openProductDetails(product)"
-            >
-              <div class="product-card__media">
-                <img [src]="getProductImage(product)" [alt]="product.nome" loading="lazy" />
-              </div>
-
-              <div class="product-card__body">
-                <h3>{{ product.nome }}</h3>
-                <p>{{ product.descricao }}</p>
-
-                <div class="product-card__footer">
-                  <strong>{{ formatPrice(product.preco) }}</strong>
-                  <button type="button" (click)="addProductFromCard(product, $event)" aria-label="Adicionar item">
-                    <img src="assets/icons/plus.svg" alt="" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            </article>
-          }
-        </div>
-      }
+      <app-product-grid
+        [products]="filteredProducts()"
+        [productImage]="getProductImage.bind(this)"
+        [formatPrice]="formatPrice.bind(this)"
+        [trackProduct]="trackByProductId.bind(this)"
+        (productSelected)="openProductDetails($event)"
+        (quickAddSelected)="addProductFromCard($event.product, $event.event)"
+      />
     }
   </section>
 
-  <footer class="customer-footer" id="footer">
-    <img class="customer-footer__banner" src="assets/banner2.png" alt="" aria-hidden="true" />
-
-    <address class="customer-footer__content">
-      <span>
-        <img src="assets/icons/location.svg" alt="" aria-hidden="true" />
-        Av. Tambore, 267 - Tambore
-      </span>
-      <span>
-        <img src="assets/icons/phone.svg" alt="" aria-hidden="true" />
-        11 3333-3333
-      </span>
-    </address>
-  </footer>
+  <app-customer-footer />
 
   @if (cartFeedback()) {
     <p class="cart-feedback" role="status">{{ cartFeedback() }}</p>
   }
 
   @if (selectedProduct(); as product) {
-    <div class="product-modal" role="presentation" (click)="closeProductDetails()">
-      <section
-        class="product-modal__card"
-        role="dialog"
-        aria-modal="true"
-        [attr.aria-label]="'Detalhes de ' + product.nome"
-        (click)="$event.stopPropagation()"
-      >
-        <button class="product-modal__close" type="button" aria-label="Fechar detalhes" (click)="closeProductDetails()">
-          x
-        </button>
-
-        <div class="product-modal__media">
-          <img [src]="getProductImage(product)" [alt]="product.nome" />
-        </div>
-
-        <div class="product-modal__content">
-          <div class="product-modal__heading">
-            <h2>{{ product.nome }}</h2>
-            <strong>{{ formatPrice(product.preco) }}</strong>
-          </div>
-
-          <p class="product-modal__description">{{ product.descricao }}</p>
-
-          <label class="product-modal__notes">
-            <span>
-              <img src="assets/icons/menu.svg" alt="" aria-hidden="true" />
-              Observacoes
-            </span>
-            <textarea
-              rows="3"
-              placeholder="Ex: sem cebola, ponto da carne..."
-              [ngModel]="selectedObservation()"
-              (ngModelChange)="updateObservation($event)"
-            ></textarea>
-          </label>
-        </div>
-
-        <footer class="product-modal__actions">
-          <div class="quantity-control" aria-label="Quantidade">
-            <button type="button" aria-label="Diminuir quantidade" (click)="decreaseQuantity()">-</button>
-            <span>{{ selectedQuantity() }}</span>
-            <button type="button" aria-label="Aumentar quantidade" (click)="increaseQuantity()">+</button>
-          </div>
-
-          <button class="product-modal__add" type="button" (click)="addSelectedProductToCart()">
-            <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
-            Adicionar ao Carrinho
-          </button>
-        </footer>
-      </section>
-    </div>
+    <app-product-details-modal
+      [product]="product"
+      [quantity]="selectedQuantity()"
+      [observation]="selectedObservation()"
+      [productImage]="getProductImage.bind(this)"
+      [formatPrice]="formatPrice.bind(this)"
+      (closed)="closeProductDetails()"
+      (quantityIncreased)="increaseQuantity()"
+      (quantityDecreased)="decreaseQuantity()"
+      (observationChanged)="updateObservation($event)"
+      (addToCart)="addSelectedProductToCart()"
+    />
   }
 </main>

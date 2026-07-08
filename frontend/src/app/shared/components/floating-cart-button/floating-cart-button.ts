@@ -5,6 +5,7 @@ import { filter } from 'rxjs';
 
 import { CustomerContext } from '../../../core/models/cart.models';
 import { CartService } from '../../../core/services/cart.service';
+import { CustomerContextService } from '../../../core/services/customer-context.service';
 
 @Component({
   selector: 'app-floating-cart-button',
@@ -15,12 +16,13 @@ import { CartService } from '../../../core/services/cart.service';
 })
 export class FloatingCartButton {
   private readonly cartService = inject(CartService);
+  private readonly customerContextService = inject(CustomerContextService);
   private readonly router = inject(Router);
 
   protected readonly currentUrl = signal(this.router.url);
 
   protected readonly context = computed<CustomerContext>(() =>
-    this.currentUrl().startsWith('/totem') ? 'totem' : 'mesa',
+    this.customerContextService.getCurrentContext(this.currentUrl()),
   );
 
   protected readonly totalItems = computed(() => {
@@ -31,8 +33,8 @@ export class FloatingCartButton {
 
   protected readonly shouldShow = computed(() =>
     this.totalItems() > 0
-    && this.isCustomerRoute()
-    && !this.isHiddenRoute(),
+    && this.customerContextService.isCustomerRoute(this.currentUrl())
+    && !this.customerContextService.isHiddenFloatingCartRoute(this.currentUrl()),
   );
 
   constructor() {
@@ -42,24 +44,6 @@ export class FloatingCartButton {
   }
 
   protected goToCart(): void {
-    this.router.navigate([`/${this.context()}/carrinho`]);
-  }
-
-  private isCustomerRoute(): boolean {
-    const url = this.currentUrl();
-
-    return url.startsWith('/mesa') || url.startsWith('/totem');
-  }
-
-  private isHiddenRoute(): boolean {
-    const url = this.currentUrl().split('?')[0];
-
-    return [
-      '/mesa/carrinho',
-      '/totem/carrinho',
-      '/mesa/pedido-criado',
-      '/totem/pedido-criado',
-      '/mesa/pedidos',
-    ].includes(url);
+    this.router.navigate([this.customerContextService.getCartRoute(this.context())]);
   }
 }

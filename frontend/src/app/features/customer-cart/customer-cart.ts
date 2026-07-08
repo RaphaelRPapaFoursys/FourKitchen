@@ -5,12 +5,25 @@ import { finalize } from 'rxjs';
 
 import { CartItem, CustomerContext } from '../../core/models/cart.models';
 import { CartService } from '../../core/services/cart.service';
+import { CustomerContextService } from '../../core/services/customer-context.service';
 import { CustomerOrderCacheService } from '../../core/services/customer-order-cache.service';
 import { OrderService } from '../../core/services/order.service';
+import { CartActionsComponent } from './components/cart-actions/cart-actions';
+import { CartItemCardComponent } from './components/cart-item-card/cart-item-card';
+import { CartSummaryComponent } from './components/cart-summary/cart-summary';
+import { CustomerCartHeaderComponent } from './components/customer-cart-header/customer-cart-header';
+import { EmptyCartComponent } from './components/empty-cart/empty-cart';
 
 @Component({
   selector: 'app-customer-cart',
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    CustomerCartHeaderComponent,
+    CartItemCardComponent,
+    CartSummaryComponent,
+    CartActionsComponent,
+    EmptyCartComponent,
+  ],
   templateUrl: './customer-cart.html',
   styleUrl: './customer-cart.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +32,7 @@ export class CustomerCart {
   private readonly cartService = inject(CartService);
   private readonly orderService = inject(OrderService);
   private readonly orderCacheService = inject(CustomerOrderCacheService);
+  private readonly customerContextService = inject(CustomerContextService);
   private readonly router = inject(Router);
 
   protected readonly items = signal<CartItem[]>(this.cartService.getCart(this.getCurrentContext()));
@@ -30,6 +44,12 @@ export class CustomerCart {
   );
   protected readonly isConfirmingOrder = signal(false);
   protected readonly confirmOrderError = signal('');
+  protected readonly homeRoute = computed(() =>
+    this.customerContextService.getHomeRoute(this.getCurrentContext()),
+  );
+  protected readonly cartRoute = computed(() =>
+    this.customerContextService.getCartRoute(this.getCurrentContext()),
+  );
 
   protected increaseQuantity(item: CartItem): void {
     this.items.set(
@@ -60,7 +80,7 @@ export class CustomerCart {
   }
 
   protected continueShopping(): void {
-    this.router.navigate([`/${this.getCurrentContext()}`]);
+    this.router.navigate([this.customerContextService.getHomeRoute(this.getCurrentContext())]);
   }
 
   protected goToMenu(event: Event): void {
@@ -82,7 +102,7 @@ export class CustomerCart {
     }
 
     // TODO: chamar OrderService.createMesaOrder quando a origem de idMesa/codigoAtendimento estiver definida.
-    this.router.navigate([`/${context}/pedido-criado`]);
+    this.router.navigate([this.customerContextService.getSuccessRoute(context)]);
   }
 
   protected getProductImage(item: CartItem): string {
@@ -107,7 +127,7 @@ export class CustomerCart {
   }
 
   protected getCurrentContext(): CustomerContext {
-    return this.router.url.startsWith('/totem') ? 'totem' : 'mesa';
+    return this.customerContextService.getCurrentContext(this.router.url);
   }
 
   private confirmTotemOrder(): void {
@@ -131,7 +151,7 @@ export class CustomerCart {
           this.orderCacheService.addOrder('totem', order);
           this.cartService.clearCart('totem');
           this.items.set([]);
-          this.router.navigate(['/totem/pedido-criado']);
+          this.router.navigate([this.customerContextService.getSuccessRoute('totem')]);
         },
         error: () => {
           this.confirmOrderError.set('Nao foi possivel confirmar o pedido. Tente novamente.');

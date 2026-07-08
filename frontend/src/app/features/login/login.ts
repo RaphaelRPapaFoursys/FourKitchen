@@ -7,12 +7,14 @@ import { finalize } from 'rxjs';
 import { ApiError, UsuarioAutenticadoResponse } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth';
 import { getRedirectRouteByProfile } from '../../core/utils/profile-redirect';
+import { LoginFooterComponent } from './components/login-footer/login-footer';
+import { LoginFormComponent } from './components/login-form/login-form';
 
 type LoginField = 'email' | 'password';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LoginFormComponent, LoginFooterComponent],
   templateUrl: './login.html',
   styleUrl: './login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,0 +1,26 @@
+<article class="cart-item">
+  <div class="cart-item__media">
+    <img [src]="productImage()(item())" [alt]="item().name" />
+  </div>
+
+  <div class="cart-item__content">
+    <h2>{{ item().name }}</h2>
+    @if (item().observation) {
+      <p>Obs: {{ item().observation }}</p>
+    } @else {
+      <p>{{ item().description }}</p>
+    }
+  </div>
+
+  <div class="cart-item__quantity" aria-label="Quantidade">
+    <button type="button" aria-label="Diminuir quantidade" (click)="decreaseQuantity()">-</button>
+    <span>{{ item().quantity }}</span>
+    <button type="button" aria-label="Aumentar quantidade" (click)="increaseQuantity()">+</button>
+  </div>
+
+  <strong>{{ formatPrice()(item().unitPrice * item().quantity) }}</strong>
+
+  <button class="cart-item__remove" type="button" aria-label="Remover item" (click)="removeItem()">
+    x
+  </button>
+</article>

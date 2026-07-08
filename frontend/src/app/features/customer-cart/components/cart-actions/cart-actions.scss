@@ -1,0 +1,29 @@
+:host {
+  display: grid;
+  gap: 1rem;
+}
+
+.cart-summary__confirm,
+.cart-summary__secondary {
+  min-height: 3.25rem;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.cart-summary__confirm {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.cart-summary__confirm:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.cart-summary__secondary {
+  background: rgb(255 255 255 / 10%);
+  color: var(--white);
+}

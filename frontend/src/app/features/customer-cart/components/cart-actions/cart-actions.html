@@ -1,0 +1,4 @@
+<button class="cart-summary__confirm" type="button" (click)="confirm()" [disabled]="isConfirming()">
+  {{ isConfirming() ? 'Confirmando...' : 'Confirmar Pedido' }}
+</button>
+<button class="cart-summary__secondary" type="button" (click)="continueShopping()">Continuar Comprando</button>

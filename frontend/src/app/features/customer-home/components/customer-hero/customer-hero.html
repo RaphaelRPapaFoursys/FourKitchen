@@ -1,0 +1,18 @@
+<section class="hero" aria-labelledby="hero-title">
+  <img class="hero__leaves hero__leaves--left" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
+  <img class="hero__leaves hero__leaves--right" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
+
+  <div class="hero__copy">
+    <h1 id="hero-title">Bem-Vindos ao FourKitchen!</h1>
+    <p>Faca seu pedido de forma rapida, pratica e sem filas.</p>
+
+    <div class="hero__actions" aria-label="Atalhos da home">
+      <a class="hero__button hero__button--primary" href="#categorias" (click)="selectSection('categorias', $event)">Categorias</a>
+      <a class="hero__button hero__button--dark" href="#menu" (click)="selectSection('menu', $event)">Menu</a>
+    </div>
+  </div>
+
+  <div class="hero__image" aria-hidden="true">
+    <img src="assets/images/menu-cardapio.png" alt="" />
+  </div>
+</section>

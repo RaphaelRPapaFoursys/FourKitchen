@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+.menu-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.menu-filters__button {
+  min-width: 7.5rem;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: var(--pill);
+  background: var(--muted);
+  color: #766c68;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.menu-filters__button--active {
+  background: var(--primary);
+  color: var(--white);
+}
+
+@media (max-width: 640px) {
+  .menu-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+  }
+
+  .menu-filters__button {
+    flex: 0 0 auto;
+  }
+}
