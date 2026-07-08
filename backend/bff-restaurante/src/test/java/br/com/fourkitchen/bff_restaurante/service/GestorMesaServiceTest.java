@@ -403,7 +403,9 @@ class GestorMesaServiceTest {
                 1,
                 idAtendimento,
                 LocalDateTime.now().minusMinutes(3),
-                List.of(new ItemPedidoCozinhaResponse(1, 1, quantidade, precoUnitario, null))
+                null,
+                null,
+                List.of(new ItemPedidoCozinhaResponse(1, 1, null, quantidade, precoUnitario, null))
         );
     }
 

@@ -76,10 +76,10 @@ export class Cozinha {
       .sort((a, b) => {
         if (this.ordenacao() === 'prioridade') {
           return prioridadePeso[this.prioridade(a)] - prioridadePeso[this.prioridade(b)]
-            || this.minutosDesdeCriacao(b) - this.minutosDesdeCriacao(a);
+            || this.minutosDesdeReferencia(b) - this.minutosDesdeReferencia(a);
         }
 
-        return this.minutosDesdeCriacao(b) - this.minutosDesdeCriacao(a);
+        return this.minutosDesdeReferencia(b) - this.minutosDesdeReferencia(a);
       });
   });
 
@@ -109,7 +109,7 @@ export class Cozinha {
 
   protected readonly tempoMedio = computed(() => {
     const pedidos = this.pedidos();
-    const total = pedidos.reduce((soma, pedido) => soma + this.minutosDesdeCriacao(pedido), 0);
+    const total = pedidos.reduce((soma, pedido) => soma + this.minutosDesdeReferencia(pedido), 0);
 
     return pedidos.length ? Math.round(total / pedidos.length) : 0;
   });
@@ -282,13 +282,17 @@ export class Cozinha {
   }
 
   protected minutosDesdeCriacao(pedido: PedidoFilaCozinhaResponse): number {
-    const criadoEm = new Date(pedido.dataCriacao).getTime();
+    return this.minutosDesdeData(pedido.dataCriacao);
+  }
 
-    if (Number.isNaN(criadoEm)) {
-      return 0;
-    }
+  protected minutosEmPreparo(pedido: PedidoFilaCozinhaResponse): number {
+    return this.minutosDesdeData(pedido.dataInicioPreparo ?? pedido.dataCriacao);
+  }
 
-    return Math.max(0, Math.round((Date.now() - criadoEm) / 60000));
+  protected minutosDesdeReferencia(pedido: PedidoFilaCozinhaResponse): number {
+    return this.statusNormalizado(pedido) === 'EM_PREPARO'
+      ? this.minutosEmPreparo(pedido)
+      : this.minutosDesdeCriacao(pedido);
   }
 
   protected statusPronto(pedido: PedidoFilaCozinhaResponse): boolean {
@@ -393,6 +397,20 @@ export class Cozinha {
 
   private statusNormalizado(pedido: PedidoFilaCozinhaResponse): string {
     return String(pedido.status).trim().toUpperCase();
+  }
+
+  private minutosDesdeData(dataIso: string | null | undefined): number {
+    if (!dataIso) {
+      return 0;
+    }
+
+    const data = new Date(dataIso).getTime();
+
+    if (Number.isNaN(data)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.round((Date.now() - data) / 60000));
   }
 
   private extrairMensagemErro(erro: unknown, mensagemPadrao: string): string {

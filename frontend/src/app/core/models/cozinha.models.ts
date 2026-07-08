@@ -32,6 +32,8 @@ export interface PedidoFilaCozinhaResponse {
   idMesa: number | null;
   idAtendimento: number | null;
   dataCriacao: string;
+  dataInicioPreparo: string | null;
+  dataPronto: string | null;
   itens: ItemFilaCozinhaResponse[];
 }
 

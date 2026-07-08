@@ -44,4 +44,10 @@ public class Pedido {
     @CreationTimestamp
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
+
+    @Column(name = "data_inicio_preparo")
+    private LocalDateTime dataInicioPreparo;
+
+    @Column(name = "data_pronto")
+    private LocalDateTime dataPronto;
 }
