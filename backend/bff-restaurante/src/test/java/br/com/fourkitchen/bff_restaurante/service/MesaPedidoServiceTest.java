@@ -195,6 +195,8 @@ class MesaPedidoServiceTest {
                 1,
                 8,
                 dataCriacao,
+                null,
+                null,
                 List.of(new ItemPedidoCozinhaResponse(
                         5,
                         10,

@@ -95,6 +95,8 @@ public class CozinhaService {
                 pedido.idMesa(),
                 pedido.idAtendimento(),
                 pedido.dataCriacao(),
+                pedido.dataInicioPreparo(),
+                pedido.dataPronto(),
                 listarItensDoPedido(pedido).stream()
                         .map(this::mapearItem)
                         .toList()

@@ -11,6 +11,8 @@ public record PedidoCozinhaResponse(
         Integer idMesa,
         Integer idAtendimento,
         LocalDateTime dataCriacao,
+        LocalDateTime dataInicioPreparo,
+        LocalDateTime dataPronto,
         List<ItemPedidoCozinhaResponse> itens
 ) {
 }
