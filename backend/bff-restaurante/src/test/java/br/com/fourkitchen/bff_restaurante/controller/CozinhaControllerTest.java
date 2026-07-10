@@ -36,6 +36,8 @@ class CozinhaControllerTest {
                 1,
                 8,
                 LocalDateTime.of(2026, 7, 2, 10, 30),
+                null,
+                null,
                 List.of()
         );
 

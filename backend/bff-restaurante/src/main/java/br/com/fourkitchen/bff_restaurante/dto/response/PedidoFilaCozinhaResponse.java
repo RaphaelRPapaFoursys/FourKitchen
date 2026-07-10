@@ -28,6 +28,12 @@ public record PedidoFilaCozinhaResponse(
         @Schema(description = "Data e hora de criacao do pedido, usada para ordenar a fila por chegada", example = "2026-07-02T10:30:00")
         LocalDateTime dataCriacao,
 
+        @Schema(description = "Data e hora em que o preparo foi iniciado", example = "2026-07-02T10:36:00")
+        LocalDateTime dataInicioPreparo,
+
+        @Schema(description = "Data e hora em que o pedido ficou pronto", example = "2026-07-02T10:52:00")
+        LocalDateTime dataPronto,
+
         @Schema(description = "Itens do pedido com observacoes individuais")
         List<ItemFilaCozinhaResponse> itens
 ) {

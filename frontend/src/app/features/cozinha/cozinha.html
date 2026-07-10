@@ -32,13 +32,15 @@
           {{ ordenacao() === 'tempo' ? 'Ordenar por Tempo' : 'Ordenar por Prioridade' }}
         </button>
         <button type="button" class="refresh-button" aria-label="Atualizar fila" (click)="atualizarFila()" [disabled]="carregando()">
-          R
+          Atualizar
         </button>
       </div>
     </div>
 
     @if (erro()) {
       <p class="feedback feedback--error">{{ erro() }}</p>
+    } @else if (sucesso()) {
+      <p class="feedback feedback--success">{{ sucesso() }}</p>
     } @else if (carregando()) {
       <p class="feedback">Carregando fila da cozinha...</p>
     }
@@ -99,6 +101,32 @@
           }
         </div>
       </section>
+
+      <section class="lane">
+        <header class="lane__header lane__header--warning">
+          <div>
+            <h2>Aguardando Decisao</h2>
+            <span>{{ aguardandoDecisao().length.toString().padStart(2, '0') }}</span>
+          </div>
+          <div class="lane__controls" aria-hidden="true">
+            <span>^</span>
+            <span>v</span>
+          </div>
+        </header>
+
+        <div class="orders">
+          @for (pedido of aguardandoDecisao(); track pedido.id) {
+            <article class="order-card order-card--decision">
+              <ng-container
+                [ngTemplateOutlet]="pedidoCard"
+                [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'decisao' }"
+              />
+            </article>
+          } @empty {
+            <p class="empty">Nenhum pedido aguardando decisao.</p>
+          }
+        </div>
+      </section>
     </section>
   </section>
 
@@ -121,7 +149,7 @@
       </div>
       <div class="order-card__origin">
         <span aria-hidden="true">[]</span>
-        {{ origem(pedido) }}
+        {{ origem(pedido) }} · {{ statusLabel(pedido) }}
       </div>
     </div>
 
@@ -130,13 +158,13 @@
       @if (acao === 'iniciar') {
         <span>Esperando: {{ minutosDesdeCriacao(pedido) }}min</span>
       } @else {
-        <span>No fogo ha: {{ minutosDesdeCriacao(pedido) }}min</span>
+        <span>Em preparo há: {{ minutosEmPreparo(pedido) }}min</span>
       }
     </div>
   </div>
 
   <ul class="items">
-    @for (item of pedido.itens; track item.id) {
+    @for (item of itensPedido(pedido); track item.id) {
       <li>
         <span>{{ item.quantidade }}x</span>
         <div>
@@ -144,6 +172,27 @@
           @if (item.observacao) {
             <small>{{ item.observacao }}</small>
           }
+          <div class="item-actions">
+            @if (acao === 'decisao') {
+              <button
+                type="button"
+                class="item-action"
+                (click)="abrirDecisao(pedido, item)"
+                [disabled]="itemAcaoDesabilitada(item)"
+              >
+                Registrar decisao
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="item-action"
+                (click)="abrirProblema(pedido, item)"
+                [disabled]="itemAcaoDesabilitada(item) || statusPronto(pedido)"
+              >
+                Sinalizar problema
+              </button>
+            }
+          </div>
         </div>
       </li>
     }
@@ -173,3 +222,76 @@
     </button>
   }
 </ng-template>
+
+@if (problemaSelecionado(); as selecao) {
+  <div class="modal-backdrop" (click)="fecharProblema()">
+    <section class="modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog">
+      <header class="modal__header">
+        <div>
+          <h2>Sinalizar problema</h2>
+          <p>#{{ selecao.pedido.codigo || selecao.pedido.id }} · {{ nomeItem(selecao.item) }}</p>
+        </div>
+        <button type="button" class="modal__close" aria-label="Fechar" (click)="fecharProblema()">x</button>
+      </header>
+
+      <label class="form-field">
+        <span>Tipo de problema</span>
+        <select [ngModel]="tipoProblema()" (ngModelChange)="tipoProblema.set($event)">
+          <option value="FALTA_PRODUTO">{{ problemaLabel('FALTA_PRODUTO') }}</option>
+          <option value="ERRO">{{ problemaLabel('ERRO') }}</option>
+          <option value="INDISPONIVEL">{{ problemaLabel('INDISPONIVEL') }}</option>
+        </select>
+      </label>
+
+      <div class="modal__actions">
+        <button type="button" class="modal__secondary" (click)="fecharProblema()">Cancelar</button>
+        <button type="button" class="modal__primary" (click)="confirmarProblema()" [disabled]="itemAcaoDesabilitada(selecao.item)">
+          Confirmar
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (decisaoSelecionada(); as selecao) {
+  <div class="modal-backdrop" (click)="fecharDecisao()">
+    <section class="modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog">
+      <header class="modal__header">
+        <div>
+          <h2>Decisao do problema</h2>
+          <p>#{{ selecao.pedido.codigo || selecao.pedido.id }} · {{ nomeItem(selecao.item) }}</p>
+        </div>
+        <button type="button" class="modal__close" aria-label="Fechar" (click)="fecharDecisao()">x</button>
+      </header>
+
+      <label class="form-field">
+        <span>Acao</span>
+        <select [ngModel]="decisaoProblema()" (ngModelChange)="atualizarDecisao($event)">
+          <option value="REMOVIDO">{{ decisaoLabel('REMOVIDO') }}</option>
+          <option value="CANCELADO">{{ decisaoLabel('CANCELADO') }}</option>
+          <option value="DISPONIVEL">{{ decisaoLabel('DISPONIVEL') }}</option>
+        </select>
+      </label>
+
+      @if (decisaoProblema() === 'DISPONIVEL') {
+        <label class="form-field">
+          <span>ID do novo produto</span>
+          <input
+            type="number"
+            min="1"
+            placeholder="Opcional"
+            [ngModel]="idNovoProduto()"
+            (ngModelChange)="atualizarNovoProduto($event)"
+          />
+        </label>
+      }
+
+      <div class="modal__actions">
+        <button type="button" class="modal__secondary" (click)="fecharDecisao()">Cancelar</button>
+        <button type="button" class="modal__primary" (click)="confirmarDecisao()" [disabled]="itemAcaoDesabilitada(selecao.item)">
+          Registrar
+        </button>
+      </div>
+    </section>
+  </div>
+}

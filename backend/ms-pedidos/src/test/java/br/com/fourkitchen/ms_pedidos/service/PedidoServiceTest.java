@@ -359,6 +359,8 @@ class PedidoServiceTest {
         assertEquals(1, pedidoResponse.idMesa());
         assertEquals(8, pedidoResponse.idAtendimento());
         assertEquals(dataCriacao, pedidoResponse.dataCriacao());
+        assertEquals(null, pedidoResponse.dataInicioPreparo());
+        assertEquals(null, pedidoResponse.dataPronto());
 
         assertEquals(1, pedidoResponse.itens().size());
         assertEquals(5, pedidoResponse.itens().getFirst().id());
@@ -474,6 +476,8 @@ class PedidoServiceTest {
 
         assertSame(response, resultado);
         assertEquals(StatusPedido.EM_PREPARO, pedido.getStatus());
+        assertNotNull(pedido.getDataInicioPreparo());
+        assertEquals(null, pedido.getDataPronto());
         verify(pedidoRepository).findById(25);
         verify(pedidoResponseMapper).map(pedido);
     }
@@ -506,6 +510,8 @@ class PedidoServiceTest {
 
         assertSame(response, resultado);
         assertEquals(StatusPedido.PRONTO, pedido.getStatus());
+        assertNotNull(pedido.getDataInicioPreparo());
+        assertNotNull(pedido.getDataPronto());
         verify(pedidoRepository).findById(25);
         verify(pedidoResponseMapper).map(pedido);
     }

@@ -62,6 +62,8 @@ class CozinhaServiceTest {
         assertEquals(1, pedido.idMesa());
         assertEquals(8, pedido.idAtendimento());
         assertEquals(LocalDateTime.of(2026, 7, 2, 10, 30), pedido.dataCriacao());
+        assertEquals(LocalDateTime.of(2026, 7, 2, 10, 36), pedido.dataInicioPreparo());
+        assertEquals(null, pedido.dataPronto());
         assertEquals(1, pedido.itens().size());
         assertEquals("X-Burger", pedido.itens().getFirst().nomeProduto());
         assertEquals("Sem cebola", pedido.itens().getFirst().observacao());
@@ -154,6 +156,8 @@ class CozinhaServiceTest {
                 1,
                 8,
                 LocalDateTime.of(2026, 7, 2, 10, 30),
+                LocalDateTime.of(2026, 7, 2, 10, 36),
+                null,
                 List.of(new ItemPedidoCozinhaResponse(
                         5,
                         10,
