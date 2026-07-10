@@ -1,0 +1,126 @@
+:host {
+  --primary: #ff4b1f;
+  --danger: #c62828;
+  --danger-soft: #fdecec;
+  --dark: #171a21;
+  --text: #171821;
+  --white: #fff;
+  --page-bg: #fffaf5;
+
+  display: block;
+  min-height: 100dvh;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: "Nunito", sans-serif;
+}
+
+.order-error {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--page-bg);
+  overflow-x: hidden;
+}
+
+app-customer-cart-header {
+  width: min(100% - 2rem, 1120px);
+  margin-inline: auto;
+}
+
+.order-error__content {
+  width: min(100% - 2rem, 760px);
+  margin-inline: auto;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  padding: 0 1rem 2rem;
+  text-align: center;
+}
+
+.order-error__icon {
+  width: clamp(5.75rem, 11vw, 7.75rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--danger);
+  color: var(--white);
+  font-size: clamp(2.75rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 clamp(1.15rem, 2.5vw, 1.6rem) var(--danger-soft);
+}
+
+.order-error__content h1 {
+  margin: clamp(1.4rem, 3vw, 2rem) 0 0;
+  color: #202124;
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.order-error__content p {
+  max-width: 28rem;
+  margin: 0.75rem 0 0;
+  color: #6e625d;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  line-height: 1.35;
+}
+
+.order-error__actions {
+  width: min(100%, 22rem);
+  display: grid;
+  margin-top: clamp(3rem, 7vw, 4.5rem);
+}
+
+.order-error__actions button {
+  min-height: 3.45rem;
+  padding-inline: 1.25rem;
+  border: 0;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.order-error__primary {
+  background: var(--dark);
+  color: var(--white);
+}
+
+.order-error__footer {
+  min-height: 2.4rem;
+  display: grid;
+  place-items: center;
+  padding: 0.45rem 1rem;
+  background: var(--primary);
+  color: var(--white);
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .order-error__content {
+    align-self: start;
+    padding-top: 1.5rem;
+  }
+
+  .order-error__icon {
+    width: 5.5rem;
+    font-size: 2.6rem;
+  }
+
+  .order-error__content h1 {
+    font-size: 1.45rem;
+  }
+
+  .order-error__actions {
+    margin-top: 2.25rem;
+  }
+
+  .order-error__actions button {
+    width: 100%;
+  }
+}

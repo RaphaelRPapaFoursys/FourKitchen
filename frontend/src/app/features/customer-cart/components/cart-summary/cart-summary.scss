@@ -1,0 +1,34 @@
+:host {
+  display: block;
+}
+
+.cart-summary__totals {
+  display: grid;
+  gap: 1rem;
+}
+
+.cart-summary__totals div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cart-summary__totals span {
+  color: rgb(255 255 255 / 72%);
+}
+
+.cart-summary__error {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 10%);
+  color: #ffd5c9;
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.cart-summary__totals strong {
+  font-size: 1.35rem;
+  font-weight: 600;
+}

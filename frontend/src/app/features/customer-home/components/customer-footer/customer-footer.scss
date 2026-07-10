@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+.customer-footer {
+  position: relative;
+  min-height: 15rem;
+  overflow: hidden;
+  background: linear-gradient(var(--white) 0 8rem, var(--dark) 8rem);
+  color: var(--white);
+}
+
+.customer-footer__banner {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: 8rem;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.customer-footer__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1.1rem;
+  width: min(100% - 2rem, 1120px);
+  margin: 10rem auto 0;
+  color: rgb(255 255 255 / 88%);
+  font-style: normal;
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+  font-weight: 400;
+  text-align: center;
+}
+
+.customer-footer__content span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.customer-footer__content img {
+  width: 2rem;
+  height: 2rem;
+}
+
+@media (max-width: 640px) {
+  .customer-footer {
+    min-height: 13.5rem;
+  }
+
+  .customer-footer__content {
+    margin-top: 9.25rem;
+    font-size: 1rem;
+  }
+}

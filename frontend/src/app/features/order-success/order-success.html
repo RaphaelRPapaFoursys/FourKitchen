@@ -1,0 +1,23 @@
+<main class="order-success">
+  <app-customer-cart-header
+    [homeRoute]="homeRoute()"
+    [cartRoute]="cartRoute()"
+    [ordersRoute]="ordersRoute()"
+    [showOrdersLink]="showOrdersLink()"
+    [activeLink]="null"
+    [totalItems]="totalItems()"
+    (menuSelected)="goToMenu($event)"
+    (cartSelected)="goToCart($event)"
+    (ordersSelected)="goToOrders($event)"
+  />
+
+  <app-order-success-content
+    [showFollowOrder]="isMesaContext()"
+    (followOrderSelected)="followOrder()"
+    (newOrderSelected)="startNewOrder()"
+  />
+
+  <footer class="order-success__footer">
+    Obrigado por escolher FourKitchen!
+  </footer>
+</main>

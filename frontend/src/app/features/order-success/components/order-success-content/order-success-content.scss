@@ -1,0 +1,118 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.order-success__content {
+  width: min(100%, 760px);
+  margin-inline: auto;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.order-success__icon {
+  width: clamp(5.75rem, 11vw, 7.75rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--success);
+  color: var(--white);
+  font-size: clamp(2.75rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 clamp(1.15rem, 2.5vw, 1.6rem) var(--success-soft);
+}
+
+.order-success__content h1 {
+  margin: clamp(1.4rem, 3vw, 2rem) 0 0;
+  color: #202124;
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.order-success__content p {
+  max-width: 24rem;
+  margin: 0.75rem 0 0;
+  color: #6e625d;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  line-height: 1.35;
+}
+
+.order-success__actions {
+  width: min(100%, 720px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(0.75rem, 2vw, 1rem);
+  margin-top: clamp(3rem, 7vw, 4.5rem);
+}
+
+.order-success__actions button {
+  min-height: 3.45rem;
+  padding-inline: 1.25rem;
+  border: 0;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.order-success__primary {
+  background: var(--primary);
+  color: var(--white);
+  box-shadow: 0 0.75rem 1.4rem rgb(255 75 31 / 16%);
+}
+
+.order-success__secondary {
+  background: var(--dark);
+  color: var(--white);
+}
+
+@media (max-width: 560px) {
+  .order-success__content {
+    width: 100%;
+  }
+
+  .order-success__icon {
+    width: 5.5rem;
+    font-size: 2.6rem;
+  }
+
+  .order-success__content h1 {
+    font-size: 1.45rem;
+  }
+
+  .order-success__content p {
+    max-width: 18rem;
+  }
+
+  .order-success__actions {
+    width: min(100%, 22rem);
+    grid-template-columns: 1fr;
+    margin-top: 2.25rem;
+  }
+
+  .order-success__actions button {
+    width: 100%;
+  }
+}
+
+@media (max-height: 640px) {
+  .order-success__icon {
+    width: 4.75rem;
+    font-size: 2.25rem;
+    box-shadow: 0 0 0 0.9rem var(--success-soft);
+  }
+
+  .order-success__content h1 {
+    margin-top: 1.2rem;
+    font-size: 1.4rem;
+  }
+
+  .order-success__actions {
+    margin-top: 2rem;
+  }
+}

@@ -1,0 +1,32 @@
+<div class="categories-carousel">
+  @if (canScrollLeft()) {
+    <button class="categories-carousel__button categories-carousel__button--left" type="button" aria-label="Ver categorias anteriores" (click)="requestScroll('left')">
+      ‹
+    </button>
+  }
+
+  <div class="categories__grid" #categoriesCarousel (scroll)="notifyScrolled()">
+    @for (category of categories(); track trackCategory()($index, category)) {
+      <button
+        class="category-card"
+        type="button"
+        [class.category-card--active]="selectedCategoryId() === category.categoriaId"
+        (click)="selectCategory(category.categoriaId)"
+      >
+        <div class="category-card__media">
+          <img [src]="categoryImage()(category)" [alt]="category.categoriaNome" loading="lazy" />
+        </div>
+        <h3>{{ category.categoriaNome }}</h3>
+        @if (category.categoriaDescricao) {
+          <p>{{ category.categoriaDescricao }}</p>
+        }
+      </button>
+    }
+  </div>
+
+  @if (canScrollRight()) {
+    <button class="categories-carousel__button categories-carousel__button--right" type="button" aria-label="Ver proximas categorias" (click)="requestScroll('right')">
+      ›
+    </button>
+  }
+</div>

@@ -24,6 +24,35 @@ export const protectedRoutes: Routes = [
     loadComponent: () =>
       import('../../features/home/home').then(m => m.Home),
   }),
+  {
+    path: 'totem/pedidos',
+    pathMatch: 'full',
+    redirectTo: 'totem',
+  },
+  protectedRoute(
+    {
+      path: 'totem/carrinho',
+      loadComponent: () =>
+        import('../../features/customer-cart/customer-cart').then(m => m.CustomerCart),
+    },
+    ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
+      path: 'totem/pedido-criado',
+      loadComponent: () =>
+        import('../../features/order-success/order-success').then(m => m.OrderSuccess),
+    },
+    ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
+      path: 'totem/pedido-erro',
+      loadComponent: () =>
+        import('../../features/order-error/order-error').then(m => m.OrderError),
+    },
+    ['ADMIN', 'TOTEM'],
+  ),
   protectedRoute(
     {
       path: 'totem',
@@ -31,6 +60,38 @@ export const protectedRoutes: Routes = [
         import('../../features/customer-home/customer-home').then(m => m.CustomerHome),
     },
     ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
+      path: 'mesa/pedidos',
+      loadComponent: () =>
+        import('../../features/customer-orders/customer-orders').then(m => m.CustomerOrders),
+    },
+    ['ADMIN', 'MESA'],
+  ),
+  protectedRoute(
+    {
+      path: 'mesa/carrinho',
+      loadComponent: () =>
+        import('../../features/customer-cart/customer-cart').then(m => m.CustomerCart),
+    },
+    ['ADMIN', 'MESA'],
+  ),
+  protectedRoute(
+    {
+      path: 'mesa/pedido-criado',
+      loadComponent: () =>
+        import('../../features/order-success/order-success').then(m => m.OrderSuccess),
+    },
+    ['ADMIN', 'MESA'],
+  ),
+  protectedRoute(
+    {
+      path: 'mesa/pedido-erro',
+      loadComponent: () =>
+        import('../../features/order-error/order-error').then(m => m.OrderError),
+    },
+    ['ADMIN', 'MESA'],
   ),
   protectedRoute(
     {

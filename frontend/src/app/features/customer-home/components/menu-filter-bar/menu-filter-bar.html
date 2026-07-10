@@ -1,0 +1,21 @@
+<div class="menu-filters" aria-label="Filtros do cardapio">
+  <button
+    class="menu-filters__button"
+    type="button"
+    [class.menu-filters__button--active]="selectedCategoryId() === null"
+    (click)="selectCategory(null)"
+  >
+    Todos
+  </button>
+
+  @for (category of categories(); track trackCategory()($index, category)) {
+    <button
+      class="menu-filters__button"
+      type="button"
+      [class.menu-filters__button--active]="selectedCategoryId() === category.categoriaId"
+      (click)="selectCategory(category.categoriaId)"
+    >
+      {{ category.categoriaNome }}
+    </button>
+  }
+</div>

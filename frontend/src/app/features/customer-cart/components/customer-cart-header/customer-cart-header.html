@@ -1,0 +1,19 @@
+<header class="cart-header">
+  <a class="cart-header__brand" [href]="homeRoute()" (click)="selectMenu($event)" aria-label="FourKitchen Home">
+    <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
+  </a>
+
+  <nav class="cart-nav" aria-label="Navegacao principal">
+    <a class="cart-nav__link" [class.cart-nav__link--active]="isActive('menu')" [href]="homeRoute()" (click)="selectMenu($event)">Menu</a>
+    @if (showOrdersLink()) {
+      <a class="cart-nav__link" [class.cart-nav__link--active]="isActive('orders')" [href]="ordersRoute()" (click)="selectOrders($event)">Acompanhar Pedido</a>
+    }
+    <a class="cart-nav__link cart-nav__link--icon" [class.cart-nav__link--active]="isActive('cart')" [href]="cartRoute()" (click)="selectCart($event)">
+      <span>Carrinho</span>
+      @if (totalItems() > 0) {
+        <strong class="cart-nav__badge">{{ totalItems() }}</strong>
+      }
+      <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
+    </a>
+  </nav>
+</header>
