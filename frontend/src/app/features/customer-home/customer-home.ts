@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, catchError, map, startWith, switchMap } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -8,7 +9,17 @@ import {
   CategoriaCardapioResponse,
   ProdutoCardapioView,
 } from '../../core/models/menu.models';
+import { CartItem } from '../../core/models/cart.models';
+import { CartService } from '../../core/services/cart.service';
+import { CustomerContextService } from '../../core/services/customer-context.service';
 import { MenuContext, MenuService } from '../../core/services/menu.service';
+import { CategoryCarouselComponent } from './components/category-carousel/category-carousel';
+import { CustomerFooterComponent } from './components/customer-footer/customer-footer';
+import { CustomerHeroComponent } from './components/customer-hero/customer-hero';
+import { CustomerHomeHeaderComponent } from './components/customer-home-header/customer-home-header';
+import { MenuFilterBarComponent } from './components/menu-filter-bar/menu-filter-bar';
+import { ProductDetailsModalComponent } from './components/product-details-modal/product-details-modal';
+import { ProductGridComponent } from './components/product-grid/product-grid';
 
 type MenuLoadState =
   | { status: 'loading'; data: null; message: string }
@@ -17,21 +28,48 @@ type MenuLoadState =
 
 @Component({
   selector: 'app-customer-home',
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CustomerHomeHeaderComponent,
+    CustomerHeroComponent,
+    CategoryCarouselComponent,
+    MenuFilterBarComponent,
+    ProductGridComponent,
+    ProductDetailsModalComponent,
+    CustomerFooterComponent,
+  ],
   templateUrl: './customer-home.html',
   styleUrl: './customer-home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CustomerHome {
+export class CustomerHome implements AfterViewInit {
   @ViewChild('menuSection') private menuSection?: ElementRef<HTMLElement>;
-  @ViewChild('categoriesCarousel') private categoriesCarousel?: ElementRef<HTMLElement>;
+  @ViewChild(CategoryCarouselComponent) private categoryCarouselComponent?: CategoryCarouselComponent;
 
   private readonly menuService = inject(MenuService);
+  private readonly cartService = inject(CartService);
+  private readonly customerContextService = inject(CustomerContextService);
   private readonly router = inject(Router);
   private readonly reloadMenuSubject = new Subject<void>();
   private scrollAnimationFrameId: number | null = null;
+  private cartFeedbackTimeoutId: number | null = null;
 
   protected readonly selectedCategoryId = signal<number | null>(null);
+  protected readonly selectedProduct = signal<ProdutoCardapioView | null>(null);
+  protected readonly selectedQuantity = signal(1);
+  protected readonly selectedObservation = signal('');
+  protected readonly cartItemsCount = signal(0);
+  protected readonly cartFeedback = signal('');
+  protected readonly canScrollCategoriesLeft = signal(false);
+  protected readonly canScrollCategoriesRight = signal(false);
+  protected readonly cartRoute = computed(() =>
+    this.customerContextService.getCartRoute(this.getCurrentContext()),
+  );
+  protected readonly ordersRoute = computed(() =>
+    this.customerContextService.getOrdersRoute(this.getCurrentContext()),
+  );
+  protected readonly showOrdersLink = computed(() => this.getCurrentContext() === 'mesa');
 
   protected readonly menuState = toSignal(
     this.reloadMenuSubject.pipe(
@@ -74,6 +112,28 @@ export class CustomerHome {
 
   protected readonly hasMenuContent = computed(() => this.products().length > 0);
 
+  constructor() {
+    this.refreshCartCount();
+    effect(() => {
+      this.categories();
+      window.setTimeout(() => this.updateCategoriesScrollState());
+    });
+  }
+
+  @HostListener('document:keydown.escape')
+  protected closeProductDetailsOnEscape(): void {
+    this.closeProductDetails();
+  }
+
+  @HostListener('window:resize')
+  protected updateCategoriesScrollOnResize(): void {
+    this.updateCategoriesScrollState();
+  }
+
+  ngAfterViewInit(): void {
+    window.setTimeout(() => this.updateCategoriesScrollState());
+  }
+
   protected loadMenu(): void {
     this.reloadMenuSubject.next();
   }
@@ -96,7 +156,7 @@ export class CustomerHome {
   }
 
   protected scrollCategories(direction: 'left' | 'right'): void {
-    const carousel = this.categoriesCarousel?.nativeElement;
+    const carousel = this.categoryCarouselComponent?.getCarouselElement();
 
     if (!carousel) {
       return;
@@ -104,6 +164,7 @@ export class CustomerHome {
 
     const destination = this.getCategoryScrollDestination(carousel, direction);
 
+    carousel.classList.remove('categories__grid--animating');
     carousel.classList.add('categories__grid--animating');
 
     this.animateScroll(
@@ -111,8 +172,29 @@ export class CustomerHome {
       destination,
       'left',
       760,
-      () => carousel.classList.remove('categories__grid--animating'),
+      () => {
+        carousel.classList.remove('categories__grid--animating');
+        this.updateCategoriesScrollState();
+      },
     );
+  }
+
+  protected updateCategoriesScrollState(): void {
+    const carousel = this.categoryCarouselComponent?.getCarouselElement();
+
+    if (!carousel) {
+      this.canScrollCategoriesLeft.set(false);
+      this.canScrollCategoriesRight.set(false);
+
+      return;
+    }
+
+    const maxScrollLeft = Math.max(carousel.scrollWidth - carousel.clientWidth, 0);
+    const currentScroll = Math.max(carousel.scrollLeft, 0);
+    const threshold = 16;
+
+    this.canScrollCategoriesLeft.set(currentScroll > threshold);
+    this.canScrollCategoriesRight.set(currentScroll < maxScrollLeft - threshold);
   }
 
   protected scrollToSection(sectionId: string, event: Event): void {
@@ -124,6 +206,19 @@ export class CustomerHome {
     }
   }
 
+  protected goToCart(event: Event): void {
+    event.preventDefault();
+    this.router.navigate([this.customerContextService.getCartRoute(this.getCurrentContext())]);
+  }
+
+  protected goToOrders(event: Event): void {
+    event.preventDefault();
+
+    if (this.getCurrentContext() === 'mesa') {
+      this.router.navigate([this.customerContextService.getOrdersRoute('mesa')]);
+    }
+  }
+
   private scrollToMenuSection(): void {
     const menuSection = this.menuSection?.nativeElement;
 
@@ -132,8 +227,45 @@ export class CustomerHome {
     }
   }
 
-  protected addToCart(_product: ProdutoCardapioView): void {
-    // TODO: integrar com carrinho futuramente.
+  protected openProductDetails(product: ProdutoCardapioView): void {
+    this.selectedProduct.set(product);
+    this.selectedQuantity.set(1);
+    this.selectedObservation.set('');
+    this.cartFeedback.set('');
+  }
+
+  protected closeProductDetails(): void {
+    this.selectedProduct.set(null);
+    this.selectedQuantity.set(1);
+    this.selectedObservation.set('');
+  }
+
+  protected increaseQuantity(): void {
+    this.selectedQuantity.update(quantity => quantity + 1);
+  }
+
+  protected decreaseQuantity(): void {
+    this.selectedQuantity.update(quantity => Math.max(1, quantity - 1));
+  }
+
+  protected updateObservation(observation: string): void {
+    this.selectedObservation.set(observation);
+  }
+
+  protected addSelectedProductToCart(): void {
+    const product = this.selectedProduct();
+
+    if (!product) {
+      return;
+    }
+
+    this.addProductToCart(product, this.selectedQuantity(), this.selectedObservation());
+    this.closeProductDetails();
+  }
+
+  protected addProductFromCard(product: ProdutoCardapioView, event: Event): void {
+    event.stopPropagation();
+    this.addProductToCart(product, 1);
   }
 
   protected trackByCategoryId(_index: number, category: CategoriaCardapioResponse): number {
@@ -175,8 +307,55 @@ export class CustomerHome {
     }).format(price);
   }
 
-  private getCurrentContext(): MenuContext {
-    return this.router.url.startsWith('/totem') ? 'totem' : 'mesa';
+  protected getCurrentContext(): MenuContext {
+    return this.customerContextService.getCurrentContext(this.router.url);
+  }
+
+  private refreshCartCount(): void {
+    this.cartItemsCount.set(this.cartService.getSummary(this.getCurrentContext()).totalItems);
+  }
+
+  private createCartItemId(productId: number): string {
+    const randomId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2);
+
+    return `${productId}-${Date.now()}-${randomId}`;
+  }
+
+  private addProductToCart(
+    product: ProdutoCardapioView,
+    quantity: number,
+    observation = '',
+  ): void {
+    const cartItem: CartItem = {
+      cartItemId: this.createCartItemId(product.id),
+      productId: product.id,
+      name: product.nome,
+      description: product.descricao,
+      image: product.imagem,
+      unitPrice: product.preco,
+      quantity,
+      observation,
+      categoryId: product.categoriaId,
+      categoryName: product.categoriaNome,
+    };
+
+    this.cartService.addItem(this.getCurrentContext(), cartItem);
+    this.refreshCartCount();
+    this.showCartFeedback('Item adicionado ao carrinho.');
+  }
+
+  private showCartFeedback(message: string): void {
+    if (this.cartFeedbackTimeoutId !== null) {
+      window.clearTimeout(this.cartFeedbackTimeoutId);
+    }
+
+    this.cartFeedback.set(message);
+    this.cartFeedbackTimeoutId = window.setTimeout(() => {
+      this.cartFeedback.set('');
+      this.cartFeedbackTimeoutId = null;
+    }, 2400);
   }
 
   private buildProductViews(categories: CategoriaCardapioResponse[]): ProdutoCardapioView[] {
@@ -254,10 +433,12 @@ export class CustomerHome {
     direction: 'left' | 'right',
   ): number {
     const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+    const firstCard = carousel.querySelector<HTMLElement>('.category-card');
+    const firstCardOffset = firstCard?.offsetLeft ?? 0;
     const cardOffsets = Array.from(carousel.querySelectorAll<HTMLElement>('.category-card'))
-      .map(card => Math.min(card.offsetLeft, maxScrollLeft));
+      .map(card => Math.min(Math.max(card.offsetLeft - firstCardOffset, 0), maxScrollLeft));
     const currentScroll = carousel.scrollLeft;
-    const threshold = 8;
+    const threshold = 24;
 
     if (direction === 'right') {
       return cardOffsets.find(offset => offset > currentScroll + threshold) ?? maxScrollLeft;

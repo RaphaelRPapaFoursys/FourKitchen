@@ -1,0 +1,59 @@
+<form class="login-form" [formGroup]="form()" (ngSubmit)="submit()" novalidate>
+  @if (authErrorMessage()) {
+    <p class="login-form__auth-error" role="alert">{{ authErrorMessage() }}</p>
+  }
+
+  <div class="login-form__field">
+    <label for="email">E-mail corporativo</label>
+    <div class="login-form__control" [class.login-form__control--invalid]="fieldInvalid()('email')">
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        placeholder="E-mail corporativo"
+        autocomplete="email"
+        aria-describedby="email-error"
+      />
+      <img src="assets/icons/mail.svg" alt="" aria-hidden="true" />
+    </div>
+    @if (fieldInvalid()('email')) {
+      <p class="login-form__error" id="email-error">Informe um e-mail valido.</p>
+    }
+  </div>
+
+  <div class="login-form__field">
+    <label for="password">Senha</label>
+    <div class="login-form__control" [class.login-form__control--invalid]="fieldInvalid()('password')">
+      <input
+        id="password"
+        [type]="passwordVisible() ? 'text' : 'password'"
+        formControlName="password"
+        placeholder="Senha"
+        autocomplete="current-password"
+        aria-describedby="password-error"
+      />
+      <button
+        class="login-form__icon-button"
+        type="button"
+        (click)="togglePasswordVisibility()"
+        [attr.aria-label]="passwordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
+      >
+        <img
+          [src]="passwordVisible() ? 'assets/icons/eye-off.svg' : 'assets/icons/eye.svg'"
+          alt=""
+          aria-hidden="true"
+        />
+      </button>
+    </div>
+    @if (fieldInvalid()('password')) {
+      <p class="login-form__error" id="password-error">Informe sua senha.</p>
+    }
+  </div>
+
+  <a class="login-form__forgot" href="#">Esqueci minha senha</a>
+
+  <button class="login-form__submit" type="submit" [disabled]="form().invalid || isLoading()">
+    <span>{{ isLoading() ? 'Entrando...' : 'Entrar no Sistema' }}</span>
+    <img src="assets/icons/arrow-right.svg" alt="" aria-hidden="true" />
+  </button>
+</form>

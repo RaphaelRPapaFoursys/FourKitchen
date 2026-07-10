@@ -1,0 +1,53 @@
+<main class="customer-cart">
+  <app-customer-cart-header
+    [homeRoute]="homeRoute()"
+    [cartRoute]="cartRoute()"
+    [ordersRoute]="ordersRoute()"
+    [showOrdersLink]="showOrdersLink()"
+    activeLink="cart"
+    [totalItems]="totalItems()"
+    (menuSelected)="goToMenu($event)"
+    (cartSelected)="goToCart($event)"
+    (ordersSelected)="goToOrders($event)"
+  />
+
+  <section class="cart-panel" aria-labelledby="cart-title">
+    <div class="cart-panel__heading">
+      <h1 id="cart-title">Seu Pedido</h1>
+      <span>{{ totalItems() }} itens</span>
+    </div>
+
+    @if (items().length === 0) {
+      <app-empty-cart (continueSelected)="continueShopping()" />
+    } @else {
+      <div class="cart-layout">
+        <div class="cart-items">
+          @for (item of items(); track trackByCartItemId($index, item)) {
+            <app-cart-item-card
+              [item]="item"
+              [productImage]="getProductImage.bind(this)"
+              [formatPrice]="formatPrice.bind(this)"
+              (quantityIncreased)="increaseQuantity($event)"
+              (quantityDecreased)="decreaseQuantity($event)"
+              (itemRemoved)="removeItem($event)"
+            />
+          }
+        </div>
+
+        <aside class="cart-summary" aria-label="Resumo do pedido">
+          <app-cart-summary
+            [subtotal]="subtotal()"
+            [total]="subtotal()"
+            [errorMessage]="confirmOrderError()"
+            [formatPrice]="formatPrice.bind(this)"
+          />
+          <app-cart-actions
+            [isConfirming]="isConfirmingOrder()"
+            (confirmSelected)="confirmOrder()"
+            (continueSelected)="continueShopping()"
+          />
+        </aside>
+      </div>
+    }
+  </section>
+</main>

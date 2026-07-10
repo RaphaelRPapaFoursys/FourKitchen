@@ -1,0 +1,14 @@
+<div class="cart-summary__totals">
+  <div>
+    <span>Subtotal</span>
+    <strong>{{ formatPrice()(subtotal()) }}</strong>
+  </div>
+  <div>
+    <span>Total</span>
+    <strong>{{ formatPrice()(total()) }}</strong>
+  </div>
+
+  @if (errorMessage()) {
+    <p class="cart-summary__error" role="alert">{{ errorMessage() }}</p>
+  }
+</div>

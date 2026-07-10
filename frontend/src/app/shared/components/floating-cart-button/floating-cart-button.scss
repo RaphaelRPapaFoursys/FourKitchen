@@ -1,0 +1,48 @@
+:host {
+  display: contents;
+  font-family: "Nunito", sans-serif;
+}
+
+.floating-cart {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 25;
+  display: grid;
+  width: clamp(3.6rem, 8vw, 4.25rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #ff4b1f;
+  box-shadow: 0 16px 30px rgb(255 75 31 / 32%);
+  cursor: pointer;
+}
+
+.floating-cart img {
+  width: 1.55rem;
+  filter: brightness(0) invert(1);
+}
+
+.floating-cart span {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  display: grid;
+  min-width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #171a21;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .floating-cart {
+    right: 1rem;
+    bottom: 1rem;
+  }
+}

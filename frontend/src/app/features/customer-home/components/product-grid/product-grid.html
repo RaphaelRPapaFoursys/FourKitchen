@@ -1,0 +1,33 @@
+@if (products().length === 0) {
+  <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
+} @else {
+  <div class="products-grid">
+    @for (product of products(); track trackProduct()($index, product)) {
+      <article
+        class="product-card"
+        tabindex="0"
+        role="button"
+        [attr.aria-label]="'Ver detalhes de ' + product.nome"
+        (click)="selectProduct(product)"
+        (keydown.enter)="selectProduct(product)"
+        (keydown.space)="$event.preventDefault(); selectProduct(product)"
+      >
+        <div class="product-card__media">
+          <img [src]="productImage()(product)" [alt]="product.nome" loading="lazy" />
+        </div>
+
+        <div class="product-card__body">
+          <h3>{{ product.nome }}</h3>
+          <p>{{ product.descricao }}</p>
+
+          <div class="product-card__footer">
+            <strong>{{ formatPrice()(product.preco) }}</strong>
+            <button type="button" (click)="quickAddProduct(product, $event)" aria-label="Adicionar item">
+              <img src="assets/icons/plus.svg" alt="" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+}

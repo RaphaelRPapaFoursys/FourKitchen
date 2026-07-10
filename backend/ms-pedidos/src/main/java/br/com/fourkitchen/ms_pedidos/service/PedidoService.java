@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -256,6 +257,7 @@ public class PedidoService {
 
         validarStatusAtual(pedido, StatusPedido.ENVIADO_COZINHA);
         pedido.setStatus(StatusPedido.EM_PREPARO);
+        pedido.setDataInicioPreparo(LocalDateTime.now());
 
         return pedidoResponseMapper.map(pedido);
     }
@@ -267,7 +269,11 @@ public class PedidoService {
         validarPedidoNaoAguardandoDecisao(pedido);
 
         validarStatusAtual(pedido, StatusPedido.EM_PREPARO);
+        if (pedido.getDataInicioPreparo() == null) {
+            pedido.setDataInicioPreparo(LocalDateTime.now());
+        }
         pedido.setStatus(StatusPedido.PRONTO);
+        pedido.setDataPronto(LocalDateTime.now());
 
         return pedidoResponseMapper.map(pedido);
     }
@@ -348,6 +354,8 @@ public class PedidoService {
                 pedido.getIdMesa(),
                 pedido.getIdAtendimento(),
                 pedido.getDataCriacao(),
+                pedido.getDataInicioPreparo(),
+                pedido.getDataPronto(),
                 itens.stream()
                         .map(this::mapearItemCozinha)
                         .toList()

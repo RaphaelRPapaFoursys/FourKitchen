@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
+import static br.com.fourkitchen.ms_produtos.support.ImagemTesteFactory.criarPng;
+import static br.com.fourkitchen.ms_produtos.support.ImagemTesteFactory.paraBase64;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -23,10 +25,11 @@ class ProdutoMapperTest {
 
     @Test
     void criarProdutoRequestMapperDeveMapearImagemBase64() {
+        byte[] imagem = criarPng(800, 600);
         CriarProdutoRequest request = new CriarProdutoRequest(
                 "Hamburguer",
                 "Artesanal",
-                "aW1hZ2Vt",
+                paraBase64(imagem),
                 new BigDecimal("29.90"),
                 1
         );
@@ -35,7 +38,7 @@ class ProdutoMapperTest {
 
         assertEquals("Hamburguer", produto.getNome());
         assertEquals("Artesanal", produto.getDescricao());
-        assertArrayEquals("imagem".getBytes(), produto.getImagem());
+        assertArrayEquals(imagem, produto.getImagem());
         assertEquals(new BigDecimal("29.90"), produto.getPreco());
     }
 

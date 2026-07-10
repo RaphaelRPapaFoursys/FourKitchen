@@ -1,0 +1,6 @@
+@if (shouldShow()) {
+  <button class="floating-cart" type="button" aria-label="Abrir carrinho" (click)="goToCart()">
+    <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
+    <span>{{ totalItems() }}</span>
+  </button>
+}

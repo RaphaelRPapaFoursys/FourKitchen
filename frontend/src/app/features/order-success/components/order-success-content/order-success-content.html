@@ -1,0 +1,12 @@
+<section class="order-success__content" aria-labelledby="success-title">
+  <div class="order-success__icon" aria-hidden="true">✓</div>
+  <h1 id="success-title">Pedido enviado com sucesso!</h1>
+  <p>Seu pedido foi enviado para a cozinha.</p>
+
+  <div class="order-success__actions">
+    @if (showFollowOrder()) {
+      <button class="order-success__primary" type="button" (click)="followOrder()">Acompanhar Pedido</button>
+    }
+    <button class="order-success__secondary" type="button" (click)="startNewOrder()">Novo Pedido</button>
+  </div>
+</section>
