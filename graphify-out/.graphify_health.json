@@ -1,0 +1,184 @@
+{
+  "node_count": 3325,
+  "raw_edge_count": 11259,
+  "non_object_edges": 0,
+  "missing_endpoint_edges": 0,
+  "dangling_endpoint_edges": 1745,
+  "self_loop_edges": 0,
+  "valid_candidate_edges": 9514,
+  "exact_duplicate_edges": 0,
+  "directed_unique_endpoint_pairs": 8826,
+  "directed_same_endpoint_collapsed_edges": 688,
+  "undirected_unique_endpoint_pairs": 8823,
+  "undirected_same_endpoint_collapsed_edges": 691,
+  "same_endpoint_group_count": 686,
+  "relation_variant_groups": 74,
+  "source_file_variant_groups": 0,
+  "source_location_variant_groups": 43,
+  "context_variant_groups": 570,
+  "post_build_graph_type": "Graph",
+  "post_build_node_count": 3325,
+  "post_build_edge_count": 8822,
+  "post_build_error": "",
+  "producer_suppression": {
+    "path": "C:\\Users\\LucasDoAmaralMartins\\Desktop\\FourKitchen\\graphify\\graphify\\extract.py",
+    "total_sites": 10,
+    "sites": [
+      {
+        "line": 957,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids = {n[\"id\"] for n in nodes}"
+      },
+      {
+        "line": 1106,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids = {n[\"id\"] for n in nodes}"
+      },
+      {
+        "line": 1108,
+        "name": "seen_doc_refs",
+        "tuple_arity": 0,
+        "sample": "seen_doc_refs: set[str] = set()"
+      },
+      {
+        "line": 1531,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = {n[\"id\"] for n in nodes}"
+      },
+      {
+        "line": 1948,
+        "name": "seen_keys",
+        "tuple_arity": 0,
+        "sample": "seen_keys: set[tuple] = set()"
+      },
+      {
+        "line": 2829,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = set()"
+      },
+      {
+        "line": 2937,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = set()"
+      },
+      {
+        "line": 3016,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = set()"
+      },
+      {
+        "line": 3511,
+        "name": "seen_ids",
+        "tuple_arity": 0,
+        "sample": "seen_ids: set[str] = set()"
+      },
+      {
+        "line": 3512,
+        "name": "seen_edges",
+        "tuple_arity": 4,
+        "sample": "seen_edges: set[tuple[str, str, str, str | None]] = set()"
+      }
+    ],
+    "error": ""
+  },
+  "examples": [
+    {
+      "source": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_bff_restaurante_src_main_java_br_com_fourkitchen_bff_restaurante_client_usuarios_usuarioclient_java",
+      "target": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_bff_restaurante_src_main_java_br_com_fourkitchen_bff_restaurante_client_usuarios_dto_usuarioclientresponse_usuarioclientresponse",
+      "edge_count": 3,
+      "relations": [
+        "imports"
+      ],
+      "source_files": [
+        "C:\\Users\\LucasDoAmaralMartins\\Desktop\\FourKitchen\\FourKitchen\\backend\\bff-restaurante\\src\\main\\java\\br\\com\\fourkitchen\\bff_restaurante\\client\\usuarios\\UsuarioClient.java"
+      ],
+      "source_locations": [
+        "L3",
+        "L8"
+      ],
+      "contexts": [
+        "",
+        "import"
+      ]
+    },
+    {
+      "source": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_ms_pedidos_src_main_java_br_com_fourkitchen_ms_pedidos_service_pedidoservice_pedidoservice",
+      "target": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_ms_pedidos_src_main_java_br_com_fourkitchen_ms_pedidos_enums_statuspedido_statuspedido",
+      "edge_count": 3,
+      "relations": [
+        "references"
+      ],
+      "source_files": [
+        "C:\\Users\\LucasDoAmaralMartins\\Desktop\\FourKitchen\\FourKitchen\\backend\\ms-pedidos\\src\\main\\java\\br\\com\\fourkitchen\\ms_pedidos\\service\\PedidoService.java"
+      ],
+      "source_locations": [
+        "L33",
+        "L48",
+        "L55"
+      ],
+      "contexts": [
+        "generic_arg"
+      ]
+    },
+    {
+      "source": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_bff_restaurante_src_main_java_br_com_fourkitchen_bff_restaurante_client_mesas_mesaclient_java",
+      "target": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_bff_restaurante_src_main_java_br_com_fourkitchen_bff_restaurante_client_mesas_dto_atribuirgarcomclientrequest_atribuirgarcomclientrequest",
+      "edge_count": 2,
+      "relations": [
+        "imports"
+      ],
+      "source_files": [
+        "C:\\Users\\LucasDoAmaralMartins\\Desktop\\FourKitchen\\FourKitchen\\backend\\bff-restaurante\\src\\main\\java\\br\\com\\fourkitchen\\bff_restaurante\\client\\mesas\\MesaClient.java"
+      ],
+      "source_locations": [
+        "L3"
+      ],
+      "contexts": [
+        "",
+        "import"
+      ]
+    },
+    {
+      "source": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_bff_restaurante_src_main_java_br_com_fourkitchen_bff_restaurante_client_mesas_mesaclient_java",
+      "target": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_bff_restaurante_src_main_java_br_com_fourkitchen_bff_restaurante_client_mesas_dto_historicoatendimentoclientresponse_historicoatendimentoclientresponse",
+      "edge_count": 2,
+      "relations": [
+        "imports"
+      ],
+      "source_files": [
+        "C:\\Users\\LucasDoAmaralMartins\\Desktop\\FourKitchen\\FourKitchen\\backend\\bff-restaurante\\src\\main\\java\\br\\com\\fourkitchen\\bff_restaurante\\client\\mesas\\MesaClient.java"
+      ],
+      "source_locations": [
+        "L4"
+      ],
+      "contexts": [
+        "",
+        "import"
+      ]
+    },
+    {
+      "source": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_bff_restaurante_src_main_java_br_com_fourkitchen_bff_restaurante_client_mesas_mesaclient_java",
+      "target": "c_users_lucasdoamaralmartins_desktop_fourkitchen_fourkitchen_backend_bff_restaurante_src_main_java_br_com_fourkitchen_bff_restaurante_client_mesas_dto_mesaclientresponse_mesaclientresponse",
+      "edge_count": 2,
+      "relations": [
+        "imports"
+      ],
+      "source_files": [
+        "C:\\Users\\LucasDoAmaralMartins\\Desktop\\FourKitchen\\FourKitchen\\backend\\bff-restaurante\\src\\main\\java\\br\\com\\fourkitchen\\bff_restaurante\\client\\mesas\\MesaClient.java"
+      ],
+      "source_locations": [
+        "L5"
+      ],
+      "contexts": [
+        "",
+        "import"
+      ]
+    }
+  ]
+}

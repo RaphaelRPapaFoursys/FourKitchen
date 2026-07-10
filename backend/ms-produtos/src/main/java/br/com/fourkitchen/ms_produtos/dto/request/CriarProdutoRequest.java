@@ -24,6 +24,8 @@ public record CriarProdutoRequest(
         BigDecimal preco,
 
         @NotNull(message = "Categoria e obrigatoria.")
-        Integer categoriaId
+        Integer categoriaId,
+
+        Boolean disponivel
 ) {
 }

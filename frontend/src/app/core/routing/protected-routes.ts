@@ -125,4 +125,12 @@ export const protectedRoutes: Routes = [
     },
     ['ADMIN', 'GESTOR'],
   ),
+  protectedRoute(
+    {
+      path: 'produtos/cadastrar',
+      loadComponent: () =>
+        import('../../features/produtos/produto-cadastro').then(m => m.ProdutoCadastro),
+    },
+    ['ADMIN', 'GESTOR'],
+  ),
 ];

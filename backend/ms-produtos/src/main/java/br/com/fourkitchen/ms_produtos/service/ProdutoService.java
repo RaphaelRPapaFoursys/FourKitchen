@@ -56,7 +56,7 @@ public class ProdutoService {
 
         Produto produto = criarProdutoRequestMapper.map(request);
         produto.setCategoria(categoria);
-        produto.setDisponivel(true);
+        produto.setDisponivel(request.disponivel() == null ? Boolean.TRUE : request.disponivel());
 
         Produto produtoSalvo = produtoRepository.save(produto);
 

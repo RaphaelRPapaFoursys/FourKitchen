@@ -1,0 +1,2942 @@
+{
+  "backend/bff-restaurante/mvnw": {
+    "mtime": 1782926114.9173262,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "backend/bff-restaurante/pom.xml": {
+    "mtime": 1783105078.5972774,
+    "ast_hash": "9bcc9d97751be7e59612675e30b3e8f4",
+    "semantic_hash": "9bcc9d97751be7e59612675e30b3e8f4"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/BffRestauranteApplication.java": {
+    "mtime": 1782926114.938084,
+    "ast_hash": "d435c7e6714efebce85bcf46117a57db",
+    "semantic_hash": "d435c7e6714efebce85bcf46117a57db"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/mesas/MesaClient.java": {
+    "mtime": 1783533378.574518,
+    "ast_hash": "6761118e4b274cba8468b2e23daf8b8f",
+    "semantic_hash": "6761118e4b274cba8468b2e23daf8b8f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/mesas/dto/AtribuirGarcomClientRequest.java": {
+    "mtime": 1783075787.6718302,
+    "ast_hash": "661059efa204e856a7d07f94d4c1daf9",
+    "semantic_hash": "661059efa204e856a7d07f94d4c1daf9"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/mesas/dto/HistoricoAtendimentoClientResponse.java": {
+    "mtime": 1783505905.2521017,
+    "ast_hash": "333324153b23f0fabc0dea1375711baa",
+    "semantic_hash": "333324153b23f0fabc0dea1375711baa"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/mesas/dto/MesaClientResponse.java": {
+    "mtime": 1783105019.4686933,
+    "ast_hash": "860dadc86b2efa34b5e119f58643f5d0",
+    "semantic_hash": "860dadc86b2efa34b5e119f58643f5d0"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/mesas/dto/MesaGarcomClientResponse.java": {
+    "mtime": 1783075787.6773708,
+    "ast_hash": "dcdaf746da570cd95933c35d1882d791",
+    "semantic_hash": "dcdaf746da570cd95933c35d1882d791"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/mesas/dto/MesaPaginadaClientResponse.java": {
+    "mtime": 1783426880.0043912,
+    "ast_hash": "5781882748c071e9ea8a04cbccee49f1",
+    "semantic_hash": "5781882748c071e9ea8a04cbccee49f1"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/mesas/dto/ResumoMesasOperacaoResponse.java": {
+    "mtime": 1783426880.0162218,
+    "ast_hash": "d91ca33db27a2b3d2e83089356111aed",
+    "semantic_hash": "d91ca33db27a2b3d2e83089356111aed"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/mesas/dto/SessaoMesaResponse.java": {
+    "mtime": 1783075787.6793683,
+    "ast_hash": "1b4f58410aeefed0913ca2eef4ff810e",
+    "semantic_hash": "1b4f58410aeefed0913ca2eef4ff810e"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/notificacoes/NotificacaoClient.java": {
+    "mtime": 1783426880.0265057,
+    "ast_hash": "f192c49e714e617abcf4d8f1c3ddd8ea",
+    "semantic_hash": "f192c49e714e617abcf4d8f1c3ddd8ea"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/notificacoes/dto/ResumoNotificacoesOperacaoResponse.java": {
+    "mtime": 1783426880.0323231,
+    "ast_hash": "242484fa390bf17fc78e6c77d9ac5d85",
+    "semantic_hash": "242484fa390bf17fc78e6c77d9ac5d85"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/PedidoClient.java": {
+    "mtime": 1783533378.5818367,
+    "ast_hash": "2c892a21a79d805c2b8bdf8472781496",
+    "semantic_hash": "2c892a21a79d805c2b8bdf8472781496"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/CriarPedidoRequest.java": {
+    "mtime": 1782926114.962841,
+    "ast_hash": "ea26c5dc7c8c2d84eaf6d5838e676fd7",
+    "semantic_hash": "ea26c5dc7c8c2d84eaf6d5838e676fd7"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/DecisaoProblemaPedidoRequest.java": {
+    "mtime": 1783533378.590137,
+    "ast_hash": "2db4afe61c7386c8326ca33f1a8f9bd8",
+    "semantic_hash": "2db4afe61c7386c8326ca33f1a8f9bd8"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/ItemPedidoCozinhaResponse.java": {
+    "mtime": 1783533378.596261,
+    "ast_hash": "d6c1b77f13a623cd459ecbbff53a4778",
+    "semantic_hash": "d6c1b77f13a623cd459ecbbff53a4778"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/PedidoCozinhaResponse.java": {
+    "mtime": 1783690146.2597575,
+    "ast_hash": "3a7d270dea0b3e4728a2b42069b274db",
+    "semantic_hash": "3a7d270dea0b3e4728a2b42069b274db"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/PedidoResponse.java": {
+    "mtime": 1782926114.9696648,
+    "ast_hash": "2f6d8d0410cd8584b285b5dd8df43973",
+    "semantic_hash": "2f6d8d0410cd8584b285b5dd8df43973"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/ProdutoPedidoRequest.java": {
+    "mtime": 1783533378.6112187,
+    "ast_hash": "39632f7c2376badbb3703a950992adcf",
+    "semantic_hash": "39632f7c2376badbb3703a950992adcf"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/ResumoPedidosOperacaoResponse.java": {
+    "mtime": 1783426880.0438485,
+    "ast_hash": "6c4a0423e2cd039907c42c074d84690a",
+    "semantic_hash": "6c4a0423e2cd039907c42c074d84690a"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/SinalizarProblemaRequest.java": {
+    "mtime": 1783105078.787894,
+    "ast_hash": "b079577b4a20831c60b679d28d9805d4",
+    "semantic_hash": "b079577b4a20831c60b679d28d9805d4"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/pedidos/dto/SinalizarProblemaResponse.java": {
+    "mtime": 1783105078.8207834,
+    "ast_hash": "ee9428ef72d729f83e8be34cf850613f",
+    "semantic_hash": "ee9428ef72d729f83e8be34cf850613f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/ProdutoClient.java": {
+    "mtime": 1783690159.2624068,
+    "ast_hash": "403fe5c9cc0f6103e27bf7f54764083a",
+    "semantic_hash": "403fe5c9cc0f6103e27bf7f54764083a"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/dto/AtualizarProdutoClientRequest.java": {
+    "mtime": 1783690159.7702398,
+    "ast_hash": "547f5623a124ddfa65c3ae4bb12f17ed",
+    "semantic_hash": "547f5623a124ddfa65c3ae4bb12f17ed"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/dto/CategoriaCardapioClientResponse.java": {
+    "mtime": 1783426880.0550232,
+    "ast_hash": "97ed299c7e1ada0e5b06fc6bed4df8d1",
+    "semantic_hash": "97ed299c7e1ada0e5b06fc6bed4df8d1"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/dto/CategoriaClientResponse.java": {
+    "mtime": 1783690159.77531,
+    "ast_hash": "4577da14008430b6e93649fe1c4f08d9",
+    "semantic_hash": "4577da14008430b6e93649fe1c4f08d9"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/dto/CriarCategoriaClientRequest.java": {
+    "mtime": 1783690159.780729,
+    "ast_hash": "f9cb2950ccf353e73d713593c8eabe43",
+    "semantic_hash": "f9cb2950ccf353e73d713593c8eabe43"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/dto/CriarProdutoClientRequest.java": {
+    "mtime": 1783690159.788133,
+    "ast_hash": "bcaf78334ecef85022ffdeb4bf77c16c",
+    "semantic_hash": "bcaf78334ecef85022ffdeb4bf77c16c"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/dto/ProdutoCardapioClientResponse.java": {
+    "mtime": 1783426880.0591228,
+    "ast_hash": "10cfdc99251d7197f3d393ed99331ccf",
+    "semantic_hash": "10cfdc99251d7197f3d393ed99331ccf"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/dto/ProdutoClientResponse.java": {
+    "mtime": 1783690159.7926903,
+    "ast_hash": "b8c4822d706cf4d46fc0c6f6c3e7fa39",
+    "semantic_hash": "b8c4822d706cf4d46fc0c6f6c3e7fa39"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/produtos/dto/ProdutoDisponibilidadeResponse.java": {
+    "mtime": 1783533378.6235695,
+    "ast_hash": "d4d2d2d96521bb74833254ce34acd0c3",
+    "semantic_hash": "d4d2d2d96521bb74833254ce34acd0c3"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/usuarios/UsuarioAuthClient.java": {
+    "mtime": 1782926114.9810956,
+    "ast_hash": "ba7603dc7741a41a22919744d425a0c7",
+    "semantic_hash": "ba7603dc7741a41a22919744d425a0c7"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/usuarios/UsuarioClient.java": {
+    "mtime": 1783426880.0631757,
+    "ast_hash": "86b04d126b5e0268786f8eab24805718",
+    "semantic_hash": "86b04d126b5e0268786f8eab24805718"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/usuarios/dto/AtualizarUsuarioClientRequest.java": {
+    "mtime": 1783426880.0682063,
+    "ast_hash": "61934c1c2fd0b97a6ee967ba3f45a351",
+    "semantic_hash": "61934c1c2fd0b97a6ee967ba3f45a351"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/usuarios/dto/UsuarioClientResponse.java": {
+    "mtime": 1783426880.0733285,
+    "ast_hash": "b77a136f3626d342fcaf56b279dc6b7b",
+    "semantic_hash": "b77a136f3626d342fcaf56b279dc6b7b"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/usuarios/dto/UsuarioLoginRequest.java": {
+    "mtime": 1782926114.987147,
+    "ast_hash": "aacd342e631f980e1dc441a0d5593752",
+    "semantic_hash": "aacd342e631f980e1dc441a0d5593752"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/usuarios/dto/UsuarioLoginResponse.java": {
+    "mtime": 1783426880.079157,
+    "ast_hash": "f28a4e1a01d1abb8ac170d6166092d6b",
+    "semantic_hash": "f28a4e1a01d1abb8ac170d6166092d6b"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/usuarios/dto/package-info.java": {
+    "mtime": 1782926114.9992568,
+    "ast_hash": "21e14890eda8e38c52573ae760c9d245",
+    "semantic_hash": "21e14890eda8e38c52573ae760c9d245"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/client/usuarios/package-info.java": {
+    "mtime": 1782926115.003265,
+    "ast_hash": "489b678ff1b87811d93de445a57137dc",
+    "semantic_hash": "489b678ff1b87811d93de445a57137dc"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/config/CorsConfig.java": {
+    "mtime": 1782926115.0092967,
+    "ast_hash": "a7099eff2dcbbdcd51ef3a9cd52d68d1",
+    "semantic_hash": "a7099eff2dcbbdcd51ef3a9cd52d68d1"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/config/OpenApiConfig.java": {
+    "mtime": 1782926115.0132902,
+    "ast_hash": "d0040d2b7ce156f1294f46ccf2da227d",
+    "semantic_hash": "d0040d2b7ce156f1294f46ccf2da227d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/config/SecurityConfig.java": {
+    "mtime": 1783505905.2577376,
+    "ast_hash": "c869fbee3c5d4e796eba794c0af0577c",
+    "semantic_hash": "c869fbee3c5d4e796eba794c0af0577c"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/AuthController.java": {
+    "mtime": 1782926115.0244734,
+    "ast_hash": "605f8d151f66ba98a19979b7d13205f4",
+    "semantic_hash": "605f8d151f66ba98a19979b7d13205f4"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/CardapioController.java": {
+    "mtime": 1783426880.0922983,
+    "ast_hash": "0188208bad18286d2b4790243cd4a9cb",
+    "semantic_hash": "0188208bad18286d2b4790243cd4a9cb"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/CozinhaController.java": {
+    "mtime": 1783533378.6461205,
+    "ast_hash": "001584841ca886ae6eebff2d57a03ee5",
+    "semantic_hash": "001584841ca886ae6eebff2d57a03ee5"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/GarcomChamadaController.java": {
+    "mtime": 1783105078.8630219,
+    "ast_hash": "526a9d97ac8e7ee049b3393dbfa53bd6",
+    "semantic_hash": "526a9d97ac8e7ee049b3393dbfa53bd6"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/GarcomMesaController.java": {
+    "mtime": 1783075787.698386,
+    "ast_hash": "f0c8cdb187ecfa476bb40122eae6e93d",
+    "semantic_hash": "f0c8cdb187ecfa476bb40122eae6e93d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/GarcomPedidoController.java": {
+    "mtime": 1783075787.6997187,
+    "ast_hash": "ee316ec2fe526d045a1f4d11ed03ad44",
+    "semantic_hash": "ee316ec2fe526d045a1f4d11ed03ad44"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/GestorMesaController.java": {
+    "mtime": 1783505905.2737074,
+    "ast_hash": "c3ee2c1356967e257426e86ffad2317f",
+    "semantic_hash": "c3ee2c1356967e257426e86ffad2317f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/GestorProdutoController.java": {
+    "mtime": 1783690159.7995915,
+    "ast_hash": "bb13f1b1466674dbacfaa867bbc00378",
+    "semantic_hash": "bb13f1b1466674dbacfaa867bbc00378"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/GestorResumoController.java": {
+    "mtime": 1783426880.1146076,
+    "ast_hash": "9aad50019ad251b4bd3e74210267a0e5",
+    "semantic_hash": "9aad50019ad251b4bd3e74210267a0e5"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/GestorUsuarioController.java": {
+    "mtime": 1783426880.1211576,
+    "ast_hash": "fd9655bfc1c6181278ee2a2d2a23b1ee",
+    "semantic_hash": "fd9655bfc1c6181278ee2a2d2a23b1ee"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/MesaAtendimentoController.java": {
+    "mtime": 1783533378.735305,
+    "ast_hash": "9f0049cc0547f9869133b8c40283cb0e",
+    "semantic_hash": "9f0049cc0547f9869133b8c40283cb0e"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/MesaChamadaGarcomController.java": {
+    "mtime": 1783426880.1262248,
+    "ast_hash": "2c7d32c6fd270dd01f40f9361874c688",
+    "semantic_hash": "2c7d32c6fd270dd01f40f9361874c688"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/MesaPedidoController.java": {
+    "mtime": 1783533378.827832,
+    "ast_hash": "24dca99c227432e9b74dbc22bf7e55c9",
+    "semantic_hash": "24dca99c227432e9b74dbc22bf7e55c9"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/NotificacaoController.java": {
+    "mtime": 1783075787.7057166,
+    "ast_hash": "2adbc0450fec0954d31058064b61761c",
+    "semantic_hash": "2adbc0450fec0954d31058064b61761c"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/controller/TotemPedidoController.java": {
+    "mtime": 1783426880.1378944,
+    "ast_hash": "bd12f37a452c53cec0efb03ec2fc341d",
+    "semantic_hash": "bd12f37a452c53cec0efb03ec2fc341d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/DestinoNotificacao.java": {
+    "mtime": 1782926115.0366566,
+    "ast_hash": "cedf5df5ae9b0a4568c1ced62696f891",
+    "semantic_hash": "cedf5df5ae9b0a4568c1ced62696f891"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/EventoPedido.java": {
+    "mtime": 1783505905.2788794,
+    "ast_hash": "267cac9ee1b3749a599fc6904f1c3da9",
+    "semantic_hash": "267cac9ee1b3749a599fc6904f1c3da9"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/TipoNotificacao.java": {
+    "mtime": 1783505905.2832222,
+    "ast_hash": "df760307c7a27769c7679056f2911289",
+    "semantic_hash": "df760307c7a27769c7679056f2911289"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/package-info.java": {
+    "mtime": 1782926115.0423334,
+    "ast_hash": "a35f6987fc491c73031a5d1edb9a4cec",
+    "semantic_hash": "a35f6987fc491c73031a5d1edb9a4cec"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/AtribuirGarcomRequest.java": {
+    "mtime": 1783075787.711812,
+    "ast_hash": "40dcd2c6bbf95411fafa5529bee20722",
+    "semantic_hash": "40dcd2c6bbf95411fafa5529bee20722"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/AtualizarProdutoRequest.java": {
+    "mtime": 1783690159.8028245,
+    "ast_hash": "eba11fd12a9685d5073fc3e104265d2f",
+    "semantic_hash": "eba11fd12a9685d5073fc3e104265d2f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/AtualizarUsuarioRequest.java": {
+    "mtime": 1783426880.1498654,
+    "ast_hash": "d375cb4d56d111ab2dfb121a6b1ddd22",
+    "semantic_hash": "d375cb4d56d111ab2dfb121a6b1ddd22"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/ChamarGarcomRequest.java": {
+    "mtime": 1783426880.1571307,
+    "ast_hash": "d160aa3c1875f362374d9ad95e8e640d",
+    "semantic_hash": "d160aa3c1875f362374d9ad95e8e640d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/CriarCategoriaRequest.java": {
+    "mtime": 1783690159.8107743,
+    "ast_hash": "bb3747918ea7b626f12ee6e5fb46f74e",
+    "semantic_hash": "bb3747918ea7b626f12ee6e5fb46f74e"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/CriarNotificacaoRequest.java": {
+    "mtime": 1783075787.7144,
+    "ast_hash": "425bc56ceca8e64c715e38f3bbd8c8e6",
+    "semantic_hash": "425bc56ceca8e64c715e38f3bbd8c8e6"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/CriarPedidoGarcomRequest.java": {
+    "mtime": 1783075787.7161522,
+    "ast_hash": "7d77c210efc147e6acaf6891d7042986",
+    "semantic_hash": "7d77c210efc147e6acaf6891d7042986"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/CriarPedidoMesaRequest.java": {
+    "mtime": 1783533378.8411343,
+    "ast_hash": "facf0036b32bd2eddcc55ead1707abfe",
+    "semantic_hash": "facf0036b32bd2eddcc55ead1707abfe"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/CriarPedidoTotemRequest.java": {
+    "mtime": 1782985828.50959,
+    "ast_hash": "dfd49d1da166dfc285851ec677a4bf23",
+    "semantic_hash": "dfd49d1da166dfc285851ec677a4bf23"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/CriarProdutoRequest.java": {
+    "mtime": 1783690159.8147774,
+    "ast_hash": "93d4b56770ad57a25a1fc5b753541baa",
+    "semantic_hash": "93d4b56770ad57a25a1fc5b753541baa"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/DecisaoProblemaRequest.java": {
+    "mtime": 1783505905.2874897,
+    "ast_hash": "172df86d125d49a04b02003ea5440102",
+    "semantic_hash": "172df86d125d49a04b02003ea5440102"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/ItemPedidoGarcomRequest.java": {
+    "mtime": 1783075787.7161522,
+    "ast_hash": "88d38720b8e76fce1047105184764528",
+    "semantic_hash": "88d38720b8e76fce1047105184764528"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/ItemPedidoMesaRequest.java": {
+    "mtime": 1783426880.1726782,
+    "ast_hash": "d797b2297b057dd133aefb390a59a1d6",
+    "semantic_hash": "d797b2297b057dd133aefb390a59a1d6"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/ItemPedidoTotemRequest.java": {
+    "mtime": 1782985828.521568,
+    "ast_hash": "e4200f653b29fbca9222d5a50a7e28bf",
+    "semantic_hash": "e4200f653b29fbca9222d5a50a7e28bf"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/LoginRequest.java": {
+    "mtime": 1782926115.0588038,
+    "ast_hash": "4390d762da4eef2711d2eae128823f2d",
+    "semantic_hash": "4390d762da4eef2711d2eae128823f2d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/request/package-info.java": {
+    "mtime": 1782926115.0628076,
+    "ast_hash": "6e68a770472e9c9b3df545874a97b84e",
+    "semantic_hash": "6e68a770472e9c9b3df545874a97b84e"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/CargaGarcomResponse.java": {
+    "mtime": 1783432305.3951485,
+    "ast_hash": "0227d41ccb759179d2018dd896e6e47d",
+    "semantic_hash": "0227d41ccb759179d2018dd896e6e47d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/CategoriaCardapioResponse.java": {
+    "mtime": 1783426880.1772432,
+    "ast_hash": "18a0567e9b2f46379a21c1c2a057b54f",
+    "semantic_hash": "18a0567e9b2f46379a21c1c2a057b54f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/CategoriaGestorResponse.java": {
+    "mtime": 1783690159.8197784,
+    "ast_hash": "6f9bb6adfafd4713f3c5fcb56746a268",
+    "semantic_hash": "6f9bb6adfafd4713f3c5fcb56746a268"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/ChamadaPendenteMesaResponse.java": {
+    "mtime": 1783075787.720827,
+    "ast_hash": "460d742d903eb9c6dc4ec770cb36ca5f",
+    "semantic_hash": "460d742d903eb9c6dc4ec770cb36ca5f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/GarcomResumoResponse.java": {
+    "mtime": 1783075787.7230313,
+    "ast_hash": "bd3822c8fc05a47fe4245bf82038b084",
+    "semantic_hash": "bd3822c8fc05a47fe4245bf82038b084"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/HistoricoAtendimentoResponse.java": {
+    "mtime": 1783505905.2897387,
+    "ast_hash": "4009e6f29363f0d560e3f30626b929c5",
+    "semantic_hash": "4009e6f29363f0d560e3f30626b929c5"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/ItemFilaCozinhaResponse.java": {
+    "mtime": 1783533378.8527062,
+    "ast_hash": "67fbdb21cd153b6e6c9fb6b0a290f4e1",
+    "semantic_hash": "67fbdb21cd153b6e6c9fb6b0a290f4e1"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/ItemPedidoMesaStatusResponse.java": {
+    "mtime": 1783533378.8622546,
+    "ast_hash": "1d59371d05518ea1af662cef05be58ec",
+    "semantic_hash": "1d59371d05518ea1af662cef05be58ec"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/LoginResponse.java": {
+    "mtime": 1782926115.0665333,
+    "ast_hash": "b54de809090495c77bb262e644bfc74f",
+    "semantic_hash": "b54de809090495c77bb262e644bfc74f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/MesaAtendimentoAtualResponse.java": {
+    "mtime": 1783533378.8869653,
+    "ast_hash": "30701663c5e4b7df22b01d1b7f110b45",
+    "semantic_hash": "30701663c5e4b7df22b01d1b7f110b45"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/MesaGarcomResponse.java": {
+    "mtime": 1783075787.7260675,
+    "ast_hash": "15b3eb5ad4364b8d168ab7ca5e3ca58f",
+    "semantic_hash": "15b3eb5ad4364b8d168ab7ca5e3ca58f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/MesaGestorPaginadaResponse.java": {
+    "mtime": 1783426880.1841705,
+    "ast_hash": "8bd41faf54a18deffbb55602874b5a69",
+    "semantic_hash": "8bd41faf54a18deffbb55602874b5a69"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/MesaGestorResponse.java": {
+    "mtime": 1783105019.539586,
+    "ast_hash": "e20d59aaea63c4b503526546ccb3b24b",
+    "semantic_hash": "e20d59aaea63c4b503526546ccb3b24b"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/NotificacaoResponse.java": {
+    "mtime": 1783075787.7298915,
+    "ast_hash": "35bcb4e6182bbf5b15d7351205a862fe",
+    "semantic_hash": "35bcb4e6182bbf5b15d7351205a862fe"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/PedidoAtivoMesaResponse.java": {
+    "mtime": 1783075787.7315614,
+    "ast_hash": "103250aeaba6f68cb3bd6399e9988621",
+    "semantic_hash": "103250aeaba6f68cb3bd6399e9988621"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/PedidoFilaCozinhaResponse.java": {
+    "mtime": 1783690146.2626817,
+    "ast_hash": "7081053094889b7da5ba9e887effef08",
+    "semantic_hash": "7081053094889b7da5ba9e887effef08"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/PedidoGarcomResponse.java": {
+    "mtime": 1783075787.735055,
+    "ast_hash": "a6fdea1d8c92b452285a8415efcb7739",
+    "semantic_hash": "a6fdea1d8c92b452285a8415efcb7739"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/PedidoGestorResponse.java": {
+    "mtime": 1783105019.547057,
+    "ast_hash": "10cef315e09b6d39ebe81a94bb27898f",
+    "semantic_hash": "10cef315e09b6d39ebe81a94bb27898f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/PedidoMesaResponse.java": {
+    "mtime": 1782926115.0752842,
+    "ast_hash": "f5ed4fd24b72fadbd8c29422d039cffb",
+    "semantic_hash": "f5ed4fd24b72fadbd8c29422d039cffb"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/PedidoMesaStatusResponse.java": {
+    "mtime": 1783533378.9130988,
+    "ast_hash": "3c0cd17d1b064bb11326f0c0c6bd339d",
+    "semantic_hash": "3c0cd17d1b064bb11326f0c0c6bd339d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/PedidoStatusCozinhaResponse.java": {
+    "mtime": 1783075787.735055,
+    "ast_hash": "e21804e23d85fbfca911e1faffd5d2d8",
+    "semantic_hash": "e21804e23d85fbfca911e1faffd5d2d8"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/PedidoTotemResponse.java": {
+    "mtime": 1782985828.530451,
+    "ast_hash": "c97297e5c6f895bb55f865be70ee4edd",
+    "semantic_hash": "c97297e5c6f895bb55f865be70ee4edd"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/ProdutoCardapioResponse.java": {
+    "mtime": 1783426880.1881833,
+    "ast_hash": "091ccd580c537e179b6af9ff95bcde2f",
+    "semantic_hash": "091ccd580c537e179b6af9ff95bcde2f"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/ProdutoGestorResponse.java": {
+    "mtime": 1783690159.8255935,
+    "ast_hash": "021a094e2fefd2ff00fa9f7e30d4bc32",
+    "semantic_hash": "021a094e2fefd2ff00fa9f7e30d4bc32"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/ResumoOperacaoResponse.java": {
+    "mtime": 1783426880.193304,
+    "ast_hash": "a3541313ae1d2b5f0cfff6da8d82594a",
+    "semantic_hash": "a3541313ae1d2b5f0cfff6da8d82594a"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/ResumoPainelResponse.java": {
+    "mtime": 1783432306.6501436,
+    "ast_hash": "43a7095c121de52c0646e4cdf3f425e2",
+    "semantic_hash": "43a7095c121de52c0646e4cdf3f425e2"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/UsuarioAutenticadoResponse.java": {
+    "mtime": 1783426880.1985264,
+    "ast_hash": "f82344830da75e302fa2b7a040df6f42",
+    "semantic_hash": "f82344830da75e302fa2b7a040df6f42"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/UsuarioGestorResponse.java": {
+    "mtime": 1783426880.2030542,
+    "ast_hash": "5bbc3d5052af4a85c1fe9b557a1f9ad7",
+    "semantic_hash": "5bbc3d5052af4a85c1fe9b557a1f9ad7"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/dto/response/package-info.java": {
+    "mtime": 1782926115.0842385,
+    "ast_hash": "68d72745c7d5735884ea0ef8a4919e75",
+    "semantic_hash": "68d72745c7d5735884ea0ef8a4919e75"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/enums/StatusProdutoPedido.java": {
+    "mtime": 1783505905.2955348,
+    "ast_hash": "056651bc44ff63a295da27c1117725fa",
+    "semantic_hash": "056651bc44ff63a295da27c1117725fa"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/exception/BaseException.java": {
+    "mtime": 1782926115.0893,
+    "ast_hash": "45db04cc02105b72ad2f7dce714789da",
+    "semantic_hash": "45db04cc02105b72ad2f7dce714789da"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/exception/BaseExceptionHandler.java": {
+    "mtime": 1782926115.0928092,
+    "ast_hash": "d1c793bd836c13450c3d7926a145544a",
+    "semantic_hash": "d1c793bd836c13450c3d7926a145544a"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/exception/ErrorEnum.java": {
+    "mtime": 1783690159.2638037,
+    "ast_hash": "e563ed1d30d8ccb8a13a6129709a43a1",
+    "semantic_hash": "e563ed1d30d8ccb8a13a6129709a43a1"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/exception/ErrorObject.java": {
+    "mtime": 1782926115.1021838,
+    "ast_hash": "ba20e9122c3dd0802c513c5118f1c090",
+    "semantic_hash": "ba20e9122c3dd0802c513c5118f1c090"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/CardapioResponseMapper.java": {
+    "mtime": 1783426880.2162397,
+    "ast_hash": "bc90d7fbe1292390ac24dd7485e4a6cb",
+    "semantic_hash": "bc90d7fbe1292390ac24dd7485e4a6cb"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/GarcomResumoResponseMapper.java": {
+    "mtime": 1783075787.7402453,
+    "ast_hash": "7a83fbca49c1e37266568483a26eec08",
+    "semantic_hash": "7a83fbca49c1e37266568483a26eec08"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/ItemPedidoTotemMapperSource.java": {
+    "mtime": 1782985828.5618546,
+    "ast_hash": "71f0dda1a69ae9310661c20e7666fb0d",
+    "semantic_hash": "71f0dda1a69ae9310661c20e7666fb0d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/ItemPedidoTotemRequestMapper.java": {
+    "mtime": 1783533378.9386826,
+    "ast_hash": "a8158e6e62f001a09ac3a649706dc6d3",
+    "semantic_hash": "a8158e6e62f001a09ac3a649706dc6d3"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/Mapper.java": {
+    "mtime": 1782985828.5790057,
+    "ast_hash": "92cbd8acd059695806818f7f0a4d9dce",
+    "semantic_hash": "92cbd8acd059695806818f7f0a4d9dce"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/MesaGarcomMapperSource.java": {
+    "mtime": 1783075787.7451878,
+    "ast_hash": "ecfe30d088781a4809eb9952552f131b",
+    "semantic_hash": "ecfe30d088781a4809eb9952552f131b"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/MesaGarcomResponseMapper.java": {
+    "mtime": 1783075787.7451878,
+    "ast_hash": "ad499efecd2284b0fe77778df3fe80f7",
+    "semantic_hash": "ad499efecd2284b0fe77778df3fe80f7"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/MesaGestorMapperSource.java": {
+    "mtime": 1783105019.5692153,
+    "ast_hash": "bf082f1589ef6d084ea7cce65ad2f226",
+    "semantic_hash": "bf082f1589ef6d084ea7cce65ad2f226"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/MesaGestorResponseMapper.java": {
+    "mtime": 1783105019.58254,
+    "ast_hash": "ae97898434a9e0798b9937e4170f77c8",
+    "semantic_hash": "ae97898434a9e0798b9937e4170f77c8"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/mapper/PedidoTotemResponseMapper.java": {
+    "mtime": 1782985828.5918906,
+    "ast_hash": "59154c0f83a2abe105a6e3f83a9fc421",
+    "semantic_hash": "59154c0f83a2abe105a6e3f83a9fc421"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/security/JwtAuthenticationFilter.java": {
+    "mtime": 1782926115.1097941,
+    "ast_hash": "2bc219953e8539f960e701e21a081b30",
+    "semantic_hash": "2bc219953e8539f960e701e21a081b30"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/security/JwtService.java": {
+    "mtime": 1783426880.2226405,
+    "ast_hash": "8c9aee353d568006be51cd2b6798e7da",
+    "semantic_hash": "8c9aee353d568006be51cd2b6798e7da"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/security/UsuarioAutenticado.java": {
+    "mtime": 1783426880.2302485,
+    "ast_hash": "d72ee9c0fd0d982fb9af2d1ebfddde26",
+    "semantic_hash": "d72ee9c0fd0d982fb9af2d1ebfddde26"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/CardapioService.java": {
+    "mtime": 1783426880.2404852,
+    "ast_hash": "7eaff5d2c52669d594aad64bc4416707",
+    "semantic_hash": "7eaff5d2c52669d594aad64bc4416707"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/CozinhaService.java": {
+    "mtime": 1783690146.2637022,
+    "ast_hash": "20d9f860862489d9a52f3367a8ffb06a",
+    "semantic_hash": "20d9f860862489d9a52f3367a8ffb06a"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/GarcomChamadaService.java": {
+    "mtime": 1783105079.1706183,
+    "ast_hash": "682e4ce3dddc981d3a5c0edf3d4b2487",
+    "semantic_hash": "682e4ce3dddc981d3a5c0edf3d4b2487"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/GarcomMesaService.java": {
+    "mtime": 1783075787.7537172,
+    "ast_hash": "7c06267f21677b5da642530ac4e55752",
+    "semantic_hash": "7c06267f21677b5da642530ac4e55752"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/GarcomPedidoService.java": {
+    "mtime": 1783533379.1276615,
+    "ast_hash": "06c34c9c76e30fe71e76a5e491d00c47",
+    "semantic_hash": "06c34c9c76e30fe71e76a5e491d00c47"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/GestorMesaService.java": {
+    "mtime": 1783505925.4795074,
+    "ast_hash": "da4c4e2086f09a08c4b25eb1b6457582",
+    "semantic_hash": "da4c4e2086f09a08c4b25eb1b6457582"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/GestorProdutoService.java": {
+    "mtime": 1783690159.8303318,
+    "ast_hash": "e3ac9b8bbd1f395161872efbaf394e3d",
+    "semantic_hash": "e3ac9b8bbd1f395161872efbaf394e3d"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/GestorResumoService.java": {
+    "mtime": 1783426880.2610774,
+    "ast_hash": "93264c9d68089db141a09b6f7fe5f7b6",
+    "semantic_hash": "93264c9d68089db141a09b6f7fe5f7b6"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/GestorUsuarioService.java": {
+    "mtime": 1783426880.2661626,
+    "ast_hash": "62c343ab3cf1ab6f1f043771e3661e5b",
+    "semantic_hash": "62c343ab3cf1ab6f1f043771e3661e5b"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/MesaAtendimentoService.java": {
+    "mtime": 1783533379.13546,
+    "ast_hash": "1d4d9933f8cd8829ce41c42b6888f992",
+    "semantic_hash": "1d4d9933f8cd8829ce41c42b6888f992"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/MesaChamadaGarcomService.java": {
+    "mtime": 1783426880.2723045,
+    "ast_hash": "ac9410bab6ce26e4ad2b6fd255d8f12b",
+    "semantic_hash": "ac9410bab6ce26e4ad2b6fd255d8f12b"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/MesaPedidoService.java": {
+    "mtime": 1783690146.2637022,
+    "ast_hash": "71f8663bb50efbcd347bb484f5649393",
+    "semantic_hash": "71f8663bb50efbcd347bb484f5649393"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/NotificacaoService.java": {
+    "mtime": 1783105079.2220297,
+    "ast_hash": "bec9dbcece954b511442cc40d04eaca2",
+    "semantic_hash": "bec9dbcece954b511442cc40d04eaca2"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/TotemPedidoService.java": {
+    "mtime": 1783426880.2860298,
+    "ast_hash": "e672b14223b8f8cf40a105ee69a7ce98",
+    "semantic_hash": "e672b14223b8f8cf40a105ee69a7ce98"
+  },
+  "backend/bff-restaurante/src/main/java/br/com/fourkitchen/bff_restaurante/service/UserService.java": {
+    "mtime": 1783426880.297327,
+    "ast_hash": "fef7b559155b65b80a39ee37a232d0ed",
+    "semantic_hash": "fef7b559155b65b80a39ee37a232d0ed"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/BffRestauranteApplicationTests.java": {
+    "mtime": 1783505905.3222737,
+    "ast_hash": "4c6e7705a092ad229799ba3a38b820f7",
+    "semantic_hash": "4c6e7705a092ad229799ba3a38b820f7"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/config/SecurityConfigTest.java": {
+    "mtime": 1782926115.1482303,
+    "ast_hash": "507fb8f6472cc5a765150bf1b55cf451",
+    "semantic_hash": "507fb8f6472cc5a765150bf1b55cf451"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/AuthControllerTest.java": {
+    "mtime": 1783426880.3181448,
+    "ast_hash": "425f8c590740eb9c37fd9b41a4a6bc18",
+    "semantic_hash": "425f8c590740eb9c37fd9b41a4a6bc18"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/CardapioControllerTest.java": {
+    "mtime": 1783426880.3232007,
+    "ast_hash": "c38addd73ecd9a3dd3070a00fafd906d",
+    "semantic_hash": "c38addd73ecd9a3dd3070a00fafd906d"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/CozinhaControllerTest.java": {
+    "mtime": 1783690146.2743492,
+    "ast_hash": "387a5e26c2effacf77d51c8945a90b03",
+    "semantic_hash": "387a5e26c2effacf77d51c8945a90b03"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/GarcomChamadaControllerTest.java": {
+    "mtime": 1783105079.4274385,
+    "ast_hash": "67f16cba644896c0c2e8e6b4418c546e",
+    "semantic_hash": "67f16cba644896c0c2e8e6b4418c546e"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/GarcomMesaControllerTest.java": {
+    "mtime": 1783075787.7684662,
+    "ast_hash": "6824b1a96b73e93caef53222e416e98d",
+    "semantic_hash": "6824b1a96b73e93caef53222e416e98d"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/GarcomPedidoControllerTest.java": {
+    "mtime": 1783075787.7704806,
+    "ast_hash": "a7be973df0b33d24fbd7b9874aa61007",
+    "semantic_hash": "a7be973df0b33d24fbd7b9874aa61007"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/GestorMesaControllerTest.java": {
+    "mtime": 1783505905.3308582,
+    "ast_hash": "a444bf08f404e2640b741065a0f86495",
+    "semantic_hash": "a444bf08f404e2640b741065a0f86495"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/GestorProdutoControllerTest.java": {
+    "mtime": 1783690159.8353503,
+    "ast_hash": "0f6ed2fc3026848abd0cfce347810bbc",
+    "semantic_hash": "0f6ed2fc3026848abd0cfce347810bbc"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/GestorResumoControllerTest.java": {
+    "mtime": 1783426880.3772693,
+    "ast_hash": "b6abaf01df8658d54491bc8f3353b27d",
+    "semantic_hash": "b6abaf01df8658d54491bc8f3353b27d"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/GestorUsuarioControllerTest.java": {
+    "mtime": 1783426880.3853457,
+    "ast_hash": "3242c9545126e29761be2d44dd26815a",
+    "semantic_hash": "3242c9545126e29761be2d44dd26815a"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/MesaAtendimentoControllerTest.java": {
+    "mtime": 1783533379.707977,
+    "ast_hash": "9565db53e4fbe8e88a82f305e56ae3e2",
+    "semantic_hash": "9565db53e4fbe8e88a82f305e56ae3e2"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/MesaChamadaGarcomControllerTest.java": {
+    "mtime": 1783426880.3903596,
+    "ast_hash": "5d3599f498b35fc328ac071737dfc412",
+    "semantic_hash": "5d3599f498b35fc328ac071737dfc412"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/MesaPedidoControllerTest.java": {
+    "mtime": 1783533379.7301784,
+    "ast_hash": "8d82b01188a19a960858a3ab18f9e602",
+    "semantic_hash": "8d82b01188a19a960858a3ab18f9e602"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/NotificacaoControllerTest.java": {
+    "mtime": 1783075787.7775555,
+    "ast_hash": "2f341138214447c6f1c86b65b6c4f414",
+    "semantic_hash": "2f341138214447c6f1c86b65b6c4f414"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/controller/TotemPedidoControllerTest.java": {
+    "mtime": 1783426880.4125736,
+    "ast_hash": "98b91c4bc4cf0001bc4b4b928bf97f40",
+    "semantic_hash": "98b91c4bc4cf0001bc4b4b928bf97f40"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/exception/BaseExceptionHandlerTest.java": {
+    "mtime": 1782926115.1627274,
+    "ast_hash": "413c79d31dc522c0948ba2db02502a9d",
+    "semantic_hash": "413c79d31dc522c0948ba2db02502a9d"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/mapper/CardapioResponseMapperTest.java": {
+    "mtime": 1783426880.4222348,
+    "ast_hash": "4361c5cb09c106d517550f1a8a8afe31",
+    "semantic_hash": "4361c5cb09c106d517550f1a8a8afe31"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/mapper/GarcomResumoResponseMapperTest.java": {
+    "mtime": 1783426880.4282453,
+    "ast_hash": "4dba5f930b9305d4c345f56205a238d1",
+    "semantic_hash": "4dba5f930b9305d4c345f56205a238d1"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/mapper/ItemPedidoTotemRequestMapperTest.java": {
+    "mtime": 1783533379.7937846,
+    "ast_hash": "8600606661f3f491368ffbc305b63046",
+    "semantic_hash": "8600606661f3f491368ffbc305b63046"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/mapper/MesaGarcomResponseMapperTest.java": {
+    "mtime": 1783075787.7825544,
+    "ast_hash": "63d04618d8a4ec7b426a5c0620e41342",
+    "semantic_hash": "63d04618d8a4ec7b426a5c0620e41342"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/mapper/MesaGestorResponseMapperTest.java": {
+    "mtime": 1783105019.627058,
+    "ast_hash": "3d045d812a1c23c170ad7a087231a315",
+    "semantic_hash": "3d045d812a1c23c170ad7a087231a315"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/mapper/PedidoTotemResponseMapperTest.java": {
+    "mtime": 1782985828.660939,
+    "ast_hash": "2682930237f02d6bef53c43057734050",
+    "semantic_hash": "2682930237f02d6bef53c43057734050"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/security/JwtAuthenticationFilterTest.java": {
+    "mtime": 1783426880.4347093,
+    "ast_hash": "32c7319d6d6177205c21ba08639408c9",
+    "semantic_hash": "32c7319d6d6177205c21ba08639408c9"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/security/JwtServiceTest.java": {
+    "mtime": 1783426880.4408836,
+    "ast_hash": "d157ed4b76dbc555f4d996c9d995b104",
+    "semantic_hash": "d157ed4b76dbc555f4d996c9d995b104"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/CardapioServiceTest.java": {
+    "mtime": 1783426880.447028,
+    "ast_hash": "d09c2862bd1c7c4ed2bc1051c48b046c",
+    "semantic_hash": "d09c2862bd1c7c4ed2bc1051c48b046c"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/CozinhaServiceTest.java": {
+    "mtime": 1783690146.2743492,
+    "ast_hash": "28959e55f96dc4c6e6a131d32d615a60",
+    "semantic_hash": "28959e55f96dc4c6e6a131d32d615a60"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/GarcomChamadaServiceTest.java": {
+    "mtime": 1783426880.4546978,
+    "ast_hash": "4e5e5a1fa2e540897cf1e106b1cced9c",
+    "semantic_hash": "4e5e5a1fa2e540897cf1e106b1cced9c"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/GarcomMesaServiceTest.java": {
+    "mtime": 1783426880.4612308,
+    "ast_hash": "38126852401bb60aec7e468a7623b6e5",
+    "semantic_hash": "38126852401bb60aec7e468a7623b6e5"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/GarcomPedidoServiceTest.java": {
+    "mtime": 1783533379.843695,
+    "ast_hash": "ccaba9e6ef9e907b0ee36a355bbf2702",
+    "semantic_hash": "ccaba9e6ef9e907b0ee36a355bbf2702"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/GestorMesaServiceTest.java": {
+    "mtime": 1783690187.6546721,
+    "ast_hash": "0538ac8d73e92e5805ebe07edbdd2d7f",
+    "semantic_hash": "0538ac8d73e92e5805ebe07edbdd2d7f"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/GestorProdutoServiceTest.java": {
+    "mtime": 1783690159.8416228,
+    "ast_hash": "7e774c8d78a79208409020727e474bb4",
+    "semantic_hash": "7e774c8d78a79208409020727e474bb4"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/GestorResumoServiceTest.java": {
+    "mtime": 1783426880.4906225,
+    "ast_hash": "58069e8e271ccfaa1663b5d1fcbb7d12",
+    "semantic_hash": "58069e8e271ccfaa1663b5d1fcbb7d12"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/GestorUsuarioServiceTest.java": {
+    "mtime": 1783426880.499057,
+    "ast_hash": "d502bc0d1bfadf7a5d408d24aceaa6be",
+    "semantic_hash": "d502bc0d1bfadf7a5d408d24aceaa6be"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/MesaAtendimentoServiceTest.java": {
+    "mtime": 1783533379.860029,
+    "ast_hash": "dbb3d7338e08082387bf0e17f57322f9",
+    "semantic_hash": "dbb3d7338e08082387bf0e17f57322f9"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/MesaChamadaGarcomServiceTest.java": {
+    "mtime": 1783426880.5070193,
+    "ast_hash": "0d6d303cd1d4a34f4962dfe90cee57ed",
+    "semantic_hash": "0d6d303cd1d4a34f4962dfe90cee57ed"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/MesaPedidoServiceTest.java": {
+    "mtime": 1783690146.2832074,
+    "ast_hash": "0e4cf9289f49a29c490a56c7ed816707",
+    "semantic_hash": "0e4cf9289f49a29c490a56c7ed816707"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/NotificacaoServiceTest.java": {
+    "mtime": 1783105079.8567424,
+    "ast_hash": "fb3e4044da44b727facf6d7f34fbce34",
+    "semantic_hash": "fb3e4044da44b727facf6d7f34fbce34"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/TotemPedidoServiceTest.java": {
+    "mtime": 1783533379.9293284,
+    "ast_hash": "838f873a0d3e9a93ea74e958f0384b20",
+    "semantic_hash": "838f873a0d3e9a93ea74e958f0384b20"
+  },
+  "backend/bff-restaurante/src/test/java/br/com/fourkitchen/bff_restaurante/service/UserServiceTest.java": {
+    "mtime": 1783426880.5286903,
+    "ast_hash": "c9cea15464f2406977e9713cee1032d5",
+    "semantic_hash": "c9cea15464f2406977e9713cee1032d5"
+  },
+  "backend/db-migrations/mvnw": {
+    "mtime": 1782926115.2267172,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "backend/db-migrations/pom.xml": {
+    "mtime": 1782985828.6858957,
+    "ast_hash": "290abe19d29a545cf6b7f31208829c39",
+    "semantic_hash": "290abe19d29a545cf6b7f31208829c39"
+  },
+  "backend/db-migrations/src/main/java/br/com/fourkitchen/db_migrations/DbMigrationsApplication.java": {
+    "mtime": 1782926115.2500963,
+    "ast_hash": "53037f221bc07ec7ff3e829199ef6172",
+    "semantic_hash": "53037f221bc07ec7ff3e829199ef6172"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V10__alter_column_status_to_status_pedido_produtos.sql": {
+    "mtime": 1783105079.9865835,
+    "ast_hash": "1489ac75008e6bf9b0916d3f16612e68",
+    "semantic_hash": "1489ac75008e6bf9b0916d3f16612e68"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V11__vincular_usuarios_mesa_e_perfis_dispositivo.sql": {
+    "mtime": 1783426880.533214,
+    "ast_hash": "188b01ad9df855e0a08f539488d2e56c",
+    "semantic_hash": "188b01ad9df855e0a08f539488d2e56c"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V12__adicionar_descricao_categorias_e_imagem_produtos.sql": {
+    "mtime": 1783426880.5404577,
+    "ast_hash": "b26354d14846e93232e34bc37842b00c",
+    "semantic_hash": "b26354d14846e93232e34bc37842b00c"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V13__create_historico_atendimentos.sql": {
+    "mtime": 1783505905.3455157,
+    "ast_hash": "99c3e6ec3108ae2edda868643d399f14",
+    "semantic_hash": "99c3e6ec3108ae2edda868643d399f14"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V14__adicionar_nome_produto_produtos_pedidos.sql": {
+    "mtime": 1783533379.9339583,
+    "ast_hash": "1166d7cf38db9c3732efed657c10d342",
+    "semantic_hash": "1166d7cf38db9c3732efed657c10d342"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V15__adicionar_datas_preparo_pedidos.sql": {
+    "mtime": 1783690146.2862668,
+    "ast_hash": "c84f1ebc15c8fb24b8f594f0ed6d1ba0",
+    "semantic_hash": "c84f1ebc15c8fb24b8f594f0ed6d1ba0"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V1__create_initial_tables.sql": {
+    "mtime": 1782985828.709188,
+    "ast_hash": "198f11dfeddf1d3c67002e439f101b62",
+    "semantic_hash": "198f11dfeddf1d3c67002e439f101b62"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V2__create_table_categorias_and_update_produtos.sql": {
+    "mtime": 1782985828.7172494,
+    "ast_hash": "612d56a139900a17428d83c3c77ea897",
+    "semantic_hash": "612d56a139900a17428d83c3c77ea897"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V3__update_atendimentos_mesas_pedidos.sql": {
+    "mtime": 1782985828.7273178,
+    "ast_hash": "70bac59cb8bc13c154c675bb8b3192aa",
+    "semantic_hash": "70bac59cb8bc13c154c675bb8b3192aa"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V4__create_table_produtos_pedidos.sql": {
+    "mtime": 1782985828.7363846,
+    "ast_hash": "a6ff662069d2f5ce5f73d78d62b75552",
+    "semantic_hash": "a6ff662069d2f5ce5f73d78d62b75552"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V5__insert_initial_data.sql": {
+    "mtime": 1782985828.7482116,
+    "ast_hash": "5716b5e052d06aab226639af94ac66f1",
+    "semantic_hash": "5716b5e052d06aab226639af94ac66f1"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V6__create_table_notificacoes.sql": {
+    "mtime": 1782985828.756358,
+    "ast_hash": "68fe1cb5713bd628c57440e3d5613b65",
+    "semantic_hash": "68fe1cb5713bd628c57440e3d5613b65"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V7__add_data_criacao_to_pedidos.sql": {
+    "mtime": 1783075787.8008218,
+    "ast_hash": "cf8445e84d3c1cd34e8ee834e47f23b6",
+    "semantic_hash": "cf8445e84d3c1cd34e8ee834e47f23b6"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V8__add_column_status_table_produtos_pedidos.sql": {
+    "mtime": 1783075787.8028212,
+    "ast_hash": "6ec6785d57cc5142361958a57cf5b983",
+    "semantic_hash": "6ec6785d57cc5142361958a57cf5b983"
+  },
+  "backend/db-migrations/src/main/resources/db/migration/V9__adicionar_contexto_em_notificacoes.sql": {
+    "mtime": 1783075787.803822,
+    "ast_hash": "d54ac367652e6e603d529279d12e9508",
+    "semantic_hash": "d54ac367652e6e603d529279d12e9508"
+  },
+  "backend/db-migrations/src/test/java/br/com/fourkitchen/db_migrations/DbMigrationsApplicationTests.java": {
+    "mtime": 1782926115.2772896,
+    "ast_hash": "a59e2f69d5628ac1d835fe43e306b713",
+    "semantic_hash": "a59e2f69d5628ac1d835fe43e306b713"
+  },
+  "backend/ms-cozinha/mvnw": {
+    "mtime": 1782926115.2923353,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "backend/ms-cozinha/pom.xml": {
+    "mtime": 1782985828.773638,
+    "ast_hash": "1ada0f0b8aea96f91ffddc8122796bc4",
+    "semantic_hash": "1ada0f0b8aea96f91ffddc8122796bc4"
+  },
+  "backend/ms-cozinha/src/main/java/br/com/fourkitchen/ms_cozinha/MsCozinhaApplication.java": {
+    "mtime": 1782926115.3059344,
+    "ast_hash": "6f51b6bb23dbfeda6c142fac37f00dae",
+    "semantic_hash": "6f51b6bb23dbfeda6c142fac37f00dae"
+  },
+  "backend/ms-cozinha/src/test/java/br/com/fourkitchen/ms_cozinha/MsCozinhaApplicationTests.java": {
+    "mtime": 1782926115.317675,
+    "ast_hash": "227bd4bdd07f855eeba4b61c23af5602",
+    "semantic_hash": "227bd4bdd07f855eeba4b61c23af5602"
+  },
+  "backend/ms-mesas/mvnw": {
+    "mtime": 1782926115.3324547,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "backend/ms-mesas/pom.xml": {
+    "mtime": 1782985828.7906377,
+    "ast_hash": "728650b602b38acb7f517e7bc782c73f",
+    "semantic_hash": "728650b602b38acb7f517e7bc782c73f"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/MsMesasApplication.java": {
+    "mtime": 1782926115.3470023,
+    "ast_hash": "0f408f0483f5d34ba422bbea5bb7725a",
+    "semantic_hash": "0f408f0483f5d34ba422bbea5bb7725a"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/client/PedidosAtivosClient.java": {
+    "mtime": 1783505905.3528798,
+    "ast_hash": "17e33e331805064fd767f0a43a5aa57e",
+    "semantic_hash": "17e33e331805064fd767f0a43a5aa57e"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/client/ResumoContaAtendimentoResponse.java": {
+    "mtime": 1783505905.3568954,
+    "ast_hash": "c52faa458555624345c9d266010f7a44",
+    "semantic_hash": "c52faa458555624345c9d266010f7a44"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/controller/MesaController.java": {
+    "mtime": 1783533379.9536312,
+    "ast_hash": "95fafb6ee1ff26e295a943a308b09a32",
+    "semantic_hash": "95fafb6ee1ff26e295a943a308b09a32"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/dto/request/AtribuirGarcomRequest.java": {
+    "mtime": 1782926115.3610554,
+    "ast_hash": "64baa9d6389d7ce1f79043fcad31f93c",
+    "semantic_hash": "64baa9d6389d7ce1f79043fcad31f93c"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/dto/request/CriarMesaRequest.java": {
+    "mtime": 1782926115.364571,
+    "ast_hash": "0c7568bb759e56853af3367689dec686",
+    "semantic_hash": "0c7568bb759e56853af3367689dec686"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/dto/response/HistoricoAtendimentoResponse.java": {
+    "mtime": 1783505905.3705976,
+    "ast_hash": "51ad10bbbbb0f1c36ca0f37381edaae7",
+    "semantic_hash": "51ad10bbbbb0f1c36ca0f37381edaae7"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/dto/response/MesaGarcomResponse.java": {
+    "mtime": 1783075787.811063,
+    "ast_hash": "8e60786dc45bf8ee6a64a1db7250ad62",
+    "semantic_hash": "8e60786dc45bf8ee6a64a1db7250ad62"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/dto/response/MesaPaginadaResponse.java": {
+    "mtime": 1783426880.5576546,
+    "ast_hash": "5cedb18c0a7289e9d10766d09ebd5a9d",
+    "semantic_hash": "5cedb18c0a7289e9d10766d09ebd5a9d"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/dto/response/MesaResponse.java": {
+    "mtime": 1783105019.6497018,
+    "ast_hash": "1f84c72924e6199de5185003d66ff813",
+    "semantic_hash": "1f84c72924e6199de5185003d66ff813"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/dto/response/ResumoMesasOperacaoResponse.java": {
+    "mtime": 1783426880.5634658,
+    "ast_hash": "1234937bb607966a63e58ecc16713894",
+    "semantic_hash": "1234937bb607966a63e58ecc16713894"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/dto/response/SessaoMesaResponse.java": {
+    "mtime": 1783075787.81436,
+    "ast_hash": "29a2a5b3ea2b35eb80662c44ab436d12",
+    "semantic_hash": "29a2a5b3ea2b35eb80662c44ab436d12"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/enums/StatusMesa.java": {
+    "mtime": 1782926115.379013,
+    "ast_hash": "6231acd8ea6e0261e4eb6f0eec085cc1",
+    "semantic_hash": "6231acd8ea6e0261e4eb6f0eec085cc1"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/exception/BaseException.java": {
+    "mtime": 1782926115.3820114,
+    "ast_hash": "ed73553319ffed01afbddd27df55bdd8",
+    "semantic_hash": "ed73553319ffed01afbddd27df55bdd8"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/exception/BaseExceptionHandler.java": {
+    "mtime": 1782926115.3855357,
+    "ast_hash": "c259eef71f2f1694fd5bd65e29080480",
+    "semantic_hash": "c259eef71f2f1694fd5bd65e29080480"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/exception/ErrorEnum.java": {
+    "mtime": 1783075787.81436,
+    "ast_hash": "70f459a713f16729298aa8b2a6284d06",
+    "semantic_hash": "70f459a713f16729298aa8b2a6284d06"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/exception/ErrorObject.java": {
+    "mtime": 1782926115.3908546,
+    "ast_hash": "ca43f7eafb39d699916aa012fd298bad",
+    "semantic_hash": "ca43f7eafb39d699916aa012fd298bad"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/mapper/CriarMesaRequestMapper.java": {
+    "mtime": 1782926115.396359,
+    "ast_hash": "e4ba39b87ec96ca218034fe9aa023fab",
+    "semantic_hash": "e4ba39b87ec96ca218034fe9aa023fab"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/mapper/Mapper.java": {
+    "mtime": 1782926115.3989294,
+    "ast_hash": "804576a464dff131fc0f584c626744b7",
+    "semantic_hash": "804576a464dff131fc0f584c626744b7"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/mapper/MesaGarcomResponseMapper.java": {
+    "mtime": 1783075787.8175044,
+    "ast_hash": "71e85799862eb99981b303b24f616cdc",
+    "semantic_hash": "71e85799862eb99981b303b24f616cdc"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/mapper/MesaResponseMapper.java": {
+    "mtime": 1783105019.6577983,
+    "ast_hash": "b13db1d016708d78c330f62f70671072",
+    "semantic_hash": "b13db1d016708d78c330f62f70671072"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/model/Atendimento.java": {
+    "mtime": 1782926115.4086883,
+    "ast_hash": "3aa751f6e46761041d757fb367f78088",
+    "semantic_hash": "3aa751f6e46761041d757fb367f78088"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/model/HistoricoAtendimento.java": {
+    "mtime": 1783505905.375634,
+    "ast_hash": "8b878160297597790741ca2429b7dd0b",
+    "semantic_hash": "8b878160297597790741ca2429b7dd0b"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/model/Mesa.java": {
+    "mtime": 1782926115.4116895,
+    "ast_hash": "dab1dad12bbd9fd993586e5e81cc2090",
+    "semantic_hash": "dab1dad12bbd9fd993586e5e81cc2090"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/repository/AtendimentoRepository.java": {
+    "mtime": 1782926115.4163187,
+    "ast_hash": "9a4d2e4b1b399b9dbd17ea593216c137",
+    "semantic_hash": "9a4d2e4b1b399b9dbd17ea593216c137"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/repository/HistoricoAtendimentoRepository.java": {
+    "mtime": 1783505905.3855436,
+    "ast_hash": "a215b623468d3ec664a64567ebfde6ca",
+    "semantic_hash": "a215b623468d3ec664a64567ebfde6ca"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/repository/MesaRepository.java": {
+    "mtime": 1783446897.1481972,
+    "ast_hash": "58bd9e3540211f4a6af4e88860525167",
+    "semantic_hash": "58bd9e3540211f4a6af4e88860525167"
+  },
+  "backend/ms-mesas/src/main/java/br/com/fourkitchen/ms_mesas/service/MesaService.java": {
+    "mtime": 1783533379.978581,
+    "ast_hash": "e1daef002f23b6b6093cbc28da33d663",
+    "semantic_hash": "e1daef002f23b6b6093cbc28da33d663"
+  },
+  "backend/ms-mesas/src/test/java/br/com/fourkitchen/ms_mesas/MsMesasApplicationTests.java": {
+    "mtime": 1782926115.435202,
+    "ast_hash": "14d451398c56541db186b33d4b02df45",
+    "semantic_hash": "14d451398c56541db186b33d4b02df45"
+  },
+  "backend/ms-mesas/src/test/java/br/com/fourkitchen/ms_mesas/service/MesaServiceTest.java": {
+    "mtime": 1783533380.0028684,
+    "ast_hash": "f65a9aee67c94b0b6a2860177b912a2c",
+    "semantic_hash": "f65a9aee67c94b0b6a2860177b912a2c"
+  },
+  "backend/ms-notificacoes/mvnw": {
+    "mtime": 1782926115.459157,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "backend/ms-notificacoes/pom.xml": {
+    "mtime": 1782985828.8075929,
+    "ast_hash": "30e6e3959d383a9351afca4bddf172d8",
+    "semantic_hash": "30e6e3959d383a9351afca4bddf172d8"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/MsNotificacoesApplication.java": {
+    "mtime": 1783075787.8328924,
+    "ast_hash": "b8c3782dbc9dc18ad03e879770645dfc",
+    "semantic_hash": "b8c3782dbc9dc18ad03e879770645dfc"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/controller/NotificacaoController.java": {
+    "mtime": 1783426880.5973067,
+    "ast_hash": "ae4bc6953263c416edb07ab4964663c0",
+    "semantic_hash": "ae4bc6953263c416edb07ab4964663c0"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/dto/request/CriarNotificacaoRequest.java": {
+    "mtime": 1783075787.8385878,
+    "ast_hash": "09546d3a150207d900dbd679c152a60a",
+    "semantic_hash": "09546d3a150207d900dbd679c152a60a"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/dto/response/NotificacaoResponse.java": {
+    "mtime": 1783075787.8385878,
+    "ast_hash": "6c36eebce8bb6361243453816e19e2b7",
+    "semantic_hash": "6c36eebce8bb6361243453816e19e2b7"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/dto/response/ResumoNotificacoesOperacaoResponse.java": {
+    "mtime": 1783426880.6038573,
+    "ast_hash": "e46e830e726e32a37d572c679e12a72e",
+    "semantic_hash": "e46e830e726e32a37d572c679e12a72e"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/enums/DestinoNotificacao.java": {
+    "mtime": 1782926115.5067482,
+    "ast_hash": "ee48e600fdb2f3d31d674fcdd5e32de1",
+    "semantic_hash": "ee48e600fdb2f3d31d674fcdd5e32de1"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/enums/TipoNotificacao.java": {
+    "mtime": 1783426880.6125271,
+    "ast_hash": "ea5701b53deefa3ce8145813c2d02916",
+    "semantic_hash": "ea5701b53deefa3ce8145813c2d02916"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/exception/BaseException.java": {
+    "mtime": 1782926115.5105488,
+    "ast_hash": "1a05ee35594fb5c56d0c71f29703f724",
+    "semantic_hash": "1a05ee35594fb5c56d0c71f29703f724"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/exception/BaseExceptionHandler.java": {
+    "mtime": 1782926115.514632,
+    "ast_hash": "ade2d9b35175622623b39e35905e892f",
+    "semantic_hash": "ade2d9b35175622623b39e35905e892f"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/exception/ErrorEnum.java": {
+    "mtime": 1783105080.1577659,
+    "ast_hash": "207f7e0d388978dc7a51cd08b8d11ee3",
+    "semantic_hash": "207f7e0d388978dc7a51cd08b8d11ee3"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/exception/ErrorObject.java": {
+    "mtime": 1782926115.52277,
+    "ast_hash": "448653735041ec0d93e4ead9db0f2fa0",
+    "semantic_hash": "448653735041ec0d93e4ead9db0f2fa0"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/mapper/CriarNotificacaoRequestMapper.java": {
+    "mtime": 1783075787.8453207,
+    "ast_hash": "f88e89c270871172cc92daaf7696583e",
+    "semantic_hash": "f88e89c270871172cc92daaf7696583e"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/mapper/Mapper.java": {
+    "mtime": 1782926115.5318172,
+    "ast_hash": "b7b53af0c9c7b3b07d6139e746d8a203",
+    "semantic_hash": "b7b53af0c9c7b3b07d6139e746d8a203"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/mapper/NotificacaoResponseMapper.java": {
+    "mtime": 1783075787.849423,
+    "ast_hash": "cb48195f56f82254697f65c3773c1565",
+    "semantic_hash": "cb48195f56f82254697f65c3773c1565"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/model/Notificacao.java": {
+    "mtime": 1783075787.849423,
+    "ast_hash": "98f4cd763305e3399a06c4f3e856003c",
+    "semantic_hash": "98f4cd763305e3399a06c4f3e856003c"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/repository/NotificacaoRepository.java": {
+    "mtime": 1783426880.62238,
+    "ast_hash": "79beecf97da51b57662683abde94173f",
+    "semantic_hash": "79beecf97da51b57662683abde94173f"
+  },
+  "backend/ms-notificacoes/src/main/java/br/com/fourkitchen/ms_notificacoes/service/NotificacaoService.java": {
+    "mtime": 1783426880.6306314,
+    "ast_hash": "90ffb60bcc03ceecfcb8e095af8ff458",
+    "semantic_hash": "90ffb60bcc03ceecfcb8e095af8ff458"
+  },
+  "backend/ms-notificacoes/src/test/java/br/com/fourkitchen/ms_notificacoes/MsNotificacoesApplicationTests.java": {
+    "mtime": 1782926115.563265,
+    "ast_hash": "d56e201e43e2626e3c1a5587c119cb9c",
+    "semantic_hash": "d56e201e43e2626e3c1a5587c119cb9c"
+  },
+  "backend/ms-notificacoes/src/test/java/br/com/fourkitchen/ms_notificacoes/mapper/CriarNotificacaoRequestMapperTest.java": {
+    "mtime": 1783075787.862728,
+    "ast_hash": "9a653bf1987a4fd80b583bc59e57bbcf",
+    "semantic_hash": "9a653bf1987a4fd80b583bc59e57bbcf"
+  },
+  "backend/ms-notificacoes/src/test/java/br/com/fourkitchen/ms_notificacoes/service/NotificacaoServiceTest.java": {
+    "mtime": 1783426880.6426077,
+    "ast_hash": "171d4e6d2b16c945b0c44017017abb81",
+    "semantic_hash": "171d4e6d2b16c945b0c44017017abb81"
+  },
+  "backend/ms-pedidos/mvnw": {
+    "mtime": 1782926115.5874543,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "backend/ms-pedidos/pom.xml": {
+    "mtime": 1783440645.4233773,
+    "ast_hash": "dbe449e661b933ba30a33aa02a000be1",
+    "semantic_hash": "dbe449e661b933ba30a33aa02a000be1"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/MsPedidosApplication.java": {
+    "mtime": 1782926115.6042624,
+    "ast_hash": "49f5b5094ba43e3c9a16890dca73062b",
+    "semantic_hash": "49f5b5094ba43e3c9a16890dca73062b"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/controller/PedidoController.java": {
+    "mtime": 1783533380.01721,
+    "ast_hash": "3f28bfb9019149e4f5809faf87a1f709",
+    "semantic_hash": "3f28bfb9019149e4f5809faf87a1f709"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/controller/ProdutoPedidoController.java": {
+    "mtime": 1783505905.4174583,
+    "ast_hash": "867f009301da769771265fbe6714aee3",
+    "semantic_hash": "867f009301da769771265fbe6714aee3"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/request/AlterarPedidoRequest.java": {
+    "mtime": 1782926115.6198263,
+    "ast_hash": "54388a290fbee6cc0be1123d903766a3",
+    "semantic_hash": "54388a290fbee6cc0be1123d903766a3"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/request/AlterarProdutoPedidoRequest.java": {
+    "mtime": 1782926115.6249242,
+    "ast_hash": "574e031f715f48ac9a86f0f3206978b3",
+    "semantic_hash": "574e031f715f48ac9a86f0f3206978b3"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/request/CriarPedidoRequest.java": {
+    "mtime": 1782985828.841439,
+    "ast_hash": "b091fc6b2a36871f5250c6ace96aae95",
+    "semantic_hash": "b091fc6b2a36871f5250c6ace96aae95"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/request/CriarProdutoPedidoRequest.java": {
+    "mtime": 1783533380.0277054,
+    "ast_hash": "382b508974d6a94437dca5509b4f6542",
+    "semantic_hash": "382b508974d6a94437dca5509b4f6542"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/request/DecisaoProblemaRequest.java": {
+    "mtime": 1783533380.0425267,
+    "ast_hash": "87e303c11f3c5c9086bc05733cb1169e",
+    "semantic_hash": "87e303c11f3c5c9086bc05733cb1169e"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/request/PedidoRequest.java": {
+    "mtime": 1782926115.638367,
+    "ast_hash": "3ff34ec39d401db55f3e6277977830a1",
+    "semantic_hash": "3ff34ec39d401db55f3e6277977830a1"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/request/ProdutoPedidoRequest.java": {
+    "mtime": 1783533380.0496695,
+    "ast_hash": "6f407909e2c6cf57ca4ba46eff9e761c",
+    "semantic_hash": "6f407909e2c6cf57ca4ba46eff9e761c"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/request/SinalizarProblemaRequest.java": {
+    "mtime": 1783075787.8692744,
+    "ast_hash": "ce71cfbafc5c6c7b466283981f9e08c4",
+    "semantic_hash": "ce71cfbafc5c6c7b466283981f9e08c4"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/response/ItemPedidoCozinhaResponse.java": {
+    "mtime": 1783533380.0619147,
+    "ast_hash": "8e6d1e6e711c9210d12312682e2044c0",
+    "semantic_hash": "8e6d1e6e711c9210d12312682e2044c0"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/response/PedidoCozinhaResponse.java": {
+    "mtime": 1783690146.2915387,
+    "ast_hash": "826cd73ee767fb3b37ffc4d24d9a09a4",
+    "semantic_hash": "826cd73ee767fb3b37ffc4d24d9a09a4"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/response/PedidoResponse.java": {
+    "mtime": 1782926115.6490884,
+    "ast_hash": "fe146ff5a9b970c85f623322ae7b4cb4",
+    "semantic_hash": "fe146ff5a9b970c85f623322ae7b4cb4"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/response/ProdutoPedidoResponse.java": {
+    "mtime": 1783533380.0732398,
+    "ast_hash": "5bea4e46061c56a3409f3f01c3949eaa",
+    "semantic_hash": "5bea4e46061c56a3409f3f01c3949eaa"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/response/ResumoContaAtendimentoResponse.java": {
+    "mtime": 1783505905.4281497,
+    "ast_hash": "95ad6335fbcb68d34e0b37ca352ccad0",
+    "semantic_hash": "95ad6335fbcb68d34e0b37ca352ccad0"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/response/ResumoPedidosOperacaoResponse.java": {
+    "mtime": 1783426880.6584454,
+    "ast_hash": "e71588e6259ec9af48d01a306cad09cd",
+    "semantic_hash": "e71588e6259ec9af48d01a306cad09cd"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/dto/response/SinalizarProblemaResponse.java": {
+    "mtime": 1783075787.877709,
+    "ast_hash": "ebcbe1d0d70b91a9f95463b3753492fd",
+    "semantic_hash": "ebcbe1d0d70b91a9f95463b3753492fd"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/entities/Pedido.java": {
+    "mtime": 1783690146.2953315,
+    "ast_hash": "2aea701bbe1e841fdc5e58e1999a78b8",
+    "semantic_hash": "2aea701bbe1e841fdc5e58e1999a78b8"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/entities/ProdutoPedido.java": {
+    "mtime": 1783533380.0878925,
+    "ast_hash": "cbfbb51047a64a31e717b3599c2fb036",
+    "semantic_hash": "cbfbb51047a64a31e717b3599c2fb036"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/enums/CanaisPedido.java": {
+    "mtime": 1782926115.671413,
+    "ast_hash": "e29e6d6fbc8ccace61ed6ed9a466e639",
+    "semantic_hash": "e29e6d6fbc8ccace61ed6ed9a466e639"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/enums/StatusPedido.java": {
+    "mtime": 1783533380.0952857,
+    "ast_hash": "6dc26b200b47e91f418068e8d7d54f3b",
+    "semantic_hash": "6dc26b200b47e91f418068e8d7d54f3b"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/enums/StatusProdutoPedido.java": {
+    "mtime": 1783505905.4334505,
+    "ast_hash": "76b50821affb1bc02b76739ee2fe2dc7",
+    "semantic_hash": "76b50821affb1bc02b76739ee2fe2dc7"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/exceptions/BaseException.java": {
+    "mtime": 1783075787.889387,
+    "ast_hash": "7cef0d5b8734651669a54fdf9a5f9c24",
+    "semantic_hash": "7cef0d5b8734651669a54fdf9a5f9c24"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/exceptions/BaseExceptionHandler.java": {
+    "mtime": 1783505905.4424634,
+    "ast_hash": "87ea8ca2354d1990d7f9399228f207fe",
+    "semantic_hash": "87ea8ca2354d1990d7f9399228f207fe"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/exceptions/ErrorEnum.java": {
+    "mtime": 1783533380.1182623,
+    "ast_hash": "9e0907da9bd75723f56e74b3c417efa9",
+    "semantic_hash": "9e0907da9bd75723f56e74b3c417efa9"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/exceptions/ErrorObject.java": {
+    "mtime": 1783075787.8947952,
+    "ast_hash": "a2c8ef3c20c0544950c424768386ac10",
+    "semantic_hash": "a2c8ef3c20c0544950c424768386ac10"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/mapper/AlterarPedidoRequestMapper.java": {
+    "mtime": 1782926115.694509,
+    "ast_hash": "f25a1452fcb1fcb055dc7231d1e878b5",
+    "semantic_hash": "f25a1452fcb1fcb055dc7231d1e878b5"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/mapper/CriarPedidoRequestMapper.java": {
+    "mtime": 1782926115.7004075,
+    "ast_hash": "f3ec25136aca5ade7e95bc61a5ef070f",
+    "semantic_hash": "f3ec25136aca5ade7e95bc61a5ef070f"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/mapper/CriarProdutoPedidoRequestMapper.java": {
+    "mtime": 1783533380.1535676,
+    "ast_hash": "0a5fd3537d563cc3cea1a7278da6dfef",
+    "semantic_hash": "0a5fd3537d563cc3cea1a7278da6dfef"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/mapper/Mapper.java": {
+    "mtime": 1782926115.7107613,
+    "ast_hash": "2a21e7076439376c801a89a160d09400",
+    "semantic_hash": "2a21e7076439376c801a89a160d09400"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/mapper/PedidoRequestMapper.java": {
+    "mtime": 1782926115.7184887,
+    "ast_hash": "6da62906df640740f64ca9c876267529",
+    "semantic_hash": "6da62906df640740f64ca9c876267529"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/mapper/PedidoResponseMapper.java": {
+    "mtime": 1782926115.7225173,
+    "ast_hash": "44bf527ffa296de5891943e4e0c982af",
+    "semantic_hash": "44bf527ffa296de5891943e4e0c982af"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/mapper/ProdutoPedidoResponseMapper.java": {
+    "mtime": 1783533380.2226522,
+    "ast_hash": "12391eecb6cfe76f5ce87c6ee0dcd808",
+    "semantic_hash": "12391eecb6cfe76f5ce87c6ee0dcd808"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/repository/PedidoRepository.java": {
+    "mtime": 1783533380.2632408,
+    "ast_hash": "959333e99c8164b1dcc47a04686cb014",
+    "semantic_hash": "959333e99c8164b1dcc47a04686cb014"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/repository/ProdutoPedidoRepository.java": {
+    "mtime": 1783505905.46523,
+    "ast_hash": "c30e6d4129d899eedf45abd3a55af43a",
+    "semantic_hash": "c30e6d4129d899eedf45abd3a55af43a"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/service/PedidoService.java": {
+    "mtime": 1783690146.296979,
+    "ast_hash": "8e29185114a92584a0b576a2d1ba8186",
+    "semantic_hash": "8e29185114a92584a0b576a2d1ba8186"
+  },
+  "backend/ms-pedidos/src/main/java/br/com/fourkitchen/ms_pedidos/service/ProdutoPedidoService.java": {
+    "mtime": 1783505905.4757514,
+    "ast_hash": "16889e457378dc1dfbf8d79047574618",
+    "semantic_hash": "16889e457378dc1dfbf8d79047574618"
+  },
+  "backend/ms-pedidos/src/test/java/br/com/fourkitchen/ms_pedidos/MsPedidosApplicationTests.java": {
+    "mtime": 1783426880.7076333,
+    "ast_hash": "c32fd3af7dbc3caa6e2fbc54f246c765",
+    "semantic_hash": "c32fd3af7dbc3caa6e2fbc54f246c765"
+  },
+  "backend/ms-pedidos/src/test/java/br/com/fourkitchen/ms_pedidos/controller/PedidoControllerTest.java": {
+    "mtime": 1783690146.304665,
+    "ast_hash": "b21d5ae72be2812175b59d2f0074283e",
+    "semantic_hash": "b21d5ae72be2812175b59d2f0074283e"
+  },
+  "backend/ms-pedidos/src/test/java/br/com/fourkitchen/ms_pedidos/dto/request/CriarPedidoRequestTest.java": {
+    "mtime": 1782985828.8684404,
+    "ast_hash": "2b5c296b45d8bbdb882fb3959594d31b",
+    "semantic_hash": "2b5c296b45d8bbdb882fb3959594d31b"
+  },
+  "backend/ms-pedidos/src/test/java/br/com/fourkitchen/ms_pedidos/service/PedidoServiceTest.java": {
+    "mtime": 1783690146.3066733,
+    "ast_hash": "bba7518a750216a73650eccf557a9b9c",
+    "semantic_hash": "bba7518a750216a73650eccf557a9b9c"
+  },
+  "backend/ms-produtos/mvnw": {
+    "mtime": 1782926115.7753358,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "backend/ms-produtos/pom.xml": {
+    "mtime": 1782985828.8929124,
+    "ast_hash": "d0340b03be861b9257418fe5695f3565",
+    "semantic_hash": "d0340b03be861b9257418fe5695f3565"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/MsProdutosApplication.java": {
+    "mtime": 1782926115.7928329,
+    "ast_hash": "34980cca377ee5572864e6ac045beedf",
+    "semantic_hash": "34980cca377ee5572864e6ac045beedf"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/controller/CardapioController.java": {
+    "mtime": 1782926115.7983828,
+    "ast_hash": "cc6a9a8c77bf1e7d4ec361e76d05746b",
+    "semantic_hash": "cc6a9a8c77bf1e7d4ec361e76d05746b"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/controller/CategoriaController.java": {
+    "mtime": 1782926115.8021617,
+    "ast_hash": "ccffb762e5c697a527957de75de83eaa",
+    "semantic_hash": "ccffb762e5c697a527957de75de83eaa"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/controller/ProdutoController.java": {
+    "mtime": 1782926115.8063784,
+    "ast_hash": "fc94e526bb690f0399798097044c6eec",
+    "semantic_hash": "fc94e526bb690f0399798097044c6eec"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/dto/request/AtualizarProdutoRequest.java": {
+    "mtime": 1783426880.720667,
+    "ast_hash": "5dfbf6097b28746076f6a5be9010ae2d",
+    "semantic_hash": "5dfbf6097b28746076f6a5be9010ae2d"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/dto/request/CriarCategoriaRequest.java": {
+    "mtime": 1783426880.7252467,
+    "ast_hash": "09c3199e2d646edec5e5bb654e67caa4",
+    "semantic_hash": "09c3199e2d646edec5e5bb654e67caa4"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/dto/request/CriarProdutoRequest.java": {
+    "mtime": 1783690159.284499,
+    "ast_hash": "6454cc87cb2534e04828bbd89adef729",
+    "semantic_hash": "6454cc87cb2534e04828bbd89adef729"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/dto/response/CategoriaCardapioResponse.java": {
+    "mtime": 1783426880.7361293,
+    "ast_hash": "2ad7d3cf9f8fca41f0f33dd91325f56c",
+    "semantic_hash": "2ad7d3cf9f8fca41f0f33dd91325f56c"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/dto/response/CategoriaResponse.java": {
+    "mtime": 1783426880.7406404,
+    "ast_hash": "96ceeea1f338be617da7b83e3953f145",
+    "semantic_hash": "96ceeea1f338be617da7b83e3953f145"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/dto/response/ProdutoCardapioResponse.java": {
+    "mtime": 1783426880.745173,
+    "ast_hash": "5459fd555dc305e75370db4ca53c3d23",
+    "semantic_hash": "5459fd555dc305e75370db4ca53c3d23"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/dto/response/ProdutoDisponibilidadeResponse.java": {
+    "mtime": 1783533380.4153707,
+    "ast_hash": "2f65867cea63e327d156deedc9b35194",
+    "semantic_hash": "2f65867cea63e327d156deedc9b35194"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/dto/response/ProdutoResponse.java": {
+    "mtime": 1783426880.7493007,
+    "ast_hash": "9701ea9e8ed4cb9965e40346c147a99d",
+    "semantic_hash": "9701ea9e8ed4cb9965e40346c147a99d"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/exception/BaseException.java": {
+    "mtime": 1782926115.8543522,
+    "ast_hash": "7ef89210c2d004ea9b03d2d6d9fb7e15",
+    "semantic_hash": "7ef89210c2d004ea9b03d2d6d9fb7e15"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/exception/BaseExceptionHandler.java": {
+    "mtime": 1782926115.858418,
+    "ast_hash": "5f99e3a5848dd8ba0ea430780a3243b3",
+    "semantic_hash": "5f99e3a5848dd8ba0ea430780a3243b3"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/exception/ErrorEnum.java": {
+    "mtime": 1782926115.8634894,
+    "ast_hash": "78875639b158f06454b7676710665238",
+    "semantic_hash": "78875639b158f06454b7676710665238"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/exception/ErrorObject.java": {
+    "mtime": 1782926115.8685186,
+    "ast_hash": "da13366d51240b0ef1b42df3f34df225",
+    "semantic_hash": "da13366d51240b0ef1b42df3f34df225"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/AtualizarProdutoRequestMapper.java": {
+    "mtime": 1783426880.7549567,
+    "ast_hash": "6a58487f28207f6f131f7322f28a2fef",
+    "semantic_hash": "6a58487f28207f6f131f7322f28a2fef"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/CategoriaCardapioMapperSource.java": {
+    "mtime": 1782926115.8788161,
+    "ast_hash": "1c6743d2d2706849a898e5003adcab94",
+    "semantic_hash": "1c6743d2d2706849a898e5003adcab94"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/CategoriaCardapioResponseMapper.java": {
+    "mtime": 1783426880.7603545,
+    "ast_hash": "457e12b1741dbe2b7efc731cff35b98e",
+    "semantic_hash": "457e12b1741dbe2b7efc731cff35b98e"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/CategoriaResponseMapper.java": {
+    "mtime": 1783426880.763723,
+    "ast_hash": "e54bfce247c199331aa9a6697766e7e3",
+    "semantic_hash": "e54bfce247c199331aa9a6697766e7e3"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/CriarCategoriaRequestMapper.java": {
+    "mtime": 1783426880.769772,
+    "ast_hash": "9ee94de33affecbff5b17a0d668ed2ba",
+    "semantic_hash": "9ee94de33affecbff5b17a0d668ed2ba"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/CriarProdutoRequestMapper.java": {
+    "mtime": 1783426880.7758186,
+    "ast_hash": "cee6efee44baf8e7d9d0ee929c1c65e3",
+    "semantic_hash": "cee6efee44baf8e7d9d0ee929c1c65e3"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/ImagemBase64Mapper.java": {
+    "mtime": 1783690146.3111978,
+    "ast_hash": "dbe2862fffa9df21ed31ec4fcbd24b70",
+    "semantic_hash": "dbe2862fffa9df21ed31ec4fcbd24b70"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/Mapper.java": {
+    "mtime": 1782926115.8997076,
+    "ast_hash": "aa44dc5fc46ff2a9429a700f021e3205",
+    "semantic_hash": "aa44dc5fc46ff2a9429a700f021e3205"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/ProdutoCardapioResponseMapper.java": {
+    "mtime": 1783426880.7848616,
+    "ast_hash": "de4d89dd0fd9792ba900a2794e3a3cc3",
+    "semantic_hash": "de4d89dd0fd9792ba900a2794e3a3cc3"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/ProdutoDisponibilidadeResponseMapper.java": {
+    "mtime": 1783533380.4524767,
+    "ast_hash": "05a6506266091404f08c676bbba8620a",
+    "semantic_hash": "05a6506266091404f08c676bbba8620a"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/mapper/ProdutoResponseMapper.java": {
+    "mtime": 1783426880.7947824,
+    "ast_hash": "d9ac49b45f8d26dfe44b6b9cc15578eb",
+    "semantic_hash": "d9ac49b45f8d26dfe44b6b9cc15578eb"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/model/Categoria.java": {
+    "mtime": 1783426880.8022828,
+    "ast_hash": "667e0d1ac8e46a4e98e29dd1862684be",
+    "semantic_hash": "667e0d1ac8e46a4e98e29dd1862684be"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/model/Produto.java": {
+    "mtime": 1783426880.8083823,
+    "ast_hash": "8ef27e4ed7b211f0f27249fea3644b76",
+    "semantic_hash": "8ef27e4ed7b211f0f27249fea3644b76"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/repository/CategoriaRepository.java": {
+    "mtime": 1782926115.925414,
+    "ast_hash": "9e8f55ba6cd628a0d929e87690103837",
+    "semantic_hash": "9e8f55ba6cd628a0d929e87690103837"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/repository/ProdutoRepository.java": {
+    "mtime": 1783505905.490576,
+    "ast_hash": "f69410e781d96ddbad28725526b38d87",
+    "semantic_hash": "f69410e781d96ddbad28725526b38d87"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/service/CardapioService.java": {
+    "mtime": 1782926115.9335747,
+    "ast_hash": "db88ed1b60be7bc984d7a427f847d2eb",
+    "semantic_hash": "db88ed1b60be7bc984d7a427f847d2eb"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/service/CategoriaService.java": {
+    "mtime": 1782926115.937247,
+    "ast_hash": "2c8c9404487051e4415ee87edf9bbabc",
+    "semantic_hash": "2c8c9404487051e4415ee87edf9bbabc"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/service/ProdutoService.java": {
+    "mtime": 1783690159.2919152,
+    "ast_hash": "d51ccec6fbdc281f8ca7ae1bf90a0c7b",
+    "semantic_hash": "d51ccec6fbdc281f8ca7ae1bf90a0c7b"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/validation/ImagemBase64.java": {
+    "mtime": 1783690146.3161552,
+    "ast_hash": "f60d3e1ada33379a77689b8d1de9bfac",
+    "semantic_hash": "f60d3e1ada33379a77689b8d1de9bfac"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/validation/ImagemBase64Utils.java": {
+    "mtime": 1783690146.3190308,
+    "ast_hash": "51d80969243f650d01ac9150d85b3899",
+    "semantic_hash": "51d80969243f650d01ac9150d85b3899"
+  },
+  "backend/ms-produtos/src/main/java/br/com/fourkitchen/ms_produtos/validation/ImagemBase64Validator.java": {
+    "mtime": 1783690146.3223891,
+    "ast_hash": "0c3a54714a612cfc48615ae3090a81c1",
+    "semantic_hash": "0c3a54714a612cfc48615ae3090a81c1"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/MsProdutosApplicationTests.java": {
+    "mtime": 1782926115.9535272,
+    "ast_hash": "ef58ec7f12b7b83d71e98d4bcff8f6e5",
+    "semantic_hash": "ef58ec7f12b7b83d71e98d4bcff8f6e5"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/controller/CardapioControllerTest.java": {
+    "mtime": 1783426880.8264282,
+    "ast_hash": "2112f0975bef4d5ddc93ed6ff91ad488",
+    "semantic_hash": "2112f0975bef4d5ddc93ed6ff91ad488"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/mapper/CardapioMapperTest.java": {
+    "mtime": 1783426880.8306458,
+    "ast_hash": "851111d7ee149960b3c4cd8d9ceacd23",
+    "semantic_hash": "851111d7ee149960b3c4cd8d9ceacd23"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/mapper/ImagemBase64MapperTest.java": {
+    "mtime": 1783690146.3279414,
+    "ast_hash": "b529609df9d60855e360008e72812665",
+    "semantic_hash": "b529609df9d60855e360008e72812665"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/mapper/ProdutoDisponibilidadeResponseMapperTest.java": {
+    "mtime": 1783533380.473685,
+    "ast_hash": "ece7bff9d85334f84b12da7b781cf883",
+    "semantic_hash": "ece7bff9d85334f84b12da7b781cf883"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/mapper/ProdutoMapperTest.java": {
+    "mtime": 1783690159.3005095,
+    "ast_hash": "581cac437a1cba138f2fe0076cc89a6c",
+    "semantic_hash": "581cac437a1cba138f2fe0076cc89a6c"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/service/CardapioServiceTest.java": {
+    "mtime": 1783426880.845446,
+    "ast_hash": "af04a8670fb1cc349c8bb2c0f8ecabe1",
+    "semantic_hash": "af04a8670fb1cc349c8bb2c0f8ecabe1"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/service/CategoriaServiceTest.java": {
+    "mtime": 1783426880.8510802,
+    "ast_hash": "59ef0b5fcec52ecbfa051951149d4202",
+    "semantic_hash": "59ef0b5fcec52ecbfa051951149d4202"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/service/ProdutoServiceTest.java": {
+    "mtime": 1783690159.3056147,
+    "ast_hash": "0cb11016d541e9d8d4000c2b1525c7f8",
+    "semantic_hash": "0cb11016d541e9d8d4000c2b1525c7f8"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/support/ImagemTesteFactory.java": {
+    "mtime": 1783690146.332415,
+    "ast_hash": "7168d7dd94bffe34988fd8fbd6ff11d8",
+    "semantic_hash": "7168d7dd94bffe34988fd8fbd6ff11d8"
+  },
+  "backend/ms-produtos/src/test/java/br/com/fourkitchen/ms_produtos/validation/ImagemBase64ValidatorTest.java": {
+    "mtime": 1783690146.338274,
+    "ast_hash": "3d0518aae9ab06b6a0d5a33b8f992f2b",
+    "semantic_hash": "3d0518aae9ab06b6a0d5a33b8f992f2b"
+  },
+  "backend/ms-usuarios/mvnw": {
+    "mtime": 1782926115.996564,
+    "ast_hash": "ab50dd89da7da2346b28003352eeeeeb",
+    "semantic_hash": "ab50dd89da7da2346b28003352eeeeeb"
+  },
+  "backend/ms-usuarios/pom.xml": {
+    "mtime": 1782985828.970055,
+    "ast_hash": "6eb57f0d956ff643ee43d7b09eb7dd84",
+    "semantic_hash": "6eb57f0d956ff643ee43d7b09eb7dd84"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/MsUsuariosApplication.java": {
+    "mtime": 1782926116.0118651,
+    "ast_hash": "4d9763929accc1823833d8bc3c7add50",
+    "semantic_hash": "4d9763929accc1823833d8bc3c7add50"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/config/OpenApiConfig.java": {
+    "mtime": 1782926116.0166292,
+    "ast_hash": "8ac3d4426a18d651378fc1fa1996784f",
+    "semantic_hash": "8ac3d4426a18d651378fc1fa1996784f"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/config/SecurityConfig.java": {
+    "mtime": 1783434510.3460994,
+    "ast_hash": "4220b9d1f028a5591c7c08f6e34602ff",
+    "semantic_hash": "4220b9d1f028a5591c7c08f6e34602ff"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/controller/AuthController.java": {
+    "mtime": 1782926116.0264716,
+    "ast_hash": "8408dd9b7be8e4e0ef12b8fd2ae27c77",
+    "semantic_hash": "8408dd9b7be8e4e0ef12b8fd2ae27c77"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/controller/UsuarioController.java": {
+    "mtime": 1783426880.8759015,
+    "ast_hash": "adc1b26e2ccc46d0b000bb59c8dbf743",
+    "semantic_hash": "adc1b26e2ccc46d0b000bb59c8dbf743"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/dto/requestDto/LoginRequest.java": {
+    "mtime": 1783426880.8877382,
+    "ast_hash": "ace2e3a327e9a139f135ea658b9fee44",
+    "semantic_hash": "ace2e3a327e9a139f135ea658b9fee44"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/dto/request/AtualizarUsuarioRequest.java": {
+    "mtime": 1783426880.8789005,
+    "ast_hash": "a71ce31182138a81c5e921d0f03f6bd9",
+    "semantic_hash": "a71ce31182138a81c5e921d0f03f6bd9"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/dto/request/CriarUsuarioRequest.java": {
+    "mtime": 1783505905.5025134,
+    "ast_hash": "ae18b56a8426c7f1fd88bea53646e244",
+    "semantic_hash": "ae18b56a8426c7f1fd88bea53646e244"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/dto/responseDto/LoginResponse.java": {
+    "mtime": 1783426880.8991964,
+    "ast_hash": "7fa09d4fb0edd08c92eacf0f4db1255b",
+    "semantic_hash": "7fa09d4fb0edd08c92eacf0f4db1255b"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/dto/response/UsuarioResponse.java": {
+    "mtime": 1783426880.894181,
+    "ast_hash": "701e1d3905029326039e56dba6560359",
+    "semantic_hash": "701e1d3905029326039e56dba6560359"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/enums/PerfilUsuario.java": {
+    "mtime": 1783342869.7421763,
+    "ast_hash": "756c409c3c1803c7664aa248b8f0ff0f",
+    "semantic_hash": "756c409c3c1803c7664aa248b8f0ff0f"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/exception/BaseException.java": {
+    "mtime": 1782926116.0911117,
+    "ast_hash": "382b267a6e905c80dfefb444d1d7885f",
+    "semantic_hash": "382b267a6e905c80dfefb444d1d7885f"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/exception/BaseExceptionHandler.java": {
+    "mtime": 1782926116.0952005,
+    "ast_hash": "a7afc932e89db9336f9211493bf972e6",
+    "semantic_hash": "a7afc932e89db9336f9211493bf972e6"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/exception/ErrorEnum.java": {
+    "mtime": 1783426880.9055665,
+    "ast_hash": "44a0dafff7ee8e37fc700b58c5fdfa50",
+    "semantic_hash": "44a0dafff7ee8e37fc700b58c5fdfa50"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/exception/ErrorObject.java": {
+    "mtime": 1782926116.1052077,
+    "ast_hash": "28564f7d3947730e63afd1e223ca57ce",
+    "semantic_hash": "28564f7d3947730e63afd1e223ca57ce"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/mapper/CriarUsuarioRequestMapper.java": {
+    "mtime": 1783426880.91,
+    "ast_hash": "a0dfddc8d67bc3340bd8bca5269c85a5",
+    "semantic_hash": "a0dfddc8d67bc3340bd8bca5269c85a5"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/mapper/Mapper.java": {
+    "mtime": 1782926116.11534,
+    "ast_hash": "60e054effdf73223cea08aa5ade99077",
+    "semantic_hash": "60e054effdf73223cea08aa5ade99077"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/mapper/UsuarioResponseMapper.java": {
+    "mtime": 1783426880.915625,
+    "ast_hash": "67d6af22712a7a648a14a325e3e01d63",
+    "semantic_hash": "67d6af22712a7a648a14a325e3e01d63"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/model/Usuario.java": {
+    "mtime": 1783426880.9235125,
+    "ast_hash": "7b181eee555826e93009da5c2c2608ec",
+    "semantic_hash": "7b181eee555826e93009da5c2c2608ec"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/repository/UsuarioRepository.java": {
+    "mtime": 1783426880.9279354,
+    "ast_hash": "f0b92f1dadd01948b56b3c58a5485f01",
+    "semantic_hash": "f0b92f1dadd01948b56b3c58a5485f01"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/security/AuthService.java": {
+    "mtime": 1783426880.9327722,
+    "ast_hash": "eeaec013ab0e9fb233a83764e1a8a23f",
+    "semantic_hash": "eeaec013ab0e9fb233a83764e1a8a23f"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/security/JwtAuthenticationFilter.java": {
+    "mtime": 1782926116.135942,
+    "ast_hash": "100ed1c8b32f850fe5ba6a39b2bf9cb6",
+    "semantic_hash": "100ed1c8b32f850fe5ba6a39b2bf9cb6"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/security/JwtService.java": {
+    "mtime": 1783426880.9375696,
+    "ast_hash": "2037cee42cd89efd39fdc6582d790284",
+    "semantic_hash": "2037cee42cd89efd39fdc6582d790284"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/service/UsuarioService.java": {
+    "mtime": 1783505905.5082567,
+    "ast_hash": "5354926be5004c37beb7aa7c5d1752ce",
+    "semantic_hash": "5354926be5004c37beb7aa7c5d1752ce"
+  },
+  "backend/ms-usuarios/src/main/java/br/com/fourkitchen/ms_usuarios/validation/UsuarioRegex.java": {
+    "mtime": 1783505905.5120213,
+    "ast_hash": "4896e6aff0e8daa51bb739af84c1902b",
+    "semantic_hash": "4896e6aff0e8daa51bb739af84c1902b"
+  },
+  "backend/ms-usuarios/src/test/java/br/com/fourkitchen/ms_usuarios/MsUsuariosApplicationTests.java": {
+    "mtime": 1782926116.1572835,
+    "ast_hash": "4b133d679a0189166ee4c84ae814a033",
+    "semantic_hash": "4b133d679a0189166ee4c84ae814a033"
+  },
+  "backend/ms-usuarios/src/test/java/br/com/fourkitchen/ms_usuarios/security/JwtServiceTest.java": {
+    "mtime": 1783426880.9491549,
+    "ast_hash": "d78dfe3903ba16719258f2fb10e5656c",
+    "semantic_hash": "d78dfe3903ba16719258f2fb10e5656c"
+  },
+  "backend/ms-usuarios/src/test/java/br/com/fourkitchen/ms_usuarios/service/UsuarioServiceTest.java": {
+    "mtime": 1783426880.9531991,
+    "ast_hash": "6e6e23a89191c2ccd64d91a236c006b8",
+    "semantic_hash": "6e6e23a89191c2ccd64d91a236c006b8"
+  },
+  "frontend/angular.json": {
+    "mtime": 1783341139.747134,
+    "ast_hash": "4b66963e16d41e31466820c691e89c4e",
+    "semantic_hash": "4b66963e16d41e31466820c691e89c4e"
+  },
+  "frontend/package.json": {
+    "mtime": 1783690159.3155751,
+    "ast_hash": "fe1bde2bd86d172d2ce2386d445c966b",
+    "semantic_hash": "fe1bde2bd86d172d2ce2386d445c966b"
+  },
+  "frontend/src/app/app.config.ts": {
+    "mtime": 1783105019.7421532,
+    "ast_hash": "3a321a127bc055fa4f2d230edcec9204",
+    "semantic_hash": "3a321a127bc055fa4f2d230edcec9204"
+  },
+  "frontend/src/app/app.routes.ts": {
+    "mtime": 1783075787.926417,
+    "ast_hash": "b9baf79841abc5c2f66809b583eae1e1",
+    "semantic_hash": "b9baf79841abc5c2f66809b583eae1e1"
+  },
+  "frontend/src/app/app.spec.ts": {
+    "mtime": 1783075787.9285104,
+    "ast_hash": "bcaeeced471fb6175af6e15deb92757d",
+    "semantic_hash": "bcaeeced471fb6175af6e15deb92757d"
+  },
+  "frontend/src/app/app.ts": {
+    "mtime": 1783690146.346161,
+    "ast_hash": "5193032e0d577716723a19869265a759",
+    "semantic_hash": "5193032e0d577716723a19869265a759"
+  },
+  "frontend/src/app/core/constants/urgencia.constants.ts": {
+    "mtime": 1783105019.7516677,
+    "ast_hash": "0c0d8cbf2e7c50d7bc17b0dc535c5dd7",
+    "semantic_hash": "0c0d8cbf2e7c50d7bc17b0dc535c5dd7"
+  },
+  "frontend/src/app/core/guards/auth.guard.ts": {
+    "mtime": 1783075787.9304988,
+    "ast_hash": "5b26d2007d78f2f48860022fc7d1dec3",
+    "semantic_hash": "5b26d2007d78f2f48860022fc7d1dec3"
+  },
+  "frontend/src/app/core/interceptors/auth.interceptor.ts": {
+    "mtime": 1783075787.9325068,
+    "ast_hash": "dc027ae4184d1b60e58c41ba785f73f3",
+    "semantic_hash": "dc027ae4184d1b60e58c41ba785f73f3"
+  },
+  "frontend/src/app/core/models/auth.models.ts": {
+    "mtime": 1783426880.96199,
+    "ast_hash": "0c585ef8eff1205b49d174a4c12849d7",
+    "semantic_hash": "0c585ef8eff1205b49d174a4c12849d7"
+  },
+  "frontend/src/app/core/models/cart.models.ts": {
+    "mtime": 1783690146.3493328,
+    "ast_hash": "beebb889b6f997c6c056d78946919fe9",
+    "semantic_hash": "beebb889b6f997c6c056d78946919fe9"
+  },
+  "frontend/src/app/core/models/cozinha.models.ts": {
+    "mtime": 1783690146.3541822,
+    "ast_hash": "172a941ecd7edf77bcb1df202db3a64b",
+    "semantic_hash": "172a941ecd7edf77bcb1df202db3a64b"
+  },
+  "frontend/src/app/core/models/garcom.models.ts": {
+    "mtime": 1783426880.9700353,
+    "ast_hash": "5c424acfc9fc2959277afacf2111a8b5",
+    "semantic_hash": "5c424acfc9fc2959277afacf2111a8b5"
+  },
+  "frontend/src/app/core/models/menu.models.ts": {
+    "mtime": 1783690146.3583906,
+    "ast_hash": "cef2c840b946cebc4e4328dd54903862",
+    "semantic_hash": "cef2c840b946cebc4e4328dd54903862"
+  },
+  "frontend/src/app/core/models/mesa.models.ts": {
+    "mtime": 1783426880.9745355,
+    "ast_hash": "1494dbca3df88363c4afe392c7aa0cb8",
+    "semantic_hash": "1494dbca3df88363c4afe392c7aa0cb8"
+  },
+  "frontend/src/app/core/models/notificacao.models.ts": {
+    "mtime": 1783426880.9775436,
+    "ast_hash": "03257f1027c5793b30dc65f75e2cc907",
+    "semantic_hash": "03257f1027c5793b30dc65f75e2cc907"
+  },
+  "frontend/src/app/core/models/order.models.ts": {
+    "mtime": 1783690146.3599608,
+    "ast_hash": "e6b1015d88407b75fb9bedd5c3d63256",
+    "semantic_hash": "e6b1015d88407b75fb9bedd5c3d63256"
+  },
+  "frontend/src/app/core/models/painel.models.ts": {
+    "mtime": 1783338600.3015766,
+    "ast_hash": "8ff108a70a455614a78a41de93a536e6",
+    "semantic_hash": "8ff108a70a455614a78a41de93a536e6"
+  },
+  "frontend/src/app/core/models/produto.models.ts": {
+    "mtime": 1783690159.844051,
+    "ast_hash": "890ace8fa3d1b8c1c8658f328d55592c",
+    "semantic_hash": "890ace8fa3d1b8c1c8658f328d55592c"
+  },
+  "frontend/src/app/core/routing/protected-routes.ts": {
+    "mtime": 1783690159.3234448,
+    "ast_hash": "69c8ee67223824a5a33a9e5c5336c28c",
+    "semantic_hash": "69c8ee67223824a5a33a9e5c5336c28c"
+  },
+  "frontend/src/app/core/services/api.spec.ts": {
+    "mtime": 1782926116.27024,
+    "ast_hash": "b3246f18084ab05cad222a255f60857b",
+    "semantic_hash": "b3246f18084ab05cad222a255f60857b"
+  },
+  "frontend/src/app/core/services/api.ts": {
+    "mtime": 1782926116.274751,
+    "ast_hash": "ecced930c27f4b0bb0a9006c536650b8",
+    "semantic_hash": "ecced930c27f4b0bb0a9006c536650b8"
+  },
+  "frontend/src/app/core/services/auth.spec.ts": {
+    "mtime": 1782926116.2775626,
+    "ast_hash": "a266d0050d4a973dd4eea36a0f5356b2",
+    "semantic_hash": "a266d0050d4a973dd4eea36a0f5356b2"
+  },
+  "frontend/src/app/core/services/auth.ts": {
+    "mtime": 1783075787.9370916,
+    "ast_hash": "9fe364d687b5b8d7c71b032632df3a3f",
+    "semantic_hash": "9fe364d687b5b8d7c71b032632df3a3f"
+  },
+  "frontend/src/app/core/services/cart.service.ts": {
+    "mtime": 1783690146.3670542,
+    "ast_hash": "6aff5fe3d181d900d3cd9557813581e2",
+    "semantic_hash": "6aff5fe3d181d900d3cd9557813581e2"
+  },
+  "frontend/src/app/core/services/cozinha.ts": {
+    "mtime": 1783690146.3694327,
+    "ast_hash": "5496bd6ac34a1a1ebe686dc44fb1b885",
+    "semantic_hash": "5496bd6ac34a1a1ebe686dc44fb1b885"
+  },
+  "frontend/src/app/core/services/customer-context.service.ts": {
+    "mtime": 1783690146.3694327,
+    "ast_hash": "5a3ed0b2b77363569969c93b7000586c",
+    "semantic_hash": "5a3ed0b2b77363569969c93b7000586c"
+  },
+  "frontend/src/app/core/services/customer-order-cache.service.ts": {
+    "mtime": 1783690146.3746076,
+    "ast_hash": "bc2841d4a5f7a82a7793aa342de42b84",
+    "semantic_hash": "bc2841d4a5f7a82a7793aa342de42b84"
+  },
+  "frontend/src/app/core/services/expediente.util.spec.ts": {
+    "mtime": 1783507243.773464,
+    "ast_hash": "3f7c49aa7c8fd6afdf53fff650c829cf",
+    "semantic_hash": "3f7c49aa7c8fd6afdf53fff650c829cf"
+  },
+  "frontend/src/app/core/services/expediente.util.ts": {
+    "mtime": 1783506696.9124074,
+    "ast_hash": "1f92a6701f2157547c23028044950141",
+    "semantic_hash": "1f92a6701f2157547c23028044950141"
+  },
+  "frontend/src/app/core/services/garcom-chamada.ts": {
+    "mtime": 1783426880.9846337,
+    "ast_hash": "f376af940d8447aceb0a0ac7c14e9a9d",
+    "semantic_hash": "f376af940d8447aceb0a0ac7c14e9a9d"
+  },
+  "frontend/src/app/core/services/garcom-mesa.ts": {
+    "mtime": 1783426880.9899533,
+    "ast_hash": "3eeb682b9cb7f8cd835b121b1a35efe3",
+    "semantic_hash": "3eeb682b9cb7f8cd835b121b1a35efe3"
+  },
+  "frontend/src/app/core/services/menu.service.ts": {
+    "mtime": 1783427710.2201898,
+    "ast_hash": "cd6b4414738fefbf3cba13b16f90b411",
+    "semantic_hash": "cd6b4414738fefbf3cba13b16f90b411"
+  },
+  "frontend/src/app/core/services/mesa-chamada.ts": {
+    "mtime": 1783426880.99446,
+    "ast_hash": "79ec4945c3446d044671026b8a73faeb",
+    "semantic_hash": "79ec4945c3446d044671026b8a73faeb"
+  },
+  "frontend/src/app/core/services/mesa.ts": {
+    "mtime": 1783426880.9968164,
+    "ast_hash": "9c7695d5e18e2066eaa226cf20c953e8",
+    "semantic_hash": "9c7695d5e18e2066eaa226cf20c953e8"
+  },
+  "frontend/src/app/core/services/notificacao.ts": {
+    "mtime": 1783426881.0013087,
+    "ast_hash": "2a3626db9c5385b9271be40207ade486",
+    "semantic_hash": "2a3626db9c5385b9271be40207ade486"
+  },
+  "frontend/src/app/core/services/order.service.ts": {
+    "mtime": 1783690146.3746076,
+    "ast_hash": "5fc4a595daa4be0dfbeea6afeff9e2c5",
+    "semantic_hash": "5fc4a595daa4be0dfbeea6afeff9e2c5"
+  },
+  "frontend/src/app/core/services/painel.spec.ts": {
+    "mtime": 1783507185.3748488,
+    "ast_hash": "4268f249065d762865c7e5011a9a5028",
+    "semantic_hash": "4268f249065d762865c7e5011a9a5028"
+  },
+  "frontend/src/app/core/services/painel.ts": {
+    "mtime": 1783507004.5946548,
+    "ast_hash": "a65a94a5e47196438517dd9bdbf0f812",
+    "semantic_hash": "a65a94a5e47196438517dd9bdbf0f812"
+  },
+  "frontend/src/app/core/services/produto.spec.ts": {
+    "mtime": 1783690159.8460763,
+    "ast_hash": "80d5844345c100ae690f381c4f53d2c9",
+    "semantic_hash": "80d5844345c100ae690f381c4f53d2c9"
+  },
+  "frontend/src/app/core/services/produto.ts": {
+    "mtime": 1783690159.8560674,
+    "ast_hash": "6e662ecd38666f30241cd51b0067bc08",
+    "semantic_hash": "6e662ecd38666f30241cd51b0067bc08"
+  },
+  "frontend/src/app/core/utils/imagem.util.spec.ts": {
+    "mtime": 1783690159.8580766,
+    "ast_hash": "913b2729d0c48bdcae5a633c7e22ef02",
+    "semantic_hash": "913b2729d0c48bdcae5a633c7e22ef02"
+  },
+  "frontend/src/app/core/utils/imagem.util.ts": {
+    "mtime": 1783690159.8608305,
+    "ast_hash": "406e6fa6203509b1d1a94ffca1782882",
+    "semantic_hash": "406e6fa6203509b1d1a94ffca1782882"
+  },
+  "frontend/src/app/core/utils/profile-redirect.ts": {
+    "mtime": 1783075787.9396553,
+    "ast_hash": "c34e99babb3d79a619bbd7c1fe28d551",
+    "semantic_hash": "c34e99babb3d79a619bbd7c1fe28d551"
+  },
+  "frontend/src/app/features/cozinha/cozinha.spec.ts": {
+    "mtime": 1783426881.015196,
+    "ast_hash": "09cf225ec939cfcdcd0db41ac7cb4f28",
+    "semantic_hash": "09cf225ec939cfcdcd0db41ac7cb4f28"
+  },
+  "frontend/src/app/features/cozinha/cozinha.ts": {
+    "mtime": 1783690146.3859396,
+    "ast_hash": "65c01902c129a756b06696c07b920900",
+    "semantic_hash": "65c01902c129a756b06696c07b920900"
+  },
+  "frontend/src/app/features/customer-cart/components/cart-actions/cart-actions.ts": {
+    "mtime": 1783690146.3969343,
+    "ast_hash": "5f476c484846440fa9ffd42be6bc09c3",
+    "semantic_hash": "5f476c484846440fa9ffd42be6bc09c3"
+  },
+  "frontend/src/app/features/customer-cart/components/cart-item-card/cart-item-card.ts": {
+    "mtime": 1783690146.404364,
+    "ast_hash": "30480fd74324a6c7f14679e0d23d8f35",
+    "semantic_hash": "30480fd74324a6c7f14679e0d23d8f35"
+  },
+  "frontend/src/app/features/customer-cart/components/cart-summary/cart-summary.ts": {
+    "mtime": 1783690146.4136412,
+    "ast_hash": "1404c4d9f2c90cb35c61bcecea57bdee",
+    "semantic_hash": "1404c4d9f2c90cb35c61bcecea57bdee"
+  },
+  "frontend/src/app/features/customer-cart/components/customer-cart-header/customer-cart-header.ts": {
+    "mtime": 1783690146.425141,
+    "ast_hash": "40acec0663f6eb45336049ee1365a9bb",
+    "semantic_hash": "40acec0663f6eb45336049ee1365a9bb"
+  },
+  "frontend/src/app/features/customer-cart/components/empty-cart/empty-cart.ts": {
+    "mtime": 1783690146.4331462,
+    "ast_hash": "f9dde1b11363a40c10594aaaa30befb3",
+    "semantic_hash": "f9dde1b11363a40c10594aaaa30befb3"
+  },
+  "frontend/src/app/features/customer-cart/customer-cart.ts": {
+    "mtime": 1783690146.4392576,
+    "ast_hash": "62b90f9fe91071d384f15a53fd1b59cf",
+    "semantic_hash": "62b90f9fe91071d384f15a53fd1b59cf"
+  },
+  "frontend/src/app/features/customer-home/components/category-carousel/category-carousel.ts": {
+    "mtime": 1783690146.449064,
+    "ast_hash": "1313225bc208added86f02e4fd856945",
+    "semantic_hash": "1313225bc208added86f02e4fd856945"
+  },
+  "frontend/src/app/features/customer-home/components/customer-footer/customer-footer.ts": {
+    "mtime": 1783690146.460082,
+    "ast_hash": "df7ef7e50f322e0622f37fb7489ad332",
+    "semantic_hash": "df7ef7e50f322e0622f37fb7489ad332"
+  },
+  "frontend/src/app/features/customer-home/components/customer-hero/customer-hero.ts": {
+    "mtime": 1783690146.4711206,
+    "ast_hash": "d94027f9f51fb7e1cfb9e012161d0a29",
+    "semantic_hash": "d94027f9f51fb7e1cfb9e012161d0a29"
+  },
+  "frontend/src/app/features/customer-home/components/customer-home-header/customer-home-header.ts": {
+    "mtime": 1783690146.4820867,
+    "ast_hash": "65759721fddb007039ba9f8226e538d7",
+    "semantic_hash": "65759721fddb007039ba9f8226e538d7"
+  },
+  "frontend/src/app/features/customer-home/components/menu-filter-bar/menu-filter-bar.ts": {
+    "mtime": 1783690146.4939127,
+    "ast_hash": "05a3b6e85de834f6fae2d1fcfaa3e060",
+    "semantic_hash": "05a3b6e85de834f6fae2d1fcfaa3e060"
+  },
+  "frontend/src/app/features/customer-home/components/product-details-modal/product-details-modal.ts": {
+    "mtime": 1783690146.5044382,
+    "ast_hash": "510869e3ebc6b30a011323c98542750c",
+    "semantic_hash": "510869e3ebc6b30a011323c98542750c"
+  },
+  "frontend/src/app/features/customer-home/components/product-grid/product-grid.ts": {
+    "mtime": 1783690146.51328,
+    "ast_hash": "6858461ea49b3e73bde42258b746e54f",
+    "semantic_hash": "6858461ea49b3e73bde42258b746e54f"
+  },
+  "frontend/src/app/features/customer-home/customer-home.ts": {
+    "mtime": 1783690146.5243647,
+    "ast_hash": "699f9c6a7548cf693f0a3c593c1679fe",
+    "semantic_hash": "699f9c6a7548cf693f0a3c593c1679fe"
+  },
+  "frontend/src/app/features/customer-orders/customer-orders.ts": {
+    "mtime": 1783690146.5348084,
+    "ast_hash": "b9596898770dd0f789145cda240ab97a",
+    "semantic_hash": "b9596898770dd0f789145cda240ab97a"
+  },
+  "frontend/src/app/features/garcom/garcom.spec.ts": {
+    "mtime": 1783434025.9054112,
+    "ast_hash": "c297fabb9adbd576eac625f7882497cd",
+    "semantic_hash": "c297fabb9adbd576eac625f7882497cd"
+  },
+  "frontend/src/app/features/garcom/garcom.ts": {
+    "mtime": 1783426881.0407157,
+    "ast_hash": "dbe01455a08a33f052d2b42e13fde27c",
+    "semantic_hash": "dbe01455a08a33f052d2b42e13fde27c"
+  },
+  "frontend/src/app/features/gestor/gestor.spec.ts": {
+    "mtime": 1783690159.3352046,
+    "ast_hash": "16d45fa906ecf326bd23731f2860f609",
+    "semantic_hash": "16d45fa906ecf326bd23731f2860f609"
+  },
+  "frontend/src/app/features/gestor/gestor.ts": {
+    "mtime": 1783513287.0026846,
+    "ast_hash": "6b0265aa2219c8d5c6e767b6b72bcdfb",
+    "semantic_hash": "6b0265aa2219c8d5c6e767b6b72bcdfb"
+  },
+  "frontend/src/app/features/home/home.spec.ts": {
+    "mtime": 1782926116.3425298,
+    "ast_hash": "66cc768ded22c6169dabb7a930376226",
+    "semantic_hash": "66cc768ded22c6169dabb7a930376226"
+  },
+  "frontend/src/app/features/home/home.ts": {
+    "mtime": 1782926116.3467133,
+    "ast_hash": "aeba818a6d392b78d8f017faf43d4e0c",
+    "semantic_hash": "aeba818a6d392b78d8f017faf43d4e0c"
+  },
+  "frontend/src/app/features/login/components/login-footer/login-footer.ts": {
+    "mtime": 1783690146.5456672,
+    "ast_hash": "370c7e9fb13adabca93de2bf96a40cc9",
+    "semantic_hash": "370c7e9fb13adabca93de2bf96a40cc9"
+  },
+  "frontend/src/app/features/login/components/login-form/login-form.ts": {
+    "mtime": 1783690146.557947,
+    "ast_hash": "918a0e0512b01d29d79262a6f03d9816",
+    "semantic_hash": "918a0e0512b01d29d79262a6f03d9816"
+  },
+  "frontend/src/app/features/login/login.spec.ts": {
+    "mtime": 1783075787.9406555,
+    "ast_hash": "6a8bd0f907006ae32deb6b0379c5b2ae",
+    "semantic_hash": "6a8bd0f907006ae32deb6b0379c5b2ae"
+  },
+  "frontend/src/app/features/login/login.ts": {
+    "mtime": 1783690146.571132,
+    "ast_hash": "79f6d2914fdd2de636d0ae682ceffadc",
+    "semantic_hash": "79f6d2914fdd2de636d0ae682ceffadc"
+  },
+  "frontend/src/app/features/mesa/mesa.spec.ts": {
+    "mtime": 1783434033.0618267,
+    "ast_hash": "35d00793e5fc9b2cc0cc3b7191cd6017",
+    "semantic_hash": "35d00793e5fc9b2cc0cc3b7191cd6017"
+  },
+  "frontend/src/app/features/mesa/mesa.ts": {
+    "mtime": 1783426881.0599935,
+    "ast_hash": "65e5296c541ba48ff3114627d9a469ac",
+    "semantic_hash": "65e5296c541ba48ff3114627d9a469ac"
+  },
+  "frontend/src/app/features/order-error/order-error.ts": {
+    "mtime": 1783690146.5801747,
+    "ast_hash": "bbea640dda52a1d2d84b4a3c6eb2e148",
+    "semantic_hash": "bbea640dda52a1d2d84b4a3c6eb2e148"
+  },
+  "frontend/src/app/features/order-success/components/order-success-content/order-success-content.ts": {
+    "mtime": 1783690146.591149,
+    "ast_hash": "8e0525480f799a0d7b41b7c9c8cbcba7",
+    "semantic_hash": "8e0525480f799a0d7b41b7c9c8cbcba7"
+  },
+  "frontend/src/app/features/order-success/order-success.ts": {
+    "mtime": 1783690146.6028216,
+    "ast_hash": "386998879700c14493c7d49ad758a6be",
+    "semantic_hash": "386998879700c14493c7d49ad758a6be"
+  },
+  "frontend/src/app/features/produtos/produto-cadastro.spec.ts": {
+    "mtime": 1783690159.8824277,
+    "ast_hash": "70adeada4fc47e578f17a5ae9162f05a",
+    "semantic_hash": "70adeada4fc47e578f17a5ae9162f05a"
+  },
+  "frontend/src/app/features/produtos/produto-cadastro.ts": {
+    "mtime": 1783690159.887812,
+    "ast_hash": "ad84021d3598d28c3806485e17742865",
+    "semantic_hash": "ad84021d3598d28c3806485e17742865"
+  },
+  "frontend/src/app/features/totem/totem.spec.ts": {
+    "mtime": 1782926116.4000444,
+    "ast_hash": "7509963084ae5934960bc1c221fa536c",
+    "semantic_hash": "7509963084ae5934960bc1c221fa536c"
+  },
+  "frontend/src/app/features/totem/totem.ts": {
+    "mtime": 1782926116.4030447,
+    "ast_hash": "605284dba1af363645ac49993fbbb47d",
+    "semantic_hash": "605284dba1af363645ac49993fbbb47d"
+  },
+  "frontend/src/app/shared/components/avatar/avatar.ts": {
+    "mtime": 1783340600.5686898,
+    "ast_hash": "41a3c852deef51735ad74596d37d4af4",
+    "semantic_hash": "41a3c852deef51735ad74596d37d4af4"
+  },
+  "frontend/src/app/shared/components/badge/badge.ts": {
+    "mtime": 1783354605.9053185,
+    "ast_hash": "0c63f30193f4a9c16105c63c90984c57",
+    "semantic_hash": "0c63f30193f4a9c16105c63c90984c57"
+  },
+  "frontend/src/app/shared/components/floating-cart-button/floating-cart-button.ts": {
+    "mtime": 1783690146.6087484,
+    "ast_hash": "96ba79defbc296026efeefdcfe422ced",
+    "semantic_hash": "96ba79defbc296026efeefdcfe422ced"
+  },
+  "frontend/src/app/shared/components/footer/footer.spec.ts": {
+    "mtime": 1782926116.417761,
+    "ast_hash": "40f1537953b4d675e5bf6e969f5f4020",
+    "semantic_hash": "40f1537953b4d675e5bf6e969f5f4020"
+  },
+  "frontend/src/app/shared/components/footer/footer.ts": {
+    "mtime": 1782926116.4230845,
+    "ast_hash": "d17113bb79ef64e263b5c48a8e4aba75",
+    "semantic_hash": "d17113bb79ef64e263b5c48a8e4aba75"
+  },
+  "frontend/src/app/shared/components/header/header.spec.ts": {
+    "mtime": 1783512811.8159187,
+    "ast_hash": "1f6c4f9c326b09a90ddc27b0920d37bc",
+    "semantic_hash": "1f6c4f9c326b09a90ddc27b0920d37bc"
+  },
+  "frontend/src/app/shared/components/header/header.ts": {
+    "mtime": 1783512721.1314044,
+    "ast_hash": "18bd505315a5c2bda58dae6246b2a199",
+    "semantic_hash": "18bd505315a5c2bda58dae6246b2a199"
+  },
+  "frontend/src/app/shared/components/icon/icon.ts": {
+    "mtime": 1783345329.2636032,
+    "ast_hash": "747e151d69029d6c067106ff7eb05f1f",
+    "semantic_hash": "747e151d69029d6c067106ff7eb05f1f"
+  },
+  "frontend/src/app/shared/components/kpi-card/kpi-card.ts": {
+    "mtime": 1783426420.56477,
+    "ast_hash": "1144b14d03a29051fbfff9208a20886c",
+    "semantic_hash": "1144b14d03a29051fbfff9208a20886c"
+  },
+  "frontend/src/app/shared/components/mesa-card/mesa-card.spec.ts": {
+    "mtime": 1783525515.2702272,
+    "ast_hash": "cdd05b721455711a9b0fe8d8f688ffa3",
+    "semantic_hash": "cdd05b721455711a9b0fe8d8f688ffa3"
+  },
+  "frontend/src/app/shared/components/mesa-card/mesa-card.ts": {
+    "mtime": 1783512890.8841767,
+    "ast_hash": "fb79fe3c3c8941a7373af79bcf6c8f53",
+    "semantic_hash": "fb79fe3c3c8941a7373af79bcf6c8f53"
+  },
+  "frontend/src/app/shared/components/progress-bar/progress-bar.ts": {
+    "mtime": 1783340593.9422472,
+    "ast_hash": "e9a09b6424a2011d72401c79050f2720",
+    "semantic_hash": "e9a09b6424a2011d72401c79050f2720"
+  },
+  "frontend/src/app/shared/components/sidebar/sidebar.spec.ts": {
+    "mtime": 1783690159.353872,
+    "ast_hash": "75b59cf7a44fa5d5a34e811c75db0f1a",
+    "semantic_hash": "75b59cf7a44fa5d5a34e811c75db0f1a"
+  },
+  "frontend/src/app/shared/components/sidebar/sidebar.ts": {
+    "mtime": 1783690159.3587296,
+    "ast_hash": "232f6be08095038159ce8a430169420c",
+    "semantic_hash": "232f6be08095038159ce8a430169420c"
+  },
+  "frontend/src/app/shared/components/waiter-load-item/waiter-load-item.ts": {
+    "mtime": 1783340613.6792684,
+    "ast_hash": "5a154ff8cf747f68d6937f2ff955eb84",
+    "semantic_hash": "5a154ff8cf747f68d6937f2ff955eb84"
+  },
+  "frontend/src/environments/environment.ts": {
+    "mtime": 1782926116.4782207,
+    "ast_hash": "e61c73617b5234bbc4923e01efa2b08c",
+    "semantic_hash": "e61c73617b5234bbc4923e01efa2b08c"
+  },
+  "frontend/src/main.ts": {
+    "mtime": 1782926116.4832184,
+    "ast_hash": "1289536d6d8f94242a4ffc598d094633",
+    "semantic_hash": "1289536d6d8f94242a4ffc598d094633"
+  },
+  "frontend/tsconfig.app.json": {
+    "mtime": 1782926116.4893205,
+    "ast_hash": "d938417db99887aa104dcac0c3b2b55c",
+    "semantic_hash": "d938417db99887aa104dcac0c3b2b55c"
+  },
+  "frontend/tsconfig.json": {
+    "mtime": 1782926116.492335,
+    "ast_hash": "46e70ba7bf6d021351390882a69f0ba9",
+    "semantic_hash": "46e70ba7bf6d021351390882a69f0ba9"
+  },
+  "frontend/tsconfig.spec.json": {
+    "mtime": 1783075787.9436545,
+    "ast_hash": "1529fd46ef8be1ffec428d02ae470e4f",
+    "semantic_hash": "1529fd46ef8be1ffec428d02ae470e4f"
+  },
+  "start-all.ps1": {
+    "mtime": 1783525546.7778015,
+    "ast_hash": "d88ad46566d5f50587ef47a0e96fd83f",
+    "semantic_hash": "d88ad46566d5f50587ef47a0e96fd83f"
+  },
+  "DIAGNOSTICO-LENTIDAO-GESTOR.md": {
+    "mtime": 1783446583.707486,
+    "ast_hash": "96b4e6aa0702080554e0d15dfa264da3",
+    "semantic_hash": "96b4e6aa0702080554e0d15dfa264da3"
+  },
+  "README.md": {
+    "mtime": 1783075787.6611238,
+    "ast_hash": "7216c68de564f2f150272f58150aa26e",
+    "semantic_hash": "7216c68de564f2f150272f58150aa26e"
+  },
+  "REVIEW_MUDANCAS.md": {
+    "mtime": 1783690159.757598,
+    "ast_hash": "2bf60e69320fd7617c81c2de1b4619e1",
+    "semantic_hash": "2bf60e69320fd7617c81c2de1b4619e1"
+  },
+  "backend/bff-restaurante/src/main/resources/application.yaml": {
+    "mtime": 1783081362.2374132,
+    "ast_hash": "d61bf75c45b4c1c7ee2c1b66bd644527",
+    "semantic_hash": "d61bf75c45b4c1c7ee2c1b66bd644527"
+  },
+  "backend/db-migrations/HELP.md": {
+    "mtime": 1782926115.2229986,
+    "ast_hash": "02c81a63103464a4812cefd44ec2d022",
+    "semantic_hash": "02c81a63103464a4812cefd44ec2d022"
+  },
+  "backend/db-migrations/src/main/resources/application.yaml": {
+    "mtime": 1783081362.239835,
+    "ast_hash": "8f58b9768bb2ea7bc02481cd5442cb06",
+    "semantic_hash": "8f58b9768bb2ea7bc02481cd5442cb06"
+  },
+  "backend/ms-cozinha/src/main/resources/application.yaml": {
+    "mtime": 1783446917.545514,
+    "ast_hash": "6eb4fcf425840e65fc3170ebd1d623f3",
+    "semantic_hash": "6eb4fcf425840e65fc3170ebd1d623f3"
+  },
+  "backend/ms-mesas/src/main/resources/application.yaml": {
+    "mtime": 1783446918.6849089,
+    "ast_hash": "9e8e8f5225d8225351bb5c1219701a87",
+    "semantic_hash": "9e8e8f5225d8225351bb5c1219701a87"
+  },
+  "backend/ms-notificacoes/src/main/resources/application.yaml": {
+    "mtime": 1783446920.1256015,
+    "ast_hash": "b5df37976a879064f4b47049f45758d8",
+    "semantic_hash": "b5df37976a879064f4b47049f45758d8"
+  },
+  "backend/ms-pedidos/src/main/resources/application.yaml": {
+    "mtime": 1783446921.9193256,
+    "ast_hash": "a4c01c66218dd3bf169d12bf2a6271b8",
+    "semantic_hash": "a4c01c66218dd3bf169d12bf2a6271b8"
+  },
+  "backend/ms-produtos/src/main/resources/application.yaml": {
+    "mtime": 1783446923.5844493,
+    "ast_hash": "bf72cbf75f1da8441d1da93e1d2519de",
+    "semantic_hash": "bf72cbf75f1da8441d1da93e1d2519de"
+  },
+  "backend/ms-usuarios/docs/criar-usuario-front.md": {
+    "mtime": 1782926115.99429,
+    "ast_hash": "6140075df22dbba6968bc54effce961c",
+    "semantic_hash": "6140075df22dbba6968bc54effce961c"
+  },
+  "backend/ms-usuarios/src/main/resources/application.yaml": {
+    "mtime": 1783446926.3238728,
+    "ast_hash": "27720310e902a848f96f7661b59ad1f8",
+    "semantic_hash": "27720310e902a848f96f7661b59ad1f8"
+  },
+  "docs/backend-expediente-tempo-preparo-problemas.md": {
+    "mtime": 1783508600.0182633,
+    "ast_hash": "903195661dc392f22ef9841d64198f2f",
+    "semantic_hash": "903195661dc392f22ef9841d64198f2f"
+  },
+  "docs/backend-integration-pendencias.md": {
+    "mtime": 1783426880.957897,
+    "ast_hash": "9f13bbbd287d2599cb9ac8a32b913ab6",
+    "semantic_hash": "9f13bbbd287d2599cb9ac8a32b913ab6"
+  },
+  "frontend/README.md": {
+    "mtime": 1783075787.9182541,
+    "ast_hash": "799749186cb862e4ba55e923ab0c09b2",
+    "semantic_hash": "799749186cb862e4ba55e923ab0c09b2"
+  },
+  "frontend/docs/BFF_ORDER_TRACKING_REQUIREMENTS.md": {
+    "mtime": 1783690146.3409805,
+    "ast_hash": "ada7a4a7a59045fc0b3036defd8f9bcc",
+    "semantic_hash": "ada7a4a7a59045fc0b3036defd8f9bcc"
+  },
+  "frontend/docs/ROUTING_PROTECTION.md": {
+    "mtime": 1783075787.9202576,
+    "ast_hash": "9f246d03e7f5786dd6a492a30ab6105d",
+    "semantic_hash": "9f246d03e7f5786dd6a492a30ab6105d"
+  },
+  "frontend/src/app/app.html": {
+    "mtime": 1783690146.3409805,
+    "ast_hash": "6f3dbe67b5264dc799dec49d09f268bc",
+    "semantic_hash": "6f3dbe67b5264dc799dec49d09f268bc"
+  },
+  "frontend/src/app/features/cozinha/cozinha.html": {
+    "mtime": 1783690146.3802624,
+    "ast_hash": "14ca87037cdb4927589974ea54b1c8c7",
+    "semantic_hash": "14ca87037cdb4927589974ea54b1c8c7"
+  },
+  "frontend/src/app/features/customer-cart/components/cart-actions/cart-actions.html": {
+    "mtime": 1783690146.3904543,
+    "ast_hash": "6b06ca9ed37ea0732e83254141ee14a8",
+    "semantic_hash": "6b06ca9ed37ea0732e83254141ee14a8"
+  },
+  "frontend/src/app/features/customer-cart/components/cart-item-card/cart-item-card.html": {
+    "mtime": 1783690146.3993666,
+    "ast_hash": "065e7caa5d2a2ac7dd0c0cd0e394a3e7",
+    "semantic_hash": "065e7caa5d2a2ac7dd0c0cd0e394a3e7"
+  },
+  "frontend/src/app/features/customer-cart/components/cart-summary/cart-summary.html": {
+    "mtime": 1783690146.408392,
+    "ast_hash": "576d7efe69586dbbbed8532cefe51687",
+    "semantic_hash": "576d7efe69586dbbbed8532cefe51687"
+  },
+  "frontend/src/app/features/customer-cart/components/customer-cart-header/customer-cart-header.html": {
+    "mtime": 1783690146.4187932,
+    "ast_hash": "4921ea16cc96910e06cfef94be690d15",
+    "semantic_hash": "4921ea16cc96910e06cfef94be690d15"
+  },
+  "frontend/src/app/features/customer-cart/components/empty-cart/empty-cart.html": {
+    "mtime": 1783690146.4276593,
+    "ast_hash": "851916b77ba553c04d6218908db1c6ca",
+    "semantic_hash": "851916b77ba553c04d6218908db1c6ca"
+  },
+  "frontend/src/app/features/customer-cart/customer-cart.html": {
+    "mtime": 1783690146.4331462,
+    "ast_hash": "65f2afde12b07a028ffe48d080568e39",
+    "semantic_hash": "65f2afde12b07a028ffe48d080568e39"
+  },
+  "frontend/src/app/features/customer-home/components/category-carousel/category-carousel.html": {
+    "mtime": 1783690146.4434862,
+    "ast_hash": "7bfbc25c82e264380e4498d8edb05d29",
+    "semantic_hash": "7bfbc25c82e264380e4498d8edb05d29"
+  },
+  "frontend/src/app/features/customer-home/components/customer-footer/customer-footer.html": {
+    "mtime": 1783690146.453477,
+    "ast_hash": "1517b7c79b96cc00876e159c3fa29003",
+    "semantic_hash": "1517b7c79b96cc00876e159c3fa29003"
+  },
+  "frontend/src/app/features/customer-home/components/customer-hero/customer-hero.html": {
+    "mtime": 1783690146.4649594,
+    "ast_hash": "030fa622634b90c16467f2145e57efc2",
+    "semantic_hash": "030fa622634b90c16467f2145e57efc2"
+  },
+  "frontend/src/app/features/customer-home/components/customer-home-header/customer-home-header.html": {
+    "mtime": 1783690146.4760373,
+    "ast_hash": "98dccc5f364c3e6cabc9936503bd3294",
+    "semantic_hash": "98dccc5f364c3e6cabc9936503bd3294"
+  },
+  "frontend/src/app/features/customer-home/components/menu-filter-bar/menu-filter-bar.html": {
+    "mtime": 1783690146.4863784,
+    "ast_hash": "96aea9b882bf13eb9f064e08d3b5ec1a",
+    "semantic_hash": "96aea9b882bf13eb9f064e08d3b5ec1a"
+  },
+  "frontend/src/app/features/customer-home/components/product-details-modal/product-details-modal.html": {
+    "mtime": 1783690146.4971323,
+    "ast_hash": "067f4d498429d1cd0f1774beae453e0a",
+    "semantic_hash": "067f4d498429d1cd0f1774beae453e0a"
+  },
+  "frontend/src/app/features/customer-home/components/product-grid/product-grid.html": {
+    "mtime": 1783690146.5080786,
+    "ast_hash": "ba510114e1687db9695050b01c768b79",
+    "semantic_hash": "ba510114e1687db9695050b01c768b79"
+  },
+  "frontend/src/app/features/customer-home/customer-home.html": {
+    "mtime": 1783690146.5178924,
+    "ast_hash": "ee130133b5f06770f2293cb63bfa2f19",
+    "semantic_hash": "ee130133b5f06770f2293cb63bfa2f19"
+  },
+  "frontend/src/app/features/customer-orders/customer-orders.html": {
+    "mtime": 1783690146.5283606,
+    "ast_hash": "16d472684e3461b5816fe5d2c0fda128",
+    "semantic_hash": "16d472684e3461b5816fe5d2c0fda128"
+  },
+  "frontend/src/app/features/garcom/garcom.html": {
+    "mtime": 1783426881.0263546,
+    "ast_hash": "0315f46c5615bc9b931fea92b68e3122",
+    "semantic_hash": "0315f46c5615bc9b931fea92b68e3122"
+  },
+  "frontend/src/app/features/gestor/gestor.html": {
+    "mtime": 1783513178.038822,
+    "ast_hash": "5415bf20ac114a7cd9b43f05c39c8923",
+    "semantic_hash": "5415bf20ac114a7cd9b43f05c39c8923"
+  },
+  "frontend/src/app/features/home/home.html": {
+    "mtime": 1782926116.3351953,
+    "ast_hash": "c8b6ff679f7c6d1617db236c9e4ead61",
+    "semantic_hash": "c8b6ff679f7c6d1617db236c9e4ead61"
+  },
+  "frontend/src/app/features/login/components/login-footer/login-footer.html": {
+    "mtime": 1783690146.5372627,
+    "ast_hash": "81303fd3e0ab1e92f8e14851a2e3b035",
+    "semantic_hash": "81303fd3e0ab1e92f8e14851a2e3b035"
+  },
+  "frontend/src/app/features/login/components/login-form/login-form.html": {
+    "mtime": 1783690146.5514832,
+    "ast_hash": "7eab2ef4403815de252872922a35bdde",
+    "semantic_hash": "7eab2ef4403815de252872922a35bdde"
+  },
+  "frontend/src/app/features/login/login.html": {
+    "mtime": 1783690146.5621634,
+    "ast_hash": "ed8dc9134aab4b0a285d4aff8cc9204b",
+    "semantic_hash": "ed8dc9134aab4b0a285d4aff8cc9204b"
+  },
+  "frontend/src/app/features/mesa/mesa.html": {
+    "mtime": 1783426881.0453022,
+    "ast_hash": "4e2ff12bb6dda1c3a3a0b554f9eea4f2",
+    "semantic_hash": "4e2ff12bb6dda1c3a3a0b554f9eea4f2"
+  },
+  "frontend/src/app/features/order-error/order-error.html": {
+    "mtime": 1783690146.5743213,
+    "ast_hash": "62aaf43475e4edf32f374944a7c56c38",
+    "semantic_hash": "62aaf43475e4edf32f374944a7c56c38"
+  },
+  "frontend/src/app/features/order-success/components/order-success-content/order-success-content.html": {
+    "mtime": 1783690146.5859246,
+    "ast_hash": "476253d8db6044bc376a453f450e0a16",
+    "semantic_hash": "476253d8db6044bc376a453f450e0a16"
+  },
+  "frontend/src/app/features/order-success/order-success.html": {
+    "mtime": 1783690146.5961826,
+    "ast_hash": "2f9602b6764815024fe7429f20fcd97f",
+    "semantic_hash": "2f9602b6764815024fe7429f20fcd97f"
+  },
+  "frontend/src/app/features/produtos/produto-cadastro.html": {
+    "mtime": 1783690159.868933,
+    "ast_hash": "d8e440f41ddb1096d9507bf483d03174",
+    "semantic_hash": "d8e440f41ddb1096d9507bf483d03174"
+  },
+  "frontend/src/app/features/totem/totem.html": {
+    "mtime": 1782926116.3954155,
+    "ast_hash": "657815b890e5026ffd384ccade98d173",
+    "semantic_hash": "657815b890e5026ffd384ccade98d173"
+  },
+  "frontend/src/app/shared/components/floating-cart-button/floating-cart-button.html": {
+    "mtime": 1783690146.6048117,
+    "ast_hash": "3a0ff398028e66f646e5d63a57f61ea4",
+    "semantic_hash": "3a0ff398028e66f646e5d63a57f61ea4"
+  },
+  "frontend/src/app/shared/components/footer/footer.html": {
+    "mtime": 1782926116.411897,
+    "ast_hash": "7a3e1300d5fb73942ff147d8da0763a8",
+    "semantic_hash": "7a3e1300d5fb73942ff147d8da0763a8"
+  },
+  "frontend/src/app/shared/components/header/header.html": {
+    "mtime": 1783512735.0165527,
+    "ast_hash": "ae0c3020ff812bd856a36a5ae6b56eb1",
+    "semantic_hash": "ae0c3020ff812bd856a36a5ae6b56eb1"
+  },
+  "frontend/src/app/shared/components/mesa-card/mesa-card.html": {
+    "mtime": 1783512925.78395,
+    "ast_hash": "b5cd36209eaa33da7913bb1425565777",
+    "semantic_hash": "b5cd36209eaa33da7913bb1425565777"
+  },
+  "frontend/src/app/shared/components/sidebar/sidebar.html": {
+    "mtime": 1783690159.3438737,
+    "ast_hash": "f92f6a2f08d3133adba4b89ab10411a2",
+    "semantic_hash": "f92f6a2f08d3133adba4b89ab10411a2"
+  },
+  "frontend/src/index.html": {
+    "mtime": 1782930200.0490892,
+    "ast_hash": "20c687dc6585f5742b4fbd6b10aa019a",
+    "semantic_hash": "20c687dc6585f5742b4fbd6b10aa019a"
+  },
+  "frontend/src/assets/banner1.png": {
+    "mtime": 1783427710.2367992,
+    "ast_hash": "52da45eee2343e63203a7c9e46aa3d1b",
+    "semantic_hash": "52da45eee2343e63203a7c9e46aa3d1b"
+  },
+  "frontend/src/assets/banner2.png": {
+    "mtime": 1783427710.238688,
+    "ast_hash": "74b1ec947468dfc46d42afd0c6304799",
+    "semantic_hash": "74b1ec947468dfc46d42afd0c6304799"
+  },
+  "frontend/src/assets/icons/armchair.svg": {
+    "mtime": 1783345404.949969,
+    "ast_hash": "77027f76d19d97813ad1f0867b92d1cb",
+    "semantic_hash": "77027f76d19d97813ad1f0867b92d1cb"
+  },
+  "frontend/src/assets/icons/arrow-right.svg": {
+    "mtime": 1783356974.1925135,
+    "ast_hash": "3f5f856b0bcc5c10bea759681d11b03c",
+    "semantic_hash": "3f5f856b0bcc5c10bea759681d11b03c"
+  },
+  "frontend/src/assets/icons/arrows-counter-clockwise.svg": {
+    "mtime": 1783346884.1501405,
+    "ast_hash": "0185da14471189fc0f2f812894aa935a",
+    "semantic_hash": "0185da14471189fc0f2f812894aa935a"
+  },
+  "frontend/src/assets/icons/bag.svg": {
+    "mtime": 1783345695.4193845,
+    "ast_hash": "0f5e85b39a553e0d36446cec78be785c",
+    "semantic_hash": "0f5e85b39a553e0d36446cec78be785c"
+  },
+  "frontend/src/assets/icons/bell-ringing.svg": {
+    "mtime": 1783345725.2498157,
+    "ast_hash": "57730153633e42571a2eda641cd61a31",
+    "semantic_hash": "57730153633e42571a2eda641cd61a31"
+  },
+  "frontend/src/assets/icons/bell-simple-ringing.svg": {
+    "mtime": 1783345732.2598238,
+    "ast_hash": "0600aae879aff2fe8dbb6b272c49b36a",
+    "semantic_hash": "0600aae879aff2fe8dbb6b272c49b36a"
+  },
+  "frontend/src/assets/icons/bell-simple.svg": {
+    "mtime": 1783345730.9977813,
+    "ast_hash": "9dfb1bb4c000649f31e58d4f1f2e825b",
+    "semantic_hash": "9dfb1bb4c000649f31e58d4f1f2e825b"
+  },
+  "frontend/src/assets/icons/bowl-steam.svg": {
+    "mtime": 1783346936.5889385,
+    "ast_hash": "a21344ff46fbef9190a022ee871ceb2b",
+    "semantic_hash": "a21344ff46fbef9190a022ee871ceb2b"
+  },
+  "frontend/src/assets/icons/briefcase.svg": {
+    "mtime": 1783345746.2966974,
+    "ast_hash": "15c0ad43f8461e4ab56a30d4444946d7",
+    "semantic_hash": "15c0ad43f8461e4ab56a30d4444946d7"
+  },
+  "frontend/src/assets/icons/call-bell.svg": {
+    "mtime": 1783344628.8373826,
+    "ast_hash": "8350e1c208bfd32a54090179644a6cd7",
+    "semantic_hash": "8350e1c208bfd32a54090179644a6cd7"
+  },
+  "frontend/src/assets/icons/cart.svg": {
+    "mtime": 1783427710.2437284,
+    "ast_hash": "57e3b6472f64ac906b272c2cac6666d0",
+    "semantic_hash": "57e3b6472f64ac906b272c2cac6666d0"
+  },
+  "frontend/src/assets/icons/cash-register.svg": {
+    "mtime": 1783344667.2762823,
+    "ast_hash": "715e3368f8878a23fa69c36de286a86d",
+    "semantic_hash": "715e3368f8878a23fa69c36de286a86d"
+  },
+  "frontend/src/assets/icons/chart-line.svg": {
+    "mtime": 1783344680.5827007,
+    "ast_hash": "a40f4839cbdcf56ba1cbf778b0e84475",
+    "semantic_hash": "a40f4839cbdcf56ba1cbf778b0e84475"
+  },
+  "frontend/src/assets/icons/check-circle.svg": {
+    "mtime": 1783346308.8208156,
+    "ast_hash": "6cdb110b4bdc301041b535cc039aa82f",
+    "semantic_hash": "6cdb110b4bdc301041b535cc039aa82f"
+  },
+  "frontend/src/assets/icons/check.svg": {
+    "mtime": 1783344691.747229,
+    "ast_hash": "f1858550203d21a9c7b922c861b19a84",
+    "semantic_hash": "f1858550203d21a9c7b922c861b19a84"
+  },
+  "frontend/src/assets/icons/cooking-pot.svg": {
+    "mtime": 1783345482.321981,
+    "ast_hash": "9d2d197831591d27302d48b30b960abb",
+    "semantic_hash": "9d2d197831591d27302d48b30b960abb"
+  },
+  "frontend/src/assets/icons/device-rotate.svg": {
+    "mtime": 1783344821.6804268,
+    "ast_hash": "998d4193baa90c16876dc2c1630e4d9e",
+    "semantic_hash": "998d4193baa90c16876dc2c1630e4d9e"
+  },
+  "frontend/src/assets/icons/eye-closed.svg": {
+    "mtime": 1783344862.7092066,
+    "ast_hash": "b2b894a1384d313a8089f9458b1b14f1",
+    "semantic_hash": "b2b894a1384d313a8089f9458b1b14f1"
+  },
+  "frontend/src/assets/icons/eye-off.svg": {
+    "mtime": 1783356974.1957166,
+    "ast_hash": "7cba33281d44541d81bd3fa9172a7343",
+    "semantic_hash": "7cba33281d44541d81bd3fa9172a7343"
+  },
+  "frontend/src/assets/icons/eye.svg": {
+    "mtime": 1783356974.2003584,
+    "ast_hash": "d79a376eedfd398e3d8f744a8f899a41",
+    "semantic_hash": "d79a376eedfd398e3d8f744a8f899a41"
+  },
+  "frontend/src/assets/icons/fork-knife.svg": {
+    "mtime": 1783345458.5069575,
+    "ast_hash": "218b1503d529abe5ddab530b2ce1ecbc",
+    "semantic_hash": "218b1503d529abe5ddab530b2ce1ecbc"
+  },
+  "frontend/src/assets/icons/gear-six.svg": {
+    "mtime": 1783425401.869862,
+    "ast_hash": "b7ffb9ce6789a13a99ecc2507b41f72c",
+    "semantic_hash": "b7ffb9ce6789a13a99ecc2507b41f72c"
+  },
+  "frontend/src/assets/icons/hamburger.svg": {
+    "mtime": 1783347243.0733776,
+    "ast_hash": "0256496fbd0a90edae618201c4234edd",
+    "semantic_hash": "0256496fbd0a90edae618201c4234edd"
+  },
+  "frontend/src/assets/icons/location.svg": {
+    "mtime": 1783427710.245752,
+    "ast_hash": "713c50049b2761bbed52e76a2c40854b",
+    "semantic_hash": "713c50049b2761bbed52e76a2c40854b"
+  },
+  "frontend/src/assets/icons/magnifying-glass.svg": {
+    "mtime": 1783346488.5674043,
+    "ast_hash": "82c5d45eac16c7b10d441c7765f68c53",
+    "semantic_hash": "82c5d45eac16c7b10d441c7765f68c53"
+  },
+  "frontend/src/assets/icons/mail.svg": {
+    "mtime": 1783356974.2028232,
+    "ast_hash": "d5b2551a7386210667c947ff3bb57ace",
+    "semantic_hash": "d5b2551a7386210667c947ff3bb57ace"
+  },
+  "frontend/src/assets/icons/menu.svg": {
+    "mtime": 1783427710.2473228,
+    "ast_hash": "a3b7f32085e6507eadbe2b814051cddf",
+    "semantic_hash": "a3b7f32085e6507eadbe2b814051cddf"
+  },
+  "frontend/src/assets/icons/phone.svg": {
+    "mtime": 1783427710.2512639,
+    "ast_hash": "a662e7d75deda904f88695d76a4ff2a7",
+    "semantic_hash": "a662e7d75deda904f88695d76a4ff2a7"
+  },
+  "frontend/src/assets/icons/picnic-table.svg": {
+    "mtime": 1783344534.129735,
+    "ast_hash": "289716683be56e1c5f4db26581d493cc",
+    "semantic_hash": "289716683be56e1c5f4db26581d493cc"
+  },
+  "frontend/src/assets/icons/piggy-bank.svg": {
+    "mtime": 1783346800.70558,
+    "ast_hash": "48883d9e8deb39138103b6fc4dfea407",
+    "semantic_hash": "48883d9e8deb39138103b6fc4dfea407"
+  },
+  "frontend/src/assets/icons/play.svg": {
+    "mtime": 1783345000.8360643,
+    "ast_hash": "cd6841a9cb627818d2b3d489b15e363b",
+    "semantic_hash": "cd6841a9cb627818d2b3d489b15e363b"
+  },
+  "frontend/src/assets/icons/plus.svg": {
+    "mtime": 1783427710.2534878,
+    "ast_hash": "834959518ab135e6e05a462b575d8390",
+    "semantic_hash": "834959518ab135e6e05a462b575d8390"
+  },
+  "frontend/src/assets/icons/shield.svg": {
+    "mtime": 1783356974.2062545,
+    "ast_hash": "9e04cbeb70ffd4089056082e3ba4d25d",
+    "semantic_hash": "9e04cbeb70ffd4089056082e3ba4d25d"
+  },
+  "frontend/src/assets/icons/shirt-folded.svg": {
+    "mtime": 1783345035.4602964,
+    "ast_hash": "6fcbf0e043611663793a8130c5e4c0c4",
+    "semantic_hash": "6fcbf0e043611663793a8130c5e4c0c4"
+  },
+  "frontend/src/assets/icons/sign-out.svg": {
+    "mtime": 1783345049.4253156,
+    "ast_hash": "3129fa250928f5550a9b459ff29d4e22",
+    "semantic_hash": "3129fa250928f5550a9b459ff29d4e22"
+  },
+  "frontend/src/assets/icons/siren.svg": {
+    "mtime": 1783345044.7029374,
+    "ast_hash": "e851417ae9894dce245783c7416346ff",
+    "semantic_hash": "e851417ae9894dce245783c7416346ff"
+  },
+  "frontend/src/assets/icons/user-circle.svg": {
+    "mtime": 1783345108.5547764,
+    "ast_hash": "8d3f5f376e92158faca6d93699fac70b",
+    "semantic_hash": "8d3f5f376e92158faca6d93699fac70b"
+  },
+  "frontend/src/assets/icons/user.svg": {
+    "mtime": 1783345098.1051717,
+    "ast_hash": "6acb283a21e20a17aa1747363d14f92c",
+    "semantic_hash": "6acb283a21e20a17aa1747363d14f92c"
+  },
+  "frontend/src/assets/icons/warning-circle.svg": {
+    "mtime": 1783346330.5796094,
+    "ast_hash": "4ab601ec5f870758af4b698467623388",
+    "semantic_hash": "4ab601ec5f870758af4b698467623388"
+  },
+  "frontend/src/assets/images/category-placeholder.svg": {
+    "mtime": 1783427710.257414,
+    "ast_hash": "86ad39d88698a94e148e7b8d241b7cd5",
+    "semantic_hash": "86ad39d88698a94e148e7b8d241b7cd5"
+  },
+  "frontend/src/assets/images/entradas.png": {
+    "mtime": 1783427710.2611046,
+    "ast_hash": "fd9f9f2c59fecf762ac6a1f2bd72dd9e",
+    "semantic_hash": "fd9f9f2c59fecf762ac6a1f2bd72dd9e"
+  },
+  "frontend/src/assets/images/flor-e-listra-fourkitchen.png": {
+    "mtime": 1783690159.377534,
+    "ast_hash": "18466375cd0b9355e94c12a710ff4e3c",
+    "semantic_hash": "18466375cd0b9355e94c12a710ff4e3c"
+  },
+  "frontend/src/assets/images/fourkitchen-logo.png": {
+    "mtime": 1782926116.4682355,
+    "ast_hash": "08113f1c0623ddea1749acf198a8a733",
+    "semantic_hash": "08113f1c0623ddea1749acf198a8a733"
+  },
+  "frontend/src/assets/images/japonesa.png": {
+    "mtime": 1783427710.263011,
+    "ast_hash": "782dff39a93cbb4687d91315edcdf1fa",
+    "semantic_hash": "782dff39a93cbb4687d91315edcdf1fa"
+  },
+  "frontend/src/assets/images/listra-fourkitchen.png": {
+    "mtime": 1783690159.3888688,
+    "ast_hash": "c14dbd7a522e57251781f6884e32b1d2",
+    "semantic_hash": "c14dbd7a522e57251781f6884e32b1d2"
+  },
+  "frontend/src/assets/images/login-leaves.png": {
+    "mtime": 1782926116.4722073,
+    "ast_hash": "3131ce6d2d19e5dfa60364cd5919a64d",
+    "semantic_hash": "3131ce6d2d19e5dfa60364cd5919a64d"
+  },
+  "frontend/src/assets/images/menu-cardapio.png": {
+    "mtime": 1783427710.2741618,
+    "ast_hash": "b1f00720239c307fabfd330cdb159b4d",
+    "semantic_hash": "b1f00720239c307fabfd330cdb159b4d"
+  },
+  "frontend/src/assets/images/product-placeholder.svg": {
+    "mtime": 1783427710.27928,
+    "ast_hash": "b73c2646ce2880c930d2ac1f3a3b9bef",
+    "semantic_hash": "b73c2646ce2880c930d2ac1f3a3b9bef"
+  },
+  "frontend/src/assets/images/prontos.png": {
+    "mtime": 1783427710.2838657,
+    "ast_hash": "cdec1108ae1a101a4d567514c954acfc",
+    "semantic_hash": "cdec1108ae1a101a4d567514c954acfc"
+  },
+  "frontend/src/assets/images/vegetariana.png": {
+    "mtime": 1783427710.2908854,
+    "ast_hash": "60861bb40e5184b37238eb82772b108c",
+    "semantic_hash": "60861bb40e5184b37238eb82772b108c"
+  }
+}

@@ -31,7 +31,8 @@ class ProdutoMapperTest {
                 "Artesanal",
                 paraBase64(imagem),
                 new BigDecimal("29.90"),
-                1
+                1,
+                null
         );
 
         Produto produto = criarProdutoRequestMapper.map(request);

@@ -97,7 +97,8 @@ class ProdutoServiceTest {
                 "Artesanal",
                 null,
                 new BigDecimal("29.90"),
-                1
+                1,
+                null
         );
         Categoria categoria = criarCategoria(1, "Lanches", true);
         Produto produtoMapeado = criarProduto(null, "Hamburguer", "Artesanal", "29.90", null, null);
@@ -131,7 +132,8 @@ class ProdutoServiceTest {
                 "Artesanal",
                 null,
                 BigDecimal.ZERO,
-                1
+                1,
+                null
         );
 
         BaseException exception = assertThrows(BaseException.class, () -> produtoService.criarProduto(request));
@@ -149,7 +151,8 @@ class ProdutoServiceTest {
                 "Artesanal",
                 null,
                 new BigDecimal("29.90"),
-                99
+                99,
+                null
         );
 
         when(categoriaRepository.findById(99)).thenReturn(Optional.empty());
@@ -169,7 +172,8 @@ class ProdutoServiceTest {
                 "Artesanal",
                 null,
                 new BigDecimal("29.90"),
-                1
+                1,
+                null
         );
         Categoria categoria = criarCategoria(1, "Lanches", false);
 

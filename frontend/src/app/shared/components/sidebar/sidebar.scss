@@ -105,18 +105,18 @@
   color: var(--fk-on-navy);
 }
 
-/* Folhas + onda decorativas ancoradas logo acima do botão "Sair" (fora do fluxo,
-   para não esticar a sidebar). */
+/* Folhas + onda decorativas na base da sidebar (fora do fluxo, para não esticar).
+   A arte tem o mesmo fundo navy da sidebar, então funde sem emenda. */
 .sidebar__decor {
   position: absolute;
   left: 0;
-  bottom: 3.4rem;
+  bottom: 3.6rem; /* fica logo acima do botão "Sair" */
   z-index: 0;
   width: 100%;
+  max-width: none;
   height: auto;
   pointer-events: none;
   user-select: none;
-  opacity: 0.9;
 }
 
 @media (max-width: 960px) {

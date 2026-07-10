@@ -1,0 +1,283 @@
+<div class="painel">
+  <fk-sidebar (sair)="sair()" />
+
+  <div class="painel__main">
+    <img
+      class="painel__onda"
+      src="assets/images/listra-fourkitchen.png"
+      alt=""
+      aria-hidden="true"
+    />
+
+    <fk-topbar
+      [usuarioNome]="usuario()?.nome ?? 'Usuário'"
+      [usuarioInicial]="iniciais(usuario()?.nome)"
+    />
+
+    <main class="painel__content">
+      <header class="cadastro__cabecalho">
+        <h1>Cadastrar produto</h1>
+        <p>Cadastre novos itens do cardápio com foto, categoria, preço e disponibilidade.</p>
+      </header>
+
+      @if (sucesso(); as msg) {
+        <div class="alerta alerta--sucesso" role="status">
+          <fk-icon name="check-circle" size="1.2rem" />
+          <span>{{ msg }}</span>
+        </div>
+      }
+      @if (erro(); as msg) {
+        <div class="alerta alerta--erro" role="alert">
+          <fk-icon name="warning-circle" size="1.2rem" />
+          <span>{{ msg }}</span>
+        </div>
+      }
+
+      <div class="cadastro__grid">
+        <!-- Formulário ------------------------------------------------------ -->
+        <form class="card cadastro__form" (ngSubmit)="salvar()">
+          <div class="cadastro__form-corpo">
+            <!-- Coluna imagem -->
+            <div class="campo campo--imagem">
+              <label class="campo__label">Imagem do produto</label>
+              <label
+                class="dropzone"
+                [class.dropzone--preenchida]="imagem()"
+                [class.dropzone--arrastando]="arrastando()"
+                (dragover)="aoArrastarSobre($event)"
+                (dragleave)="aoSairDaArea($event)"
+                (drop)="aoSoltarImagem($event)"
+              >
+                @if (imagem(); as src) {
+                  <img class="dropzone__preview" [src]="src" alt="Pré-visualização da imagem do produto" />
+                  <button type="button" class="dropzone__remover" (click)="removerImagem(); $event.preventDefault()">
+                    Remover
+                  </button>
+                } @else {
+                  <span class="dropzone__icone"><fk-icon name="bag" size="1.75rem" /></span>
+                  <span class="dropzone__titulo">Arraste a imagem aqui</span>
+                  <span class="dropzone__acao">ou clique para enviar</span>
+                  <span class="dropzone__dica">PNG, JPG ou WEBP até 5MB</span>
+                }
+                <input
+                  type="file"
+                  class="dropzone__input"
+                  accept="image/png,image/jpeg,image/webp"
+                  (change)="aoSelecionarImagem($event)"
+                />
+              </label>
+            </div>
+
+            <!-- Coluna campos -->
+            <div class="cadastro__campos">
+              <div class="campo">
+                <label class="campo__label" for="nome">Nome do produto <span class="obrigatorio">*</span></label>
+                <input
+                  id="nome"
+                  type="text"
+                  class="input"
+                  [class.input--invalido]="tentouSalvar() && !nomeValido()"
+                  placeholder="Ex.: Filé à Parmegiana"
+                  maxlength="150"
+                  [ngModel]="nome()"
+                  (ngModelChange)="nome.set($event)"
+                  name="nome"
+                  [attr.aria-invalid]="tentouSalvar() && !nomeValido()"
+                  aria-describedby="nome-erro"
+                />
+                @if (tentouSalvar() && !nomeValido()) {
+                  <span class="campo__erro" id="nome-erro">Informe um nome entre 3 e 150 caracteres.</span>
+                }
+              </div>
+
+              <div class="campo">
+                <div class="campo__label-linha">
+                  <label class="campo__label" for="categoria">Categoria <span class="obrigatorio">*</span></label>
+                  @if (!criandoCategoria()) {
+                    <button type="button" class="campo__acao-link" (click)="abrirNovaCategoria()">
+                      <fk-icon name="plus" size="0.9rem" /> Nova categoria
+                    </button>
+                  }
+                </div>
+
+                @if (criandoCategoria()) {
+                  <div class="nova-categoria">
+                    <input
+                      class="input"
+                      type="text"
+                      placeholder="Nome da categoria"
+                      maxlength="80"
+                      aria-label="Nome da nova categoria"
+                      [ngModel]="novaCategoriaNome()"
+                      (ngModelChange)="novaCategoriaNome.set($event)"
+                      (keyup.enter)="salvarCategoria()"
+                      name="novaCategoria"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn--primario btn--sm"
+                      [disabled]="!novaCategoriaValida() || salvandoCategoria()"
+                      (click)="salvarCategoria()"
+                    >
+                      {{ salvandoCategoria() ? '...' : 'Criar' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn--ghost btn--sm"
+                      [disabled]="salvandoCategoria()"
+                      (click)="cancelarNovaCategoria()"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                } @else {
+                  <select
+                    id="categoria"
+                    class="input"
+                    [class.input--invalido]="tentouSalvar() && !categoriaValida()"
+                    [ngModel]="categoriaId()"
+                    (ngModelChange)="categoriaId.set($event)"
+                    name="categoria"
+                    [disabled]="carregandoCategorias()"
+                    [attr.aria-invalid]="tentouSalvar() && !categoriaValida()"
+                    aria-describedby="categoria-erro"
+                  >
+                    <option [ngValue]="null" disabled>
+                      {{ carregandoCategorias() ? 'Carregando categorias...' : 'Selecione uma categoria' }}
+                    </option>
+                    @for (categoria of categorias(); track categoria.id) {
+                      <option [ngValue]="categoria.id">{{ categoria.nome }}</option>
+                    }
+                  </select>
+                }
+                @if (tentouSalvar() && !categoriaValida()) {
+                  <span class="campo__erro" id="categoria-erro">Selecione uma categoria.</span>
+                }
+              </div>
+
+              <div class="campo">
+                <label class="campo__label" for="preco">Preço <span class="obrigatorio">*</span></label>
+                <div class="input input--prefixo" [class.input--invalido]="tentouSalvar() && !precoValido()">
+                  <span class="input__prefixo">R$</span>
+                  <input
+                    id="preco"
+                    type="number"
+                    inputmode="decimal"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="0,00"
+                    [ngModel]="preco()"
+                    (ngModelChange)="atualizarPreco($event)"
+                    name="preco"
+                    [attr.aria-invalid]="tentouSalvar() && !precoValido()"
+                    aria-describedby="preco-erro"
+                  />
+                </div>
+                @if (tentouSalvar() && !precoValido()) {
+                  <span class="campo__erro" id="preco-erro">Informe um preço maior que zero.</span>
+                }
+              </div>
+
+              <div class="campo">
+                <label class="campo__label" for="descricao">Descrição</label>
+                <textarea
+                  id="descricao"
+                  class="input input--textarea"
+                  rows="3"
+                  [maxlength]="descricaoMax"
+                  placeholder="Descreva o produto, ingredientes principais e diferenciais..."
+                  [ngModel]="descricao()"
+                  (ngModelChange)="descricao.set($event)"
+                  name="descricao"
+                ></textarea>
+                <span class="campo__contador">{{ descricao().length }}/{{ descricaoMax }}</span>
+              </div>
+
+              <div class="campo">
+                <span class="campo__label" id="disp-label">Disponibilidade <span class="obrigatorio">*</span></span>
+                <div class="toggle" role="group" aria-labelledby="disp-label">
+                  <button
+                    type="button"
+                    class="toggle__opcao"
+                    [class.toggle__opcao--ativa]="disponivel()"
+                    [attr.aria-pressed]="disponivel()"
+                    (click)="disponivel.set(true)"
+                  >
+                    <fk-icon name="check-circle" size="1.1rem" />
+                    Disponível
+                  </button>
+                  <button
+                    type="button"
+                    class="toggle__opcao"
+                    [class.toggle__opcao--ativa-neg]="!disponivel()"
+                    [attr.aria-pressed]="!disponivel()"
+                    (click)="disponivel.set(false)"
+                  >
+                    <fk-icon name="warning-circle" size="1.1rem" />
+                    Indisponível
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cadastro__acoes">
+            <button type="button" class="btn btn--ghost" (click)="cancelar()" [disabled]="salvando()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primario" [disabled]="salvando()">
+              <fk-icon name="check" size="1.1rem" />
+              {{ salvando() ? 'Salvando...' : 'Salvar produto' }}
+            </button>
+          </div>
+        </form>
+
+        <!-- Prévia ---------------------------------------------------------- -->
+        <aside class="card cadastro__previa">
+          <h2>Prévia do produto</h2>
+          <p class="cadastro__previa-sub">Assim que salvar, o item aparecerá no cardápio para os clientes.</p>
+
+          <div class="previa-card">
+            <div class="previa-card__imagem">
+              @if (imagem(); as src) {
+                <img [src]="src" alt="Imagem do produto" />
+              } @else {
+                <span class="previa-card__placeholder"><fk-icon name="bag" size="2rem" /></span>
+              }
+              <span class="previa-card__badge previa-card__badge--categoria">
+                @if (categoriaNome(); as cat) {
+                  <fk-badge variant="atencao">{{ cat }}</fk-badge>
+                }
+              </span>
+              <span class="previa-card__badge previa-card__badge--status">
+                <fk-badge [variant]="disponivel() ? 'livre' : 'critico'">
+                  {{ disponivel() ? 'Disponível' : 'Indisponível' }}
+                </fk-badge>
+              </span>
+            </div>
+
+            <div class="previa-card__corpo">
+              <h3>{{ nome().trim() || 'Nome do produto' }}</h3>
+              <p class="previa-card__descricao">
+                {{ descricao().trim() || 'A descrição do produto aparecerá aqui.' }}
+              </p>
+              <strong class="previa-card__preco">
+                {{ precoValido() ? (preco() | currency: 'BRL') : 'R$ 0,00' }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="dicas">
+            <h4><fk-icon name="warning-circle" size="1rem" /> Dicas para um bom produto</h4>
+            <ul>
+              <li>Use fotos de alta qualidade e bem iluminadas.</li>
+              <li>Descreva os ingredientes e diferenciais.</li>
+              <li>Mantenha o preço competitivo.</li>
+              <li>Revise as informações antes de salvar.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
