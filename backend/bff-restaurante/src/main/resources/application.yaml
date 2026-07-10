@@ -18,6 +18,8 @@ clients:
     url: ${MS_PRODUTOS_URL:http://localhost:8084}
   ms-notificacoes:
     url: ${MS_NOTIFICACOES_URL:http://localhost:8085}
+  ms-pagamentos:
+    url: ${MS_PAGAMENTOS_URL:http://localhost:8087}
 
 server:
   port: ${SERVER_PORT:8080}
