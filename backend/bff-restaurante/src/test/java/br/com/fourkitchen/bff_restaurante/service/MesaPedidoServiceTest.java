@@ -225,7 +225,7 @@ class MesaPedidoServiceTest {
         assertEquals(dataCriacao, pedidoResponse.dataCriacao());
         assertEquals(1, pedidoResponse.itens().size());
         assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
-        assertEquals(null, pedidoResponse.itens().getFirst().nome());
+        assertEquals("Produto teste", pedidoResponse.itens().getFirst().nome());
         assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
         assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
         verify(mesaClient).validarSessaoMesa(1, 123456);

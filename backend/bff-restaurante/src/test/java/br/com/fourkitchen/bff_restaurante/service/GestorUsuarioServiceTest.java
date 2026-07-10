@@ -2,8 +2,10 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.AtualizarUsuarioClientRequest;
+import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.CriarUsuarioClientRequest;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.AtualizarUsuarioRequest;
+import br.com.fourkitchen.bff_restaurante.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.UsuarioGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
@@ -55,6 +57,67 @@ class GestorUsuarioServiceTest {
         assertEquals("Amanda Souza", resultado.get(0).nome());
         assertEquals("Bruno Silva", resultado.get(1).nome());
         verify(usuarioClient).listarUsuariosAtivos(AUTHORIZATION);
+    }
+
+    @Test
+    void criarUsuarioDeveDelegarParaMsUsuarios() {
+        CriarUsuarioRequest request = new CriarUsuarioRequest(
+                "Amanda Souza",
+                "amanda@fourkitchen.com",
+                "Senha123",
+                "GESTOR",
+                null
+        );
+        UsuarioClientResponse usuarioCriado = criarUsuario(
+                1,
+                "Amanda Souza",
+                "amanda@fourkitchen.com",
+                "GESTOR",
+                true
+        );
+
+        when(usuarioClient.criarUsuario(
+                org.mockito.ArgumentMatchers.any(CriarUsuarioClientRequest.class),
+                org.mockito.ArgumentMatchers.eq(AUTHORIZATION)
+        )).thenReturn(usuarioCriado);
+
+        UsuarioGestorResponse resultado = gestorUsuarioService.criarUsuario(request, AUTHORIZATION);
+
+        assertEquals(1, resultado.id());
+        assertEquals("Amanda Souza", resultado.nome());
+
+        ArgumentCaptor<CriarUsuarioClientRequest> requestCaptor =
+                ArgumentCaptor.forClass(CriarUsuarioClientRequest.class);
+        verify(usuarioClient).criarUsuario(
+                requestCaptor.capture(),
+                org.mockito.ArgumentMatchers.eq(AUTHORIZATION)
+        );
+        assertEquals("Senha123", requestCaptor.getValue().senha());
+        assertEquals("GESTOR", requestCaptor.getValue().perfilUsuario());
+        assertEquals(null, requestCaptor.getValue().idMesa());
+    }
+
+    @Test
+    void criarUsuarioDeveMapearEmailDuplicado() {
+        CriarUsuarioRequest request = new CriarUsuarioRequest(
+                "Amanda Souza",
+                "amanda@fourkitchen.com",
+                "Senha123",
+                "GESTOR",
+                null
+        );
+
+        when(usuarioClient.criarUsuario(
+                org.mockito.ArgumentMatchers.any(CriarUsuarioClientRequest.class),
+                org.mockito.ArgumentMatchers.eq(AUTHORIZATION)
+        )).thenThrow(feignException(409));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> gestorUsuarioService.criarUsuario(request, AUTHORIZATION)
+        );
+
+        assertEquals(ErrorEnum.EMAIL_JA_CADASTRADO, exception.getErrorEnum());
     }
 
     @Test

@@ -3,11 +3,12 @@ package br.com.fourkitchen.bff_restaurante.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "Dados enviados pelo front para atualizar um usuario.")
-public record AtualizarUsuarioRequest(
+@Schema(description = "Dados enviados pelo front para cadastrar um usuario pelo gestor/admin.")
+public record CriarUsuarioRequest(
         @Schema(description = "Nome do usuario", example = "Maria Silva", minLength = 3, maxLength = 120)
         @NotBlank(message = "Nome e obrigatorio.")
         @Size(min = 3, max = 120, message = "Nome deve ter entre 3 e 120 caracteres.")
@@ -19,9 +20,14 @@ public record AtualizarUsuarioRequest(
         String email,
 
         @Schema(
-                description = "Senha opcional. Quando vazia ou ausente, a senha atual e mantida.",
-                example = "NovaSenha123",
-                nullable = true
+                description = "Senha com no minimo 8 caracteres, uma letra maiuscula, uma letra minuscula e um numero.",
+                example = "Senha123",
+                minLength = 8
+        )
+        @NotBlank(message = "Senha e obrigatoria.")
+        @Pattern(
+                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
+                message = "A senha deve conter no minimo 8 caracteres, uma letra maiuscula, uma letra minuscula e um numero."
         )
         String senha,
 

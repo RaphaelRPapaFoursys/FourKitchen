@@ -1,6 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.dto.request.AtualizarUsuarioRequest;
+import br.com.fourkitchen.bff_restaurante.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.UsuarioGestorResponse;
 import br.com.fourkitchen.bff_restaurante.service.GestorUsuarioService;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,29 @@ class GestorUsuarioControllerTest {
 
     @InjectMocks
     private GestorUsuarioController gestorUsuarioController;
+
+    @Test
+    void criarUsuarioDeveRetornarCreated() {
+        CriarUsuarioRequest request = new CriarUsuarioRequest(
+                "Maria Silva",
+                "maria@fourkitchen.com",
+                "Senha123",
+                "GESTOR",
+                null
+        );
+        UsuarioGestorResponse usuario = criarUsuario();
+
+        when(gestorUsuarioService.criarUsuario(request, AUTHORIZATION)).thenReturn(usuario);
+
+        ResponseEntity<UsuarioGestorResponse> response = gestorUsuarioController.criarUsuario(
+                request,
+                AUTHORIZATION
+        );
+
+        assertEquals(201, response.getStatusCode().value());
+        assertSame(usuario, response.getBody());
+        verify(gestorUsuarioService).criarUsuario(request, AUTHORIZATION);
+    }
 
     @Test
     void listarUsuariosDeveRetornarOk() {
