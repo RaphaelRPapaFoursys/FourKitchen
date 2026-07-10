@@ -43,6 +43,7 @@ export class CustomerContextService {
     return [
       '/mesa/carrinho',
       '/totem/carrinho',
+      '/totem/pagamento',
       '/mesa/pedido-criado',
       '/totem/pedido-criado',
       '/mesa/pedido-erro',

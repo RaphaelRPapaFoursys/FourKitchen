@@ -113,19 +113,20 @@ export class CustomerCart {
       return;
     }
 
+    if (context === 'totem') {
+      void this.router.navigate(['/totem/pagamento']);
+      return;
+    }
+
     this.confirmOrderError.set('');
     this.isConfirmingOrder.set(true);
 
-    const submitOrder$: Observable<PedidoResponse> = context === 'mesa'
-      ? this.orderService.getCurrentTableAttendance().pipe(
-        switchMap(attendance => this.orderService.createMesaOrder({
-          codigoAtendimento: attendance.codigoAtendimento,
-          itens: this.buildOrderItems(),
-        })),
-      )
-      : this.orderService.createTotemOrder({
+    const submitOrder$: Observable<PedidoResponse> = this.orderService.getCurrentTableAttendance().pipe(
+      switchMap(attendance => this.orderService.createMesaOrder({
+        codigoAtendimento: attendance.codigoAtendimento,
         itens: this.buildOrderItems(),
-      });
+      })),
+    );
 
     submitOrder$
       .pipe(finalize(() => this.isConfirmingOrder.set(false)))

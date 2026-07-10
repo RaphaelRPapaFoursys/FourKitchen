@@ -19,7 +19,7 @@ public class PagamentoService {
 
         int numero = random.nextInt(10) + 1;
 
-        if (numero % 2 == 0){
+        if (numero >= 4){
             return new PagamentoResponse(StatusPagamento.APROVADO, StatusPagamento.APROVADO.getErrorMessage(), UUID.randomUUID().toString());
         }
         throw new BaseException(StatusPagamento.RECUSADO);

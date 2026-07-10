@@ -39,6 +39,14 @@ export const protectedRoutes: Routes = [
   ),
   protectedRoute(
     {
+      path: 'totem/pagamento',
+      loadComponent: () =>
+        import('../../features/totem-payment/totem-payment').then(m => m.TotemPayment),
+    },
+    ['ADMIN', 'TOTEM'],
+  ),
+  protectedRoute(
+    {
       path: 'totem/pedido-criado',
       loadComponent: () =>
         import('../../features/order-success/order-success').then(m => m.OrderSuccess),

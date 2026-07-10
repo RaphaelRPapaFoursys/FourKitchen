@@ -3,7 +3,7 @@
   <h1 id="success-title">Pedido enviado com sucesso!</h1>
   <p>Seu pedido foi enviado para a cozinha.</p>
 
-  <div class="order-success__actions">
+  <div class="order-success__actions" [class.order-success__actions--totem]="isTotem()">
     @if (showFollowOrder()) {
       <button class="order-success__primary" type="button" (click)="followOrder()">Acompanhar Pedido</button>
     }
