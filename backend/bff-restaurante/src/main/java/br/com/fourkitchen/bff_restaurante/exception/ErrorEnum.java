@@ -179,6 +179,11 @@ public enum ErrorEnum {
             "Nao e permitido excluir o proprio usuario autenticado",
             HttpStatus.FORBIDDEN
     ),
+    PAGAMENTO_RECUSADO(
+            "024",
+            "Pagamento recusado",
+            HttpStatus.PAYMENT_REQUIRED
+    ),
 
     ERRO_INTERNO(
             "500",

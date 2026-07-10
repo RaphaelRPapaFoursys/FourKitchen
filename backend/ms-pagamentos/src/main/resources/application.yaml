@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: ms-pagamentos
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+server:
+  port: ${SERVER_PORT:8087}
