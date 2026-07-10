@@ -1,6 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.dto.request.AtualizarUsuarioRequest;
+import br.com.fourkitchen.bff_restaurante.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.UsuarioGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.GestorUsuarioService;
@@ -17,11 +18,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -38,6 +41,42 @@ import java.util.List;
 public class GestorUsuarioController {
 
     private final GestorUsuarioService gestorUsuarioService;
+
+    @PostMapping
+    @Operation(
+            summary = "Cria usuario",
+            description = "Cadastra um usuario ativo pelo painel do gestor/admin. Para perfil MESA, envie idMesa positivo. Para qualquer outro perfil, envie idMesa como null ou omita o campo."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Usuario criado com sucesso",
+                    content = @Content(
+                            schema = @Schema(implementation = UsuarioGestorResponse.class),
+                            examples = @ExampleObject(value = "{\"id\":1,\"nome\":\"Maria Silva\",\"email\":\"maria@fourkitchen.com\",\"perfilUsuario\":\"GESTOR\",\"idMesa\":null,\"ativo\":true}")
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Dados invalidos, senha fraca ou idMesa incoerente com o perfil", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil GESTOR ou ADMIN", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "409", description = "Email ja cadastrado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de usuarios indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<UsuarioGestorResponse> criarUsuario(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "Dados do novo usuario. idMesa e obrigatorio somente para perfil MESA; para os demais perfis, envie null ou omita.",
+                    content = @Content(
+                            schema = @Schema(implementation = CriarUsuarioRequest.class),
+                            examples = @ExampleObject(value = "{\"nome\":\"Maria Silva\",\"email\":\"maria@fourkitchen.com\",\"senha\":\"Senha123\",\"perfilUsuario\":\"GESTOR\",\"idMesa\":null}")
+                    )
+            )
+            @RequestBody @Valid CriarUsuarioRequest request,
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        UsuarioGestorResponse response = gestorUsuarioService.criarUsuario(request, authorization);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @GetMapping
     @Operation(
@@ -66,11 +105,11 @@ public class GestorUsuarioController {
     @PutMapping("/{id}")
     @Operation(
             summary = "Atualiza usuario",
-            description = "Atualiza nome, email, perfil e mesa vinculada. A senha so e alterada quando enviada."
+            description = "Atualiza nome, email, perfil e mesa vinculada. A senha so e alterada quando enviada. Para perfil MESA, envie idMesa positivo; para os demais perfis, envie idMesa como null ou omita."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario atualizado com sucesso", content = @Content(schema = @Schema(implementation = UsuarioGestorResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Dados invalidos", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "400", description = "Dados invalidos ou idMesa incoerente com o perfil", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
             @ApiResponse(responseCode = "403", description = "Usuario sem perfil GESTOR ou ADMIN", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
             @ApiResponse(responseCode = "404", description = "Usuario nao encontrado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
@@ -81,7 +120,7 @@ public class GestorUsuarioController {
             @PathVariable Integer id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
-                    description = "Dados atualizados do usuario.",
+                    description = "Dados atualizados do usuario. idMesa e obrigatorio somente para perfil MESA; para os demais perfis, envie null ou omita.",
                     content = @Content(
                             schema = @Schema(implementation = AtualizarUsuarioRequest.class),
                             examples = @ExampleObject(value = "{\"nome\":\"Maria Silva\",\"email\":\"maria@fourkitchen.com\",\"senha\":\"NovaSenha123\",\"perfilUsuario\":\"GESTOR\",\"idMesa\":null}")

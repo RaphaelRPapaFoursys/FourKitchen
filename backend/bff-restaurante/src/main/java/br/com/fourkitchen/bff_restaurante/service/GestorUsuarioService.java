@@ -2,8 +2,10 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.AtualizarUsuarioClientRequest;
+import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.CriarUsuarioClientRequest;
 import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.AtualizarUsuarioRequest;
+import br.com.fourkitchen.bff_restaurante.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.UsuarioGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
@@ -31,6 +33,24 @@ public class GestorUsuarioService {
                     .sorted(Comparator.comparing(UsuarioClientResponse::nome))
                     .map(this::mapearUsuario)
                     .toList();
+        } catch (FeignException e) {
+            throw mapearErroMsUsuarios(e);
+        }
+    }
+
+    public UsuarioGestorResponse criarUsuario(CriarUsuarioRequest request, String authorization) {
+        validarAuthorization(authorization);
+
+        CriarUsuarioClientRequest clientRequest = new CriarUsuarioClientRequest(
+                request.nome(),
+                request.email(),
+                request.senha(),
+                request.perfilUsuario(),
+                request.idMesa()
+        );
+
+        try {
+            return mapearUsuario(usuarioClient.criarUsuario(clientRequest, authorization));
         } catch (FeignException e) {
             throw mapearErroMsUsuarios(e);
         }
