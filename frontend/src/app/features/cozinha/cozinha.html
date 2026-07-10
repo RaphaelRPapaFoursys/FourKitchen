@@ -157,6 +157,8 @@
       <strong>{{ horario(pedido) }}</strong>
       @if (acao === 'iniciar') {
         <span>Esperando: {{ minutosDesdeCriacao(pedido) }}min</span>
+      } @else if (acao === 'decisao') {
+        <span>Aguardando garcom: {{ minutosDesdeReferencia(pedido) }}min</span>
       } @else {
         <span>Em preparo há: {{ minutosEmPreparo(pedido) }}min</span>
       }
@@ -174,14 +176,7 @@
           }
           <div class="item-actions">
             @if (acao === 'decisao') {
-              <button
-                type="button"
-                class="item-action"
-                (click)="abrirDecisao(pedido, item)"
-                [disabled]="itemAcaoDesabilitada(item)"
-              >
-                Registrar decisao
-              </button>
+              <span class="item-status">Aguardando garcom</span>
             } @else {
               <button
                 type="button"
@@ -210,6 +205,10 @@
   } @else if (statusPronto(pedido)) {
     <button type="button" class="order-action order-action--ready" disabled>
       Pedido Pronto
+    </button>
+  } @else if (acao === 'decisao') {
+    <button type="button" class="order-action order-action--waiting" disabled>
+      Aguardando Garcom
     </button>
   } @else {
     <button
@@ -247,49 +246,6 @@
         <button type="button" class="modal__secondary" (click)="fecharProblema()">Cancelar</button>
         <button type="button" class="modal__primary" (click)="confirmarProblema()" [disabled]="itemAcaoDesabilitada(selecao.item)">
           Confirmar
-        </button>
-      </div>
-    </section>
-  </div>
-}
-
-@if (decisaoSelecionada(); as selecao) {
-  <div class="modal-backdrop" (click)="fecharDecisao()">
-    <section class="modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog">
-      <header class="modal__header">
-        <div>
-          <h2>Decisao do problema</h2>
-          <p>#{{ selecao.pedido.codigo || selecao.pedido.id }} · {{ nomeItem(selecao.item) }}</p>
-        </div>
-        <button type="button" class="modal__close" aria-label="Fechar" (click)="fecharDecisao()">x</button>
-      </header>
-
-      <label class="form-field">
-        <span>Acao</span>
-        <select [ngModel]="decisaoProblema()" (ngModelChange)="atualizarDecisao($event)">
-          <option value="REMOVIDO">{{ decisaoLabel('REMOVIDO') }}</option>
-          <option value="CANCELADO">{{ decisaoLabel('CANCELADO') }}</option>
-          <option value="DISPONIVEL">{{ decisaoLabel('DISPONIVEL') }}</option>
-        </select>
-      </label>
-
-      @if (decisaoProblema() === 'DISPONIVEL') {
-        <label class="form-field">
-          <span>ID do novo produto</span>
-          <input
-            type="number"
-            min="1"
-            placeholder="Opcional"
-            [ngModel]="idNovoProduto()"
-            (ngModelChange)="atualizarNovoProduto($event)"
-          />
-        </label>
-      }
-
-      <div class="modal__actions">
-        <button type="button" class="modal__secondary" (click)="fecharDecisao()">Cancelar</button>
-        <button type="button" class="modal__primary" (click)="confirmarDecisao()" [disabled]="itemAcaoDesabilitada(selecao.item)">
-          Registrar
         </button>
       </div>
     </section>

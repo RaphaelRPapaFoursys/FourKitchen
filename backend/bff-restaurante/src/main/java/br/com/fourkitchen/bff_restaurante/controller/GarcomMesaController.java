@@ -1,6 +1,9 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.FechamentoContaGarcomResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomDetalheResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.GarcomMesaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -65,5 +70,59 @@ public class GarcomMesaController {
             @Parameter(hidden = true) Authentication authentication
     ) {
         return ResponseEntity.ok(garcomMesaService.listarMesas(authentication));
+    }
+
+    @GetMapping("/{id}/detalhe")
+    @Operation(
+            summary = "Detalha mesa atribuida ao garcom logado",
+            description = "Valida se a mesa pertence ao garcom autenticado e retorna mesa, conta, pedidos detalhados e problemas pendentes de decisao."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Detalhe retornado com sucesso", content = @Content(schema = @Schema(implementation = MesaGarcomDetalheResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Mesa sem atendimento aberto ou dados invalidos", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Mesa nao atribuida ao garcom", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<MesaGarcomDetalheResponse> detalharMesa(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        return ResponseEntity.ok(garcomMesaService.detalharMesa(id, authentication));
+    }
+
+    @GetMapping("/{id}/pedidos")
+    @Operation(
+            summary = "Lista pedidos detalhados da mesa do garcom",
+            description = "Valida se a mesa pertence ao garcom autenticado e retorna pedidos ativos e historicos do atendimento atual."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedidos retornados com sucesso", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PedidoDetalheGarcomResponse.class)))),
+            @ApiResponse(responseCode = "400", description = "Mesa sem atendimento aberto ou dados invalidos", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Mesa nao atribuida ao garcom", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<List<PedidoDetalheGarcomResponse>> listarPedidosDaMesa(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        return ResponseEntity.ok(garcomMesaService.listarPedidosDaMesa(id, authentication));
+    }
+
+    @PatchMapping("/{id}/fechar-conta")
+    @Operation(
+            summary = "Fecha conta da mesa atribuida ao garcom",
+            description = "Valida se a mesa pertence ao garcom autenticado, bloqueia fechamento com pedidos ativos e finaliza o atendimento da mesa."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Conta fechada com sucesso", content = @Content(schema = @Schema(implementation = FechamentoContaGarcomResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Conta nao pode ser fechada ou mesa sem atendimento aberto", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Mesa nao atribuida ao garcom", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<FechamentoContaGarcomResponse> fecharConta(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        return ResponseEntity.ok(garcomMesaService.fecharConta(id, authentication));
     }
 }

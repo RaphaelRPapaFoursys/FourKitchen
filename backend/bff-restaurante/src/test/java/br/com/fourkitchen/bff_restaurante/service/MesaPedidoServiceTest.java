@@ -203,7 +203,8 @@ class MesaPedidoServiceTest {
                         "Produto teste",
                         2,
                         new BigDecimal("29.90"),
-                        "Sem cebola"
+                        "Sem cebola",
+                        "DISPONIVEL"
                 ))
         );
 

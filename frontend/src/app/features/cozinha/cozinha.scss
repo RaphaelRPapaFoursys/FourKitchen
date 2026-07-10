@@ -417,6 +417,13 @@ h1 {
   opacity: 0.6;
 }
 
+.item-status {
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .order-action {
   border-radius: 5px;
   cursor: pointer;
@@ -444,6 +451,12 @@ h1 {
   background: #e9f8ef;
   border: 1px solid #1fc56d;
   color: #138a4a;
+}
+
+.order-action--waiting {
+  background: #f5f3f8;
+  border: 1px solid #ded8e5;
+  color: var(--muted);
 }
 
 .statusbar {

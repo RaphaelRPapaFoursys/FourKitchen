@@ -45,6 +45,11 @@ public interface PedidoClient {
             @PathVariable Integer atendimentoId
     );
 
+    @GetMapping("/api/pedidos/atendimentos/{atendimentoId}/resumo-conta")
+    ResumoContaAtendimentoResponse buscarResumoContaAtendimento(
+            @PathVariable Integer atendimentoId
+    );
+
     @PatchMapping("/api/pedidos/{id}/entregar")
     PedidoResponse entregarPedido(@PathVariable Integer id);
 

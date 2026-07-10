@@ -54,7 +54,8 @@ public class PedidoService {
 
     private static final Collection<StatusPedido> STATUS_COZINHA = List.of(
             StatusPedido.ENVIADO_COZINHA,
-            StatusPedido.EM_PREPARO
+            StatusPedido.EM_PREPARO,
+            StatusPedido.AGUARDANDO_DECISAO
     );
 
     @Autowired
@@ -369,7 +370,8 @@ public class PedidoService {
                 item.getNomeProduto(),
                 item.getQuantidade(),
                 item.getPrecoUnitario(),
-                item.getObservacao()
+                item.getObservacao(),
+                item.getStatus()
         );
     }
 
@@ -406,7 +408,7 @@ public class PedidoService {
             throw new BaseException(ErrorEnum.PEDIDO_ENCERRADO);
         }
 
-        pedido.setStatus(StatusPedido.PROBLEMA_COZINHA);
+        pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
         produtoPedido.setStatus(request.statusProdutoPedido());
 
         return new SinalizarProblemaResponse(

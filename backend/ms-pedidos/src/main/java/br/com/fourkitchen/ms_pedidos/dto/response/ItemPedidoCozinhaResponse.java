@@ -1,5 +1,7 @@
 package br.com.fourkitchen.ms_pedidos.dto.response;
 
+import br.com.fourkitchen.ms_pedidos.enums.StatusProdutoPedido;
+
 import java.math.BigDecimal;
 
 public record ItemPedidoCozinhaResponse(
@@ -8,6 +10,7 @@ public record ItemPedidoCozinhaResponse(
         String nomeProduto,
         Integer quantidade,
         BigDecimal precoUnitario,
-        String observacao
+        String observacao,
+        StatusProdutoPedido status
 ) {
 }
