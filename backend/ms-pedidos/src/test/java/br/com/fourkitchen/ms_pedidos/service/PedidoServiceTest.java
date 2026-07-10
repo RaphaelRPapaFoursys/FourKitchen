@@ -380,7 +380,8 @@ class PedidoServiceTest {
         assertIterableEquals(
                 List.of(
                         StatusPedido.ENVIADO_COZINHA,
-                        StatusPedido.EM_PREPARO
+                        StatusPedido.EM_PREPARO,
+                        StatusPedido.AGUARDANDO_DECISAO
                 ),
                 statusCaptor.getValue()
         );
@@ -654,13 +655,13 @@ class PedidoServiceTest {
         SinalizarProblemaResponse response = pedidoService.sinalizarProblema(request);
 
         // Assert
-        assertEquals(StatusPedido.PROBLEMA_COZINHA, pedido.getStatus());
+        assertEquals(StatusPedido.AGUARDANDO_DECISAO, pedido.getStatus());
         assertEquals(statusProblema, produtoPedido.getStatus());
 
         assertNotNull(response);
         assertEquals(1, response.idPedido());
         assertEquals(10, response.idProdutoPedido());
-        assertEquals(StatusPedido.PROBLEMA_COZINHA, response.statusPedido());
+        assertEquals(StatusPedido.AGUARDANDO_DECISAO, response.statusPedido());
         assertEquals(statusProblema, response.statusProdutoPedido());
 
         verify(pedidoRepository).findById(1);

@@ -22,6 +22,9 @@ public record ItemFilaCozinhaResponse(
         BigDecimal precoUnitario,
 
         @Schema(description = "Observacao especifica do item", example = "Sem cebola")
-        String observacao
+        String observacao,
+
+        @Schema(description = "Status atual do item no pedido", example = "DISPONIVEL")
+        String status
 ) {
 }

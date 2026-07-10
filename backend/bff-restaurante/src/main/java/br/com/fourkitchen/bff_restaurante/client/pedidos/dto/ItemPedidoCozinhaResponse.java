@@ -8,6 +8,7 @@ public record ItemPedidoCozinhaResponse(
         String nomeProduto,
         Integer quantidade,
         BigDecimal precoUnitario,
-        String observacao
+        String observacao,
+        String status
 ) {
 }

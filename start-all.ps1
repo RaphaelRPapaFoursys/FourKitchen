@@ -1,13 +1,14 @@
 <#
-  start-all.ps1 — sobe a aplicacao inteira (backend + frontend) com um comando.
-pwsh -File "C:\Users\LucasDoAmaralMartins\Desktop\FourKitchen\FourKitchen\start-all.ps1"
-  Uso:
-    ./start-all.ps1              # roda migratqions, sobe os microservicos e o frontend
-    ./start-all.ps1 -SkipMigrations
-    ./start-all.ps1 -NoFrontend
+  start-all.ps1 - sobe a aplicacao inteira (backend + frontend) com um comando.
 
-  Cada servico abre em sua propria janela do PowerShell (facil de ver o log e fechar).
-  Cada .env do servico e carregado no ambiente daquela janela antes de rodar o mvnw.
+  Uso:
+    .\start-all.ps1              # roda migrations, sobe os microservicos e o frontend
+    .\start-all.ps1 -SkipMigrations
+    .\start-all.ps1 -NoFrontend
+    .\start-all.ps1 -SkipMigrations -NoFrontend
+
+  Cada servico abre em sua propria janela do PowerShell.
+  Cada .env do servico e carregado antes de rodar o mvnw.
 #>
 param(
   [switch]$SkipMigrations,
@@ -18,6 +19,11 @@ $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $backend = Join-Path $root 'backend'
 $frontend = Join-Path $root 'frontend'
+$powerShellExe = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+
+if (-not $powerShellExe) {
+  $powerShellExe = (Get-Command powershell -ErrorAction Stop).Source
+}
 
 # Comando que roda dentro de cada janela filha: carrega o .env do proprio servico e sobe o mvnw.
 function New-BackendCommand([string]$dir) {
@@ -37,7 +43,7 @@ Write-Host '>> Iniciando $dir' -ForegroundColor Cyan
 if (-not $SkipMigrations) {
   Write-Host '== Rodando db-migrations (Flyway)...' -ForegroundColor Yellow
   $mig = Join-Path $backend 'db-migrations'
-  Start-Process pwsh -WorkingDirectory $mig -Wait `
+  Start-Process $powerShellExe -WorkingDirectory $mig -Wait `
     -ArgumentList '-NoProfile','-Command',(New-BackendCommand $mig)
   Write-Host '== Migrations concluidas.' -ForegroundColor Green
 }
@@ -50,30 +56,32 @@ $servicos = @(
   'ms-produtos',      # 8084
   'ms-notificacoes',  # 8085
   'ms-cozinha',       # 8086
+  'ms-pagamentos',    # 8087
   'bff-restaurante'   # 8080
 )
 
 foreach ($svc in $servicos) {
   $dir = Join-Path $backend $svc
   Write-Host ">> Subindo $svc" -ForegroundColor Cyan
-  Start-Process pwsh -ArgumentList '-NoExit','-NoProfile','-Command',(New-BackendCommand $dir)
+  Start-Process $powerShellExe -ArgumentList '-NoExit','-NoProfile','-Command',(New-BackendCommand $dir)
   Start-Sleep -Milliseconds 400
 }
 
 # 3) Frontend (Angular).
 if (-not $NoFrontend) {
   Write-Host '>> Subindo frontend (ng serve)' -ForegroundColor Cyan
-  $feCmd = "Set-Location '$frontend'; Write-Host '>> Frontend' -ForegroundColor Cyan; npm run dev"
-  Start-Process pwsh -ArgumentList '-NoExit','-NoProfile','-Command',$feCmd
+  $feCmd = "Set-Location '$frontend'; Write-Host '>> Frontend' -ForegroundColor Cyan; & npm.cmd run dev"
+  Start-Process $powerShellExe -ArgumentList '-NoExit','-NoProfile','-Command',$feCmd
 }
 
 Write-Host ''
 Write-Host 'Tudo iniciado. Portas:' -ForegroundColor Green
-Write-Host '  BFF            http://localhost:8080'
-Write-Host '  ms-usuarios    http://localhost:8081'
-Write-Host '  ms-mesas       http://localhost:8082'
-Write-Host '  ms-pedidos     http://localhost:8083'
-Write-Host '  ms-produtos    http://localhost:8084'
+Write-Host '  BFF             http://localhost:8080'
+Write-Host '  ms-usuarios     http://localhost:8081'
+Write-Host '  ms-mesas        http://localhost:8082'
+Write-Host '  ms-pedidos      http://localhost:8083'
+Write-Host '  ms-produtos     http://localhost:8084'
 Write-Host '  ms-notificacoes http://localhost:8085'
-Write-Host '  ms-cozinha     http://localhost:8086'
-Write-Host '  frontend       http://localhost:4200'
+Write-Host '  ms-cozinha      http://localhost:8086'
+Write-Host '  ms-pagamentos   http://localhost:8087'
+Write-Host '  frontend        http://localhost:4200'

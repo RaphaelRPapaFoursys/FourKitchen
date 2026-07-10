@@ -4,7 +4,6 @@ import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/c
 import { FormsModule } from '@angular/forms';
 
 import {
-  DecisaoProblemaRequest,
   ItemFilaCozinhaResponse,
   PedidoFilaCozinhaResponse,
   SinalizarProblemaRequest,
@@ -14,7 +13,6 @@ import { CozinhaService } from '../../core/services/cozinha';
 type PrioridadePedido = 'urgente' | 'alta' | 'normal';
 type OrdenacaoPedido = 'tempo' | 'prioridade';
 type TipoProblema = SinalizarProblemaRequest['statusProdutoPedido'];
-type DecisaoProblema = DecisaoProblemaRequest['novoStatusProdutoPedido'];
 
 interface ItemPedidoSelecionado {
   pedido: PedidoFilaCozinhaResponse;
@@ -40,9 +38,6 @@ export class Cozinha {
   protected readonly itemEmAcao = signal<number | null>(null);
   protected readonly problemaSelecionado = signal<ItemPedidoSelecionado | null>(null);
   protected readonly tipoProblema = signal<TipoProblema>('FALTA_PRODUTO');
-  protected readonly decisaoSelecionada = signal<ItemPedidoSelecionado | null>(null);
-  protected readonly decisaoProblema = signal<DecisaoProblema>('REMOVIDO');
-  protected readonly idNovoProduto = signal<number | null>(null);
 
   constructor(private readonly cozinhaService: CozinhaService) {
     this.carregarFila();
@@ -169,74 +164,13 @@ export class Cozinha {
       statusProdutoPedido: this.tipoProblema(),
     }).subscribe({
       next: () => {
-        this.sucesso.set('Problema sinalizado. Registre a decisao para continuar o fluxo do pedido.');
+        this.sucesso.set('Problema sinalizado. Aguardando decisao do garcom.');
         this.problemaSelecionado.set(null);
-        this.decisaoSelecionada.set(selecao);
         this.itemEmAcao.set(null);
         this.carregarFila();
       },
       error: erro => {
         this.erro.set(this.extrairMensagemErro(erro, 'Nao foi possivel sinalizar o problema.'));
-        this.itemEmAcao.set(null);
-      },
-    });
-  }
-
-  protected abrirDecisao(pedido: PedidoFilaCozinhaResponse, item: ItemFilaCozinhaResponse): void {
-    this.limparMensagens();
-    this.decisaoProblema.set('REMOVIDO');
-    this.idNovoProduto.set(null);
-    this.decisaoSelecionada.set({ pedido, item });
-  }
-
-  protected fecharDecisao(): void {
-    if (this.itemEmAcao() !== null) {
-      return;
-    }
-
-    this.decisaoSelecionada.set(null);
-  }
-
-  protected atualizarDecisao(status: DecisaoProblema): void {
-    this.decisaoProblema.set(status);
-
-    if (status !== 'DISPONIVEL') {
-      this.idNovoProduto.set(null);
-    }
-  }
-
-  protected atualizarNovoProduto(valor: string): void {
-    const id = Number(valor);
-    this.idNovoProduto.set(Number.isInteger(id) && id > 0 ? id : null);
-  }
-
-  protected confirmarDecisao(): void {
-    const selecao = this.decisaoSelecionada();
-
-    if (!selecao) {
-      return;
-    }
-
-    const novoStatusProdutoPedido = this.decisaoProblema();
-
-    this.itemEmAcao.set(selecao.item.id);
-    this.limparMensagens();
-
-    this.cozinhaService.registrarDecisaoProblema({
-      idPedido: selecao.pedido.id,
-      idProdutoPedido: selecao.item.id,
-      novoStatusProdutoPedido,
-      pedidoCancelado: novoStatusProdutoPedido === 'CANCELADO',
-      idNovoProduto: novoStatusProdutoPedido === 'DISPONIVEL' ? this.idNovoProduto() : null,
-    }).subscribe({
-      next: () => {
-        this.sucesso.set('Decisao registrada com sucesso.');
-        this.decisaoSelecionada.set(null);
-        this.itemEmAcao.set(null);
-        this.carregarFila();
-      },
-      error: erro => {
-        this.erro.set(this.extrairMensagemErro(erro, 'Nao foi possivel registrar a decisao.'));
         this.itemEmAcao.set(null);
       },
     });
@@ -329,16 +263,6 @@ export class Cozinha {
     };
 
     return labels[tipo];
-  }
-
-  protected decisaoLabel(decisao: DecisaoProblema): string {
-    const labels: Record<DecisaoProblema, string> = {
-      REMOVIDO: 'Remover item',
-      CANCELADO: 'Cancelar pedido',
-      DISPONIVEL: 'Substituir item',
-    };
-
-    return labels[decisao];
   }
 
   protected acaoDesabilitada(pedido: PedidoFilaCozinhaResponse): boolean {

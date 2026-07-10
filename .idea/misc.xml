@@ -13,6 +13,7 @@
         <option value="$PROJECT_DIR$/backend/ms-pedidos/pom.xml" />
         <option value="$PROJECT_DIR$/backend/ms-produtos/pom.xml" />
         <option value="$PROJECT_DIR$/backend/bff-restaurante/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/ms-pagamentos/pom.xml" />
       </list>
     </option>
   </component>

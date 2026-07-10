@@ -164,7 +164,8 @@ class CozinhaServiceTest {
                         "X-Burger",
                         2,
                         new BigDecimal("29.90"),
-                        "Sem cebola"
+                        "Sem cebola",
+                        "DISPONIVEL"
                 ))
         );
     }

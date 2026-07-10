@@ -118,7 +118,8 @@ public class CozinhaService {
                 item.nomeProduto(),
                 item.quantidade(),
                 item.precoUnitario(),
-                item.observacao()
+                item.observacao(),
+                item.status()
         );
     }
 

@@ -185,6 +185,12 @@ public enum ErrorEnum {
             HttpStatus.PAYMENT_REQUIRED
     ),
 
+    CONTA_NAO_PODE_FECHAR(
+            "027",
+            "Conta nao pode ser fechada com pedidos ativos ou aguardando decisao",
+            HttpStatus.BAD_REQUEST
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",
