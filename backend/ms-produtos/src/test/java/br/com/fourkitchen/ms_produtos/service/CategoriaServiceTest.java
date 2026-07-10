@@ -1,9 +1,11 @@
 package br.com.fourkitchen.ms_produtos.service;
 
+import br.com.fourkitchen.ms_produtos.dto.request.AtualizarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.request.CriarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaResponse;
 import br.com.fourkitchen.ms_produtos.exception.BaseException;
 import br.com.fourkitchen.ms_produtos.exception.ErrorEnum;
+import br.com.fourkitchen.ms_produtos.mapper.AtualizarCategoriaRequestMapper;
 import br.com.fourkitchen.ms_produtos.mapper.CategoriaResponseMapper;
 import br.com.fourkitchen.ms_produtos.mapper.CriarCategoriaRequestMapper;
 import br.com.fourkitchen.ms_produtos.model.Categoria;
@@ -16,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -38,6 +41,9 @@ class CategoriaServiceTest {
     @Mock
     private CriarCategoriaRequestMapper criarCategoriaRequestMapper;
 
+    @Mock
+    private AtualizarCategoriaRequestMapper atualizarCategoriaRequestMapper;
+
     @InjectMocks
     private CategoriaService categoriaService;
 
@@ -58,7 +64,7 @@ class CategoriaServiceTest {
 
     @Test
     void criarCategoriaDeveSalvarCategoriaAtiva() {
-        CriarCategoriaRequest request = new CriarCategoriaRequest("Lanches", "Sanduiches");
+        CriarCategoriaRequest request = new CriarCategoriaRequest("Lanches", "Sanduiches", null);
         Categoria categoriaMapeada = criarCategoria(null, "Lanches", null);
         Categoria categoriaSalva = criarCategoria(1, "Lanches", true);
         CategoriaResponse response = criarResponse(categoriaSalva);
@@ -84,7 +90,7 @@ class CategoriaServiceTest {
 
     @Test
     void criarCategoriaDeveBloquearNomeDuplicado() {
-        CriarCategoriaRequest request = new CriarCategoriaRequest("Lanches", "Sanduiches");
+        CriarCategoriaRequest request = new CriarCategoriaRequest("Lanches", "Sanduiches", null);
 
         when(categoriaRepository.existsByNomeIgnoreCase("Lanches")).thenReturn(true);
 
@@ -94,6 +100,71 @@ class CategoriaServiceTest {
         verify(categoriaRepository).existsByNomeIgnoreCase("Lanches");
         verify(categoriaRepository, never()).save(any());
         verifyNoInteractions(criarCategoriaRequestMapper, categoriaResponseMapper);
+    }
+
+    @Test
+    void atualizarCategoriaDeveSalvarCategoriaAtualizada() {
+        AtualizarCategoriaRequest request = new AtualizarCategoriaRequest("Lanches", "Sanduiches", null);
+        Categoria categoria = criarCategoria(1, "Lanches Antigo", true);
+        CategoriaResponse response = criarResponse(categoria);
+
+        when(categoriaRepository.findById(1)).thenReturn(Optional.of(categoria));
+        when(categoriaRepository.existsByNomeIgnoreCaseAndIdNot("Lanches", 1)).thenReturn(false);
+        when(categoriaRepository.save(categoria)).thenReturn(categoria);
+        when(categoriaResponseMapper.map(categoria)).thenReturn(response);
+
+        CategoriaResponse resultado = categoriaService.atualizarCategoria(1, request);
+
+        assertSame(response, resultado);
+        verify(atualizarCategoriaRequestMapper).map(request, categoria);
+        verify(categoriaRepository).save(categoria);
+    }
+
+    @Test
+    void atualizarCategoriaDeveBloquearNomeDuplicadoDeOutraCategoria() {
+        AtualizarCategoriaRequest request = new AtualizarCategoriaRequest("Lanches", "Sanduiches", null);
+        Categoria categoria = criarCategoria(1, "Entradas", true);
+
+        when(categoriaRepository.findById(1)).thenReturn(Optional.of(categoria));
+        when(categoriaRepository.existsByNomeIgnoreCaseAndIdNot("Lanches", 1)).thenReturn(true);
+
+        BaseException exception = assertThrows(BaseException.class, () -> categoriaService.atualizarCategoria(1, request));
+
+        assertEquals(ErrorEnum.CATEGORIA_NOME_DUPLICADO, exception.getErrorEnum());
+        verify(categoriaRepository, never()).save(any());
+        verifyNoInteractions(atualizarCategoriaRequestMapper, categoriaResponseMapper);
+    }
+
+    @Test
+    void desativarCategoriaDeveSalvarCategoriaInativa() {
+        Categoria categoria = criarCategoria(1, "Lanches", true);
+        CategoriaResponse response = criarResponse(categoria);
+
+        when(categoriaRepository.findById(1)).thenReturn(Optional.of(categoria));
+        when(categoriaRepository.save(categoria)).thenReturn(categoria);
+        when(categoriaResponseMapper.map(categoria)).thenReturn(response);
+
+        CategoriaResponse resultado = categoriaService.desativarCategoria(1);
+
+        assertSame(response, resultado);
+        assertEquals(false, categoria.getAtivo());
+        verify(categoriaRepository).save(categoria);
+    }
+
+    @Test
+    void ativarCategoriaDeveSalvarCategoriaAtiva() {
+        Categoria categoria = criarCategoria(1, "Lanches", false);
+        CategoriaResponse response = criarResponse(categoria);
+
+        when(categoriaRepository.findById(1)).thenReturn(Optional.of(categoria));
+        when(categoriaRepository.save(categoria)).thenReturn(categoria);
+        when(categoriaResponseMapper.map(categoria)).thenReturn(response);
+
+        CategoriaResponse resultado = categoriaService.ativarCategoria(1);
+
+        assertSame(response, resultado);
+        assertEquals(true, categoria.getAtivo());
+        verify(categoriaRepository).save(categoria);
     }
 
     private Categoria criarCategoria(Integer id, String nome, Boolean ativo) {
@@ -109,6 +180,7 @@ class CategoriaServiceTest {
                 categoria.getId(),
                 categoria.getNome(),
                 categoria.getDescricao(),
+                null,
                 categoria.getAtivo()
         );
     }

@@ -72,6 +72,24 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    PRODUTO_NAO_ENCONTRADO(
+            "024",
+            "Produto nao encontrado",
+            HttpStatus.NOT_FOUND
+    ),
+
+    CATEGORIA_NAO_ENCONTRADA(
+            "025",
+            "Categoria nao encontrada",
+            HttpStatus.NOT_FOUND
+    ),
+
+    CATEGORIA_NOME_DUPLICADO(
+            "026",
+            "Nome da categoria ja cadastrado",
+            HttpStatus.CONFLICT
+    ),
+
     MS_PRODUTOS_INDISPONIVEL(
             "012",
             "Servico de produtos indisponivel",

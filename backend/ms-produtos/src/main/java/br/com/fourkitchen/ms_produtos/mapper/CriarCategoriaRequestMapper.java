@@ -6,11 +6,19 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CriarCategoriaRequestMapper implements Mapper<CriarCategoriaRequest, Categoria> {
+
+    private final ImagemBase64Mapper imagemBase64Mapper;
+
+    public CriarCategoriaRequestMapper(ImagemBase64Mapper imagemBase64Mapper) {
+        this.imagemBase64Mapper = imagemBase64Mapper;
+    }
+
     @Override
     public Categoria map(CriarCategoriaRequest source) {
         return Categoria.builder()
                 .nome(source.nome().trim())
                 .descricao(source.descricao())
+                .imagem(imagemBase64Mapper.paraBytes(source.imagem()))
                 .build();
     }
 }
