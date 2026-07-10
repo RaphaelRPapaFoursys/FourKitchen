@@ -1,4 +1,6 @@
-<button class="cart-summary__confirm" type="button" (click)="confirm()" [disabled]="isConfirming()">
-  {{ isConfirming() ? 'Confirmando...' : 'Confirmar Pedido' }}
-</button>
+<div class="cart-actions__confirm-container" [class.cart-actions__confirm-container--totem]="channel() === 'totem'">
+  <button class="cart-summary__confirm" type="button" (click)="confirm()" [disabled]="isConfirming()">
+    {{ isConfirming() ? confirmingLabel() : confirmLabel() }}
+  </button>
+</div>
 <button class="cart-summary__secondary" type="button" (click)="continueShopping()">Continuar Comprando</button>

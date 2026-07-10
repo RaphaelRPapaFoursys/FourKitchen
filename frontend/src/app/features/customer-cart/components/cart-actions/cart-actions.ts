@@ -8,6 +8,9 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 })
 export class CartActionsComponent {
   readonly isConfirming = input(false);
+  readonly confirmLabel = input('Confirmar Pedido');
+  readonly confirmingLabel = input('Confirmando...');
+  readonly channel = input<'mesa' | 'totem'>('mesa');
 
   readonly confirmSelected = output<void>();
   readonly continueSelected = output<void>();

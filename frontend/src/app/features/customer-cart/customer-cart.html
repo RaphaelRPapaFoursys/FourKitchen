@@ -43,6 +43,8 @@
           />
           <app-cart-actions
             [isConfirming]="isConfirmingOrder()"
+            [confirmLabel]="getCurrentContext() === 'totem' ? 'Ir para pagamento' : 'Confirmar Pedido'"
+            [channel]="getCurrentContext()"
             (confirmSelected)="confirmOrder()"
             (continueSelected)="continueShopping()"
           />

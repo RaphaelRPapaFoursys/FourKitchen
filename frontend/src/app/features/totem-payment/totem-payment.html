@@ -1,0 +1,80 @@
+<main class="payment-page">
+  <section class="payment-shell" aria-labelledby="payment-title">
+    <header class="payment-header">
+      <button type="button" class="back-button" (click)="backToCart()" [disabled]="isProcessing()">
+        <span aria-hidden="true">&#8592;</span> Voltar ao carrinho
+      </button>
+      <div>
+        <p class="eyebrow">Etapa 2 de 2</p>
+        <h1 id="payment-title">Pagamento</h1>
+        <p>Escolha como deseja pagar seu pedido.</p>
+      </div>
+    </header>
+
+    <div class="payment-content">
+      <section class="payment-methods" aria-labelledby="methods-title">
+        <h2 id="methods-title">Forma de pagamento</h2>
+        <div class="method-grid" role="radiogroup" aria-label="Forma de pagamento">
+          <button type="button" role="radio" [attr.aria-checked]="selectedMethod() === 'CREDITO'"
+            [class.is-selected]="selectedMethod() === 'CREDITO'" (click)="selectMethod('CREDITO')" [disabled]="isProcessing()">
+            <span class="method-icon" aria-hidden="true">&#128179;</span>
+            <span>Cartão de crédito</span>
+          </button>
+          <button type="button" role="radio" [attr.aria-checked]="selectedMethod() === 'DEBITO'"
+            [class.is-selected]="selectedMethod() === 'DEBITO'" (click)="selectMethod('DEBITO')" [disabled]="isProcessing()">
+            <span class="method-icon" aria-hidden="true">&#128179;</span>
+            <span>Cartão de débito</span>
+          </button>
+          <button type="button" role="radio" [attr.aria-checked]="selectedMethod() === 'PIX'"
+            [class.is-selected]="selectedMethod() === 'PIX'" (click)="selectMethod('PIX')" [disabled]="isProcessing()">
+            <span class="method-icon method-icon--pix" aria-hidden="true">◇</span>
+            <span>Pix</span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="order-summary" aria-labelledby="summary-title">
+        <div class="summary-heading">
+          <h2 id="summary-title">Resumo do pedido</h2>
+          <span>{{ totalItems() }} {{ totalItems() === 1 ? 'item' : 'itens' }}</span>
+        </div>
+        <ul>
+          @for (item of items(); track trackByCartItemId($index, item)) {
+            <li>
+              <span><strong>{{ item.quantity }}x</strong> {{ item.name }}</span>
+              <span>{{ formatPrice(item.unitPrice * item.quantity) }}</span>
+            </li>
+          }
+        </ul>
+        <div class="summary-total">
+          <span>Total</span>
+          <strong>{{ formatPrice(total()) }}</strong>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="payment-actions">
+      @if (errorMessage()) {
+        <div class="payment-alert" role="alert" [class.payment-alert--order]="state() === 'order-error'">
+          <strong>{{ state() === 'declined' ? 'Pagamento recusado' : state() === 'order-error' ? 'Pedido não enviado' : 'Erro no pagamento' }}</strong>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      @if (state() === 'order-error') {
+        <button class="primary-button" type="button" (click)="backToCart()">Voltar ao carrinho</button>
+      } @else {
+        <button class="primary-button" type="button" (click)="processPayment()" [disabled]="isProcessing()">
+          @if (isProcessing()) {
+            <span class="spinner" aria-hidden="true"></span> Processando pagamento...
+          } @else if (canRetryPayment()) {
+            Tentar novamente
+          } @else {
+            Realizar pagamento
+          }
+        </button>
+        <button class="secondary-button" type="button" (click)="backToCart()" [disabled]="isProcessing()">Voltar ao carrinho</button>
+      }
+    </footer>
+  </section>
+</main>

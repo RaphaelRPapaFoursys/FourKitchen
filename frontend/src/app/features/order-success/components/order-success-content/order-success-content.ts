@@ -8,6 +8,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 })
 export class OrderSuccessContentComponent {
   readonly showFollowOrder = input(false);
+  readonly isTotem = input(false);
 
   readonly followOrderSelected = output<void>();
   readonly newOrderSelected = output<void>();

@@ -13,6 +13,7 @@
 
   <app-order-success-content
     [showFollowOrder]="isMesaContext()"
+    [isTotem]="!isMesaContext()"
     (followOrderSelected)="followOrder()"
     (newOrderSelected)="startNewOrder()"
   />
