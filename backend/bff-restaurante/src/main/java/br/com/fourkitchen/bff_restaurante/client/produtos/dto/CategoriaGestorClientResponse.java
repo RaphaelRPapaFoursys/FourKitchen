@@ -1,6 +1,6 @@
-package br.com.fourkitchen.ms_produtos.dto.response;
+package br.com.fourkitchen.bff_restaurante.client.produtos.dto;
 
-public record CategoriaResponse(
+public record CategoriaGestorClientResponse(
         Integer id,
         String nome,
         String descricao,
