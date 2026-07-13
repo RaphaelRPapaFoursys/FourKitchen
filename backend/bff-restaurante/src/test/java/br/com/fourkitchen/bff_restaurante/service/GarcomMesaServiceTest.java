@@ -200,7 +200,7 @@ class GarcomMesaServiceTest {
                 "AGUARDANDO_DECISAO",
                 "FALTA_PRODUTO"
         );
-        PedidoCozinhaResponse emPreparo = criarPedidoDetalhado(26, "EM_PREPARO", "DISPONIVEL");
+        PedidoCozinhaResponse emPreparo = criarPedidoDetalhado(26, "EM_PREPARO", null);
 
         when(mesaClient.listarMesasPorGarcom(7)).thenReturn(List.of(criarMesa()));
         when(pedidoClient.listarPedidosDetalhadosPorAtendimento(8))

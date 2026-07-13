@@ -120,7 +120,7 @@ public class GarcomMesaService {
 
         List<PedidoCozinhaResponse> pedidos = buscarPedidosDetalhados(mesa.idAtendimento())
                 .stream()
-                .filter(pedido -> STATUS_AGUARDA_DECISAO.contains(pedido.status()))
+                .filter(pedido -> statusAguardaDecisao(pedido.status()))
                 .toList();
 
         return new MesaProblemasGarcomResponse(
@@ -314,7 +314,7 @@ public class GarcomMesaService {
     private List<ProblemaPedidoGarcomResponse> mapearProblemas(List<PedidoCozinhaResponse> pedidos) {
         return pedidos.stream()
                 .flatMap(pedido -> listarItens(pedido).stream()
-                        .filter(item -> STATUS_PROBLEMA_ITEM.contains(item.status()))
+                        .filter(item -> statusProblemaItem(item.status()))
                         .map(item -> new ProblemaPedidoGarcomResponse(
                                 pedido.id(),
                                 item.id(),
@@ -322,6 +322,14 @@ public class GarcomMesaService {
                                 mensagemProblema(item.status())
                         )))
                 .toList();
+    }
+
+    private boolean statusAguardaDecisao(String status) {
+        return status != null && STATUS_AGUARDA_DECISAO.contains(status);
+    }
+
+    private boolean statusProblemaItem(String status) {
+        return status != null && STATUS_PROBLEMA_ITEM.contains(status);
     }
 
     private List<ItemPedidoCozinhaResponse> listarItens(PedidoCozinhaResponse pedido) {
