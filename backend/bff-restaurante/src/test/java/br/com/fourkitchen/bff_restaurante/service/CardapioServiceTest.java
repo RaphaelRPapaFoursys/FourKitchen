@@ -49,7 +49,7 @@ class CardapioServiceTest {
                         10,
                         "X-Burger",
                         "Pao, carne e queijo",
-                        "aW1hZ2Vt",
+                        "/api/produtos/10/imagem",
                         new BigDecimal("29.90")
                 ))
         );
@@ -61,7 +61,7 @@ class CardapioServiceTest {
                         10,
                         "X-Burger",
                         "Pao, carne e queijo",
-                        "aW1hZ2Vt",
+                        "/api/produtos/10/imagem",
                         new BigDecimal("29.90")
                 ))
         );

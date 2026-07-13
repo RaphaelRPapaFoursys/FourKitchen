@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, catchError, map, startWith, switchMap } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
 import {
+  CardapioPaginadoResponse,
   CategoriaCardapioResponse,
   ProdutoCardapioView,
 } from '../../core/models/menu.models';
@@ -25,6 +26,9 @@ type MenuLoadState =
   | { status: 'loading'; data: null; message: string }
   | { status: 'error'; data: null; message: string }
   | { status: 'success'; data: CategoriaCardapioResponse[]; message: string };
+
+const MENU_PAGE_SIZE = 12;
+const MENU_SCROLL_THRESHOLD_PX = 900;
 
 @Component({
   selector: 'app-customer-home',
@@ -51,9 +55,10 @@ export class CustomerHome implements AfterViewInit {
   private readonly cartService = inject(CartService);
   private readonly customerContextService = inject(CustomerContextService);
   private readonly router = inject(Router);
-  private readonly reloadMenuSubject = new Subject<void>();
   private scrollAnimationFrameId: number | null = null;
   private cartFeedbackTimeoutId: number | null = null;
+  private nextMenuPage = 0;
+  private reachedLastMenuPage = false;
 
   protected readonly selectedCategoryId = signal<number | null>(null);
   protected readonly selectedProduct = signal<ProdutoCardapioView | null>(null);
@@ -61,6 +66,7 @@ export class CustomerHome implements AfterViewInit {
   protected readonly selectedObservation = signal('');
   protected readonly cartItemsCount = signal(0);
   protected readonly cartFeedback = signal('');
+  protected readonly loadingMoreMenu = signal(false);
   protected readonly canScrollCategoriesLeft = signal(false);
   protected readonly canScrollCategoriesRight = signal(false);
   protected readonly cartRoute = computed(() =>
@@ -71,31 +77,11 @@ export class CustomerHome implements AfterViewInit {
   );
   protected readonly showOrdersLink = computed(() => this.getCurrentContext() === 'mesa');
 
-  protected readonly menuState = toSignal(
-    this.reloadMenuSubject.pipe(
-      startWith({ status: 'loading', data: null, message: 'Carregando cardapio...' } satisfies MenuLoadState),
-      switchMap(() =>
-        this.menuService.getMenu(this.getCurrentContext()).pipe(
-          map(data => ({ status: 'success', data, message: '' }) satisfies MenuLoadState),
-          startWith({ status: 'loading', data: null, message: 'Carregando cardapio...' } satisfies MenuLoadState),
-          catchError(() => [
-            {
-              status: 'error',
-              data: null,
-              message: 'Nao foi possivel carregar o cardapio. Tente novamente.',
-            } satisfies MenuLoadState,
-          ]),
-        ),
-      ),
-    ),
-    {
-      initialValue: {
-        status: 'loading',
-        data: null,
-        message: 'Carregando cardapio...',
-      } satisfies MenuLoadState,
-    },
-  );
+  protected readonly menuState = signal<MenuLoadState>({
+    status: 'loading',
+    data: null,
+    message: 'Carregando cardapio...',
+  });
 
   protected readonly categories = computed(() => this.menuState().data ?? []);
   protected readonly products = computed(() => this.buildProductViews(this.categories()));
@@ -114,6 +100,8 @@ export class CustomerHome implements AfterViewInit {
 
   constructor() {
     this.refreshCartCount();
+    void this.loadFirstMenuPage(false);
+
     effect(() => {
       this.categories();
       window.setTimeout(() => this.updateCategoriesScrollState());
@@ -130,16 +118,123 @@ export class CustomerHome implements AfterViewInit {
     this.updateCategoriesScrollState();
   }
 
+  @HostListener('window:scroll')
+  protected loadMoreMenuOnScroll(): void {
+    const distanceToBottom = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+
+    if (distanceToBottom <= MENU_SCROLL_THRESHOLD_PX) {
+      void this.loadNextMenuPage();
+    }
+  }
+
   ngAfterViewInit(): void {
     window.setTimeout(() => this.updateCategoriesScrollState());
   }
 
   protected loadMenu(): void {
-    this.reloadMenuSubject.next();
+    void this.loadFirstMenuPage(true);
   }
 
   protected retryLoadMenu(): void {
     this.loadMenu();
+  }
+
+  private async loadFirstMenuPage(forceRefresh: boolean): Promise<void> {
+    this.nextMenuPage = 0;
+    this.reachedLastMenuPage = false;
+    this.loadingMoreMenu.set(false);
+    this.menuState.set({
+      status: 'loading',
+      data: null,
+      message: 'Carregando cardapio...',
+    });
+
+    try {
+      const page = await this.fetchMenuPage(0, forceRefresh);
+      this.applyMenuPage(page, false);
+    } catch {
+      this.menuState.set({
+        status: 'error',
+        data: null,
+        message: 'Nao foi possivel carregar o cardapio. Tente novamente.',
+      });
+    }
+  }
+
+  private async loadNextMenuPage(): Promise<void> {
+    if (
+      this.menuState().status !== 'success' ||
+      this.loadingMoreMenu() ||
+      this.reachedLastMenuPage
+    ) {
+      return;
+    }
+
+    this.loadingMoreMenu.set(true);
+
+    try {
+      const page = await this.fetchMenuPage(this.nextMenuPage, false);
+      this.applyMenuPage(page, true);
+    } catch {
+      // Mantem o cardapio ja carregado; o proximo scroll tenta novamente.
+    } finally {
+      this.loadingMoreMenu.set(false);
+    }
+  }
+
+  private fetchMenuPage(page: number, forceRefresh: boolean): Promise<CardapioPaginadoResponse> {
+    const request = forceRefresh
+      ? this.menuService.refreshMenuPage(this.getCurrentContext(), page, MENU_PAGE_SIZE)
+      : this.menuService.getMenuPage(this.getCurrentContext(), page, MENU_PAGE_SIZE);
+
+    return firstValueFrom(request);
+  }
+
+  private applyMenuPage(page: CardapioPaginadoResponse, append: boolean): void {
+    const currentData = append && this.menuState().status === 'success'
+      ? this.menuState().data
+      : [];
+    const data = append ? this.mergeMenuCategories(currentData ?? [], page.content) : page.content;
+
+    this.menuState.set({
+      status: 'success',
+      data,
+      message: '',
+    });
+    this.nextMenuPage = page.page + 1;
+    this.reachedLastMenuPage = page.last || this.nextMenuPage >= page.totalPages;
+
+    window.setTimeout(() => this.loadMoreMenuOnScroll());
+  }
+
+  private mergeMenuCategories(
+    currentCategories: CategoriaCardapioResponse[],
+    nextCategories: CategoriaCardapioResponse[],
+  ): CategoriaCardapioResponse[] {
+    const byCategory = new Map<number, CategoriaCardapioResponse>();
+
+    for (const category of currentCategories) {
+      byCategory.set(category.categoriaId, {
+        ...category,
+        produtos: [...category.produtos],
+      });
+    }
+
+    for (const category of nextCategories) {
+      const existing = byCategory.get(category.categoriaId);
+      if (!existing) {
+        byCategory.set(category.categoriaId, {
+          ...category,
+          produtos: [...category.produtos],
+        });
+        continue;
+      }
+
+      const productIds = new Set(existing.produtos.map(product => product.id));
+      existing.produtos.push(...category.produtos.filter(product => !productIds.has(product.id)));
+    }
+
+    return Array.from(byCategory.values());
   }
 
   protected selectCategory(categoryId: number | null): void {
@@ -291,6 +386,10 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected getProductImage(product: ProdutoCardapioView): string {
+    if (product.imagemUrl) {
+      return this.resolveApiUrl(product.imagemUrl);
+    }
+
     if (!product.imagem) {
       return 'assets/images/product-placeholder.svg';
     }
@@ -333,7 +432,7 @@ export class CustomerHome implements AfterViewInit {
       productId: product.id,
       name: product.nome,
       description: product.descricao,
-      image: product.imagem,
+      image: product.imagemUrl ? this.resolveApiUrl(product.imagemUrl) : product.imagem,
       unitPrice: product.preco,
       quantity,
       observation,
@@ -376,6 +475,14 @@ export class CustomerHome implements AfterViewInit {
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
+  }
+
+  private resolveApiUrl(url: string): string {
+    if (/^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('assets/')) {
+      return url;
+    }
+
+    return `${environment.apiUrl}${url.startsWith('/') ? url : `/${url}`}`;
   }
 
   private animateWindowScroll(targetTop: number, duration: number): void {

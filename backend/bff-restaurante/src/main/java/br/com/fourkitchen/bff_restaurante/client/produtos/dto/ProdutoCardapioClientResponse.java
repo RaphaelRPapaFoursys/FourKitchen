@@ -6,7 +6,7 @@ public record ProdutoCardapioClientResponse(
         Integer id,
         String nome,
         String descricao,
-        String imagem,
+        String imagemUrl,
         BigDecimal preco
 ) {
 }

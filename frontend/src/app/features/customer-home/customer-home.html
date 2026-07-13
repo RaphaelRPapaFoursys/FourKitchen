@@ -74,6 +74,10 @@
         (productSelected)="openProductDetails($event)"
         (quickAddSelected)="addProductFromCard($event.product, $event.event)"
       />
+
+      @if (loadingMoreMenu()) {
+        <p class="state-message state-message--light" role="status">Carregando mais itens...</p>
+      }
     }
   </section>
 

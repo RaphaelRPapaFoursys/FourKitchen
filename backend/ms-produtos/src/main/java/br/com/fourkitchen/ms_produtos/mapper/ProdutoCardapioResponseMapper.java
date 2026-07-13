@@ -1,25 +1,19 @@
 package br.com.fourkitchen.ms_produtos.mapper;
 
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoCardapioResponse;
-import br.com.fourkitchen.ms_produtos.model.Produto;
+import br.com.fourkitchen.ms_produtos.repository.ProdutoCardapioProjection;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProdutoCardapioResponseMapper implements Mapper<Produto, ProdutoCardapioResponse> {
-
-    private final ImagemBase64Mapper imagemBase64Mapper;
-
-    public ProdutoCardapioResponseMapper(ImagemBase64Mapper imagemBase64Mapper) {
-        this.imagemBase64Mapper = imagemBase64Mapper;
-    }
+public class ProdutoCardapioResponseMapper implements Mapper<ProdutoCardapioProjection, ProdutoCardapioResponse> {
 
     @Override
-    public ProdutoCardapioResponse map(Produto source) {
+    public ProdutoCardapioResponse map(ProdutoCardapioProjection source) {
         return new ProdutoCardapioResponse(
                 source.getId(),
                 source.getNome(),
                 source.getDescricao(),
-                imagemBase64Mapper.paraBase64(source.getImagem()),
+                Boolean.TRUE.equals(source.getPossuiImagem()) ? "/api/produtos/" + source.getId() + "/imagem" : null,
                 source.getPreco()
         );
     }

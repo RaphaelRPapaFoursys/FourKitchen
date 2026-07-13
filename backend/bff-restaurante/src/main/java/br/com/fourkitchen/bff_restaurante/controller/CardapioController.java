@@ -1,5 +1,6 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
+import br.com.fourkitchen.bff_restaurante.dto.response.CardapioPaginadoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaCardapioResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.CardapioService;
@@ -15,7 +16,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -40,7 +43,7 @@ public class CardapioController {
                     description = "Cardapio retornado com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = CategoriaCardapioResponse.class)),
-                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":\"iVBORw0KGgoAAAANSUhEUgAA...\",\"preco\":29.90}]}]")
+                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagemUrl\":\"/api/produtos/10/imagem\",\"preco\":29.90}]}]")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
@@ -49,6 +52,18 @@ public class CardapioController {
     })
     public ResponseEntity<List<CategoriaCardapioResponse>> buscarCardapioMesa() {
         return ResponseEntity.ok(cardapioService.buscarCardapio());
+    }
+
+    @GetMapping("/mesa/cardapio/paginado")
+    @Operation(
+            summary = "Lista pagina do cardapio da mesa",
+            description = "Retorna uma pagina de produtos disponiveis agrupados por categoria para carregamento progressivo."
+    )
+    public ResponseEntity<CardapioPaginadoResponse> buscarCardapioMesaPaginado(
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "12") Integer size
+    ) {
+        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size));
     }
 
     @GetMapping("/totem/cardapio")
@@ -62,7 +77,7 @@ public class CardapioController {
                     description = "Cardapio retornado com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = CategoriaCardapioResponse.class)),
-                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":null,\"preco\":29.90}]}]")
+                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagemUrl\":\"/api/produtos/10/imagem\",\"preco\":29.90}]}]")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
@@ -71,6 +86,18 @@ public class CardapioController {
     })
     public ResponseEntity<List<CategoriaCardapioResponse>> buscarCardapioTotem() {
         return ResponseEntity.ok(cardapioService.buscarCardapio());
+    }
+
+    @GetMapping("/totem/cardapio/paginado")
+    @Operation(
+            summary = "Lista pagina do cardapio do totem",
+            description = "Retorna uma pagina de produtos disponiveis agrupados por categoria para carregamento progressivo."
+    )
+    public ResponseEntity<CardapioPaginadoResponse> buscarCardapioTotemPaginado(
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "12") Integer size
+    ) {
+        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size));
     }
 
     @GetMapping("/garcom/cardapio")
@@ -84,7 +111,7 @@ public class CardapioController {
                     description = "Cardapio retornado com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = CategoriaCardapioResponse.class)),
-                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagem\":null,\"preco\":29.90}]}]")
+                            examples = @ExampleObject(value = "[{\"categoriaId\":1,\"categoriaNome\":\"Lanches\",\"categoriaDescricao\":\"Sanduiches, porcoes e combinados\",\"produtos\":[{\"id\":10,\"nome\":\"X-Burger\",\"descricao\":\"Pao, carne, queijo e molho da casa\",\"imagemUrl\":\"/api/produtos/10/imagem\",\"preco\":29.90}]}]")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
@@ -93,5 +120,26 @@ public class CardapioController {
     })
     public ResponseEntity<List<CategoriaCardapioResponse>> buscarCardapioGarcom() {
         return ResponseEntity.ok(cardapioService.buscarCardapio());
+    }
+
+    @GetMapping("/garcom/cardapio/paginado")
+    @Operation(
+            summary = "Lista pagina do cardapio do garcom",
+            description = "Retorna uma pagina de produtos disponiveis agrupados por categoria para carregamento progressivo."
+    )
+    public ResponseEntity<CardapioPaginadoResponse> buscarCardapioGarcomPaginado(
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "12") Integer size
+    ) {
+        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size));
+    }
+
+    @GetMapping("/produtos/{id}/imagem")
+    @Operation(
+            summary = "Busca imagem de produto",
+            description = "Retorna a imagem binaria do produto para carregamento progressivo e cache do navegador."
+    )
+    public ResponseEntity<byte[]> buscarImagemProduto(@PathVariable Integer id) {
+        return cardapioService.buscarImagemProduto(id);
     }
 }
