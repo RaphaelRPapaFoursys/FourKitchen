@@ -6,7 +6,11 @@ import br.com.fourkitchen.bff_restaurante.dto.response.MesaDetalheGarcomResponse
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomDetalheResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaProblemasGarcomResponse;
+import br.com.fourkitchen.bff_restaurante.dto.request.DecisaoProblemaRequest;
+import br.com.fourkitchen.bff_restaurante.enums.StatusProdutoPedido;
 import br.com.fourkitchen.bff_restaurante.service.GarcomMesaService;
+import br.com.fourkitchen.bff_restaurante.service.GarcomProblemaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +34,9 @@ class GarcomMesaControllerTest {
 
     @Mock
     private GarcomMesaService garcomMesaService;
+
+    @Mock
+    private GarcomProblemaService garcomProblemaService;
 
     @InjectMocks
     private GarcomMesaController garcomMesaController;
@@ -103,6 +110,24 @@ class GarcomMesaControllerTest {
     }
 
     @Test
+    void listarProblemasDaMesaDeveRetornarOk() {
+        Authentication authentication = mock(Authentication.class);
+        MesaProblemasGarcomResponse problemas = new MesaProblemasGarcomResponse(
+                new MesaDetalheGarcomResponse(1, 10, "OCUPADA", 8, 123456, LocalDateTime.of(2026, 7, 2, 10, 0)),
+                List.of(),
+                List.of()
+        );
+        when(garcomMesaService.listarProblemasDaMesa(1, authentication)).thenReturn(problemas);
+
+        ResponseEntity<MesaProblemasGarcomResponse> response =
+                garcomMesaController.listarProblemasDaMesa(1, authentication);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertSame(problemas, response.getBody());
+        verify(garcomMesaService).listarProblemasDaMesa(1, authentication);
+    }
+
+    @Test
     void fecharContaDeveRetornarOk() {
         Authentication authentication = mock(Authentication.class);
         FechamentoContaGarcomResponse fechamento = new FechamentoContaGarcomResponse(
@@ -124,5 +149,26 @@ class GarcomMesaControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertSame(fechamento, response.getBody());
         verify(garcomMesaService).fecharConta(1, authentication);
+    }
+
+    @Test
+    void registrarDecisaoProblemaDeveRetornarSemConteudo() {
+        Authentication authentication = mock(Authentication.class);
+        DecisaoProblemaRequest request = new DecisaoProblemaRequest(
+                25,
+                80,
+                StatusProdutoPedido.DISPONIVEL,
+                false,
+                12
+        );
+
+        ResponseEntity<Void> response = garcomMesaController.registrarDecisaoProblema(
+                1,
+                request,
+                authentication
+        );
+
+        assertEquals(204, response.getStatusCode().value());
+        verify(garcomProblemaService).registrarDecisao(1, request, authentication);
     }
 }

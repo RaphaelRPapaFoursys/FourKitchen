@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CategoriaCardapioResponse } from '../models/menu.models';
 
-export type MenuContext = 'mesa' | 'totem';
+export type MenuContext = 'mesa' | 'totem' | 'garcom';
 
 @Injectable({
   providedIn: 'root',

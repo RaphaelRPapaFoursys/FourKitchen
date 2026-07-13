@@ -4,9 +4,12 @@ import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaGarcomClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.notificacoes.NotificacaoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaProblemasGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
@@ -26,6 +29,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -188,6 +193,29 @@ class GarcomMesaServiceTest {
     }
 
     @Test
+    void listarProblemasDaMesaDeveBuscarSomentePedidosSemConsultarResumoDaConta() {
+        Authentication authentication = criarAuthentication(7L);
+        PedidoCozinhaResponse aguardandoDecisao = criarPedidoDetalhado(
+                25,
+                "AGUARDANDO_DECISAO",
+                "FALTA_PRODUTO"
+        );
+        PedidoCozinhaResponse emPreparo = criarPedidoDetalhado(26, "EM_PREPARO", "DISPONIVEL");
+
+        when(mesaClient.listarMesasPorGarcom(7)).thenReturn(List.of(criarMesa()));
+        when(pedidoClient.listarPedidosDetalhadosPorAtendimento(8))
+                .thenReturn(List.of(aguardandoDecisao, emPreparo));
+
+        MesaProblemasGarcomResponse resultado = garcomMesaService.listarProblemasDaMesa(1, authentication);
+
+        assertEquals(1, resultado.pedidos().size());
+        assertEquals(25, resultado.pedidos().getFirst().id());
+        assertEquals(1, resultado.problemas().size());
+        assertEquals(80, resultado.problemas().getFirst().idProdutoPedido());
+        verify(pedidoClient, never()).buscarResumoContaAtendimento(8);
+    }
+
+    @Test
     void listarMesasDeveLancarTokenInvalidoQuandoAuthenticationForNulo() {
         BaseException exception = assertThrows(BaseException.class, () -> garcomMesaService.listarMesas(null));
 
@@ -275,6 +303,33 @@ class GarcomMesaServiceTest {
                 List.of(),
                 List.of(),
                 true
+        );
+    }
+
+    private PedidoCozinhaResponse criarPedidoDetalhado(
+            Integer id,
+            String statusPedido,
+            String statusItem
+    ) {
+        return new PedidoCozinhaResponse(
+                id,
+                100000 + id,
+                "MESA",
+                statusPedido,
+                1,
+                8,
+                LocalDateTime.of(2026, 7, 2, 10, 30),
+                null,
+                null,
+                List.of(new ItemPedidoCozinhaResponse(
+                        80,
+                        4,
+                        "Hamburguer",
+                        1,
+                        new BigDecimal("25.00"),
+                        null,
+                        statusItem
+                ))
         );
     }
 

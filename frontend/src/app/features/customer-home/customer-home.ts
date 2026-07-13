@@ -9,10 +9,10 @@ import {
   CategoriaCardapioResponse,
   ProdutoCardapioView,
 } from '../../core/models/menu.models';
-import { CartItem } from '../../core/models/cart.models';
+import { CartItem, CustomerContext } from '../../core/models/cart.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
-import { MenuContext, MenuService } from '../../core/services/menu.service';
+import { MenuService } from '../../core/services/menu.service';
 import { CategoryCarouselComponent } from './components/category-carousel/category-carousel';
 import { CustomerFooterComponent } from './components/customer-footer/customer-footer';
 import { CustomerHeroComponent } from './components/customer-hero/customer-hero';
@@ -307,7 +307,7 @@ export class CustomerHome implements AfterViewInit {
     }).format(price);
   }
 
-  protected getCurrentContext(): MenuContext {
+  protected getCurrentContext(): CustomerContext {
     return this.customerContextService.getCurrentContext(this.router.url);
   }
 
