@@ -277,6 +277,10 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected getCategoryImage(category: CategoriaCardapioResponse): string {
+    if (category.categoriaImagem) {
+      return this.getBase64ImageSource(category.categoriaImagem);
+    }
+
     const imageMap: Record<string, string> = {
       entradas: 'assets/images/entradas.png',
       lanches: 'assets/images/entradas.png',
@@ -295,9 +299,7 @@ export class CustomerHome implements AfterViewInit {
       return 'assets/images/product-placeholder.svg';
     }
 
-    return product.imagem.startsWith('data:image')
-      ? product.imagem
-      : `data:image/png;base64,${product.imagem}`;
+    return this.getBase64ImageSource(product.imagem);
   }
 
   protected formatPrice(price: number): string {
@@ -376,6 +378,16 @@ export class CustomerHome implements AfterViewInit {
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
+  }
+
+  private getBase64ImageSource(image: string): string {
+    if (image.startsWith('data:image')) {
+      return image;
+    }
+
+    const mimeType = image.startsWith('/9j/') ? 'image/jpeg' : 'image/png';
+
+    return `data:${mimeType};base64,${image}`;
   }
 
   private animateWindowScroll(targetTop: number, duration: number): void {

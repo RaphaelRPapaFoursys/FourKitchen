@@ -2,6 +2,7 @@ export interface CategoriaCardapioResponse {
   categoriaId: number;
   categoriaNome: string;
   categoriaDescricao?: string;
+  categoriaImagem?: string | null;
   produtos: ProdutoCardapioResponse[];
 }
 

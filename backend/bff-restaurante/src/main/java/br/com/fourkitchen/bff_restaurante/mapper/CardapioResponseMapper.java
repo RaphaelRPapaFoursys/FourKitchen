@@ -17,6 +17,7 @@ public class CardapioResponseMapper implements Mapper<CategoriaCardapioClientRes
                 source.categoriaId(),
                 source.categoriaNome(),
                 source.categoriaDescricao(),
+                source.categoriaImagem(),
                 mapearProdutos(source.produtos())
         );
     }

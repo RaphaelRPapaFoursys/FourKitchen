@@ -51,12 +51,14 @@ class CardapioServiceTest {
                 1,
                 "Lanches",
                 "Descricao Lanches",
+                "imagem-lanches",
                 List.of(hamburguerResponse, batataResponse)
         );
         CategoriaCardapioResponse bebidasResponse = new CategoriaCardapioResponse(
                 2,
                 "Bebidas",
                 "Descricao Bebidas",
+                "imagem-bebidas",
                 List.of(refrigeranteResponse)
         );
 

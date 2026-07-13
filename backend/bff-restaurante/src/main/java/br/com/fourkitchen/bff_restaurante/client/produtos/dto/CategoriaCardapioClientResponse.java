@@ -6,6 +6,7 @@ public record CategoriaCardapioClientResponse(
         Integer categoriaId,
         String categoriaNome,
         String categoriaDescricao,
+        String categoriaImagem,
         List<ProdutoCardapioClientResponse> produtos
 ) {
 }
