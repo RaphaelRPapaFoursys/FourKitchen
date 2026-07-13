@@ -11,7 +11,7 @@ import {
   CategoriaMenuResponse,
   ProdutoCardapioView,
 } from '../../core/models/menu.models';
-import { CartItem } from '../../core/models/cart.models';
+import { CartItem, CustomerContext } from '../../core/models/cart.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { MenuContext, MenuService } from '../../core/services/menu.service';
@@ -460,7 +460,7 @@ export class CustomerHome implements AfterViewInit {
     }).format(price);
   }
 
-  protected getCurrentContext(): MenuContext {
+  protected getCurrentContext(): CustomerContext {
     return this.customerContextService.getCurrentContext(this.router.url);
   }
 

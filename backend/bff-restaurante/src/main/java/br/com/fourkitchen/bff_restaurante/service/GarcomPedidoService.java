@@ -125,7 +125,7 @@ public class GarcomPedidoService {
                 item.idProduto(),
                 disponibilidade.nome(),
                 item.quantidade(),
-                item.precoUnitario(),
+                disponibilidade.preco(),
                 item.observacao()
         );
     }

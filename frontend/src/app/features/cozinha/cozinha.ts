@@ -1,6 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import {
@@ -26,7 +26,9 @@ interface ItemPedidoSelecionado {
   styleUrl: './cozinha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Cozinha {
+export class Cozinha implements OnDestroy {
+  private readonly intervaloAtualizacao: ReturnType<typeof setInterval>;
+  private filaEmCarregamento = false;
   protected readonly pedidos = signal<PedidoFilaCozinhaResponse[]>([]);
   protected readonly busca = signal('');
   protected readonly ordenacao = signal<OrdenacaoPedido>('tempo');
@@ -41,6 +43,11 @@ export class Cozinha {
 
   constructor(private readonly cozinhaService: CozinhaService) {
     this.carregarFila();
+    this.intervaloAtualizacao = setInterval(() => this.carregarFila(true), 10_000);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.intervaloAtualizacao);
   }
 
   protected readonly pedidosFiltrados = computed(() => {
@@ -285,19 +292,32 @@ export class Cozinha {
     return segundos <= 1 ? 'agora' : `${segundos}s atras`;
   }
 
-  private carregarFila(): void {
-    this.carregando.set(true);
+  private carregarFila(silencioso = false): void {
+    if (this.filaEmCarregamento) {
+      return;
+    }
+
+    this.filaEmCarregamento = true;
+    if (!silencioso) {
+      this.carregando.set(true);
+    }
     this.erro.set(null);
 
     this.cozinhaService.listarFila().subscribe({
       next: pedidos => {
         this.pedidos.set(pedidos);
         this.sincronizadoEm.set(new Date());
-        this.carregando.set(false);
+        this.filaEmCarregamento = false;
+        if (!silencioso) {
+          this.carregando.set(false);
+        }
       },
       error: erro => {
         this.erro.set(this.extrairMensagemErro(erro, 'Nao foi possivel carregar a fila da cozinha.'));
-        this.carregando.set(false);
+        this.filaEmCarregamento = false;
+        if (!silencioso) {
+          this.carregando.set(false);
+        }
       },
     });
   }

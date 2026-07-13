@@ -111,6 +111,14 @@ export const protectedRoutes: Routes = [
   ),
   protectedRoute(
     {
+      path: 'garcom/mesas/:id/pedido',
+      loadComponent: () =>
+        import('../../features/garcom-pedido/garcom-pedido').then(m => m.GarcomPedido),
+    },
+    ['ADMIN', 'GARCOM'],
+  ),
+  protectedRoute(
+    {
       path: 'garcom',
       loadComponent: () =>
         import('../../features/garcom/garcom').then(m => m.Garcom),

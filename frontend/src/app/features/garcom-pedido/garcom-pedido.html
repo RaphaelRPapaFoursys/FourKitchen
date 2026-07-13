@@ -1,0 +1,62 @@
+<main class="order-page">
+  <header>
+    <button type="button" class="back" (click)="voltar()">← Minhas mesas</button>
+    @if (detalhe(); as dados) {
+      <div>
+        <p>Mesa {{ dados.mesa.numero.toString().padStart(2, '0') }}</p>
+        <h1>Novo pedido</h1>
+      </div>
+      <span class="status">{{ dados.mesa.status }}</span>
+    }
+  </header>
+
+  @if (carregando()) {
+    <p class="feedback">Carregando mesa e cardapio...</p>
+  } @else if (erro() && !detalhe()) {
+    <section class="feedback feedback--error"><p>{{ erro() }}</p><button type="button" (click)="carregar()">Tentar novamente</button></section>
+  } @else if (detalhe(); as dados) {
+    @if (erro()) { <p class="feedback feedback--error">{{ erro() }}</p> }
+    @if (sucesso()) { <p class="feedback feedback--success">{{ sucesso() }}</p> }
+
+    <section class="workspace">
+      <section class="menu" aria-label="Cardapio">
+        <div class="categories">
+          @for (categoria of categorias(); track categoria.categoriaId) {
+            <button type="button" [class.active]="categoria.categoriaId === categoriaSelecionadaId()" (click)="selecionarCategoria(categoria.categoriaId)">{{ categoria.categoriaNome }}</button>
+          }
+        </div>
+        @if (categoriaSelecionada(); as categoria) {
+          <div class="products">
+            @for (produto of categoria.produtos; track produto.id) {
+              <article>
+                <h2>{{ produto.nome }}</h2>
+                <p>{{ produto.descricao }}</p>
+                <footer><strong>{{ formatarMoeda(produto.preco) }}</strong><button type="button" (click)="adicionarProduto(produto)">Adicionar</button></footer>
+              </article>
+            }
+          </div>
+        } @else { <p class="empty">Nenhum produto disponivel.</p> }
+      </section>
+
+      <aside class="cart" aria-label="Pedido atual">
+        <h2>Pedido atual <span>{{ totalItens() }} itens</span></h2>
+        @for (item of itens(); track item.idProduto) {
+          <article class="cart-item">
+            <div><strong>{{ item.nome }}</strong><span>{{ formatarMoeda(item.precoUnitario) }}</span></div>
+            <div class="quantity"><button type="button" (click)="alterarQuantidade(item.idProduto, item.quantidade - 1)">−</button><span>{{ item.quantidade }}</span><button type="button" (click)="alterarQuantidade(item.idProduto, item.quantidade + 1)">+</button></div>
+            <input type="text" [value]="item.observacao ?? ''" (change)="alterarObservacao(item.idProduto, $event)" placeholder="Observacao (opcional)" />
+          </article>
+        } @empty { <p class="empty">Adicione produtos ao pedido.</p> }
+        <footer class="cart-total"><span>Total</span><strong>{{ formatarMoeda(total()) }}</strong></footer>
+        <button type="button" class="send" (click)="enviarPedido()" [disabled]="itens().length === 0 || enviando()">{{ enviando() ? 'Enviando...' : 'Enviar para cozinha' }}</button>
+      </aside>
+    </section>
+
+    <section class="active-orders" aria-label="Pedidos ativos da mesa">
+      <h2>Pedidos da mesa</h2>
+      @for (pedido of pedidosAtivos(); track pedido.id) {
+        <article><strong>#{{ pedido.codigo }}</strong><span>{{ statusPedido(pedido.status) }}</span><span>{{ pedido.itens.length }} item(ns)</span></article>
+      } @empty { <p class="empty">Nao ha pedidos ativos para esta mesa.</p> }
+    </section>
+  }
+</main>

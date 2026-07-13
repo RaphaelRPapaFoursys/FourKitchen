@@ -1,6 +1,8 @@
 package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
+import br.com.fourkitchen.bff_restaurante.dto.response.ChamadaPendenteMesaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
@@ -29,6 +31,9 @@ class GarcomChamadaServiceTest {
     @Mock
     private NotificacaoService notificacaoService;
 
+    @Mock
+    private GarcomMesaService garcomMesaService;
+
     @InjectMocks
     private GarcomChamadaService garcomChamadaService;
 
@@ -37,12 +42,27 @@ class GarcomChamadaServiceTest {
         Authentication authentication = criarAuthentication(7L);
         NotificacaoResponse response = criarResponse();
 
-        when(notificacaoService.concluirChamadaGarcom(3, 7)).thenReturn(response);
+        when(garcomMesaService.listarMesas(authentication)).thenReturn(List.of(criarMesaComChamada()));
+        when(notificacaoService.marcarComoLida(3)).thenReturn(response);
 
         NotificacaoResponse resultado = garcomChamadaService.concluirChamada(3, authentication);
 
         assertSame(response, resultado);
-        verify(notificacaoService).concluirChamadaGarcom(3, 7);
+        verify(notificacaoService).marcarComoLida(3);
+    }
+
+    @Test
+    void concluirChamadaDeveRecusarChamadaQueNaoEstaNasMesasDoGarcom() {
+        Authentication authentication = criarAuthentication(7L);
+        when(garcomMesaService.listarMesas(authentication)).thenReturn(List.of());
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> garcomChamadaService.concluirChamada(3, authentication)
+        );
+
+        assertEquals(ErrorEnum.CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM, exception.getErrorEnum());
+        verifyNoInteractions(notificacaoService);
     }
 
     @Test
@@ -106,6 +126,26 @@ class GarcomChamadaServiceTest {
                 1,
                 8,
                 7
+        );
+    }
+
+    private MesaGarcomResponse criarMesaComChamada() {
+        return new MesaGarcomResponse(
+                1,
+                10,
+                "OCUPADA",
+                8,
+                123456,
+                7,
+                LocalDateTime.of(2026, 7, 2, 10, 0),
+                List.of(),
+                List.of(new ChamadaPendenteMesaResponse(
+                        3,
+                        "CHAMADA_GARCOM",
+                        "Cliente solicitou atendimento",
+                        LocalDateTime.of(2026, 7, 2, 10, 15)
+                )),
+                true
         );
     }
 }
