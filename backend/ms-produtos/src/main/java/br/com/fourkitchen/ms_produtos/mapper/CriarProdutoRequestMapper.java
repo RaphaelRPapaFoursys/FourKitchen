@@ -15,17 +15,11 @@ public class CriarProdutoRequestMapper implements Mapper<CriarProdutoRequest, Pr
 
     @Override
     public Produto map(CriarProdutoRequest source) {
-        byte[] imagem = imagemBase64Mapper.paraBytes(source.imagem());
-        Produto produto = Produto.builder()
+        return Produto.builder()
                 .nome(source.nome())
                 .descricao(source.descricao())
+                .imagem(imagemBase64Mapper.paraBytes(source.imagem()))
                 .preco(source.preco())
                 .build();
-
-        if (imagem != null) {
-            produto.atualizarImagem(imagem);
-        }
-
-        return produto;
     }
 }

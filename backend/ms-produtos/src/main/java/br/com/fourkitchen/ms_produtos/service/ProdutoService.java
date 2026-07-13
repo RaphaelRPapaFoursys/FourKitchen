@@ -3,7 +3,6 @@ package br.com.fourkitchen.ms_produtos.service;
 import br.com.fourkitchen.ms_produtos.dto.request.AtualizarProdutoRequest;
 import br.com.fourkitchen.ms_produtos.dto.request.CriarProdutoRequest;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoDisponibilidadeResponse;
-import br.com.fourkitchen.ms_produtos.dto.response.ProdutoImagemResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoResponse;
 import br.com.fourkitchen.ms_produtos.exception.BaseException;
 import br.com.fourkitchen.ms_produtos.exception.ErrorEnum;
@@ -102,17 +101,6 @@ public class ProdutoService {
         return produtoDisponibilidadeResponseMapper.map(produto);
     }
 
-    public ProdutoImagemResponse buscarImagem(Integer id) {
-        Produto produto = buscarPorId(id);
-        byte[] imagem = produto.getImagem();
-
-        if (imagem == null || imagem.length == 0) {
-            throw new BaseException(ErrorEnum.PRODUTO_NAO_ENCONTRADO);
-        }
-
-        return new ProdutoImagemResponse(imagem, detectarContentType(imagem));
-    }
-
     private Produto buscarPorId(Integer id) {
         return produtoRepository.findById(id)
                 .orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_NAO_ENCONTRADO));
@@ -137,16 +125,5 @@ public class ProdutoService {
         if (preco == null || preco.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BaseException(ErrorEnum.PRECO_INVALIDO);
         }
-    }
-
-    private String detectarContentType(byte[] imagem) {
-        if (imagem.length >= 3
-                && (imagem[0] & 0xFF) == 0xFF
-                && (imagem[1] & 0xFF) == 0xD8
-                && (imagem[2] & 0xFF) == 0xFF) {
-            return "image/jpeg";
-        }
-
-        return "image/png";
     }
 }

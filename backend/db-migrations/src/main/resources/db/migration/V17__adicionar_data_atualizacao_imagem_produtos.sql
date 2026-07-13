@@ -1,2 +1,0 @@
-ALTER TABLE produtos
-    ADD COLUMN IF NOT EXISTS imagem_atualizada_em TIMESTAMP WITH TIME ZONE;

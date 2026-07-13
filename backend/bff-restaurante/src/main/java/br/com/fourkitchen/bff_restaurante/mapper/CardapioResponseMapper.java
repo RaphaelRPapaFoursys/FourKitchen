@@ -1,10 +1,8 @@
 package br.com.fourkitchen.bff_restaurante.mapper;
 
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CategoriaCardapioClientResponse;
-import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CardapioPaginadoClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoCardapioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaCardapioResponse;
-import br.com.fourkitchen.bff_restaurante.dto.response.CardapioPaginadoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ProdutoCardapioResponse;
 import org.springframework.stereotype.Component;
 
@@ -23,18 +21,6 @@ public class CardapioResponseMapper implements Mapper<CategoriaCardapioClientRes
         );
     }
 
-    public CardapioPaginadoResponse map(CardapioPaginadoClientResponse source) {
-        return new CardapioPaginadoResponse(
-                source.content() == null ? List.of() : source.content().stream().map(this::map).toList(),
-                source.page(),
-                source.size(),
-                source.totalElements(),
-                source.totalPages(),
-                source.first(),
-                source.last()
-        );
-    }
-
     private List<ProdutoCardapioResponse> mapearProdutos(List<ProdutoCardapioClientResponse> produtos) {
         if (produtos == null) {
             return List.of();
@@ -50,7 +36,7 @@ public class CardapioResponseMapper implements Mapper<CategoriaCardapioClientRes
                 produto.id(),
                 produto.nome(),
                 produto.descricao(),
-                produto.imagemUrl(),
+                produto.imagem(),
                 produto.preco()
         );
     }

@@ -9,9 +9,9 @@ public class CategoriaCardapioResponseMapper implements Mapper<CategoriaCardapio
     @Override
     public CategoriaCardapioResponse map(CategoriaCardapioMapperSource source) {
         return new CategoriaCardapioResponse(
-                source.categoriaId(),
-                source.categoriaNome(),
-                source.categoriaDescricao(),
+                source.categoria().getId(),
+                source.categoria().getNome(),
+                source.categoria().getDescricao(),
                 source.produtos()
         );
     }
