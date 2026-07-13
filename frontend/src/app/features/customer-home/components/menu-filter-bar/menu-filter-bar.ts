@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-import { CategoriaCardapioResponse } from '../../../../core/models/menu.models';
+import { CategoriaMenuResponse } from '../../../../core/models/menu.models';
 
 @Component({
   selector: 'app-menu-filter-bar',
@@ -9,9 +9,9 @@ import { CategoriaCardapioResponse } from '../../../../core/models/menu.models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuFilterBarComponent {
-  readonly categories = input.required<CategoriaCardapioResponse[]>();
+  readonly categories = input.required<CategoriaMenuResponse[]>();
   readonly selectedCategoryId = input<number | null>(null);
-  readonly trackCategory = input.required<(index: number, category: CategoriaCardapioResponse) => number>();
+  readonly trackCategory = input.required<(index: number, category: CategoriaMenuResponse) => number>();
 
   readonly categorySelected = output<number | null>();
 

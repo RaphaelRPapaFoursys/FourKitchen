@@ -1,6 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.client.produtos;
 
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CategoriaCardapioClientResponse;
+import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CategoriaCardapioResumoClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CardapioPaginadoClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CategoriaGestorClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CategoriaGestorRequest;
@@ -25,10 +26,14 @@ public interface ProdutoClient {
     @GetMapping("/api/produtos/cardapio")
     List<CategoriaCardapioClientResponse> buscarCardapio();
 
+    @GetMapping("/api/produtos/cardapio/categorias")
+    List<CategoriaCardapioResumoClientResponse> buscarCategoriasAtivasCardapio();
+
     @GetMapping("/api/produtos/cardapio/paginado")
     CardapioPaginadoClientResponse buscarCardapioPaginado(
             @RequestParam("page") Integer page,
-            @RequestParam("size") Integer size
+            @RequestParam("size") Integer size,
+            @RequestParam("categoriaId") Integer categoriaId
     );
 
     @GetMapping("/api/produtos/{id}/disponibilidade")

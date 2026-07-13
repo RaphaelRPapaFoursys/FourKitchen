@@ -6,6 +6,7 @@ import br.com.fourkitchen.ms_produtos.repository.ProdutoCardapioProjection;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,14 +21,21 @@ class CardapioMapperTest {
 
     @Test
     void produtoCardapioResponseMapperDeveMapearProduto() {
-        ProdutoCardapioProjection produto = criarProdutoProjection(1, "Hamburguer", "Artesanal", true);
+        Instant imagemAtualizadaEm = Instant.parse("2026-07-13T15:30:00Z");
+        ProdutoCardapioProjection produto = criarProdutoProjection(
+                1,
+                "Hamburguer",
+                "Artesanal",
+                true,
+                imagemAtualizadaEm
+        );
 
         ProdutoCardapioResponse response = produtoCardapioResponseMapper.map(produto);
 
         assertEquals(1, response.id());
         assertEquals("Hamburguer", response.nome());
         assertEquals("Artesanal", response.descricao());
-        assertEquals("/api/produtos/1/imagem", response.imagemUrl());
+        assertEquals("/api/produtos/1/imagem?v=1783956600000", response.imagemUrl());
         assertEquals(new BigDecimal("29.90"), response.preco());
     }
 
@@ -51,7 +59,8 @@ class CardapioMapperTest {
             Integer id,
             String nome,
             String descricao,
-            Boolean possuiImagem
+            Boolean possuiImagem,
+            Instant imagemAtualizadaEm
     ) {
         return new ProdutoCardapioProjection() {
             @Override
@@ -92,6 +101,11 @@ class CardapioMapperTest {
             @Override
             public Boolean getPossuiImagem() {
                 return possuiImagem;
+            }
+
+            @Override
+            public Instant getImagemAtualizadaEm() {
+                return imagemAtualizadaEm;
             }
         };
     }

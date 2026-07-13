@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
 import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaCardapioResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaCardapioResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.CardapioPaginadoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
@@ -32,11 +33,26 @@ public class CardapioService {
         }
     }
 
-    public CardapioPaginadoResponse buscarCardapioPaginado(Integer page, Integer size) {
+    public List<CategoriaCardapioResumoResponse> buscarCategoriasAtivas() {
+        try {
+            return produtoClient.buscarCategoriasAtivasCardapio()
+                    .stream()
+                    .map(categoria -> new CategoriaCardapioResumoResponse(
+                            categoria.categoriaId(),
+                            categoria.categoriaNome(),
+                            categoria.categoriaDescricao()
+                    ))
+                    .toList();
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_PRODUTOS_INDISPONIVEL);
+        }
+    }
+
+    public CardapioPaginadoResponse buscarCardapioPaginado(Integer page, Integer size, Integer categoriaId) {
         try {
             int pagina = page == null ? 0 : Math.max(0, page);
             int tamanho = size == null ? 12 : Math.min(Math.max(1, size), 30);
-            return cardapioResponseMapper.map(produtoClient.buscarCardapioPaginado(pagina, tamanho));
+            return cardapioResponseMapper.map(produtoClient.buscarCardapioPaginado(pagina, tamanho, categoriaId));
         } catch (FeignException e) {
             throw new BaseException(ErrorEnum.MS_PRODUTOS_INDISPONIVEL);
         }

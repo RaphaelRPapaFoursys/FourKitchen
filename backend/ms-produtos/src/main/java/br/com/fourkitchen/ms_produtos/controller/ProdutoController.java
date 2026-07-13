@@ -53,7 +53,7 @@ public class ProdutoController {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(imagem.contentType()))
-                .cacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic())
+                .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
                 .header(HttpHeaders.VARY, HttpHeaders.ACCEPT_ENCODING)
                 .body(imagem.bytes());
     }

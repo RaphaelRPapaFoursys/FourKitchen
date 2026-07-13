@@ -14,7 +14,7 @@
         (click)="selectCategory(category.categoriaId)"
       >
         <div class="category-card__media">
-          <img [src]="categoryImage()(category)" [alt]="category.categoriaNome" loading="lazy" />
+          <img [src]="categoryImage()(category)" [alt]="category.categoriaNome" loading="eager" />
         </div>
         <h3>{{ category.categoriaNome }}</h3>
         @if (category.categoriaDescricao) {

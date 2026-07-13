@@ -1,6 +1,7 @@
 package br.com.fourkitchen.ms_produtos.service;
 
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaCardapioResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.CategoriaCardapioResumoResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.CardapioPaginadoResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoCardapioResponse;
 import br.com.fourkitchen.ms_produtos.mapper.CategoriaCardapioMapperSource;
@@ -8,6 +9,7 @@ import br.com.fourkitchen.ms_produtos.mapper.CategoriaCardapioResponseMapper;
 import br.com.fourkitchen.ms_produtos.mapper.ProdutoCardapioResponseMapper;
 import br.com.fourkitchen.ms_produtos.repository.ProdutoCardapioProjection;
 import br.com.fourkitchen.ms_produtos.repository.ProdutoRepository;
+import br.com.fourkitchen.ms_produtos.repository.CategoriaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,8 @@ import java.util.Map;
 public class CardapioService {
 
     private final ProdutoRepository produtoRepository;
+
+    private final CategoriaRepository categoriaRepository;
 
     private final ProdutoCardapioResponseMapper produtoCardapioResponseMapper;
 
@@ -42,8 +46,19 @@ public class CardapioService {
                 .toList();
     }
 
-    public CardapioPaginadoResponse buscarCardapioPaginado(Pageable pageable) {
-        Page<ProdutoCardapioProjection> pagina = produtoRepository.buscarProdutosDisponiveisParaCardapio(pageable);
+    public List<CategoriaCardapioResumoResponse> buscarCategoriasAtivas() {
+        return categoriaRepository.findByAtivoTrueOrderByNomeAsc()
+                .stream()
+                .map(categoria -> new CategoriaCardapioResumoResponse(
+                        categoria.getId(),
+                        categoria.getNome(),
+                        categoria.getDescricao()
+                ))
+                .toList();
+    }
+
+    public CardapioPaginadoResponse buscarCardapioPaginado(Integer categoriaId, Pageable pageable) {
+        Page<ProdutoCardapioProjection> pagina = produtoRepository.buscarProdutosDisponiveisParaCardapio(categoriaId, pageable);
         List<CategoriaCardapioResponse> categorias = agruparProdutos(pagina.getContent());
 
         return new CardapioPaginadoResponse(

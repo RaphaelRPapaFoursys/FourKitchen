@@ -1,6 +1,7 @@
 package br.com.fourkitchen.ms_produtos.repository;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 public interface ProdutoCardapioProjection {
 
@@ -19,4 +20,6 @@ public interface ProdutoCardapioProjection {
     String getCategoriaDescricao();
 
     Boolean getPossuiImagem();
+
+    Instant getImagemAtualizadaEm();
 }

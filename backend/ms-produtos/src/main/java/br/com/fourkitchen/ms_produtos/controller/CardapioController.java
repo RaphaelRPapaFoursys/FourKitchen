@@ -1,6 +1,7 @@
 package br.com.fourkitchen.ms_produtos.controller;
 
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaCardapioResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.CategoriaCardapioResumoResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.CardapioPaginadoResponse;
 import br.com.fourkitchen.ms_produtos.service.CardapioService;
 import lombok.RequiredArgsConstructor;
@@ -28,15 +29,21 @@ public class CardapioController {
         return ResponseEntity.ok(cardapioService.buscarCardapio());
     }
 
+    @GetMapping("/categorias")
+    public ResponseEntity<List<CategoriaCardapioResumoResponse>> buscarCategoriasAtivas() {
+        return ResponseEntity.ok(cardapioService.buscarCategoriasAtivas());
+    }
+
     @GetMapping("/paginado")
     public ResponseEntity<CardapioPaginadoResponse> buscarCardapioPaginado(
             @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "size", defaultValue = "12") Integer size
+            @RequestParam(name = "size", defaultValue = "12") Integer size,
+            @RequestParam(name = "categoriaId", required = false) Integer categoriaId
     ) {
         int pagina = page == null ? 0 : Math.max(0, page);
         int tamanho = size == null ? 12 : Math.min(Math.max(1, size), 30);
         Pageable pageable = PageRequest.of(pagina, tamanho);
 
-        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(pageable));
+        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(categoriaId, pageable));
     }
 }

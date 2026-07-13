@@ -6,12 +6,14 @@ import br.com.fourkitchen.ms_produtos.model.Produto;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import static br.com.fourkitchen.ms_produtos.support.ImagemTesteFactory.criarPng;
 import static br.com.fourkitchen.ms_produtos.support.ImagemTesteFactory.paraBase64;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ProdutoMapperTest {
 
@@ -39,13 +41,16 @@ class ProdutoMapperTest {
         assertEquals("Hamburguer", produto.getNome());
         assertEquals("Artesanal", produto.getDescricao());
         assertArrayEquals(imagem, produto.getImagem());
+        assertNotNull(produto.getImagemAtualizadaEm());
         assertEquals(new BigDecimal("29.90"), produto.getPreco());
     }
 
     @Test
     void atualizarProdutoRequestMapperDevePreservarImagemAtualQuandoImagemNaoForEnviada() {
+        Instant versaoAtual = Instant.parse("2026-07-13T15:30:00Z");
         Produto produto = Produto.builder()
                 .imagem("imagem antiga".getBytes())
+                .imagemAtualizadaEm(versaoAtual)
                 .build();
         AtualizarProdutoRequest request = new AtualizarProdutoRequest(
                 "Hamburguer",
@@ -58,6 +63,7 @@ class ProdutoMapperTest {
         atualizarProdutoRequestMapper.map(request, produto);
 
         assertArrayEquals("imagem antiga".getBytes(), produto.getImagem());
+        assertEquals(versaoAtual, produto.getImagemAtualizadaEm());
     }
 
     @Test
@@ -76,5 +82,6 @@ class ProdutoMapperTest {
         atualizarProdutoRequestMapper.map(request, produto);
 
         assertNull(produto.getImagem());
+        assertNotNull(produto.getImagemAtualizadaEm());
     }
 }

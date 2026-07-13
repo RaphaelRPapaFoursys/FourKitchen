@@ -5,6 +5,12 @@ export interface CategoriaCardapioResponse {
   produtos: ProdutoCardapioResponse[];
 }
 
+export interface CategoriaMenuResponse {
+  categoriaId: number;
+  categoriaNome: string;
+  categoriaDescricao?: string;
+}
+
 export interface CardapioPaginadoResponse {
   content: CategoriaCardapioResponse[];
   page: number;

@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, shareReplay } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { CardapioPaginadoResponse, CategoriaCardapioResponse } from '../models/menu.models';
+import { CardapioPaginadoResponse, CategoriaCardapioResponse, CategoriaMenuResponse } from '../models/menu.models';
 
 export type MenuContext = 'mesa' | 'totem';
 
@@ -13,6 +13,7 @@ export type MenuContext = 'mesa' | 'totem';
 export class MenuService {
   private readonly http = inject(HttpClient);
   private readonly menuCache = new Map<MenuContext, Observable<CategoriaCardapioResponse[]>>();
+  private readonly categoryCache = new Map<MenuContext, Observable<CategoriaMenuResponse[]>>();
   private readonly menuPageCache = new Map<string, Observable<CardapioPaginadoResponse>>();
 
   getMenu(context: MenuContext): Observable<CategoriaCardapioResponse[]> {
@@ -37,8 +38,34 @@ export class MenuService {
     return this.getMenu(context);
   }
 
-  getMenuPage(context: MenuContext, page: number, size: number): Observable<CardapioPaginadoResponse> {
-    const cacheKey = this.getPageCacheKey(context, page, size);
+  getMenuCategories(context: MenuContext): Observable<CategoriaMenuResponse[]> {
+    const cached = this.categoryCache.get(context);
+    if (cached) {
+      return cached;
+    }
+
+    const request = this.http.get<CategoriaMenuResponse[]>(
+      `${environment.apiUrl}/api/${context}/categorias`,
+    ).pipe(
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+
+    this.categoryCache.set(context, request);
+    return request;
+  }
+
+  refreshMenuCategories(context: MenuContext): Observable<CategoriaMenuResponse[]> {
+    this.categoryCache.delete(context);
+    return this.getMenuCategories(context);
+  }
+
+  getMenuPage(
+    context: MenuContext,
+    page: number,
+    size: number,
+    categoriaId: number | null = null,
+  ): Observable<CardapioPaginadoResponse> {
+    const cacheKey = this.getPageCacheKey(context, page, size, categoriaId);
     const cached = this.menuPageCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -50,6 +77,7 @@ export class MenuService {
         params: {
           page,
           size,
+          ...(categoriaId === null ? {} : { categoriaId }),
         },
       },
     ).pipe(
@@ -60,10 +88,15 @@ export class MenuService {
     return request;
   }
 
-  refreshMenuPage(context: MenuContext, page: number, size: number): Observable<CardapioPaginadoResponse> {
+  refreshMenuPage(
+    context: MenuContext,
+    page: number,
+    size: number,
+    categoriaId: number | null = null,
+  ): Observable<CardapioPaginadoResponse> {
     this.clearPageCache(context);
     this.menuCache.delete(context);
-    return this.getMenuPage(context, page, size);
+    return this.getMenuPage(context, page, size, categoriaId);
   }
 
   private clearPageCache(context: MenuContext): void {
@@ -74,7 +107,7 @@ export class MenuService {
     }
   }
 
-  private getPageCacheKey(context: MenuContext, page: number, size: number): string {
-    return `${context}|${page}|${size}`;
+  private getPageCacheKey(context: MenuContext, page: number, size: number, categoriaId: number | null): string {
+    return `${context}|${page}|${size}|${categoriaId ?? 'todos'}`;
   }
 }

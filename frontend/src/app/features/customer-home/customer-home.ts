@@ -8,6 +8,7 @@ import { environment } from '../../../environments/environment';
 import {
   CardapioPaginadoResponse,
   CategoriaCardapioResponse,
+  CategoriaMenuResponse,
   ProdutoCardapioView,
 } from '../../core/models/menu.models';
 import { CartItem } from '../../core/models/cart.models';
@@ -26,6 +27,11 @@ type MenuLoadState =
   | { status: 'loading'; data: null; message: string }
   | { status: 'error'; data: null; message: string }
   | { status: 'success'; data: CategoriaCardapioResponse[]; message: string };
+
+type CategoryLoadState =
+  | { status: 'loading'; data: null; message: string }
+  | { status: 'error'; data: null; message: string }
+  | { status: 'success'; data: CategoriaMenuResponse[]; message: string };
 
 const MENU_PAGE_SIZE = 12;
 const MENU_SCROLL_THRESHOLD_PX = 900;
@@ -83,8 +89,15 @@ export class CustomerHome implements AfterViewInit {
     message: 'Carregando cardapio...',
   });
 
-  protected readonly categories = computed(() => this.menuState().data ?? []);
-  protected readonly products = computed(() => this.buildProductViews(this.categories()));
+  protected readonly categoryState = signal<CategoryLoadState>({
+    status: 'loading',
+    data: null,
+    message: 'Carregando categorias...',
+  });
+
+  protected readonly categories = computed(() => this.categoryState().data ?? []);
+  protected readonly menuCategories = computed(() => this.menuState().data ?? []);
+  protected readonly products = computed(() => this.buildProductViews(this.menuCategories()));
 
   protected readonly filteredProducts = computed(() => {
     const categoryId = this.selectedCategoryId();
@@ -100,6 +113,7 @@ export class CustomerHome implements AfterViewInit {
 
   constructor() {
     this.refreshCartCount();
+    void this.loadCategories(false);
     void this.loadFirstMenuPage(false);
 
     effect(() => {
@@ -133,10 +147,34 @@ export class CustomerHome implements AfterViewInit {
 
   protected loadMenu(): void {
     void this.loadFirstMenuPage(true);
+    void this.loadCategories(true);
   }
 
   protected retryLoadMenu(): void {
     this.loadMenu();
+  }
+
+  private async loadCategories(forceRefresh: boolean): Promise<void> {
+    this.categoryState.set({
+      status: 'loading',
+      data: null,
+      message: 'Carregando categorias...',
+    });
+
+    try {
+      const request = forceRefresh
+        ? this.menuService.refreshMenuCategories(this.getCurrentContext())
+        : this.menuService.getMenuCategories(this.getCurrentContext());
+      const categories = await firstValueFrom(request);
+
+      this.categoryState.set({ status: 'success', data: categories, message: '' });
+    } catch {
+      this.categoryState.set({
+        status: 'error',
+        data: null,
+        message: 'Nao foi possivel carregar as categorias.',
+      });
+    }
   }
 
   private async loadFirstMenuPage(forceRefresh: boolean): Promise<void> {
@@ -150,7 +188,7 @@ export class CustomerHome implements AfterViewInit {
     });
 
     try {
-      const page = await this.fetchMenuPage(0, forceRefresh);
+      const page = await this.fetchMenuPage(0, forceRefresh, this.selectedCategoryId());
       this.applyMenuPage(page, false);
     } catch {
       this.menuState.set({
@@ -173,7 +211,7 @@ export class CustomerHome implements AfterViewInit {
     this.loadingMoreMenu.set(true);
 
     try {
-      const page = await this.fetchMenuPage(this.nextMenuPage, false);
+      const page = await this.fetchMenuPage(this.nextMenuPage, false, this.selectedCategoryId());
       this.applyMenuPage(page, true);
     } catch {
       // Mantem o cardapio ja carregado; o proximo scroll tenta novamente.
@@ -182,10 +220,14 @@ export class CustomerHome implements AfterViewInit {
     }
   }
 
-  private fetchMenuPage(page: number, forceRefresh: boolean): Promise<CardapioPaginadoResponse> {
+  private fetchMenuPage(
+    page: number,
+    forceRefresh: boolean,
+    categoriaId: number | null,
+  ): Promise<CardapioPaginadoResponse> {
     const request = forceRefresh
-      ? this.menuService.refreshMenuPage(this.getCurrentContext(), page, MENU_PAGE_SIZE)
-      : this.menuService.getMenuPage(this.getCurrentContext(), page, MENU_PAGE_SIZE);
+      ? this.menuService.refreshMenuPage(this.getCurrentContext(), page, MENU_PAGE_SIZE, categoriaId)
+      : this.menuService.getMenuPage(this.getCurrentContext(), page, MENU_PAGE_SIZE, categoriaId);
 
     return firstValueFrom(request);
   }
@@ -238,7 +280,12 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected selectCategory(categoryId: number | null): void {
+    if (this.selectedCategoryId() === categoryId) {
+      return;
+    }
+
     this.selectedCategoryId.set(categoryId);
+    void this.loadFirstMenuPage(false);
   }
 
   protected selectCategoryFromCard(categoryId: number): void {
@@ -363,7 +410,7 @@ export class CustomerHome implements AfterViewInit {
     this.addProductToCart(product, 1);
   }
 
-  protected trackByCategoryId(_index: number, category: CategoriaCardapioResponse): number {
+  protected trackByCategoryId(_index: number, category: CategoriaMenuResponse): number {
     return category.categoriaId;
   }
 
@@ -371,18 +418,26 @@ export class CustomerHome implements AfterViewInit {
     return product.id;
   }
 
-  protected getCategoryImage(category: CategoriaCardapioResponse): string {
-    const imageMap: Record<string, string> = {
-      entradas: 'assets/images/entradas.png',
-      lanches: 'assets/images/entradas.png',
-      'pratos-prontos': 'assets/images/prontos.png',
-      pratos: 'assets/images/prontos.png',
-      japonesa: 'assets/images/japonesa.png',
-      vegetariana: 'assets/images/vegetariana.png',
-    };
+  protected getCategoryImage(category: CategoriaMenuResponse): string {
+    const normalizedName = this.normalizeCategoryName(category.categoriaNome);
 
-    return imageMap[this.normalizeCategoryName(category.categoriaNome)]
-      ?? 'assets/images/category-placeholder.svg';
+    if (normalizedName.includes('japones')) {
+      return 'assets/images/japonesa.png';
+    }
+
+    if (normalizedName.includes('veget') || normalizedName.includes('vegan')) {
+      return 'assets/images/vegetariana.png';
+    }
+
+    if (normalizedName.includes('prato') || normalizedName.includes('pronto')) {
+      return 'assets/images/prontos.png';
+    }
+
+    if (normalizedName.includes('entrada') || normalizedName.includes('lanche')) {
+      return 'assets/images/entradas.png';
+    }
+
+    return 'assets/images/category-placeholder.svg';
   }
 
   protected getProductImage(product: ProdutoCardapioView): string {

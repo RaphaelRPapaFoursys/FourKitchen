@@ -17,7 +17,7 @@ public class AtualizarProdutoRequestMapper {
         target.setNome(source.nome());
         target.setDescricao(source.descricao());
         if (source.imagem() != null) {
-            target.setImagem(imagemBase64Mapper.paraBytes(source.imagem()));
+            target.atualizarImagem(imagemBase64Mapper.paraBytes(source.imagem()));
         }
         target.setPreco(source.preco());
     }

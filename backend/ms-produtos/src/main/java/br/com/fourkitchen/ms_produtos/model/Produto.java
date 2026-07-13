@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "produtos")
@@ -38,6 +39,9 @@ public class Produto {
     @Column(name = "imagem")
     private byte[] imagem;
 
+    @Column(name = "imagem_atualizada_em")
+    private Instant imagemAtualizadaEm;
+
     @Column(name = "preco", precision = 10, scale = 2, nullable = false)
     private BigDecimal preco;
 
@@ -47,4 +51,9 @@ public class Produto {
 
     @Column(name = "disponivel")
     private Boolean disponivel;
+
+    public void atualizarImagem(byte[] novaImagem) {
+        this.imagem = novaImagem;
+        this.imagemAtualizadaEm = Instant.now();
+    }
 }

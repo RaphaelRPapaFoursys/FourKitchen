@@ -1,6 +1,7 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
 import br.com.fourkitchen.bff_restaurante.dto.response.CardapioPaginadoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaCardapioResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaCardapioResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.CardapioService;
@@ -54,6 +55,11 @@ public class CardapioController {
         return ResponseEntity.ok(cardapioService.buscarCardapio());
     }
 
+    @GetMapping("/mesa/categorias")
+    public ResponseEntity<List<CategoriaCardapioResumoResponse>> buscarCategoriasMesa() {
+        return ResponseEntity.ok(cardapioService.buscarCategoriasAtivas());
+    }
+
     @GetMapping("/mesa/cardapio/paginado")
     @Operation(
             summary = "Lista pagina do cardapio da mesa",
@@ -61,9 +67,10 @@ public class CardapioController {
     )
     public ResponseEntity<CardapioPaginadoResponse> buscarCardapioMesaPaginado(
             @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "size", defaultValue = "12") Integer size
+            @RequestParam(name = "size", defaultValue = "12") Integer size,
+            @RequestParam(name = "categoriaId", required = false) Integer categoriaId
     ) {
-        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size));
+        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size, categoriaId));
     }
 
     @GetMapping("/totem/cardapio")
@@ -88,6 +95,11 @@ public class CardapioController {
         return ResponseEntity.ok(cardapioService.buscarCardapio());
     }
 
+    @GetMapping("/totem/categorias")
+    public ResponseEntity<List<CategoriaCardapioResumoResponse>> buscarCategoriasTotem() {
+        return ResponseEntity.ok(cardapioService.buscarCategoriasAtivas());
+    }
+
     @GetMapping("/totem/cardapio/paginado")
     @Operation(
             summary = "Lista pagina do cardapio do totem",
@@ -95,9 +107,10 @@ public class CardapioController {
     )
     public ResponseEntity<CardapioPaginadoResponse> buscarCardapioTotemPaginado(
             @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "size", defaultValue = "12") Integer size
+            @RequestParam(name = "size", defaultValue = "12") Integer size,
+            @RequestParam(name = "categoriaId", required = false) Integer categoriaId
     ) {
-        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size));
+        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size, categoriaId));
     }
 
     @GetMapping("/garcom/cardapio")
@@ -122,6 +135,11 @@ public class CardapioController {
         return ResponseEntity.ok(cardapioService.buscarCardapio());
     }
 
+    @GetMapping("/garcom/categorias")
+    public ResponseEntity<List<CategoriaCardapioResumoResponse>> buscarCategoriasGarcom() {
+        return ResponseEntity.ok(cardapioService.buscarCategoriasAtivas());
+    }
+
     @GetMapping("/garcom/cardapio/paginado")
     @Operation(
             summary = "Lista pagina do cardapio do garcom",
@@ -129,9 +147,10 @@ public class CardapioController {
     )
     public ResponseEntity<CardapioPaginadoResponse> buscarCardapioGarcomPaginado(
             @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "size", defaultValue = "12") Integer size
+            @RequestParam(name = "size", defaultValue = "12") Integer size,
+            @RequestParam(name = "categoriaId", required = false) Integer categoriaId
     ) {
-        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size));
+        return ResponseEntity.ok(cardapioService.buscarCardapioPaginado(page, size, categoriaId));
     }
 
     @GetMapping("/produtos/{id}/imagem")
