@@ -114,6 +114,10 @@
               }
             </section>
 
+            <button type="button" class="primary-action" (click)="fazerPedido(mesa)">
+              Fazer pedido
+            </button>
+
             @if (mesaPossuiProblema(mesa)) {
               <section class="kitchen-request" aria-label="Solicitacoes da cozinha">
                 @for (pedido of pedidosComProblema(mesa); track pedido.id) {

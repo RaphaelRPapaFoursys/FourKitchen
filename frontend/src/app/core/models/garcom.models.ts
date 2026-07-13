@@ -86,3 +86,25 @@ export interface DecisaoProblemaGarcomRequest {
   pedidoCancelado: boolean;
   idNovoProduto: number | null;
 }
+
+export interface ItemPedidoGarcomRequest {
+  idProduto: number;
+  quantidade: number;
+  precoUnitario: number;
+  observacao?: string;
+}
+
+export interface CriarPedidoGarcomRequest {
+  idMesa: number;
+  itens: ItemPedidoGarcomRequest[];
+}
+
+export interface PedidoGarcomResponse {
+  id: number;
+  codigo: number;
+  canal: string;
+  status: string;
+  idMesa: number;
+  idGarcom: number;
+  idAtendimento: number;
+}

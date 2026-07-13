@@ -181,6 +181,10 @@ export class Garcom {
       });
   }
 
+  protected fazerPedido(mesa: MesaGarcomResponse): void {
+    void this.router.navigate(['/garcom/mesas', mesa.idMesa, 'pedido']);
+  }
+
   protected abrirSolicitacao(mesa: MesaGarcomResponse): void {
     this.mesaEmDetalhe.set(mesa);
     this.acaoDecisao.set('REMOVER_ITEM');
