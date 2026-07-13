@@ -1,0 +1,62 @@
+<section class="image-upload" aria-labelledby="product-image-label">
+  <div class="image-upload__heading">
+    <div>
+      <strong id="product-image-label">Imagem do produto</strong>
+      <span>Opcional</span>
+    </div>
+    <small>JPG, JPEG ou PNG • até 1 MB • proporção 4:3</small>
+  </div>
+
+  <div class="image-upload__content">
+    <label
+      class="image-upload__dropzone"
+      [class.image-upload__dropzone--dragging]="dragging()"
+      [class.image-upload__dropzone--disabled]="disabled()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      <input
+        #fileInput
+        class="image-upload__input"
+        type="file"
+        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+        [disabled]="disabled() || reading()"
+        (change)="onFileSelected($event)"
+      />
+
+      <span class="image-upload__symbol" aria-hidden="true">↑</span>
+      @if (reading()) {
+        <strong>Lendo imagem...</strong>
+      } @else {
+        <strong>Arraste a imagem aqui</strong>
+        <span>ou clique para selecionar</span>
+      }
+      <small>Máximo 1200 × 900 pixels</small>
+    </label>
+
+    <div class="image-upload__preview" [class.image-upload__preview--empty]="!previewSource()">
+      @if (previewSource(); as preview) {
+        <img [src]="preview" alt="Pré-visualização da imagem do produto" />
+      } @else {
+        <span aria-hidden="true">▧</span>
+        <small>Nenhuma imagem selecionada</small>
+      }
+    </div>
+  </div>
+
+  @if (selectedFileName()) {
+    <div class="image-upload__selection">
+      <span>{{ selectedFileName() }}</span>
+      <button type="button" (click)="cancelSelection()" [disabled]="disabled()">
+        Cancelar seleção
+      </button>
+    </div>
+  } @else if (currentImage()) {
+    <p class="image-upload__hint">A imagem atual será mantida se nenhuma nova imagem for selecionada.</p>
+  }
+
+  @if (errorMessage()) {
+    <p class="image-upload__error" role="alert">{{ errorMessage() }}</p>
+  }
+</section>

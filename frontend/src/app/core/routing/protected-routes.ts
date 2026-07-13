@@ -127,6 +127,14 @@ export const protectedRoutes: Routes = [
   ),
   protectedRoute(
     {
+      path: 'gestor/produtos',
+      loadComponent: () =>
+        import('../../features/gestor-products/gestor-products').then(m => m.GestorProducts),
+    },
+    ['ADMIN', 'GESTOR'],
+  ),
+  protectedRoute(
+    {
       path: 'gestor',
       loadComponent: () =>
         import('../../features/gestor/gestor').then(m => m.Gestor),
