@@ -419,25 +419,19 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected getCategoryImage(category: CategoriaMenuResponse): string {
-    const normalizedName = this.normalizeCategoryName(category.categoriaNome);
+    const image = category.imagem?.trim();
 
-    if (normalizedName.includes('japones')) {
-      return 'assets/images/japonesa.png';
+    if (!image || !this.isValidCategoryImage(image)) {
+      return 'assets/images/category-placeholder.svg';
     }
 
-    if (normalizedName.includes('veget') || normalizedName.includes('vegan')) {
-      return 'assets/images/vegetariana.png';
-    }
+    return /^data:/i.test(image) ? image : `data:image/png;base64,${image}`;
+  }
 
-    if (normalizedName.includes('prato') || normalizedName.includes('pronto')) {
-      return 'assets/images/prontos.png';
-    }
-
-    if (normalizedName.includes('entrada') || normalizedName.includes('lanche')) {
-      return 'assets/images/entradas.png';
-    }
-
-    return 'assets/images/category-placeholder.svg';
+  protected useCategoryFallback(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    image.onerror = null;
+    image.src = 'assets/images/category-placeholder.svg';
   }
 
   protected getProductImage(product: ProdutoCardapioView): string {
@@ -522,14 +516,19 @@ export class CustomerHome implements AfterViewInit {
     );
   }
 
-  private normalizeCategoryName(categoryName: string): string {
-    return categoryName
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+  private isValidCategoryImage(image: string): boolean {
+    const base64 = /^data:/i.test(image)
+      ? image.match(/^data:image\/[a-z0-9.+-]+;base64,(.+)$/i)?.[1]
+      : image;
+
+    if (!base64) {
+      return false;
+    }
+
+    const normalizedBase64 = base64.replace(/\s/g, '');
+
+    return normalizedBase64.length % 4 !== 1
+      && /^[a-z0-9+/]*={0,2}$/i.test(normalizedBase64);
   }
 
   private resolveApiUrl(url: string): string {

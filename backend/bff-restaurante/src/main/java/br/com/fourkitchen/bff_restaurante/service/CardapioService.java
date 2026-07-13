@@ -40,7 +40,8 @@ public class CardapioService {
                     .map(categoria -> new CategoriaCardapioResumoResponse(
                             categoria.categoriaId(),
                             categoria.categoriaNome(),
-                            categoria.categoriaDescricao()
+                            categoria.categoriaDescricao(),
+                            categoria.imagem()
                     ))
                     .toList();
         } catch (FeignException e) {

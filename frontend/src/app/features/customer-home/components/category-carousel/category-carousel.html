@@ -5,16 +5,26 @@
     </button>
   }
 
-  <div class="categories__grid" #categoriesCarousel (scroll)="notifyScrolled()">
+  <div
+    class="categories__grid"
+    #categoriesCarousel
+    [class.categories__grid--dragging]="isDragging"
+    (scroll)="notifyScrolled()"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerCancel($event)"
+    (pointerleave)="onPointerLeave($event)"
+  >
     @for (category of categories(); track trackCategory()($index, category)) {
       <button
         class="category-card"
         type="button"
         [class.category-card--active]="selectedCategoryId() === category.categoriaId"
-        (click)="selectCategory(category.categoriaId)"
+        (click)="onCategoryClick($event, category.categoriaId)"
       >
         <div class="category-card__media">
-          <img [src]="categoryImage()(category)" [alt]="category.categoriaNome" loading="eager" />
+          <img [src]="categoryImage()(category)" [alt]="category.categoriaNome" loading="eager" draggable="false" (error)="useCategoryFallback($event)" />
         </div>
         <h3>{{ category.categoriaNome }}</h3>
         @if (category.categoriaDescricao) {

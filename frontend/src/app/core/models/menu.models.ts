@@ -9,6 +9,7 @@ export interface CategoriaMenuResponse {
   categoriaId: number;
   categoriaNome: string;
   categoriaDescricao?: string;
+  imagem?: string | null;
 }
 
 export interface CardapioPaginadoResponse {

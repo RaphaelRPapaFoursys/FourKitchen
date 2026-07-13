@@ -1,8 +1,10 @@
+import { PedidoCanal, PedidoStatus } from './order.models';
+
 export interface PedidoAtivoMesaResponse {
   id: number;
   codigo: number;
-  canal: string;
-  status: string;
+  canal: PedidoCanal;
+  status: PedidoStatus;
   idAtendimento: number | null;
 }
 
@@ -39,8 +41,8 @@ export interface ItemPedidoDetalheGarcomResponse {
 export interface PedidoDetalheGarcomResponse {
   id: number;
   codigo: number;
-  canal: string;
-  status: string;
+  canal: PedidoCanal;
+  status: PedidoStatus;
   dataCriacao: string;
   dataInicioPreparo: string | null;
   dataPronto: string | null;
@@ -71,6 +73,17 @@ export interface MesaGarcomDetalheResponse {
   };
   pedidos: PedidoDetalheGarcomResponse[];
   problemas: ProblemaPedidoGarcomResponse[];
+}
+
+export interface FechamentoContaGarcomResponse {
+  idMesa: number;
+  numero: number;
+  status: string;
+  idAtendimento: number;
+  codigoSessao: number;
+  dataAbertura: string;
+  dataFechamento: string;
+  conta: MesaGarcomDetalheResponse['conta'];
 }
 
 export interface MesaProblemasGarcomResponse {

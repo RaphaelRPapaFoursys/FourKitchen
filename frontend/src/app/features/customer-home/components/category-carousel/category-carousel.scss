@@ -14,8 +14,11 @@
   padding: 6.25rem 0.25rem 0.6rem;
   overscroll-behavior-inline: contain;
   scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: none;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  touch-action: pan-x;
 }
 
 .categories__grid::-webkit-scrollbar {
@@ -24,7 +27,12 @@
 
 .categories__grid.categories__grid--animating {
   scroll-behavior: auto;
-  scroll-snap-type: none;
+}
+
+.categories__grid.categories__grid--dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+  user-select: none;
 }
 
 .categories-carousel__button {

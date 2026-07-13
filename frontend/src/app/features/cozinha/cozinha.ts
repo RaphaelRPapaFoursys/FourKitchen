@@ -1,7 +1,15 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  computed,
+  effect,
+  signal,
+  viewChild,
+} from '@angular/core';
 
 import {
   ItemFilaCozinhaResponse,
@@ -9,6 +17,9 @@ import {
   SinalizarProblemaRequest,
 } from '../../core/models/cozinha.models';
 import { CozinhaService } from '../../core/services/cozinha';
+import { Badge } from '../../shared/components/badge/badge';
+import { Icon } from '../../shared/components/icon/icon';
+import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 
 type PrioridadePedido = 'urgente' | 'alta' | 'normal';
 type OrdenacaoPedido = 'tempo' | 'prioridade';
@@ -19,27 +30,63 @@ interface ItemPedidoSelecionado {
   item: ItemFilaCozinhaResponse;
 }
 
+interface OpcaoProblema {
+  valor: TipoProblema;
+  titulo: string;
+  descricao: string;
+}
+
 @Component({
   selector: 'app-cozinha',
-  imports: [FormsModule, NgTemplateOutlet],
+  imports: [NgTemplateOutlet, Badge, Icon, KpiCard],
   templateUrl: './cozinha.html',
   styleUrl: './cozinha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Cozinha implements OnDestroy {
   private readonly intervaloAtualizacao: ReturnType<typeof setInterval>;
+  private readonly modalProblema = viewChild<ElementRef<HTMLElement>>('modalProblema');
   private filaEmCarregamento = false;
+  private elementoFocoAnterior: HTMLElement | null = null;
   protected readonly pedidos = signal<PedidoFilaCozinhaResponse[]>([]);
   protected readonly busca = signal('');
   protected readonly ordenacao = signal<OrdenacaoPedido>('tempo');
   protected readonly sincronizadoEm = signal<Date | null>(null);
   protected readonly carregando = signal(false);
+  protected readonly atualizando = signal(false);
   protected readonly erro = signal<string | null>(null);
   protected readonly sucesso = signal<string | null>(null);
   protected readonly pedidoEmAcao = signal<number | null>(null);
   protected readonly itemEmAcao = signal<number | null>(null);
   protected readonly problemaSelecionado = signal<ItemPedidoSelecionado | null>(null);
-  protected readonly tipoProblema = signal<TipoProblema>('FALTA_PRODUTO');
+  protected readonly tipoProblema = signal<TipoProblema | null>(null);
+  protected readonly erroTipoProblema = signal<string | null>(null);
+  protected readonly opcoesProblema: readonly OpcaoProblema[] = [
+    {
+      valor: 'ERRO',
+      titulo: 'Erro no item',
+      descricao: 'Existe um erro de montagem, preparo ou informação neste item.',
+    },
+    {
+      valor: 'INDISPONIVEL',
+      titulo: 'Produto indisponível',
+      descricao: 'O produto está temporariamente indisponível para produção.',
+    },
+  ];
+
+  private readonly focarModalAoAbrir = effect(() => {
+    if (!this.problemaSelecionado()) {
+      return;
+    }
+
+    const modal = this.modalProblema();
+
+    if (modal) {
+      queueMicrotask(() =>
+        modal.nativeElement.querySelector<HTMLElement>('[data-modal-initial-focus]')?.focus()
+      );
+    }
+  });
 
   constructor(private readonly cozinhaService: CozinhaService) {
     this.carregarFila();
@@ -141,9 +188,20 @@ export class Cozinha implements OnDestroy {
     this.alterarStatus(id, 'PRONTO');
   }
 
-  protected abrirProblema(pedido: PedidoFilaCozinhaResponse, item: ItemFilaCozinhaResponse): void {
+  protected abrirProblema(
+    pedido: PedidoFilaCozinhaResponse,
+    item: ItemFilaCozinhaResponse,
+    evento?: Event,
+  ): void {
     this.limparMensagens();
-    this.tipoProblema.set('FALTA_PRODUTO');
+    this.tipoProblema.set(null);
+    this.erroTipoProblema.set(null);
+    const elementoAcionador = evento?.currentTarget;
+    this.elementoFocoAnterior = elementoAcionador instanceof HTMLElement
+      ? elementoAcionador
+      : document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     this.problemaSelecionado.set({ pedido, item });
   }
 
@@ -153,12 +211,67 @@ export class Cozinha implements OnDestroy {
     }
 
     this.problemaSelecionado.set(null);
+    this.tipoProblema.set(null);
+    this.erroTipoProblema.set(null);
+
+    const elementoFocoAnterior = this.elementoFocoAnterior;
+    this.elementoFocoAnterior = null;
+    queueMicrotask(() => elementoFocoAnterior?.focus());
+  }
+
+  protected selecionarTipoProblema(tipo: TipoProblema): void {
+    this.tipoProblema.set(tipo);
+    this.erroTipoProblema.set(null);
+  }
+
+  protected tratarTecladoModal(evento: KeyboardEvent): void {
+    if (evento.key === 'Escape') {
+      evento.preventDefault();
+      this.fecharProblema();
+      return;
+    }
+
+    if (evento.key !== 'Tab') {
+      return;
+    }
+
+    const modal = this.modalProblema()?.nativeElement;
+    const elementosFocaveis = modal
+      ? Array.from(modal.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])',
+        ))
+      : [];
+
+    if (!modal || elementosFocaveis.length === 0) {
+      return;
+    }
+
+    const primeiro = elementosFocaveis[0];
+    const ultimo = elementosFocaveis[elementosFocaveis.length - 1];
+    const elementoAtivo = document.activeElement;
+
+    if (evento.shiftKey && elementoAtivo === primeiro) {
+      evento.preventDefault();
+      ultimo.focus();
+    } else if (!evento.shiftKey && elementoAtivo === ultimo) {
+      evento.preventDefault();
+      primeiro.focus();
+    } else if (!modal.contains(elementoAtivo)) {
+      evento.preventDefault();
+      primeiro.focus();
+    }
   }
 
   protected confirmarProblema(): void {
     const selecao = this.problemaSelecionado();
+    const tipoProblema = this.tipoProblema();
 
-    if (!selecao) {
+    if (!selecao || this.itemEmAcao() !== null) {
+      return;
+    }
+
+    if (!tipoProblema) {
+      this.erroTipoProblema.set('Selecione um tipo de problema para continuar.');
       return;
     }
 
@@ -168,12 +281,12 @@ export class Cozinha implements OnDestroy {
     this.cozinhaService.sinalizarProblema({
       idPedido: selecao.pedido.id,
       idProdutoPedido: selecao.item.id,
-      statusProdutoPedido: this.tipoProblema(),
+      statusProdutoPedido: tipoProblema,
     }).subscribe({
       next: () => {
         this.sucesso.set('Problema sinalizado. Aguardando decisao do garcom.');
-        this.problemaSelecionado.set(null);
         this.itemEmAcao.set(null);
+        this.fecharProblema();
         this.carregarFila();
       },
       error: erro => {
@@ -262,22 +375,20 @@ export class Cozinha implements OnDestroy {
     return labels[this.statusNormalizado(pedido)] ?? pedido.status;
   }
 
-  protected problemaLabel(tipo: TipoProblema): string {
-    const labels: Record<TipoProblema, string> = {
-      FALTA_PRODUTO: 'Falta de produto',
-      ERRO: 'Erro no item',
-      INDISPONIVEL: 'Produto indisponivel',
-    };
-
-    return labels[tipo];
-  }
-
   protected acaoDesabilitada(pedido: PedidoFilaCozinhaResponse): boolean {
-    return this.pedidoEmAcao() === pedido.id || this.statusPronto(pedido);
+    return this.pedidoEmAcao() !== null || this.itemEmAcao() !== null || this.statusPronto(pedido);
   }
 
   protected itemAcaoDesabilitada(item: ItemFilaCozinhaResponse): boolean {
-    return this.itemEmAcao() === item.id;
+    return this.itemEmAcao() !== null || this.pedidoEmAcao() !== null;
+  }
+
+  protected pedidoEstaProcessando(id: number): boolean {
+    return this.pedidoEmAcao() === id;
+  }
+
+  protected itemEstaProcessando(id: number): boolean {
+    return this.itemEmAcao() === id;
   }
 
   protected sincronizadoLabel(): string {
@@ -298,6 +409,7 @@ export class Cozinha implements OnDestroy {
     }
 
     this.filaEmCarregamento = true;
+    this.atualizando.set(true);
     if (!silencioso) {
       this.carregando.set(true);
     }
@@ -308,6 +420,7 @@ export class Cozinha implements OnDestroy {
         this.pedidos.set(pedidos);
         this.sincronizadoEm.set(new Date());
         this.filaEmCarregamento = false;
+        this.atualizando.set(false);
         if (!silencioso) {
           this.carregando.set(false);
         }
@@ -315,6 +428,7 @@ export class Cozinha implements OnDestroy {
       error: erro => {
         this.erro.set(this.extrairMensagemErro(erro, 'Nao foi possivel carregar a fila da cozinha.'));
         this.filaEmCarregamento = false;
+        this.atualizando.set(false);
         if (!silencioso) {
           this.carregando.set(false);
         }

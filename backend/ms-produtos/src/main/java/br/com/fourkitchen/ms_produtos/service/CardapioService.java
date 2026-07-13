@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,10 @@ public class CardapioService {
                 .map(categoria -> new CategoriaCardapioResumoResponse(
                         categoria.getId(),
                         categoria.getNome(),
-                        categoria.getDescricao()
+                        categoria.getDescricao(),
+                        categoria.getImagem() == null || categoria.getImagem().length == 0
+                                ? null
+                                : Base64.getEncoder().encodeToString(categoria.getImagem())
                 ))
                 .toList();
     }

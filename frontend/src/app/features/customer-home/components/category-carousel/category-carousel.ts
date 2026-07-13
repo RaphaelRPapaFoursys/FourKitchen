@@ -22,7 +22,22 @@ export class CategoryCarouselComponent {
   readonly scrollRequested = output<'left' | 'right'>();
   readonly scrolled = output<void>();
 
-  protected selectCategory(categoryId: number): void {
+  protected isDragging = false;
+
+  private startX = 0;
+  private startScrollLeft = 0;
+  private didDrag = false;
+  private isMouseDown = false;
+  private readonly dragThreshold = 8;
+
+  protected onCategoryClick(event: MouseEvent, categoryId: number): void {
+    if (this.didDrag) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.didDrag = false;
+      return;
+    }
+
     this.categorySelected.emit(categoryId);
   }
 
@@ -32,6 +47,67 @@ export class CategoryCarouselComponent {
 
   protected notifyScrolled(): void {
     this.scrolled.emit();
+  }
+
+  protected useCategoryFallback(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    image.onerror = null;
+    image.src = 'assets/images/category-placeholder.svg';
+  }
+
+  protected onPointerDown(event: PointerEvent): void {
+    if (event.pointerType !== 'mouse' || event.button !== 0) {
+      return;
+    }
+
+    const carousel = event.currentTarget as HTMLElement;
+    this.startX = event.clientX;
+    this.startScrollLeft = carousel.scrollLeft;
+    this.didDrag = false;
+    this.isMouseDown = true;
+    this.isDragging = false;
+  }
+
+  protected onPointerMove(event: PointerEvent): void {
+    if (event.pointerType !== 'mouse' || !this.isMouseDown || !(event.buttons & 1)) {
+      return;
+    }
+
+    const carousel = event.currentTarget as HTMLElement;
+    const distance = event.clientX - this.startX;
+
+    if (Math.abs(distance) < this.dragThreshold) {
+      return;
+    }
+
+    this.didDrag = true;
+    this.isDragging = true;
+    event.preventDefault();
+    carousel.scrollLeft = this.startScrollLeft - distance;
+  }
+
+  protected onPointerUp(event: PointerEvent): void {
+    if (event.pointerType !== 'mouse') {
+      return;
+    }
+
+    this.isMouseDown = false;
+    this.isDragging = false;
+  }
+
+  protected onPointerCancel(event: PointerEvent): void {
+    if (event.pointerType !== 'mouse') {
+      return;
+    }
+
+    this.isMouseDown = false;
+    this.isDragging = false;
+  }
+
+  protected onPointerLeave(event: PointerEvent): void {
+    if (event.pointerType === 'mouse') {
+      this.isDragging = false;
+    }
   }
 
   getCarouselElement(): HTMLElement | undefined {

@@ -1,291 +1,376 @@
 <main class="waiter-shell">
-  <aside class="sidebar" aria-label="Menu principal">
+  <aside class="sidebar" aria-label="Menu do garçom">
     <div class="brand">
-      <span class="brand__mark">FK</span>
+      <img src="favicon.ico" alt="" />
       <strong>FourKitchen</strong>
     </div>
-
     <nav class="nav">
-      <a class="nav__item nav__item--active" href="/garcom">
-        <span aria-hidden="true">[]</span>
-        Minhas mesas
+      <a class="nav__item nav__item--active" href="/garcom" aria-current="page">
+        <fk-icon name="picnic-table" size="1.2rem" />
+        <span>Minhas mesas</span>
       </a>
     </nav>
-
     <button type="button" class="logout" (click)="sair()">
-      <span aria-hidden="true">]</span>
-      Sair
+      <fk-icon name="sign-out" size="1.2rem" />
+      <span>Sair</span>
     </button>
   </aside>
 
   <section class="dashboard">
     <header class="topbar">
-      <div class="title">
-        <span aria-hidden="true">=</span>
-        <h1>Dashboard do Garcom</h1>
-      </div>
-
       <label class="search" aria-label="Buscar mesa ou pedido">
-        <span aria-hidden="true">*</span>
+        <fk-icon name="magnifying-glass" size="1.1rem" />
         <input
           type="search"
-          placeholder="Buscar mesa ou pedido..."
+          placeholder="Buscar mesa ou pedido"
           [value]="busca()"
           (input)="atualizarBusca($event)"
         />
       </label>
-
       <div class="user">
-        <span>{{ nomeUsuario() }}</span>
-        <span class="avatar" aria-hidden="true">o</span>
+        <div class="user__copy"><span>Garçom</span><strong>{{ nomeUsuario() }}</strong></div>
+        <fk-avatar [initial]="inicialUsuario()" color="var(--fk-navy)" />
       </div>
     </header>
 
-    <section class="content">
-      <div class="filters" aria-label="Filtros de mesas">
-        <button type="button" [class.filter--active]="filtro() === 'todas'" (click)="alterarFiltro('todas')">
-          Todas
-          <span>{{ totalMesas() }}</span>
+    <div class="content">
+      <header class="page-heading">
+        <div>
+          <p class="eyebrow">Atendimento em tempo real</p>
+          <h1>Olá, {{ nomeUsuario() }}</h1>
+          <p>Acompanhe suas mesas, pedidos e chamadas em um só lugar.</p>
+        </div>
+        <button
+          type="button"
+          class="refresh-button"
+          (click)="carregarDashboard()"
+          [disabled]="carregando() || atualizandoSilencioso()"
+        >
+          <fk-icon name="arrows-counter-clockwise" size="1rem" />
+          {{ carregando() || atualizandoSilencioso() ? 'Atualizando…' : 'Atualizar dados' }}
         </button>
-        <button type="button" [class.filter--active]="filtro() === 'chamadas'" (click)="alterarFiltro('chamadas')">
-          Chamadas
-          <span>{{ mesasComChamadas() }}</span>
-        </button>
-        <button type="button" [class.filter--active]="filtro() === 'problemas'" (click)="alterarFiltro('problemas')">
-          Decisoes da cozinha
-          <span>{{ mesasComProblemas() }}</span>
-        </button>
-      </div>
+      </header>
 
-      @if (erro()) {
-        <p class="feedback feedback--error" role="alert">{{ erro() }}</p>
-      }
-      @if (sucesso()) {
-        <p class="feedback feedback--success" role="status">{{ sucesso() }}</p>
-      }
-      @if (carregando()) {
-        <p class="feedback">Carregando mesas...</p>
-      }
+      <section class="summary" aria-label="Resumo das mesas">
+        <fk-kpi-card [value]="totalMesas().toString()" label="Mesas atribuídas" tint="orange">
+          <fk-icon icon name="picnic-table" size="1.35rem" />
+        </fk-kpi-card>
+        <fk-kpi-card [value]="totalPedidosAbertos().toString()" label="Pedidos ativos">
+          <fk-icon icon name="cooking-pot" size="1.35rem" />
+        </fk-kpi-card>
+        <fk-kpi-card [value]="totalPedidosProntos().toString()" label="Prontos para entrega" tint="green">
+          <fk-icon icon name="check-circle" size="1.35rem" />
+        </fk-kpi-card>
+        <fk-kpi-card [value]="totalChamadas().toString()" label="Chamadas pendentes" tint="red" [alert]="totalChamadas() > 0">
+          <fk-icon icon name="call-bell" size="1.35rem" />
+        </fk-kpi-card>
+      </section>
 
-      <section class="tables-grid" aria-label="Mesas do garcom">
-        @for (mesa of mesasFiltradas(); track trackMesa($index, mesa)) {
-          <article
-            class="table-card"
-            [class.table-card--occupied]="mesa.status === 'OCUPADA'"
-            [class.table-card--calling]="mesa.possuiChamadaPendente"
-            [class.table-card--problem]="mesaPossuiProblema(mesa)"
-          >
-            <header class="table-card__header">
-              <div>
-                <span>Mesa</span>
-                <strong>{{ mesa.numero.toString().padStart(2, '0') }}</strong>
-              </div>
+      <section class="tables-section" aria-labelledby="tables-title">
+        <div class="tables-toolbar">
+          <div>
+            <h2 id="tables-title">Mesas atribuídas</h2>
+            <p>{{ mesasFiltradas().length }} de {{ totalMesas() }} mesa{{ totalMesas() === 1 ? '' : 's' }}</p>
+          </div>
+          <div class="filters" aria-label="Filtros de mesas">
+            <button type="button" [class.filter--active]="filtro() === 'todas'" (click)="alterarFiltro('todas')">Todas <span>{{ totalMesas() }}</span></button>
+            <button type="button" [class.filter--active]="filtro() === 'chamadas'" (click)="alterarFiltro('chamadas')">Chamadas <span>{{ mesasComChamadas() }}</span></button>
+            <button type="button" [class.filter--active]="filtro() === 'problemas'" (click)="alterarFiltro('problemas')">Decisões <span>{{ mesasComProblemas() }}</span></button>
+          </div>
+        </div>
 
-              <span class="status-pill" [class.status-pill--occupied]="mesa.status === 'OCUPADA'">
-                {{ mesa.status === 'OCUPADA' ? 'OCUPADA' : 'LIVRE' }}
-              </span>
-            </header>
-
-            <div class="attention-badges">
-              @if (mesaPossuiProblema(mesa)) {
-                <span class="attention-badge attention-badge--problem">Cozinha aguarda decisao</span>
-              }
-              @if (mesa.possuiChamadaPendente) {
-                <span class="attention-badge attention-badge--call">
-                  {{ mesa.chamadasPendentes.length }} chamada{{ mesa.chamadasPendentes.length === 1 ? '' : 's' }}
-                </span>
-              }
-            </div>
-
-            <div class="table-details">
-              <span>Tempo: {{ tempoAberta(mesa) || 'em aberto' }}</span>
-              <span>Codigo: {{ mesa.codigoSessao || '-' }}</span>
-            </div>
-
-            <section class="orders-summary" aria-label="Pedidos ativos">
-              <h2>{{ pedidosAtivosLabel(mesa) }}</h2>
-              @for (pedido of mesa.pedidosAtivos; track pedido.id) {
-                <div class="order-summary" [class.order-summary--problem]="statusPedidoLabel(pedido.status).includes('decisao') || pedido.status === 'PROBLEMA_COZINHA'">
-                  <strong>#{{ pedido.codigo }}</strong>
-                  <span>{{ statusPedidoLabel(pedido.status) }}</span>
-                </div>
-              } @empty {
-                <p class="order-summary__empty">Nenhum pedido ativo.</p>
-              }
-            </section>
-
-            <button type="button" class="primary-action" (click)="fazerPedido(mesa)">
-              Fazer pedido
-            </button>
-
-            @if (mesaPossuiProblema(mesa)) {
-              <section class="kitchen-request" aria-label="Solicitacoes da cozinha">
-                @for (pedido of pedidosComProblema(mesa); track pedido.id) {
-                  <p>Pedido #{{ pedido.codigo }} precisa da decisao do cliente.</p>
-                }
-                <button type="button" class="primary-action primary-action--problem" (click)="abrirSolicitacao(mesa)">
-                  Ver solicitacao
-                </button>
-              </section>
-            }
-
-            @if (mesa.chamadasPendentes.length > 0) {
-              <section class="calls-list" aria-label="Chamadas pendentes">
-                @for (chamada of mesa.chamadasPendentes; track trackChamada($index, chamada)) {
-                  <div class="call-item">
-                    <p>{{ chamada.mensagem }}</p>
-                    <button
-                      type="button"
-                      class="primary-action primary-action--danger"
-                      (click)="atenderNotificacao(mesa, chamada)"
-                      [disabled]="notificacaoEmAcao() === chamada.id"
-                    >
-                      {{ notificacaoEmAcao() === chamada.id ? 'Atendendo...' : 'Atender chamada' }}
-                    </button>
-                  </div>
-                }
-              </section>
-            }
-          </article>
-        } @empty {
-          <p class="empty">Nenhuma mesa encontrada.</p>
+        @if (atualizandoSilencioso() && mesas().length > 0) {
+          <p class="sync-status" role="status"><span aria-hidden="true"></span> Sincronizando sem interromper o atendimento…</p>
+        }
+        @if (erro()) {
+          <div class="feedback feedback--error" role="alert">
+            <fk-icon name="warning-circle" size="1.1rem" /><span>{{ erro() }}</span>
+            <button type="button" (click)="carregarDashboard()">Tentar novamente</button>
+          </div>
+        }
+        @if (sucesso()) {
+          <p class="feedback feedback--success" role="status"><fk-icon name="check-circle" size="1.1rem" /> {{ sucesso() }}</p>
         }
 
-        <button type="button" class="new-table" aria-label="Atualizar mesas" (click)="carregarDashboard()" [disabled]="carregando()">
-          <span aria-hidden="true">+</span>
-          Atualizar Mesas
-        </button>
-      </section>
-    </section>
+        @if (carregando() && mesas().length === 0) {
+          <section class="loading-grid" aria-label="Carregando mesas" aria-busy="true">
+            @for (_ of [1, 2, 3]; track $index) { <div class="skeleton-card"><span></span><span></span><span></span></div> }
+          </section>
+        } @else if (mesas().length === 0 && !erro()) {
+          <section class="empty-state">
+            <span class="empty-state__icon"><fk-icon name="picnic-table" size="2rem" /></span>
+            <h3>Nenhuma mesa atribuída</h3>
+            <p>Quando uma mesa for vinculada ao seu atendimento, ela aparecerá aqui.</p>
+            <button type="button" class="secondary-button" (click)="carregarDashboard()">Atualizar mesas</button>
+          </section>
+        } @else if (mesasFiltradas().length === 0) {
+          <section class="empty-state empty-state--compact">
+            <span class="empty-state__icon"><fk-icon name="magnifying-glass" size="1.6rem" /></span>
+            <h3>Nenhuma mesa encontrada</h3><p>Ajuste a busca ou selecione outro filtro.</p>
+          </section>
+        } @else {
+          <div class="tables-grid">
+            @for (mesa of mesasFiltradas(); track trackMesa($index, mesa)) {
+              <article
+                class="table-card"
+                [class.table-card--calling]="mesa.possuiChamadaPendente"
+                [class.table-card--problem]="mesaPossuiProblema(mesa)"
+              >
+                <header class="table-card__header">
+                  <h3>Mesa {{ mesa.numero.toString().padStart(2, '0') }}</h3>
+                  <fk-badge [variant]="mesa.status === 'OCUPADA' ? 'atencao' : 'livre'">
+                    {{ mesa.status === 'OCUPADA' ? 'Em atendimento' : 'Livre' }}
+                  </fk-badge>
+                </header>
 
-    <button type="button" class="floating-action" aria-label="Atualizar mesas" (click)="carregarDashboard()" [disabled]="carregando()">
-      +
-    </button>
+                <dl class="compact-metrics">
+                  <div><dt>Pedidos ativos</dt><dd>{{ pedidosEmAndamento(mesa).length }}</dd></div>
+                  <div [class.metric--ready]="pedidosProntos(mesa).length > 0"><dt>Prontos</dt><dd>{{ pedidosProntos(mesa).length }}</dd></div>
+                  <div class="compact-metrics__total">
+                    <dt>Conta atual</dt>
+                    @if (detalheMesa(mesa); as detalhe) {
+                      <dd>{{ formatarMoeda(detalhe.conta.total) }}</dd>
+                    } @else if (detalhesEmCarregamento().has(mesa.idMesa)) {
+                      <dd class="metric-loading">Calculando…</dd>
+                    } @else {
+                      <dd class="metric-unavailable">Indisponível</dd>
+                    }
+                  </div>
+                </dl>
+
+                <div class="card-alerts">
+                  @if (mesa.possuiChamadaPendente) {
+                    <fk-badge variant="critico"><fk-icon name="call-bell" size="0.85rem" /> {{ mesa.chamadasPendentes.length }} chamada{{ mesa.chamadasPendentes.length === 1 ? '' : 's' }} pendente{{ mesa.chamadasPendentes.length === 1 ? '' : 's' }}</fk-badge>
+                  }
+                  @if (mesaPossuiProblema(mesa)) {
+                    <fk-badge variant="critico">Decisão solicitada</fk-badge>
+                  }
+                </div>
+
+                @if (errosDetalheMesa()[mesa.idMesa]) { <p class="inline-error">Valor da conta indisponível.</p> }
+
+                <button type="button" class="details-button" (click)="abrirDetalhes(mesa)">
+                  <fk-icon name="eye" size="1rem" /> Ver detalhes
+                </button>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    </div>
   </section>
 </main>
 
+@if (mesaDetalhesAberta(); as mesa) {
+  <div class="modal-backdrop" (click)="fecharDetalhes()">
+    <section class="table-modal" role="dialog" aria-modal="true" aria-labelledby="table-details-title" (click)="$event.stopPropagation()">
+      <header class="table-modal__header">
+        <div>
+          <span>Detalhes do atendimento</span>
+          <h2 id="table-details-title">Mesa {{ mesa.numero.toString().padStart(2, '0') }}</h2>
+        </div>
+        <button type="button" class="icon-button" aria-label="Fechar detalhes" (click)="fecharDetalhes()">×</button>
+      </header>
+
+      @if (detalhesEmCarregamento().has(mesa.idMesa) && !detalheMesa(mesa)) {
+        <div class="modal-loading" aria-busy="true"><span></span><p>Carregando informações da mesa…</p></div>
+      } @else if (!detalheMesa(mesa)) {
+        <div class="modal-error" role="alert">
+          <strong>Não foi possível carregar os detalhes.</strong>
+          <p>{{ errosDetalheMesa()[mesa.idMesa] || 'Verifique a comunicação com o servidor.' }}</p>
+          <button type="button" (click)="recarregarDetalhe(mesa)">Tentar novamente</button>
+        </div>
+      } @else if (detalheMesa(mesa); as detalhe) {
+        <section class="attendance-summary" aria-label="Resumo do atendimento">
+          <div><span>Status</span><fk-badge [variant]="mesa.status === 'OCUPADA' ? 'atencao' : 'livre'">{{ mesa.status === 'OCUPADA' ? 'Em atendimento' : 'Livre' }}</fk-badge></div>
+          <div><span>Abertura</span><strong>{{ formatarDataHora(detalhe.mesa.dataAbertura) }}</strong></div>
+          <div><span>Código da sessão</span><strong>{{ detalhe.mesa.codigoSessao || '—' }}</strong></div>
+          <div class="attendance-summary__total"><span>Valor total</span><strong>{{ formatarMoeda(detalhe.conta.total) }}</strong></div>
+        </section>
+
+        @if (mesa.chamadasPendentes.length > 0) {
+          <section class="modal-section calls-section" aria-labelledby="calls-title">
+            <div class="modal-section__heading"><div><h3 id="calls-title">Chamadas pendentes</h3><p>Solicitações que aguardam atendimento.</p></div><span>{{ mesa.chamadasPendentes.length }}</span></div>
+            <div class="calls-list">
+              @for (chamada of mesa.chamadasPendentes; track trackChamada($index, chamada)) {
+                <article class="call-item">
+                  <div><fk-icon name="call-bell" size="1rem" /><p>{{ chamada.mensagem }}</p></div>
+                  <button type="button" class="danger-button" (click)="atenderNotificacao(mesa, chamada)" [disabled]="notificacaoEmAcao() === chamada.id">
+                    {{ notificacaoEmAcao() === chamada.id ? 'Atendendo…' : 'Atender chamada' }}
+                  </button>
+                </article>
+              }
+            </div>
+          </section>
+        }
+
+        <section class="modal-section orders-section orders-section--active" aria-labelledby="active-orders-title">
+          <div class="modal-section__heading">
+            <div><h3 id="active-orders-title">Pedidos ativos</h3><p>Aguardando preparo, em preparo ou decisão.</p></div>
+            <span>{{ pedidosAtivosDetalhe(detalhe).length }}</span>
+          </div>
+          <div class="modal-orders-list">
+            @for (pedido of pedidosAtivosDetalhe(detalhe); track pedido.id) {
+              <article class="modal-order-card">
+                <header><div><strong>Pedido #{{ pedido.codigo }}</strong><small>{{ pedido.canal }}</small></div><fk-badge [variant]="statusPedidoVariant(pedido.status)">{{ statusPedidoLabel(pedido.status) }}</fk-badge></header>
+                <div class="modal-order-items">
+                  @for (item of pedido.itens; track item.id) {
+                    <div class="modal-order-item">
+                      <span><strong>{{ item.quantidade }}×</strong> {{ item.nomeProduto }}</span>
+                      <strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong>
+                      @if (item.observacao) { <small>Observação: {{ item.observacao }}</small> }
+                    </div>
+                  }
+                </div>
+                <footer>
+                  <strong>{{ formatarMoeda(valorPedido(pedido)) }}</strong>
+                  @if (pedidoAguardaDecisao(pedido)) {
+                    <button type="button" class="warning-button" (click)="abrirSolicitacao(mesa)">Ver solicitação da cozinha</button>
+                  }
+                </footer>
+              </article>
+            } @empty {
+              <p class="section-empty">Nenhum pedido ativo.</p>
+            }
+          </div>
+        </section>
+
+        <section class="modal-section orders-section orders-section--ready" aria-labelledby="ready-orders-title">
+          <div class="modal-section__heading">
+            <div><h3 id="ready-orders-title">Pedidos prontos</h3><p>Prontos na cozinha e aguardando entrega.</p></div>
+            <span>{{ pedidosProntosDetalhe(detalhe).length }}</span>
+          </div>
+          <div class="modal-orders-list">
+            @for (pedido of pedidosProntosDetalhe(detalhe); track pedido.id) {
+              <article class="modal-order-card modal-order-card--ready">
+                <header><div><strong>Pedido #{{ pedido.codigo }}</strong><small>Pronto {{ pedido.dataPronto ? formatarDataHora(pedido.dataPronto) : '' }}</small></div><fk-badge variant="livre">Aguardando entrega</fk-badge></header>
+                <div class="modal-order-items">
+                  @for (item of pedido.itens; track item.id) {
+                    <div class="modal-order-item">
+                      <span><strong>{{ item.quantidade }}×</strong> {{ item.nomeProduto }}</span>
+                      <strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong>
+                      @if (item.observacao) { <small>Observação: {{ item.observacao }}</small> }
+                    </div>
+                  }
+                </div>
+                <footer><strong>{{ formatarMoeda(valorPedido(pedido)) }}</strong></footer>
+              </article>
+            } @empty {
+              <p class="section-empty">Nenhum pedido aguardando entrega.</p>
+            }
+          </div>
+        </section>
+
+        <section class="modal-section history-section" aria-labelledby="history-title">
+          <div class="modal-section__heading">
+            <div><h3 id="history-title">Histórico</h3><p>Pedidos entregues ou encerrados neste atendimento.</p></div>
+            <span>{{ pedidosHistoricoDetalhe(detalhe).length }}</span>
+          </div>
+          <div class="history-list">
+            @for (pedido of pedidosHistoricoDetalhe(detalhe); track pedido.id) {
+              <details class="history-order">
+                <summary>
+                  <span><strong>Pedido #{{ pedido.codigo }}</strong><small>{{ statusPedidoLabel(pedido.status) }}</small></span>
+                  <strong>{{ formatarMoeda(valorPedido(pedido)) }}</strong>
+                </summary>
+                <div class="history-items">
+                  @for (item of pedido.itens; track item.id) {
+                    <p><span>{{ item.quantidade }}× {{ item.nomeProduto }}</span><strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong></p>
+                  }
+                </div>
+              </details>
+            } @empty {
+              <p class="section-empty">Nenhum pedido no histórico.</p>
+            }
+          </div>
+        </section>
+
+        <footer class="table-modal__actions">
+          <div class="close-eligibility">
+            @if (!podeFecharConta(mesa)) { <p><fk-icon name="warning-circle" size="0.95rem" /> {{ motivoBloqueioFechamento(mesa) }}</p> }
+          </div>
+          <button type="button" class="secondary-button" (click)="fazerPedido(mesa)"><fk-icon name="plus" size="1rem" /> Fazer pedido</button>
+          <button type="button" class="close-button" (click)="abrirFechamento(mesa)" [disabled]="!podeFecharConta(mesa) || mesaEmFechamento() !== null">
+            <fk-icon name="cash-register" size="1rem" /> Fechar mesa
+          </button>
+        </footer>
+      }
+    </section>
+  </div>
+}
+
 @if (mesaEmDetalhe(); as mesa) {
-  <div class="modal-backdrop" (click)="fecharSolicitacao()">
+  <div class="modal-backdrop modal-backdrop--front" (click)="fecharSolicitacao()">
     <section class="decision-modal" role="dialog" aria-modal="true" aria-labelledby="decision-title" (click)="$event.stopPropagation()">
       <header class="decision-modal__header">
-        <div>
-          <span>Mesa {{ mesa.numero.toString().padStart(2, '0') }}</span>
-          <h2 id="decision-title">Decisao solicitada pela cozinha</h2>
-        </div>
-        <button type="button" aria-label="Fechar" (click)="fecharSolicitacao()" [disabled]="salvandoDecisao()">x</button>
+        <div><span>Mesa {{ mesa.numero.toString().padStart(2, '0') }}</span><h2 id="decision-title">Decisão solicitada pela cozinha</h2></div>
+        <button type="button" aria-label="Fechar" (click)="fecharSolicitacao()" [disabled]="salvandoDecisao()">×</button>
       </header>
 
       @if (carregandoDetalhe()) {
-        <p class="modal-feedback">Carregando detalhes do problema...</p>
+        <p class="modal-feedback">Carregando detalhes do problema…</p>
       } @else if (erroDetalhe()) {
-        <div class="modal-error" role="alert">
-          <strong>Nao foi possivel carregar a solicitacao.</strong>
-          <p>{{ erroDetalhe() }}</p>
-          <button type="button" (click)="tentarCarregarSolicitacao()">
-            Tentar novamente
-          </button>
-        </div>
+        <div class="modal-error" role="alert"><strong>Não foi possível carregar a solicitação.</strong><p>{{ erroDetalhe() }}</p><button type="button" (click)="tentarCarregarSolicitacao()">Tentar novamente</button></div>
       } @else if (detalheSelecionado(); as detalhe) {
         @if (detalhe.problemas.length > 0) {
           @if (detalhe.problemas.length > 1) {
             <div class="problem-tabs" aria-label="Problemas pendentes">
               @for (problema of detalhe.problemas; track trackProblema($index, problema)) {
-                <button
-                  type="button"
-                  [class.problem-tab--active]="problemaSelecionado() === problema"
-                  (click)="selecionarProblema(problema)"
-                >
-                  #{{ pedidoCodigo(problema) }} · {{ nomeItemProblema(problema) }}
-                </button>
+                <button type="button" [class.problem-tab--active]="problemaSelecionado() === problema" (click)="selecionarProblema(problema)">#{{ pedidoCodigo(problema) }} · {{ nomeItemProblema(problema) }}</button>
               }
             </div>
           }
-
           @if (problemaSelecionado(); as problema) {
-            <div class="problem-detail">
-              <span>Pedido #{{ pedidoCodigo(problema) }}</span>
-              <strong>{{ nomeItemProblema(problema) }}</strong>
-              <p>{{ problema.mensagem }}</p>
-            </div>
-
+            <div class="problem-detail"><span>Pedido #{{ pedidoCodigo(problema) }}</span><strong>{{ nomeItemProblema(problema) }}</strong><p>{{ problema.mensagem }}</p></div>
             <p class="decision-instruction">Depois de consultar o cliente, registre o que ele decidiu:</p>
-
             <div class="decision-options">
-              <button
-                type="button"
-                [class.decision-option--active]="acaoDecisao() === 'REMOVER_ITEM'"
-                (click)="alterarAcaoDecisao('REMOVER_ITEM')"
-              >
-                Remover item
-              </button>
-              <button
-                type="button"
-                [class.decision-option--active]="acaoDecisao() === 'SUBSTITUIR_ITEM'"
-                (click)="alterarAcaoDecisao('SUBSTITUIR_ITEM')"
-              >
-                Substituir item
-              </button>
-              <button
-                type="button"
-                class="decision-option--danger"
-                [class.decision-option--active]="acaoDecisao() === 'CANCELAR_PEDIDO'"
-                (click)="alterarAcaoDecisao('CANCELAR_PEDIDO')"
-              >
-                Cancelar pedido
-              </button>
+              <button type="button" [class.decision-option--active]="acaoDecisao() === 'REMOVER_ITEM'" (click)="alterarAcaoDecisao('REMOVER_ITEM')">Remover item</button>
+              <button type="button" [class.decision-option--active]="acaoDecisao() === 'SUBSTITUIR_ITEM'" (click)="alterarAcaoDecisao('SUBSTITUIR_ITEM')">Substituir item</button>
+              <button type="button" class="decision-option--danger" [class.decision-option--active]="acaoDecisao() === 'CANCELAR_PEDIDO'" (click)="alterarAcaoDecisao('CANCELAR_PEDIDO')">Cancelar pedido</button>
             </div>
-
             @if (acaoDecisao() === 'SUBSTITUIR_ITEM') {
               <div class="replacement-fields">
-                <label>
-                  <span>1. Categoria</span>
-                  <select [value]="categoriaSelecionadaId() ?? ''" (change)="alterarCategoria($event)" [disabled]="carregandoCardapio()">
-                    <option value="">Selecione uma categoria</option>
-                    @for (categoria of categorias(); track trackCategoria($index, categoria)) {
-                      <option [value]="categoria.categoriaId">{{ categoria.categoriaNome }}</option>
-                    }
-                  </select>
-                </label>
-
-                <label>
-                  <span>2. Produto disponivel</span>
-                  <select
-                    [value]="produtoSelecionadoId() ?? ''"
-                    (change)="alterarProduto($event)"
-                    [disabled]="categoriaSelecionadaId() === null || carregandoCardapio()"
-                  >
-                    <option value="">Selecione um produto</option>
-                    @for (produto of produtosDaCategoria(); track trackProduto($index, produto)) {
-                      <option [value]="produto.id">{{ produto.nome }} — {{ formatarMoeda(produto.preco) }}</option>
-                    }
-                  </select>
-                </label>
-
-                @if (carregandoCardapio()) {
-                  <small>Carregando produtos disponiveis...</small>
-                }
-                @if (erroCardapio()) {
-                  <div class="replacement-error" role="alert">
-                    <small>{{ erroCardapio() }}</small>
-                    <button type="button" (click)="carregarCardapio()">Tentar novamente</button>
-                  </div>
-                }
+                <label><span>1. Categoria</span><select [value]="categoriaSelecionadaId() ?? ''" (change)="alterarCategoria($event)" [disabled]="carregandoCardapio()"><option value="">Selecione uma categoria</option>@for (categoria of categorias(); track trackCategoria($index, categoria)) { <option [value]="categoria.categoriaId">{{ categoria.categoriaNome }}</option> }</select></label>
+                <label><span>2. Produto disponível</span><select [value]="produtoSelecionadoId() ?? ''" (change)="alterarProduto($event)" [disabled]="categoriaSelecionadaId() === null || carregandoCardapio()"><option value="">Selecione um produto</option>@for (produto of produtosDaCategoria(); track trackProduto($index, produto)) { <option [value]="produto.id">{{ produto.nome }} — {{ formatarMoeda(produto.preco) }}</option> }</select></label>
+                @if (carregandoCardapio()) { <small>Carregando produtos disponíveis…</small> }
+                @if (erroCardapio()) { <div class="replacement-error" role="alert"><small>{{ erroCardapio() }}</small><button type="button" (click)="carregarCardapio()">Tentar novamente</button></div> }
               </div>
             }
           }
-        } @else {
-          <p class="modal-feedback">Este problema ja foi resolvido. Atualize o painel.</p>
-        }
+        } @else { <p class="modal-feedback">Este problema já foi resolvido. Atualize o painel.</p> }
       }
-
       <footer class="decision-modal__actions">
-        <button type="button" class="modal-secondary" (click)="fecharSolicitacao()" [disabled]="salvandoDecisao()">
-          Manter aguardando
-        </button>
-        <button type="button" class="modal-primary" (click)="registrarDecisao()" [disabled]="!podeRegistrarDecisao()">
-          {{ salvandoDecisao() ? 'Enviando...' : 'Confirmar decisao' }}
-        </button>
+        <button type="button" class="modal-secondary" (click)="fecharSolicitacao()" [disabled]="salvandoDecisao()">Manter aguardando</button>
+        <button type="button" class="modal-primary" (click)="registrarDecisao()" [disabled]="!podeRegistrarDecisao()">{{ salvandoDecisao() ? 'Enviando…' : 'Confirmar decisão' }}</button>
       </footer>
+    </section>
+  </div>
+}
+
+@if (confirmandoCancelamento() && mesaEmDetalhe(); as mesa) {
+  <div class="modal-backdrop modal-backdrop--top">
+    <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="cancel-title">
+      <span class="confirm-modal__icon confirm-modal__icon--danger"><fk-icon name="warning-circle" size="1.5rem" /></span>
+      <h2 id="cancel-title">Cancelar pedido</h2>
+      @if (problemaSelecionado(); as problema) {
+        <dl class="confirm-summary"><div><dt>Pedido</dt><dd>#{{ pedidoCodigo(problema) }}</dd></div><div><dt>Mesa</dt><dd>{{ mesa.numero.toString().padStart(2, '0') }}</dd></div></dl>
+      }
+      <p>Esta ação não poderá ser desfeita. Confirme somente após alinhar a decisão com o cliente.</p>
+      @if (erroCancelamento()) { <p class="modal-inline-error" role="alert">{{ erroCancelamento() }}</p> }
+      <footer><button type="button" class="modal-secondary" (click)="voltarCancelamento()" [disabled]="salvandoDecisao()">Voltar</button><button type="button" class="modal-danger" (click)="confirmarCancelamentoPedido()" [disabled]="salvandoDecisao()">{{ salvandoDecisao() ? 'Cancelando…' : 'Confirmar cancelamento' }}</button></footer>
+    </section>
+  </div>
+}
+
+@if (mesaParaFechar(); as mesa) {
+  <div class="modal-backdrop modal-backdrop--top" (click)="cancelarFechamento()">
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="close-title" (click)="$event.stopPropagation()">
+      <span class="confirm-modal__icon"><fk-icon name="cash-register" size="1.5rem" /></span>
+      <h2 id="close-title">Fechar mesa {{ mesa.numero.toString().padStart(2, '0') }}</h2>
+      <p>Confirme o fechamento da conta. O backend verificará novamente se o estado da mesa permite esta ação.</p>
+      @if (detalheMesa(mesa); as detalhe) { <dl class="confirm-summary"><div><dt>Total da conta</dt><dd>{{ formatarMoeda(detalhe.conta.total) }}</dd></div><div><dt>Pedidos</dt><dd>{{ detalhe.conta.totalPedidos }}</dd></div></dl> }
+      @if (erroFechamento()) { <p class="modal-inline-error" role="alert">{{ erroFechamento() }}</p> }
+      <footer><button type="button" class="modal-secondary" (click)="cancelarFechamento()" [disabled]="mesaEmFechamento() !== null">Voltar</button><button type="button" class="modal-primary" (click)="confirmarFechamento()" [disabled]="mesaEmFechamento() !== null">{{ mesaEmFechamento() === mesa.idMesa ? 'Fechando…' : 'Confirmar fechamento' }}</button></footer>
     </section>
   </div>
 }

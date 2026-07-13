@@ -1,253 +1,520 @@
 <main class="kitchen-page">
-  <header class="topbar">
-    <label class="search" aria-label="Buscar pedido">
-      <span aria-hidden="true">*</span>
-      <input
-        type="search"
-        placeholder="Buscar pedido..."
-        [value]="busca()"
-        (input)="atualizarBusca($event)"
-      />
-    </label>
-
-    <section class="station" aria-label="Status da estacao">
-      <strong>Cozinha</strong>
-      <span>Ao Vivo</span>
-    </section>
-  </header>
-
-  <section class="content">
-    <div class="headline">
-      <div>
-        <h1>Painel de Producao</h1>
-        <div class="badges" aria-label="Resumo da fila">
-          <span class="badge badge--urgent">{{ urgentes() }} Urgentes</span>
-          <span class="badge badge--high">{{ altas() }} Alta Prioridade</span>
-        </div>
+  <header class="kitchen-header">
+    <div class="kitchen-header__identity">
+      <div class="kitchen-header__icon" aria-hidden="true">
+        <fk-icon name="cooking-pot" size="1.5rem" />
       </div>
-
-      <div class="toolbar">
-        <button type="button" class="sort-button" (click)="alternarOrdenacao()">
-          <span aria-hidden="true">=</span>
-          {{ ordenacao() === 'tempo' ? 'Ordenar por Tempo' : 'Ordenar por Prioridade' }}
-        </button>
-        <button type="button" class="refresh-button" aria-label="Atualizar fila" (click)="atualizarFila()" [disabled]="carregando()">
-          Atualizar
-        </button>
+      <div>
+        <span class="eyebrow">Operação da cozinha</span>
+        <h1>Painel de produção</h1>
       </div>
     </div>
 
-    @if (erro()) {
-      <p class="feedback feedback--error">{{ erro() }}</p>
-    } @else if (sucesso()) {
-      <p class="feedback feedback--success">{{ sucesso() }}</p>
-    } @else if (carregando()) {
-      <p class="feedback">Carregando fila da cozinha...</p>
-    }
+    <div class="kitchen-header__actions">
+      <fk-badge variant="tempo-real" [dot]="!erro()">
+        {{ erro() ? 'Conexão instável' : 'Ao vivo' }}
+      </fk-badge>
+      <button
+        type="button"
+        class="button button--primary"
+        (click)="atualizarFila()"
+        [disabled]="atualizando()"
+      >
+        <fk-icon name="arrows-counter-clockwise" size="1.1rem" />
+        {{ atualizando() ? 'Atualizando...' : 'Atualizar fila' }}
+      </button>
+    </div>
+  </header>
 
-    <section class="board" aria-label="Fila de pedidos">
-      <section class="lane">
-        <header class="lane__header">
-          <div>
-            <h2>Aguardando Preparo</h2>
-            <span>{{ aguardando().length.toString().padStart(2, '0') }}</span>
-          </div>
-          <div class="lane__controls" aria-hidden="true">
-            <span>^</span>
-            <span>v</span>
-          </div>
-        </header>
+  <div class="kitchen-content">
+    <section class="queue-summary" aria-labelledby="resumo-fila">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Visão geral</span>
+          <h2 id="resumo-fila">Resumo da fila</h2>
+        </div>
+        <span class="sync-status" [class.sync-status--updating]="atualizando()">
+          <span aria-hidden="true"></span>
+          {{ atualizando() ? 'Sincronizando' : 'Atualizado ' + sincronizadoLabel() }}
+        </span>
+      </div>
 
-        <div class="orders">
-          @for (pedido of aguardando(); track pedido.id) {
-            <article class="order-card" [class.order-card--high]="prioridade(pedido) === 'alta'">
-              <ng-container
-                [ngTemplateOutlet]="pedidoCard"
-                [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'iniciar' }"
-              />
-            </article>
-          } @empty {
-            <p class="empty">Nenhum pedido aguardando preparo.</p>
+      <div class="summary-grid">
+        <fk-kpi-card [value]="pedidos().length.toString()" label="Pedidos na fila" size="md">
+          <fk-icon icon name="bag" size="1.35rem" />
+        </fk-kpi-card>
+        <fk-kpi-card
+          [value]="aguardando().length.toString()"
+          label="Aguardando início"
+          size="md"
+          tint="orange"
+        >
+          <fk-icon icon name="bell-simple" size="1.35rem" />
+        </fk-kpi-card>
+        <fk-kpi-card
+          [value]="preparando().length.toString()"
+          label="Em produção"
+          size="md"
+          tint="green"
+        >
+          <fk-icon icon name="bowl-steam" size="1.35rem" />
+        </fk-kpi-card>
+        <fk-kpi-card
+          [value]="aguardandoDecisao().length.toString()"
+          label="Com problema"
+          size="md"
+          tint="red"
+          [alert]="aguardandoDecisao().length > 0"
+        >
+          <fk-icon icon name="warning-circle" size="1.35rem" />
+        </fk-kpi-card>
+      </div>
+
+      @if (urgentes() || altas()) {
+        <div class="priority-summary" aria-label="Pedidos prioritários">
+          @if (urgentes()) {
+            <fk-badge variant="critico">{{ urgentes() }} urgente(s)</fk-badge>
+          }
+          @if (altas()) {
+            <fk-badge variant="atencao">{{ altas() }} em alta prioridade</fk-badge>
           }
         </div>
-      </section>
-
-      <section class="lane">
-        <header class="lane__header lane__header--active">
-          <div>
-            <h2>Em Preparo</h2>
-            <span>{{ preparando().length.toString().padStart(2, '0') }}</span>
-          </div>
-          <div class="lane__controls" aria-hidden="true">
-            <span>^</span>
-            <span>v</span>
-          </div>
-        </header>
-
-        <div class="orders">
-          @for (pedido of preparando(); track pedido.id) {
-            <article
-              class="order-card order-card--preparing"
-              [class.order-card--normal]="prioridade(pedido) === 'normal'"
-              [class.order-card--ready]="statusPronto(pedido)"
-            >
-              <ng-container
-                [ngTemplateOutlet]="pedidoCard"
-                [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'pronto' }"
-              />
-            </article>
-          } @empty {
-            <p class="empty">Nenhum pedido em preparo.</p>
-          }
-        </div>
-      </section>
-
-      <section class="lane">
-        <header class="lane__header lane__header--warning">
-          <div>
-            <h2>Aguardando Decisao</h2>
-            <span>{{ aguardandoDecisao().length.toString().padStart(2, '0') }}</span>
-          </div>
-          <div class="lane__controls" aria-hidden="true">
-            <span>^</span>
-            <span>v</span>
-          </div>
-        </header>
-
-        <div class="orders">
-          @for (pedido of aguardandoDecisao(); track pedido.id) {
-            <article class="order-card order-card--decision">
-              <ng-container
-                [ngTemplateOutlet]="pedidoCard"
-                [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'decisao' }"
-              />
-            </article>
-          } @empty {
-            <p class="empty">Nenhum pedido aguardando decisao.</p>
-          }
-        </div>
-      </section>
+      }
     </section>
-  </section>
 
-  <footer class="statusbar">
-    <span class="online">Sistema Online</span>
-    <span>Sincronizado: {{ sincronizadoLabel() }}</span>
-    <span>Tempo Medio de Preparo: {{ tempoMedio() }} min</span>
-    <span>Pedidos na Fila: {{ pedidos().length }}</span>
+    <section class="queue-controls" aria-label="Filtros e ordenação da fila">
+      <label class="search-field">
+        <fk-icon name="magnifying-glass" size="1.15rem" />
+        <span class="sr-only">Buscar pedido</span>
+        <input
+          type="search"
+          placeholder="Buscar por pedido, mesa, canal ou item"
+          [value]="busca()"
+          (input)="atualizarBusca($event)"
+        />
+      </label>
+
+      <button type="button" class="button button--secondary" (click)="alternarOrdenacao()">
+        <fk-icon name="menu" size="1.05rem" />
+        {{ ordenacao() === 'tempo' ? 'Mais antigos primeiro' : 'Prioridade primeiro' }}
+      </button>
+    </section>
+
+    <div class="feedback-region" aria-live="polite">
+      @if (erro()) {
+        <div class="feedback feedback--error" role="alert">
+          <fk-icon name="warning-circle" size="1.25rem" />
+          <div>
+            <strong>Não foi possível sincronizar a fila</strong>
+            <span>{{ erro() }} Os pedidos já carregados continuam disponíveis.</span>
+          </div>
+          <button type="button" aria-label="Fechar mensagem" (click)="limparMensagens()">×</button>
+        </div>
+      } @else if (sucesso()) {
+        <div class="feedback feedback--success" role="status">
+          <fk-icon name="check-circle" size="1.25rem" />
+          <span>{{ sucesso() }}</span>
+          <button type="button" aria-label="Fechar mensagem" (click)="limparMensagens()">×</button>
+        </div>
+      }
+    </div>
+
+    @if (carregando() && pedidos().length === 0) {
+      <section class="interface-state" aria-live="polite" aria-busy="true">
+        <span class="spinner" aria-hidden="true"></span>
+        <h2>Carregando fila da cozinha</h2>
+        <p>Buscando os pedidos mais recentes.</p>
+      </section>
+    } @else if (erro() && pedidos().length === 0) {
+      <section class="interface-state">
+        <div class="interface-state__icon interface-state__icon--error" aria-hidden="true">
+          <fk-icon name="warning-circle" size="2rem" />
+        </div>
+        <h2>Fila temporariamente indisponível</h2>
+        <p>Verifique a conexão e tente carregar os pedidos novamente.</p>
+        <button type="button" class="button button--secondary" (click)="atualizarFila()" [disabled]="atualizando()">
+          <fk-icon name="arrows-counter-clockwise" size="1rem" />
+          Tentar novamente
+        </button>
+      </section>
+    } @else if (pedidos().length === 0) {
+      <section class="interface-state">
+        <div class="interface-state__icon" aria-hidden="true">
+          <fk-icon name="check-circle" size="2rem" />
+        </div>
+        <h2>A fila está vazia</h2>
+        <p>Novos pedidos aparecerão aqui automaticamente.</p>
+        <button type="button" class="button button--secondary" (click)="atualizarFila()" [disabled]="atualizando()">
+          <fk-icon name="arrows-counter-clockwise" size="1rem" />
+          Tentar novamente
+        </button>
+      </section>
+    } @else if (pedidosFiltrados().length === 0) {
+      <section class="interface-state">
+        <div class="interface-state__icon interface-state__icon--neutral" aria-hidden="true">
+          <fk-icon name="magnifying-glass" size="2rem" />
+        </div>
+        <h2>Nenhum pedido encontrado</h2>
+        <p>Revise o termo usado na busca.</p>
+      </section>
+    } @else {
+      <section class="board" aria-label="Fila de pedidos" [attr.aria-busy]="atualizando()">
+        <section class="lane lane--waiting" aria-labelledby="fila-aguardando">
+          <header class="lane__header">
+            <div>
+              <span class="lane__indicator" aria-hidden="true"></span>
+              <h2 id="fila-aguardando">Aguardando preparo</h2>
+            </div>
+            <span class="lane__count">{{ aguardando().length.toString().padStart(2, '0') }}</span>
+          </header>
+
+          <div class="orders">
+            @for (pedido of aguardando(); track pedido.id) {
+              <article
+                class="order-card order-card--waiting"
+                [class.order-card--high]="prioridade(pedido) === 'alta'"
+                [class.order-card--urgent]="prioridade(pedido) === 'urgente'"
+              >
+                <ng-container
+                  [ngTemplateOutlet]="pedidoCard"
+                  [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'iniciar' }"
+                />
+              </article>
+            } @empty {
+              <p class="lane-empty">Nenhum pedido aguardando preparo.</p>
+            }
+          </div>
+        </section>
+
+        <section class="lane lane--preparing" aria-labelledby="fila-preparo">
+          <header class="lane__header">
+            <div>
+              <span class="lane__indicator" aria-hidden="true"></span>
+              <h2 id="fila-preparo">Em preparo</h2>
+            </div>
+            <span class="lane__count">{{ preparando().length.toString().padStart(2, '0') }}</span>
+          </header>
+
+          <div class="orders">
+            @for (pedido of preparando(); track pedido.id) {
+              <article
+                class="order-card order-card--preparing"
+                [class.order-card--ready]="statusPronto(pedido)"
+              >
+                <ng-container
+                  [ngTemplateOutlet]="pedidoCard"
+                  [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'pronto' }"
+                />
+              </article>
+            } @empty {
+              <p class="lane-empty">Nenhum pedido em preparo.</p>
+            }
+          </div>
+        </section>
+
+        <section class="lane lane--problem" aria-labelledby="fila-problema">
+          <header class="lane__header">
+            <div>
+              <span class="lane__indicator" aria-hidden="true"></span>
+              <h2 id="fila-problema">Aguardando decisão</h2>
+            </div>
+            <span class="lane__count">{{ aguardandoDecisao().length.toString().padStart(2, '0') }}</span>
+          </header>
+
+          <div class="orders">
+            @for (pedido of aguardandoDecisao(); track pedido.id) {
+              <article class="order-card order-card--problem">
+                <ng-container
+                  [ngTemplateOutlet]="pedidoCard"
+                  [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'decisao' }"
+                />
+              </article>
+            } @empty {
+              <p class="lane-empty">Nenhum pedido aguardando decisão.</p>
+            }
+          </div>
+        </section>
+      </section>
+    }
+  </div>
+
+  <footer class="kitchen-status">
+    <span class="kitchen-status__online"><span aria-hidden="true"></span>Sistema online</span>
+    <span>Última sincronização: {{ sincronizadoLabel() }}</span>
+    <span>Tempo médio na fila: {{ tempoMedio() }} min</span>
+    <span>{{ pedidos().length }} pedido(s) na fila</span>
   </footer>
 </main>
 
 <ng-template #pedidoCard let-pedido let-acao="acao">
-  <div class="order-card__top">
-    <div>
-      <div class="order-card__id">
-        <strong>#{{ pedido.codigo || pedido.id }}</strong>
-        <span class="priority" [class.priority--normal]="prioridade(pedido) === 'normal'">
-          {{ statusPronto(pedido) ? 'Pronto' : prioridadeLabel(prioridade(pedido)) }}
-        </span>
-      </div>
-      <div class="order-card__origin">
-        <span aria-hidden="true">[]</span>
-        {{ origem(pedido) }} · {{ statusLabel(pedido) }}
-      </div>
+  <header class="order-card__header">
+    <div class="order-card__heading">
+      <span class="order-card__label">Pedido</span>
+      <strong class="order-card__code">#{{ pedido.codigo || pedido.id }}</strong>
     </div>
 
-    <div class="timer">
-      <strong>{{ horario(pedido) }}</strong>
-      @if (acao === 'iniciar') {
-        <span>Esperando: {{ minutosDesdeCriacao(pedido) }}min</span>
-      } @else if (acao === 'decisao') {
-        <span>Aguardando garcom: {{ minutosDesdeReferencia(pedido) }}min</span>
-      } @else {
-        <span>Em preparo há: {{ minutosEmPreparo(pedido) }}min</span>
+    <div class="order-card__badges">
+      <fk-badge
+        [variant]="statusPronto(pedido) ? 'livre' : acao === 'decisao' ? 'critico' : acao === 'pronto' ? 'atencao' : 'neutral'"
+      >
+        {{ statusLabel(pedido) }}
+      </fk-badge>
+      @if (!statusPronto(pedido)) {
+        <fk-badge
+          [variant]="prioridade(pedido) === 'urgente' ? 'critico' : prioridade(pedido) === 'alta' ? 'atencao' : 'neutral'"
+        >
+          {{ prioridadeLabel(prioridade(pedido)) }}
+        </fk-badge>
       }
     </div>
+  </header>
+
+  <div class="order-card__meta">
+    <span>
+      <fk-icon [name]="pedido.idMesa ? 'picnic-table' : 'bag'" size="1rem" />
+      {{ origem(pedido) }}
+    </span>
+    <span>
+      <fk-icon name="bell-simple" size="1rem" />
+      Criado às {{ horario(pedido) }}
+    </span>
   </div>
 
-  <ul class="items">
-    @for (item of itensPedido(pedido); track item.id) {
-      <li>
-        <span>{{ item.quantidade }}x</span>
-        <div>
-          <strong>{{ nomeItem(item) }}</strong>
-          @if (item.observacao) {
-            <small>{{ item.observacao }}</small>
-          }
-          <div class="item-actions">
-            @if (acao === 'decisao') {
-              <span class="item-status">Aguardando garcom</span>
-            } @else {
-              <button
-                type="button"
-                class="item-action"
-                (click)="abrirProblema(pedido, item)"
-                [disabled]="itemAcaoDesabilitada(item) || statusPronto(pedido)"
-              >
-                Sinalizar problema
-              </button>
-            }
-          </div>
-        </div>
-      </li>
-    }
-  </ul>
+  <div class="order-card__timer" [class.order-card__timer--problem]="acao === 'decisao'">
+    <span>
+      @if (acao === 'iniciar') {
+        Tempo de espera
+      } @else if (acao === 'decisao') {
+        Aguardando garçom
+      } @else if (statusPronto(pedido)) {
+        Tempo total
+      } @else {
+        Tempo em preparo
+      }
+    </span>
+    <strong>{{ minutosDesdeReferencia(pedido) }} min</strong>
+  </div>
 
-  @if (acao === 'iniciar') {
-    <button
-      type="button"
-      class="order-action order-action--primary"
-      (click)="iniciarPreparo(pedido.id)"
-      [disabled]="acaoDesabilitada(pedido)"
-    >
-      Iniciar Preparo
-    </button>
-  } @else if (statusPronto(pedido)) {
-    <button type="button" class="order-action order-action--ready" disabled>
-      Pedido Pronto
-    </button>
-  } @else if (acao === 'decisao') {
-    <button type="button" class="order-action order-action--waiting" disabled>
-      Aguardando Garcom
-    </button>
-  } @else {
-    <button
-      type="button"
-      class="order-action order-action--outline"
-      (click)="marcarPronto(pedido.id)"
-      [disabled]="acaoDesabilitada(pedido)"
-    >
-      Marcar como Pronto
-    </button>
-  }
+  <section class="order-items" aria-label="Itens do pedido">
+    <div class="order-items__heading">
+      <h3>Itens do pedido</h3>
+      <span>{{ itensPedido(pedido).length }} item(ns)</span>
+    </div>
+
+    <ul class="items">
+      @for (item of itensPedido(pedido); track item.id) {
+        <li>
+          <span class="item-quantity">{{ item.quantidade }}×</span>
+          <div class="item-content">
+            <strong>{{ nomeItem(item) }}</strong>
+            @if (item.observacao) {
+              <p class="item-note">
+                <span>Observação</span>
+                {{ item.observacao }}
+              </p>
+            }
+            <div class="item-actions">
+              @if (acao === 'decisao') {
+                <span class="item-status">
+                  <fk-icon name="warning-circle" size="0.95rem" />
+                  Decisão do garçom pendente
+                </span>
+              } @else {
+                <button
+                  type="button"
+                  class="item-action"
+                  (click)="abrirProblema(pedido, item, $event)"
+                  [disabled]="itemAcaoDesabilitada(item) || statusPronto(pedido)"
+                >
+                  <fk-icon name="warning-circle" size="1rem" />
+                  Sinalizar problema
+                </button>
+              }
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <footer class="order-card__footer">
+    @if (acao === 'iniciar') {
+      <button
+        type="button"
+        class="order-action order-action--primary"
+        (click)="iniciarPreparo(pedido.id)"
+        [disabled]="acaoDesabilitada(pedido)"
+      >
+        @if (pedidoEstaProcessando(pedido.id)) {
+          <span class="button-spinner" aria-hidden="true"></span>
+          Iniciando...
+        } @else {
+          <fk-icon name="play" size="1rem" />
+          Iniciar preparo
+        }
+      </button>
+    } @else if (statusPronto(pedido)) {
+      <button type="button" class="order-action order-action--ready" disabled>
+        <fk-icon name="check-circle" size="1rem" />
+        Pedido pronto
+      </button>
+    } @else if (acao === 'decisao') {
+      <button type="button" class="order-action order-action--waiting" disabled>
+        <fk-icon name="warning-circle" size="1rem" />
+        Aguardando decisão
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="order-action order-action--outline"
+        (click)="marcarPronto(pedido.id)"
+        [disabled]="acaoDesabilitada(pedido)"
+      >
+        @if (pedidoEstaProcessando(pedido.id)) {
+          <span class="button-spinner" aria-hidden="true"></span>
+          Finalizando...
+        } @else {
+          <fk-icon name="check" size="1rem" />
+          Finalizar preparo
+        }
+      </button>
+    }
+  </footer>
 </ng-template>
 
 @if (problemaSelecionado(); as selecao) {
-  <div class="modal-backdrop" (click)="fecharProblema()">
-    <section class="modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog">
+  <div
+    class="modal-backdrop"
+    (click)="fecharProblema()"
+    (keydown)="tratarTecladoModal($event)"
+  >
+    <section
+      #modalProblema
+      class="modal"
+      (click)="$event.stopPropagation()"
+      aria-modal="true"
+      aria-labelledby="modal-problema-titulo"
+      aria-describedby="modal-problema-contexto modal-problema-aviso"
+      [attr.aria-busy]="itemEstaProcessando(selecao.item.id)"
+      role="dialog"
+    >
       <header class="modal__header">
         <div>
-          <h2>Sinalizar problema</h2>
-          <p>#{{ selecao.pedido.codigo || selecao.pedido.id }} · {{ nomeItem(selecao.item) }}</p>
+          <span class="eyebrow">Atenção na produção</span>
+          <h2 id="modal-problema-titulo">Sinalizar problema</h2>
+          <p>Informe o que impede o preparo deste item.</p>
         </div>
-        <button type="button" class="modal__close" aria-label="Fechar" (click)="fecharProblema()">x</button>
+        <button
+          type="button"
+          class="modal__close"
+          aria-label="Fechar modal"
+          (click)="fecharProblema()"
+          [disabled]="itemEstaProcessando(selecao.item.id)"
+        >
+          ×
+        </button>
       </header>
 
-      <label class="form-field">
-        <span>Tipo de problema</span>
-        <select [ngModel]="tipoProblema()" (ngModelChange)="tipoProblema.set($event)">
-          <option value="FALTA_PRODUTO">{{ problemaLabel('FALTA_PRODUTO') }}</option>
-          <option value="ERRO">{{ problemaLabel('ERRO') }}</option>
-          <option value="INDISPONIVEL">{{ problemaLabel('INDISPONIVEL') }}</option>
-        </select>
-      </label>
-
-      <div class="modal__actions">
-        <button type="button" class="modal__secondary" (click)="fecharProblema()">Cancelar</button>
-        <button type="button" class="modal__primary" (click)="confirmarProblema()" [disabled]="itemAcaoDesabilitada(selecao.item)">
-          Confirmar
-        </button>
+      <div class="modal__context" id="modal-problema-contexto">
+        <div class="modal__context-heading">
+          <fk-badge variant="atencao">
+            Pedido #{{ selecao.pedido.codigo || selecao.pedido.id }}
+          </fk-badge>
+          <span>{{ origem(selecao.pedido) }}</span>
+        </div>
+        <div class="modal__item">
+          <span class="modal__item-quantity">{{ selecao.item.quantidade }}×</span>
+          <div>
+            <span>Item selecionado</span>
+            <strong>{{ nomeItem(selecao.item) }}</strong>
+            @if (selecao.item.observacao) {
+              <small>Observação: {{ selecao.item.observacao }}</small>
+            }
+          </div>
+        </div>
       </div>
+
+      <fieldset
+        class="problem-options"
+        [class.problem-options--invalid]="erroTipoProblema()"
+        [disabled]="itemEstaProcessando(selecao.item.id)"
+      >
+        <legend>
+          Tipo de problema
+          <span aria-hidden="true">*</span>
+          <small>Selecione uma opção</small>
+        </legend>
+
+        <div class="problem-options__list">
+          @for (opcao of opcoesProblema; track opcao.valor; let primeira = $first) {
+            <label
+              class="problem-option"
+              [class.problem-option--selected]="tipoProblema() === opcao.valor"
+            >
+              <input
+                type="radio"
+                name="tipo-problema"
+                [value]="opcao.valor"
+                [checked]="tipoProblema() === opcao.valor"
+                [attr.data-modal-initial-focus]="primeira ? '' : null"
+                [attr.aria-invalid]="erroTipoProblema() ? 'true' : null"
+                [attr.aria-describedby]="erroTipoProblema() ? 'tipo-problema-erro' : null"
+                (change)="selecionarTipoProblema(opcao.valor)"
+              />
+              <span class="problem-option__content">
+                <strong>{{ opcao.titulo }}</strong>
+                <small>{{ opcao.descricao }}</small>
+              </span>
+            </label>
+          }
+        </div>
+
+        @if (erroTipoProblema()) {
+          <p class="problem-options__error" id="tipo-problema-erro" role="alert">
+            <fk-icon name="warning-circle" size="1rem" />
+            {{ erroTipoProblema() }}
+          </p>
+        }
+      </fieldset>
+
+      @if (erro()) {
+        <div class="modal__feedback" role="alert">
+          <fk-icon name="warning-circle" size="1.1rem" />
+          <div>
+            <strong>Não foi possível sinalizar o problema</strong>
+            <span>{{ erro() }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="modal__notice" id="modal-problema-aviso">
+        <fk-icon name="warning-circle" size="1.2rem" />
+        <p>Após a confirmação, o pedido ficará aguardando a decisão do garçom.</p>
+      </div>
+
+      <footer class="modal__actions">
+        <button
+          type="button"
+          class="modal__secondary"
+          (click)="fecharProblema()"
+          [disabled]="itemEstaProcessando(selecao.item.id)"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="modal__primary"
+          (click)="confirmarProblema()"
+          [disabled]="itemAcaoDesabilitada(selecao.item)"
+        >
+          @if (itemEstaProcessando(selecao.item.id)) {
+            <span class="button-spinner" aria-hidden="true"></span>
+            Confirmando...
+          } @else {
+            Confirmar problema
+          }
+        </button>
+      </footer>
     </section>
   </div>
 }
