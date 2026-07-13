@@ -1,11 +1,14 @@
 package br.com.fourkitchen.bff_restaurante.controller;
 
+import br.com.fourkitchen.bff_restaurante.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.FechamentoContaGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomDetalheResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaProblemasGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.GarcomMesaService;
+import br.com.fourkitchen.bff_restaurante.service.GarcomProblemaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -16,6 +19,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -35,6 +40,8 @@ import java.util.List;
 public class GarcomMesaController {
 
     private final GarcomMesaService garcomMesaService;
+
+    private final GarcomProblemaService garcomProblemaService;
 
     @GetMapping
     @Operation(
@@ -90,6 +97,24 @@ public class GarcomMesaController {
         return ResponseEntity.ok(garcomMesaService.detalharMesa(id, authentication));
     }
 
+    @GetMapping("/{id}/problemas")
+    @Operation(
+            summary = "Lista problemas pendentes da mesa",
+            description = "Retorna apenas pedidos e itens que aguardam decisao, sem consultar o resumo da conta."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Problemas retornados com sucesso", content = @Content(schema = @Schema(implementation = MesaProblemasGarcomResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Mesa sem atendimento aberto ou dados invalidos", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Mesa nao atribuida ao garcom", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<MesaProblemasGarcomResponse> listarProblemasDaMesa(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        return ResponseEntity.ok(garcomMesaService.listarProblemasDaMesa(id, authentication));
+    }
+
     @GetMapping("/{id}/pedidos")
     @Operation(
             summary = "Lista pedidos detalhados da mesa do garcom",
@@ -106,6 +131,27 @@ public class GarcomMesaController {
             @Parameter(hidden = true) Authentication authentication
     ) {
         return ResponseEntity.ok(garcomMesaService.listarPedidosDaMesa(id, authentication));
+    }
+
+    @PatchMapping("/{id}/problemas/decisao")
+    @Operation(
+            summary = "Registra a decisao do cliente sobre um problema",
+            description = "Valida se a mesa pertence ao garcom autenticado e se o pedido/item aguardam decisao antes de remover, substituir ou cancelar."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Decisao registrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Pedido ou item nao permite decisao", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Mesa nao atribuida ao garcom", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Pedido nao encontrado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas, pedidos ou produtos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<Void> registrarDecisaoProblema(
+            @PathVariable Integer id,
+            @RequestBody @Valid DecisaoProblemaRequest request,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        garcomProblemaService.registrarDecisao(id, request, authentication);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/fechar-conta")

@@ -6,6 +6,14 @@ spring:
       httpclient:
         hc5:
           enabled: true
+      client:
+        config:
+          ms-mesas:
+            connectTimeout: 2000
+            readTimeout: 4000
+          ms-pedidos:
+            connectTimeout: 2000
+            readTimeout: 4000
 
 clients:
   ms-usuarios:

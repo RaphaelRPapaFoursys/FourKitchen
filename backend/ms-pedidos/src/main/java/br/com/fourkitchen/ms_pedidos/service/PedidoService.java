@@ -442,6 +442,9 @@ public class PedidoService {
         if(decisaoProblemaRequest.idNovoProduto() != null) {
             produtoPedido.setIdProduto(decisaoProblemaRequest.idNovoProduto());
             produtoPedido.setNomeProduto(decisaoProblemaRequest.nomeNovoProduto());
+            if (decisaoProblemaRequest.precoNovoProduto() != null) {
+                produtoPedido.setPrecoUnitario(decisaoProblemaRequest.precoNovoProduto());
+            }
         }
 
         if(!pedidoPermiteDecisao(pedido)) {

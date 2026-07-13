@@ -2,8 +2,6 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.*;
-import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
-import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.EventoPedido;
 import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
@@ -27,9 +25,9 @@ public class CozinhaService {
 
     private final PedidoClient pedidoClient;
 
-    private final ProdutoClient produtoClient;
-
     private final NotificacaoService notificacaoService;
+
+    private final DecisaoProblemaService decisaoProblemaService;
 
     public List<PedidoFilaCozinhaResponse> listarFila() {
         try {
@@ -162,38 +160,6 @@ public class CozinhaService {
     }
 
     public void decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
-        try {
-            ProdutoDisponibilidadeResponse produtoDisponibilidadeResponse = null;
-
-            if(decisaoProblemaRequest.idNovoProduto() != null) {
-                produtoDisponibilidadeResponse = produtoClient.verificarDisponibilidade(decisaoProblemaRequest.idNovoProduto());
-
-                if(!Boolean.TRUE.equals(produtoDisponibilidadeResponse.disponivel())) {
-                    throw new BaseException(ErrorEnum.PRODUTO_INDISPONIVEL);
-                }
-            }
-
-            pedidoClient.decisaoProblema(mapearDecisaoProblema(decisaoProblemaRequest, produtoDisponibilidadeResponse));
-        } catch (FeignException error) {
-            if(error.status() == 400) {
-                throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
-            }
-        }
-    }
-
-    private DecisaoProblemaPedidoRequest mapearDecisaoProblema(
-            DecisaoProblemaRequest request,
-            ProdutoDisponibilidadeResponse produtoDisponibilidade
-    ) {
-        String nomeNovoProduto = produtoDisponibilidade == null ? null : produtoDisponibilidade.nome();
-
-        return new DecisaoProblemaPedidoRequest(
-                request.idPedido(),
-                request.idProdutoPedido(),
-                request.novoStatusProdutoPedido(),
-                request.pedidoCancelado(),
-                request.idNovoProduto(),
-                nomeNovoProduto
-        );
+        decisaoProblemaService.registrar(decisaoProblemaRequest);
     }
 }

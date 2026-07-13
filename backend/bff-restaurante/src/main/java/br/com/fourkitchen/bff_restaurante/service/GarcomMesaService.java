@@ -15,6 +15,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.ItemPedidoDetalheGarcomRe
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomDetalheResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGarcomResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaProblemasGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ProblemaPedidoGarcomResponse;
@@ -48,6 +49,11 @@ public class GarcomMesaService {
             "FALTA_PRODUTO",
             "ERRO",
             "INDISPONIVEL"
+    );
+
+    private static final List<String> STATUS_AGUARDA_DECISAO = List.of(
+            "AGUARDANDO_DECISAO",
+            "PROBLEMA_COZINHA"
     );
 
     private final MesaClient mesaClient;
@@ -99,6 +105,26 @@ public class GarcomMesaService {
         return new MesaGarcomDetalheResponse(
                 mapearMesaDetalhe(mesa),
                 conta,
+                pedidos.stream().map(this::mapearPedidoDetalhe).toList(),
+                mapearProblemas(pedidos)
+        );
+    }
+
+    public MesaProblemasGarcomResponse listarProblemasDaMesa(
+            Integer idMesa,
+            Authentication authentication
+    ) {
+        Integer idGarcom = extrairIdGarcom(authentication);
+        MesaGarcomClientResponse mesa = buscarMesaAtribuidaAoGarcom(idMesa, idGarcom);
+        validarAtendimentoAberto(mesa);
+
+        List<PedidoCozinhaResponse> pedidos = buscarPedidosDetalhados(mesa.idAtendimento())
+                .stream()
+                .filter(pedido -> statusAguardaDecisao(pedido.status()))
+                .toList();
+
+        return new MesaProblemasGarcomResponse(
+                mapearMesaDetalhe(mesa),
                 pedidos.stream().map(this::mapearPedidoDetalhe).toList(),
                 mapearProblemas(pedidos)
         );
@@ -288,7 +314,7 @@ public class GarcomMesaService {
     private List<ProblemaPedidoGarcomResponse> mapearProblemas(List<PedidoCozinhaResponse> pedidos) {
         return pedidos.stream()
                 .flatMap(pedido -> listarItens(pedido).stream()
-                        .filter(item -> STATUS_PROBLEMA_ITEM.contains(item.status()))
+                        .filter(item -> statusProblemaItem(item.status()))
                         .map(item -> new ProblemaPedidoGarcomResponse(
                                 pedido.id(),
                                 item.id(),
@@ -296,6 +322,14 @@ public class GarcomMesaService {
                                 mensagemProblema(item.status())
                         )))
                 .toList();
+    }
+
+    private boolean statusAguardaDecisao(String status) {
+        return status != null && STATUS_AGUARDA_DECISAO.contains(status);
+    }
+
+    private boolean statusProblemaItem(String status) {
+        return status != null && STATUS_PROBLEMA_ITEM.contains(status);
     }
 
     private List<ItemPedidoCozinhaResponse> listarItens(PedidoCozinhaResponse pedido) {

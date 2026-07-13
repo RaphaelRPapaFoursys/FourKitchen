@@ -8,16 +8,29 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class GarcomChamadaService {
 
     private final NotificacaoService notificacaoService;
 
-    public NotificacaoResponse concluirChamada(Integer idNotificacao, Authentication authentication) {
-        Integer idGarcom = extrairIdGarcom(authentication);
+    private final GarcomMesaService garcomMesaService;
 
-        return notificacaoService.concluirChamadaGarcom(idNotificacao, idGarcom);
+    public NotificacaoResponse concluirChamada(Integer idNotificacao, Authentication authentication) {
+        extrairIdGarcom(authentication);
+
+        boolean chamadaPertenceAsMesasAtuais = garcomMesaService.listarMesas(authentication)
+                .stream()
+                .flatMap(mesa -> mesa.chamadasPendentes().stream())
+                .anyMatch(chamada -> Objects.equals(chamada.id(), idNotificacao));
+
+        if (!chamadaPertenceAsMesasAtuais) {
+            throw new BaseException(ErrorEnum.CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM);
+        }
+
+        return notificacaoService.marcarComoLida(idNotificacao);
     }
 
     private Integer extrairIdGarcom(Authentication authentication) {

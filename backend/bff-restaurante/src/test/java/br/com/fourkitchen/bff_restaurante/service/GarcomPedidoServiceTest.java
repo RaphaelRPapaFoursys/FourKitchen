@@ -94,6 +94,7 @@ class GarcomPedidoServiceTest {
         assertEquals(1, pedidoRequest.itens().size());
         assertEquals(10, pedidoRequest.itens().getFirst().idProduto());
         assertEquals("X-Burger", pedidoRequest.itens().getFirst().nomeProduto());
+        assertEquals(new BigDecimal("29.90"), pedidoRequest.itens().getFirst().precoUnitario());
         assertEquals("Sem cebola", pedidoRequest.itens().getFirst().observacao());
         verify(mesaClient).validarMesaAtribuidaGarcom(1, 7);
         verify(produtoClient).verificarDisponibilidade(10);
@@ -153,7 +154,7 @@ class GarcomPedidoServiceTest {
     private CriarPedidoGarcomRequest criarRequest() {
         return new CriarPedidoGarcomRequest(
                 1,
-                List.of(new ItemPedidoGarcomRequest(10, 2, new BigDecimal("29.90"), "Sem cebola"))
+                List.of(new ItemPedidoGarcomRequest(10, 2, new BigDecimal("1.00"), "Sem cebola"))
         );
     }
 

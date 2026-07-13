@@ -949,7 +949,8 @@ class PedidoServiceTest {
                         StatusProdutoPedido.DISPONIVEL,
                         false,
                         99,
-                        "Batata"
+                        "Batata",
+                        new BigDecimal("18.90")
                 );
 
         Pedido pedido = Pedido.builder()
@@ -978,6 +979,11 @@ class PedidoServiceTest {
         assertEquals(
                 "Batata",
                 produtoPedido.getNomeProduto()
+        );
+
+        assertEquals(
+                new BigDecimal("18.90"),
+                produtoPedido.getPrecoUnitario()
         );
 
         assertEquals(

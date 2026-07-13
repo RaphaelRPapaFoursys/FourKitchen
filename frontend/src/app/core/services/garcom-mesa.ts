@@ -3,7 +3,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { MesaGarcomResponse } from '../models/garcom.models';
+import {
+  DecisaoProblemaGarcomRequest,
+  MesaGarcomDetalheResponse,
+  MesaGarcomResponse,
+  MesaProblemasGarcomResponse,
+} from '../models/garcom.models';
 
 @Injectable({
   providedIn: 'root',
@@ -14,5 +19,20 @@ export class GarcomMesaService {
 
   listarMesas(): Observable<MesaGarcomResponse[]> {
     return this.http.get<MesaGarcomResponse[]>(this.baseUrl);
+  }
+
+  detalharMesa(idMesa: number): Observable<MesaGarcomDetalheResponse> {
+    return this.http.get<MesaGarcomDetalheResponse>(`${this.baseUrl}/${idMesa}/detalhe`);
+  }
+
+  listarProblemas(idMesa: number): Observable<MesaProblemasGarcomResponse> {
+    return this.http.get<MesaProblemasGarcomResponse>(`${this.baseUrl}/${idMesa}/problemas`);
+  }
+
+  registrarDecisao(
+    idMesa: number,
+    request: DecisaoProblemaGarcomRequest,
+  ): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${idMesa}/problemas/decisao`, request);
   }
 }

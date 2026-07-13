@@ -42,6 +42,9 @@ class CozinhaServiceTest {
     @Mock
     private NotificacaoService notificacaoService;
 
+    @Mock
+    private DecisaoProblemaService decisaoProblemaService;
+
     @InjectMocks
     private CozinhaService cozinhaService;
 
