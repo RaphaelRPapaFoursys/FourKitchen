@@ -15,10 +15,16 @@ public class CriarCategoriaRequestMapper implements Mapper<CriarCategoriaRequest
 
     @Override
     public Categoria map(CriarCategoriaRequest source) {
-        return Categoria.builder()
+        byte[] imagem = imagemBase64Mapper.paraBytes(source.imagem());
+        Categoria categoria = Categoria.builder()
                 .nome(source.nome().trim())
                 .descricao(source.descricao())
-                .imagem(imagemBase64Mapper.paraBytes(source.imagem()))
                 .build();
+
+        if (imagem != null) {
+            categoria.atualizarImagem(imagem);
+        }
+
+        return categoria;
     }
 }
