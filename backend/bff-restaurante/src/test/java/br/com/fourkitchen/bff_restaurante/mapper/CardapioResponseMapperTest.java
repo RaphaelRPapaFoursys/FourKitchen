@@ -24,7 +24,7 @@ class CardapioResponseMapperTest {
                         10,
                         "X-Burger",
                         "Pao, carne e queijo",
-                        "aW1hZ2Vt",
+                        "/api/produtos/10/imagem",
                         new BigDecimal("29.90")
                 ))
         );
@@ -38,7 +38,7 @@ class CardapioResponseMapperTest {
         assertEquals(10, response.produtos().getFirst().id());
         assertEquals("X-Burger", response.produtos().getFirst().nome());
         assertEquals("Pao, carne e queijo", response.produtos().getFirst().descricao());
-        assertEquals("aW1hZ2Vt", response.produtos().getFirst().imagem());
+        assertEquals("/api/produtos/10/imagem", response.produtos().getFirst().imagemUrl());
         assertEquals(new BigDecimal("29.90"), response.produtos().getFirst().preco());
     }
 

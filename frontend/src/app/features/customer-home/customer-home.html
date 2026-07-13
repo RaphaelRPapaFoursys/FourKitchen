@@ -18,15 +18,15 @@
         <p>Escolha uma categoria para explorar os itens disponiveis.</p>
       </header>
 
-      @if (menuState().status === 'loading') {
-        <p class="state-message" role="status">{{ menuState().message }}</p>
-      } @else if (menuState().status === 'error') {
+      @if (categoryState().status === 'loading') {
+        <p class="state-message" role="status">{{ categoryState().message }}</p>
+      } @else if (categoryState().status === 'error') {
         <div class="state-message state-message--error" role="alert">
-          <p>{{ menuState().message }}</p>
+          <p>{{ categoryState().message }}</p>
           <button type="button" (click)="retryLoadMenu()">Tentar novamente</button>
         </div>
-      } @else if (!hasMenuContent()) {
-        <p class="state-message">Nenhum item disponivel no momento.</p>
+      } @else if (categories().length === 0) {
+        <p class="state-message">Nenhuma categoria disponivel no momento.</p>
       } @else {
         <app-category-carousel
           [categories]="categories()"
@@ -74,6 +74,10 @@
         (productSelected)="openProductDetails($event)"
         (quickAddSelected)="addProductFromCard($event.product, $event.event)"
       />
+
+      @if (loadingMoreMenu()) {
+        <p class="state-message state-message--light" role="status">Carregando mais itens...</p>
+      }
     }
   </section>
 

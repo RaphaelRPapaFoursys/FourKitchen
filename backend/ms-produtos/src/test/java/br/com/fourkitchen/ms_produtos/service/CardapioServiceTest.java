@@ -5,8 +5,7 @@ import br.com.fourkitchen.ms_produtos.dto.response.ProdutoCardapioResponse;
 import br.com.fourkitchen.ms_produtos.mapper.CategoriaCardapioMapperSource;
 import br.com.fourkitchen.ms_produtos.mapper.CategoriaCardapioResponseMapper;
 import br.com.fourkitchen.ms_produtos.mapper.ProdutoCardapioResponseMapper;
-import br.com.fourkitchen.ms_produtos.model.Categoria;
-import br.com.fourkitchen.ms_produtos.model.Produto;
+import br.com.fourkitchen.ms_produtos.repository.ProdutoCardapioProjection;
 import br.com.fourkitchen.ms_produtos.repository.ProdutoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,11 +39,9 @@ class CardapioServiceTest {
 
     @Test
     void buscarCardapioDeveRetornarProdutosDisponiveisAgrupadosPorCategoria() {
-        Categoria lanches = criarCategoria(1, "Lanches");
-        Categoria bebidas = criarCategoria(2, "Bebidas");
-        Produto hamburguer = criarProduto(1, "Hamburguer", lanches, true);
-        Produto batata = criarProduto(2, "Batata", lanches, true);
-        Produto refrigerante = criarProduto(3, "Refrigerante", bebidas, true);
+        ProdutoCardapioProjection hamburguer = criarProduto(1, "Hamburguer", 1, "Lanches");
+        ProdutoCardapioProjection batata = criarProduto(2, "Batata", 1, "Lanches");
+        ProdutoCardapioProjection refrigerante = criarProduto(3, "Refrigerante", 2, "Bebidas");
         ProdutoCardapioResponse hamburguerResponse = criarProdutoResponse(hamburguer);
         ProdutoCardapioResponse batataResponse = criarProdutoResponse(batata);
         ProdutoCardapioResponse refrigeranteResponse = criarProdutoResponse(refrigerante);
@@ -66,11 +64,15 @@ class CardapioServiceTest {
         when(produtoCardapioResponseMapper.map(batata)).thenReturn(batataResponse);
         when(produtoCardapioResponseMapper.map(refrigerante)).thenReturn(refrigeranteResponse);
         when(categoriaCardapioResponseMapper.map(new CategoriaCardapioMapperSource(
-                lanches,
+                1,
+                "Lanches",
+                "Descricao Lanches",
                 List.of(hamburguerResponse, batataResponse)
         ))).thenReturn(lanchesResponse);
         when(categoriaCardapioResponseMapper.map(new CategoriaCardapioMapperSource(
-                bebidas,
+                2,
+                "Bebidas",
+                "Descricao Bebidas",
                 List.of(refrigeranteResponse)
         ))).thenReturn(bebidasResponse);
 
@@ -82,11 +84,15 @@ class CardapioServiceTest {
         verify(produtoCardapioResponseMapper).map(batata);
         verify(produtoCardapioResponseMapper).map(refrigerante);
         verify(categoriaCardapioResponseMapper).map(new CategoriaCardapioMapperSource(
-                lanches,
+                1,
+                "Lanches",
+                "Descricao Lanches",
                 List.of(hamburguerResponse, batataResponse)
         ));
         verify(categoriaCardapioResponseMapper).map(new CategoriaCardapioMapperSource(
-                bebidas,
+                2,
+                "Bebidas",
+                "Descricao Bebidas",
                 List.of(refrigeranteResponse)
         ));
     }
@@ -102,27 +108,56 @@ class CardapioServiceTest {
         verifyNoInteractions(produtoCardapioResponseMapper, categoriaCardapioResponseMapper);
     }
 
-    private Categoria criarCategoria(Integer id, String nome) {
-        return Categoria.builder()
-                .id(id)
-                .nome(nome)
-                .descricao("Descricao " + nome)
-                .ativo(true)
-                .build();
+    private ProdutoCardapioProjection criarProduto(Integer id, String nome, Integer categoriaId, String categoriaNome) {
+        return new ProdutoCardapioProjection() {
+            @Override
+            public Integer getId() {
+                return id;
+            }
+
+            @Override
+            public String getNome() {
+                return nome;
+            }
+
+            @Override
+            public String getDescricao() {
+                return "Descricao " + nome;
+            }
+
+            @Override
+            public BigDecimal getPreco() {
+                return new BigDecimal("19.90");
+            }
+
+            @Override
+            public Integer getCategoriaId() {
+                return categoriaId;
+            }
+
+            @Override
+            public String getCategoriaNome() {
+                return categoriaNome;
+            }
+
+            @Override
+            public String getCategoriaDescricao() {
+                return "Descricao " + categoriaNome;
+            }
+
+            @Override
+            public Boolean getPossuiImagem() {
+                return false;
+            }
+
+            @Override
+            public Instant getImagemAtualizadaEm() {
+                return null;
+            }
+        };
     }
 
-    private Produto criarProduto(Integer id, String nome, Categoria categoria, Boolean disponivel) {
-        return Produto.builder()
-                .id(id)
-                .nome(nome)
-                .descricao("Descricao " + nome)
-                .preco(new BigDecimal("19.90"))
-                .categoria(categoria)
-                .disponivel(disponivel)
-                .build();
-    }
-
-    private ProdutoCardapioResponse criarProdutoResponse(Produto produto) {
+    private ProdutoCardapioResponse criarProdutoResponse(ProdutoCardapioProjection produto) {
         return new ProdutoCardapioResponse(
                 produto.getId(),
                 produto.getNome(),

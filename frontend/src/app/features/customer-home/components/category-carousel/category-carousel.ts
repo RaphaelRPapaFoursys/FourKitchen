@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, input, output } from '@angular/core';
 
-import { CategoriaCardapioResponse } from '../../../../core/models/menu.models';
+import { CategoriaMenuResponse } from '../../../../core/models/menu.models';
 
 @Component({
   selector: 'app-category-carousel',
@@ -11,12 +11,12 @@ import { CategoriaCardapioResponse } from '../../../../core/models/menu.models';
 export class CategoryCarouselComponent {
   @ViewChild('categoriesCarousel') private readonly categoriesCarousel?: ElementRef<HTMLElement>;
 
-  readonly categories = input.required<CategoriaCardapioResponse[]>();
+  readonly categories = input.required<CategoriaMenuResponse[]>();
   readonly selectedCategoryId = input<number | null>(null);
   readonly canScrollLeft = input(false);
   readonly canScrollRight = input(false);
-  readonly categoryImage = input.required<(category: CategoriaCardapioResponse) => string>();
-  readonly trackCategory = input.required<(index: number, category: CategoriaCardapioResponse) => number>();
+  readonly categoryImage = input.required<(category: CategoriaMenuResponse) => string>();
+  readonly trackCategory = input.required<(index: number, category: CategoriaMenuResponse) => number>();
 
   readonly categorySelected = output<number>();
   readonly scrollRequested = output<'left' | 'right'>();

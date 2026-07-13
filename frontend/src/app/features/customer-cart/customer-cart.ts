@@ -156,6 +156,10 @@ export class CustomerCart {
       return 'assets/images/product-placeholder.svg';
     }
 
+    if (/^https?:\/\//i.test(item.image) || item.image.startsWith('assets/')) {
+      return item.image;
+    }
+
     return item.image.startsWith('data:image')
       ? item.image
       : `data:image/png;base64,${item.image}`;

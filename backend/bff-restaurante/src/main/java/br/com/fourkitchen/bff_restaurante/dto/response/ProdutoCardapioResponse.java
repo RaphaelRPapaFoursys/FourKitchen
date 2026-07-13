@@ -15,8 +15,8 @@ public record ProdutoCardapioResponse(
         @Schema(description = "Descricao do produto", example = "Pao, carne, queijo e molho da casa", nullable = true)
         String descricao,
 
-        @Schema(description = "Imagem do produto em Base64", example = "iVBORw0KGgoAAAANSUhEUgAA...", nullable = true)
-        String imagem,
+        @Schema(description = "URL da imagem do produto", example = "/api/produtos/10/imagem", nullable = true)
+        String imagemUrl,
 
         @Schema(description = "Preco atual do produto", example = "29.90")
         BigDecimal preco
