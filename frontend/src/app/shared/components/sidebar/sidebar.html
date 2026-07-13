@@ -7,13 +7,22 @@
   </div>
 
   <nav class="sidebar__nav">
-    <a class="sidebar__nav-item sidebar__nav-item--active">
+    <a
+      class="sidebar__nav-item"
+      routerLink="/gestor"
+      routerLinkActive="sidebar__nav-item--active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
       <fk-icon name="shirt-folded" size="1.15rem" />
       <span class="sidebar__label">Gestão</span>
     </a>
-    <a class="sidebar__nav-item">
-      <fk-icon name="bag" size="1.15rem" />
-      <span class="sidebar__label">Pedidos</span>
+    <a
+      class="sidebar__nav-item"
+      routerLink="/gestor/produtos"
+      routerLinkActive="sidebar__nav-item--active"
+    >
+      <fk-icon name="fork-knife" size="1.15rem" />
+      <span class="sidebar__label">Produtos</span>
     </a>
   </nav>
 

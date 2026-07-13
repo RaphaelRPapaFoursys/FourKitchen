@@ -1,16 +1,13 @@
 import { ChangeDetectionStrategy, Component, output } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { Icon } from '../icon/icon';
 
-/**
- * Sidebar de navegação do painel (navy escura). Item ativo = pill laranja.
- * Decoração de folhas + onda no rodapé (assets/images/flor-e-listra-fourkitchen.png).
- * Apresentacional: emite `sair`; a navegação entre abas ainda não tem rota própria.
- */
+/** Navegação compartilhada das telas do gestor. */
 @Component({
   selector: 'fk-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon],
+  imports: [Icon, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })

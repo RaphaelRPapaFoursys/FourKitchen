@@ -10,6 +10,7 @@ import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { CustomerOrderCacheService } from '../../core/services/customer-order-cache.service';
 import { OrderService } from '../../core/services/order.service';
+import { getBase64ImageSource } from '../../core/utils/product-image.utils';
 import { CartActionsComponent } from './components/cart-actions/cart-actions';
 import { CartItemCardComponent } from './components/cart-item-card/cart-item-card';
 import { CartSummaryComponent } from './components/cart-summary/cart-summary';
@@ -160,9 +161,7 @@ export class CustomerCart {
       return item.image;
     }
 
-    return item.image.startsWith('data:image')
-      ? item.image
-      : `data:image/png;base64,${item.image}`;
+    return getBase64ImageSource(item.image) ?? 'assets/images/product-placeholder.svg';
   }
 
   protected formatPrice(price: number): string {
