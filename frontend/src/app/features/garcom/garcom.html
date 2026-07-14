@@ -143,7 +143,7 @@
                     <fk-badge variant="critico"><fk-icon name="call-bell" size="0.85rem" /> {{ mesa.chamadasPendentes.length }} chamada{{ mesa.chamadasPendentes.length === 1 ? '' : 's' }} pendente{{ mesa.chamadasPendentes.length === 1 ? '' : 's' }}</fk-badge>
                   }
                   @if (mesaPossuiProblema(mesa)) {
-                    <fk-badge variant="critico">Decisão solicitada</fk-badge>
+                    <fk-badge variant="critico"><fk-icon name="warning-circle" size="0.85rem" /> Aguardando decisão</fk-badge>
                   }
                 </div>
 
@@ -211,7 +211,7 @@
           </div>
           <div class="modal-orders-list">
             @for (pedido of pedidosAtivosDetalhe(detalhe); track pedido.id) {
-              <article class="modal-order-card">
+              <article class="modal-order-card" [class.modal-order-card--problem]="pedidoAguardaDecisao(pedido)">
                 <header><div><strong>Pedido #{{ pedido.codigo }}</strong><small>{{ pedido.canal }}</small></div><fk-badge [variant]="statusPedidoVariant(pedido.status)">{{ statusPedidoLabel(pedido.status) }}</fk-badge></header>
                 <div class="modal-order-items">
                   @for (item of pedido.itens; track item.id) {

@@ -11,6 +11,7 @@ export class CartActionsComponent {
   readonly confirmLabel = input('Confirmar Pedido');
   readonly confirmingLabel = input('Confirmando...');
   readonly channel = input<'mesa' | 'totem'>('mesa');
+  readonly confirmDisabled = input(false);
 
   readonly confirmSelected = output<void>();
   readonly continueSelected = output<void>();

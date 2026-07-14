@@ -14,7 +14,7 @@
 
     <fk-topbar
       [busca]="buscaTermo()"
-      (buscaChange)="buscaTermo.set($event)"
+      (buscaChange)="atualizarBusca($event)"
       [usuarioNome]="usuario()?.nome ?? 'Usuário'"
       [usuarioInicial]="iniciais(usuario()?.nome)"
     />
@@ -189,7 +189,7 @@
               } @empty {
                 <p class="mesas-grid__vazio">
                   @if (temFiltrosAtivos()) {
-                    Nenhuma mesa corresponde aos filtros aplicados.
+                    Nenhuma mesa encontrada para a busca e os filtros atuais.
                   } @else {
                     Nenhuma mesa para exibir no momento.
                   }

@@ -83,7 +83,8 @@
 
 .content {
   min-width: 0;
-  overflow: hidden;
+  height: 100vh;
+  overflow-y: auto;
   position: relative;
 }
 
@@ -95,6 +96,47 @@
   height: 53px;
   justify-content: space-between;
   padding: 0 12px 0 25px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.topbar__navigation {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  min-width: 0;
+}
+
+.topbar__mesa {
+  color: var(--ink);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.topbar__call {
+  align-items: center;
+  background: #eaf1fe;
+  border: 1px solid #2563eb;
+  border-radius: 7px;
+  color: #1d4ed8;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 6px;
+  min-height: 31px;
+  padding: 0 10px;
+}
+
+.topbar__call:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
+.topbar__call:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .back-button {
@@ -452,11 +494,24 @@ h1 {
   }
 
   .content {
+    height: auto;
     overflow: visible;
   }
 
   .topbar {
     padding: 0 16px;
+  }
+
+  .topbar__navigation {
+    gap: 10px;
+  }
+
+  .topbar__call {
+    padding-inline: 8px;
+  }
+
+  .topbar__call-label {
+    display: none;
   }
 
   .details-grid {

@@ -17,6 +17,12 @@ import {
   SinalizarProblemaRequest,
 } from '../../core/models/cozinha.models';
 import { CozinhaService } from '../../core/services/cozinha';
+import {
+  normalizarBuscaOperacional,
+  mesaCorrespondeBuscaParcial,
+  numeroContemBusca,
+  numeroBuscaOperacional,
+} from '../../core/utils/operational-search';
 import { Badge } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
@@ -98,7 +104,7 @@ export class Cozinha implements OnDestroy {
   }
 
   protected readonly pedidosFiltrados = computed(() => {
-    const termo = this.busca().trim().toLowerCase();
+    const termo = normalizarBuscaOperacional(this.busca());
     const prioridadePeso: Record<PrioridadePedido, number> = {
       urgente: 0,
       alta: 1,
@@ -111,14 +117,19 @@ export class Cozinha implements OnDestroy {
           return true;
         }
 
-        const texto = [
-          pedido.id,
-          pedido.codigo,
+        if (numeroBuscaOperacional(termo) !== null) {
+          return mesaCorrespondeBuscaParcial(pedido.idMesa, termo)
+            || numeroContemBusca(pedido.id, termo)
+            || numeroContemBusca(pedido.codigo, termo)
+            || numeroContemBusca(pedido.idAtendimento, termo);
+        }
+
+        const texto = normalizarBuscaOperacional([
           pedido.status,
           this.origem(pedido),
           this.prioridade(pedido),
           ...this.itensPedido(pedido).flatMap(item => [this.nomeItem(item), item.observacao]),
-        ].join(' ').toLowerCase();
+        ].join(' '));
 
         return texto.includes(termo);
       })

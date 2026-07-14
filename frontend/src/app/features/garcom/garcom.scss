@@ -383,9 +383,11 @@ button {
 }
 
 .table-card--problem {
-  border-color: #f4c66d;
-  border-top-color: var(--fk-amber);
-  box-shadow: 0 0 0 3px var(--fk-amber-soft), var(--fk-shadow-card-lg);
+  border: 2px solid var(--fk-red);
+  border-top-width: 4px;
+  border-top-color: var(--fk-red);
+  background: var(--fk-red-soft);
+  box-shadow: 0 0 0 3px rgb(214 69 69 / 12%), var(--fk-shadow-card-lg);
 }
 
 .table-card__header {
@@ -1075,6 +1077,12 @@ button:disabled {
 
 .modal-order-card--ready {
   border-color: #bfe7cb;
+}
+
+.modal-order-card--problem {
+  border-color: var(--fk-red);
+  background: var(--fk-red-soft);
+  box-shadow: 0 0 0 2px rgb(214 69 69 / 10%);
 }
 
 .modal-order-card > header {

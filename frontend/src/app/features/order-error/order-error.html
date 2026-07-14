@@ -1,15 +1,29 @@
 <main class="order-error">
-  <app-customer-cart-header
-    [homeRoute]="homeRoute()"
-    [cartRoute]="cartRoute()"
-    [ordersRoute]="ordersRoute()"
-    [showOrdersLink]="showOrdersLink()"
-    [activeLink]="null"
-    [totalItems]="totalItems()"
-    (menuSelected)="goToMenu($event)"
-    (cartSelected)="goToCart($event)"
-    (ordersSelected)="goToOrders($event)"
-  />
+  @if (isMesaContext()) {
+    <app-mesa-header
+      [homeRoute]="homeRoute()"
+      [cartRoute]="cartRoute()"
+      [ordersRoute]="ordersRoute()"
+      [showOrdersLink]="showOrdersLink()"
+      [activeLink]="null"
+      [totalItems]="totalItems()"
+      (menuSelected)="goToMenu($event)"
+      (cartSelected)="goToCart($event)"
+      (ordersSelected)="goToOrders($event)"
+    />
+  } @else {
+    <app-customer-cart-header
+      [homeRoute]="homeRoute()"
+      [cartRoute]="cartRoute()"
+      [ordersRoute]="ordersRoute()"
+      [showOrdersLink]="showOrdersLink()"
+      [activeLink]="null"
+      [totalItems]="totalItems()"
+      (menuSelected)="goToMenu($event)"
+      (cartSelected)="goToCart($event)"
+      (ordersSelected)="goToOrders($event)"
+    />
+  }
 
   <section class="order-error__content" aria-labelledby="order-error-title">
     <div class="order-error__icon" aria-hidden="true">!</div>

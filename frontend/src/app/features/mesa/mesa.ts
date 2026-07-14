@@ -63,9 +63,12 @@ export class Mesa {
   protected readonly chamadaEnviada = signal(false);
   protected readonly pedidosAtivos = signal<PedidoMesaAtivo[]>(pedidosAtivos);
 
-  protected readonly mesaNumero = computed(() =>
-    this.mesaAtiva()?.numero ?? 3
-  );
+  protected readonly mesaNumero = computed(() => this.mesaAtiva()?.numero ?? null);
+
+  protected readonly mesaNumeroLabel = computed(() => {
+    const numero = this.mesaNumero();
+    return numero === null ? 'Mesa —' : `Mesa ${numero.toString().padStart(2, '0')}`;
+  });
 
   protected readonly mesaStatus = computed(() =>
     this.mesaAtiva()?.status ?? 'OCUPADA'

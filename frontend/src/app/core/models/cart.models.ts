@@ -1,5 +1,7 @@
 export type CustomerContext = 'mesa' | 'totem';
 
+export const CART_OBSERVATION_MAX_LENGTH = 255;
+
 export interface CartItem {
   cartItemId: string;
   productId: number;

@@ -47,6 +47,36 @@
   line-height: 1.35;
 }
 
+.cart-item__observation {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.55rem;
+}
+
+.cart-item__observation span {
+  color: var(--muted-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.cart-item__observation input {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #e5ddd7;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.cart-item__observation input:focus {
+  border-color: var(--primary);
+  outline: 2px solid rgb(255 75 31 / 18%);
+  outline-offset: 1px;
+}
+
 .cart-item__quantity {
   display: grid;
   grid-template-columns: 2rem 2rem 2rem;

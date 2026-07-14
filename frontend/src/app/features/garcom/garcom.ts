@@ -19,6 +19,12 @@ import { AuthService } from '../../core/services/auth';
 import { GarcomChamadaService } from '../../core/services/garcom-chamada';
 import { GarcomMesaService } from '../../core/services/garcom-mesa';
 import { MenuService } from '../../core/services/menu.service';
+import {
+  normalizarBuscaOperacional,
+  mesaCorrespondeBuscaParcial,
+  numeroContemBusca,
+  numeroBuscaOperacional,
+} from '../../core/utils/operational-search';
 import { Avatar } from '../../shared/components/avatar/avatar';
 import { Badge, BadgeVariant } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
@@ -94,7 +100,7 @@ export class Garcom {
   });
 
   protected readonly mesasFiltradas = computed(() => {
-    const termo = this.busca().trim().toLowerCase();
+    const termo = normalizarBuscaOperacional(this.busca());
 
     return this.mesas()
       .filter(mesa => {
@@ -110,12 +116,23 @@ export class Garcom {
           return true;
         }
 
-        return [
-          mesa.numero,
+        if (mesaCorrespondeBuscaParcial(mesa.numero, termo)) {
+          return true;
+        }
+
+        // A API já limita esta coleção às mesas atribuídas ao garçom;
+        // a busca apenas reduz essa coleção, sem consultar outras mesas.
+        if (numeroBuscaOperacional(termo) !== null) {
+          return mesa.pedidosAtivos.some(pedido =>
+            numeroContemBusca(pedido.id, termo) || numeroContemBusca(pedido.codigo, termo),
+          );
+        }
+
+        return normalizarBuscaOperacional([
           mesa.status,
           ...mesa.pedidosAtivos.flatMap(pedido => [pedido.codigo, pedido.status]),
           ...mesa.chamadasPendentes.map(chamada => chamada.mensagem),
-        ].join(' ').toLowerCase().includes(termo);
+        ].join(' ')).includes(termo);
       })
       .sort((a, b) => a.numero - b.numero);
   });
@@ -504,6 +521,10 @@ export class Garcom {
   }
 
   protected statusPedidoLabel(status: PedidoStatus): string {
+    if (status === 'AGUARDANDO_DECISAO' || status === 'PROBLEMA_COZINHA') {
+      return 'Aguardando decisão';
+    }
+
     const labels: Record<PedidoStatus, string> = {
       ENVIADO_COZINHA: 'Enviado à cozinha',
       EM_PREPARO: 'Em preparo',

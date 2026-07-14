@@ -85,10 +85,10 @@
     <section class="queue-controls" aria-label="Filtros e ordenação da fila">
       <label class="search-field">
         <fk-icon name="magnifying-glass" size="1.15rem" />
-        <span class="sr-only">Buscar pedido</span>
+        <span class="sr-only">Buscar pedido, mesa ou atendimento</span>
         <input
           type="search"
-          placeholder="Buscar por pedido, mesa, canal ou item"
+          placeholder="Buscar por pedido, mesa ou atendimento"
           [value]="busca()"
           (input)="atualizarBusca($event)"
         />

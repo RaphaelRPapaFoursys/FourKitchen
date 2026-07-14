@@ -19,6 +19,7 @@ import {
   mesasComAtendimentoAtivo,
   montarResumoExpediente,
 } from './expediente.util';
+import { mesaCorrespondeBuscaParcial, numeroMesaBusca } from '../utils/operational-search';
 
 interface PedidoGestorApiResponse {
   id: number;
@@ -479,12 +480,49 @@ export class PainelService {
 
   /** Busca uma página de mesas e grava no cache; não mexe nos signals de exibição. */
   private async buscarPagina(consulta: ConsultaMesasPainel): Promise<MesaGestorPaginadaApiResponse> {
+    const numeroBusca = numeroMesaBusca(consulta.busca);
+    if (numeroBusca !== null && (numeroBusca === '0' || numeroBusca.length >= 2)) {
+      const pagina = await this.buscarPaginaComBuscaMesa(consulta);
+      this.cachePaginas.set(chaveConsulta(consulta), pagina);
+      return pagina;
+    }
+
+    const pagina = await this.buscarPaginaApi(consulta);
+    this.cachePaginas.set(chaveConsulta(consulta), pagina);
+    return pagina;
+  }
+
+  private async buscarPaginaComBuscaMesa(consulta: ConsultaMesasPainel): Promise<MesaGestorPaginadaApiResponse> {
+    const consultaBase = { ...consulta, page: 0, busca: '' };
+    const primeiraPagina = await this.buscarPaginaApi(consultaBase);
+    const paginas = await Promise.all(
+      Array.from({ length: Math.max(0, primeiraPagina.totalPages - 1) }, (_, indice) =>
+        this.buscarPaginaApi({ ...consultaBase, page: indice + 1 }),
+      ),
+    );
+    const mesas = [primeiraPagina, ...paginas]
+      .flatMap(pagina => pagina.content)
+      .filter(mesa => mesaCorrespondeBuscaParcial(mesa.numero, consulta.busca));
+    const totalPages = Math.max(1, Math.ceil(mesas.length / consulta.size));
+    const page = Math.min(consulta.page, totalPages - 1);
+
+    return {
+      content: mesas.slice(page * consulta.size, (page + 1) * consulta.size),
+      page,
+      size: consulta.size,
+      totalElements: mesas.length,
+      totalPages,
+      first: page === 0,
+      last: page === totalPages - 1,
+    };
+  }
+
+  private async buscarPaginaApi(consulta: ConsultaMesasPainel): Promise<MesaGestorPaginadaApiResponse> {
     const pagina = await firstValueFrom(
       this.http.get<MesaGestorPaginadaApiResponse>(`${this.baseUrl}/mesas/paginadas`, {
         params: montarParamsConsulta(consulta),
       }),
     );
-    this.cachePaginas.set(chaveConsulta(consulta), pagina);
     return pagina;
   }
 
@@ -529,6 +567,11 @@ export class PainelService {
 
   private async prefetchVizinhos(geracao: number): Promise<void> {
     const consulta = this.consultaSignal();
+    const numeroBusca = numeroMesaBusca(consulta.busca);
+    if (numeroBusca !== null && (numeroBusca === '0' || numeroBusca.length >= 2)) {
+      return;
+    }
+
     const totalPaginas = this.paginacaoSignal().totalPages;
     const raio = raioPrefetch(consulta.size);
 

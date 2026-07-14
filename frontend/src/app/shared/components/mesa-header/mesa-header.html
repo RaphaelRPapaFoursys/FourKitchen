@@ -1,0 +1,68 @@
+<header class="mesa-header">
+  <a class="mesa-header__brand" [href]="homeRoute()" (click)="selecionarMenu($event)" aria-label="FourKitchen início">
+    <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
+  </a>
+
+  <span class="mesa-header__table" aria-live="polite">{{ mesaLabel() }}</span>
+
+  <nav class="mesa-header__actions" aria-label="Navegação da mesa">
+    @if (showOrdersLink()) {
+      <a
+        class="mesa-header__orders"
+        [class.mesa-header__orders--active]="isActive('orders')"
+        [href]="ordersRoute()"
+        (click)="selecionarPedidos($event)"
+      >Acompanhar Pedido</a>
+    }
+
+    <a
+      class="mesa-header__cart"
+      [class.mesa-header__cart--active]="isActive('cart')"
+      [href]="cartRoute()"
+      (click)="selecionarCarrinho($event)"
+      aria-label="Carrinho"
+    >
+      <span>Carrinho</span>
+      @if (totalItems() > 0) {
+        <strong class="mesa-header__badge">{{ totalItems() }}</strong>
+      }
+      <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
+    </a>
+
+    <button
+      type="button"
+      class="mesa-header__call"
+      [class.mesa-header__call--loading]="chamandoGarcom()"
+      [attr.aria-label]="chamadaLabel()"
+      [attr.aria-busy]="chamandoGarcom()"
+      [attr.title]="atendimentoAtivo() ? chamadaLabel() : 'A mesa ainda não possui atendimento iniciado.'"
+      [disabled]="chamadaDesabilitada()"
+      (click)="chamarGarcom()"
+    >
+      @if (chamandoGarcom()) {
+        <span class="mesa-header__spinner" aria-hidden="true"></span>
+      } @else {
+        <fk-icon [name]="chamadaEnviada() ? 'check-circle' : 'call-bell'" size="1.15rem" />
+      }
+      <span class="mesa-header__call-label">{{ chamadaLabel() }}</span>
+    </button>
+  </nav>
+</header>
+
+@if (toast(); as notification) {
+  <aside
+    class="mesa-toast"
+    [class.mesa-toast--success]="notification.type === 'success'"
+    [class.mesa-toast--warning]="notification.type === 'warning'"
+    [class.mesa-toast--error]="notification.type === 'error'"
+    [attr.role]="notification.type === 'error' ? 'alert' : 'status'"
+    aria-live="polite"
+  >
+    <fk-icon
+      [name]="notification.type === 'success' ? 'check-circle' : 'warning-circle'"
+      size="1.25rem"
+    />
+    <span>{{ notification.message }}</span>
+    <button type="button" aria-label="Fechar notificação" (click)="closeToast()">×</button>
+  </aside>
+}

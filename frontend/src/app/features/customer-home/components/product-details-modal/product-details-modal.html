@@ -43,7 +43,7 @@
         <button type="button" aria-label="Aumentar quantidade" (click)="increaseQuantity()">+</button>
       </div>
 
-      <button class="product-modal__add" type="button" (click)="submit()">
+      <button class="product-modal__add" type="button" (click)="submit()" [disabled]="!canAddToCart()">
         <img src="assets/icons/cart.svg" alt="" aria-hidden="true" />
         Adicionar ao Carrinho
       </button>
