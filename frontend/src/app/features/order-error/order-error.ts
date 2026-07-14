@@ -6,10 +6,11 @@ import { CustomerContext } from '../../core/models/cart.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { CustomerCartHeaderComponent } from '../customer-cart/components/customer-cart-header/customer-cart-header';
+import { MesaHeaderComponent } from '../../shared/components/mesa-header/mesa-header';
 
 @Component({
   selector: 'app-order-error',
-  imports: [CommonModule, CustomerCartHeaderComponent],
+  imports: [CommonModule, CustomerCartHeaderComponent, MesaHeaderComponent],
   templateUrl: './order-error.html',
   styleUrl: './order-error.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,6 +55,10 @@ export class OrderError {
     if (this.getCurrentContext() === 'mesa') {
       this.router.navigate([this.customerContextService.getOrdersRoute('mesa')]);
     }
+  }
+
+  protected isMesaContext(): boolean {
+    return this.getCurrentContext() === 'mesa';
   }
 
   private getCurrentContext(): CustomerContext {

@@ -22,7 +22,12 @@
 
           <div class="product-card__footer">
             <strong>{{ formatPrice()(product.preco) }}</strong>
-            <button type="button" (click)="quickAddProduct(product, $event)" aria-label="Adicionar item">
+            <button
+              type="button"
+              (click)="quickAddProduct(product, $event)"
+              aria-label="Adicionar item"
+              [disabled]="!canAddToCart()"
+            >
               <img src="assets/icons/plus.svg" alt="" aria-hidden="true" />
             </button>
           </div>

@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
 import { signal } from '@angular/core';
 
-import { CartItem, CartSummary, CustomerContext } from '../models/cart.models';
+import {
+  CART_OBSERVATION_MAX_LENGTH,
+  CartItem,
+  CartSummary,
+  CustomerContext,
+} from '../models/cart.models';
 
 @Injectable({
   providedIn: 'root',
@@ -79,6 +84,19 @@ export class CartService {
     return items;
   }
 
+  updateObservation(context: CustomerContext, cartItemId: string, observation: string): CartItem[] {
+    const normalizedObservation = this.normalizeObservation(observation);
+    const items = this.getCart(context).map(item =>
+      item.cartItemId === cartItemId
+        ? { ...item, observation: normalizedObservation || undefined }
+        : item,
+    );
+
+    this.saveCart(context, items);
+
+    return items;
+  }
+
   removeItem(context: CustomerContext, cartItemId: string): CartItem[] {
     const items = this.getCart(context).filter(item => item.cartItemId !== cartItemId);
 
@@ -106,7 +124,7 @@ export class CartService {
   }
 
   private normalizeObservation(observation?: string): string {
-    return observation?.trim() ?? '';
+    return (observation?.trim() ?? '').slice(0, CART_OBSERVATION_MAX_LENGTH);
   }
 
   private bumpCartVersion(): void {

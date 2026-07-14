@@ -10,6 +10,8 @@ export interface CategoriaMenuResponse {
   categoriaNome: string;
   categoriaDescricao?: string;
   imagemUrl?: string | null;
+  /** Compatibilidade com respostas antigas que ainda trazem a imagem em base64. */
+  imagem?: string | null;
 }
 
 export interface CardapioPaginadoResponse {

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-import { CartItem } from '../../../../core/models/cart.models';
+import { CART_OBSERVATION_MAX_LENGTH, CartItem } from '../../../../core/models/cart.models';
 
 @Component({
   selector: 'app-cart-item-card',
@@ -16,6 +16,10 @@ export class CartItemCardComponent {
   readonly quantityIncreased = output<CartItem>();
   readonly quantityDecreased = output<CartItem>();
   readonly itemRemoved = output<string>();
+  readonly observationChanged = output<{ cartItemId: string; observation: string }>();
+  readonly observationEditable = input(false);
+
+  protected readonly observationMaxLength = CART_OBSERVATION_MAX_LENGTH;
 
   protected increaseQuantity(): void {
     this.quantityIncreased.emit(this.item());
@@ -27,5 +31,12 @@ export class CartItemCardComponent {
 
   protected removeItem(): void {
     this.itemRemoved.emit(this.item().cartItemId);
+  }
+
+  protected updateObservation(event: Event): void {
+    this.observationChanged.emit({
+      cartItemId: this.item().cartItemId,
+      observation: (event.target as HTMLInputElement).value,
+    });
   }
 }

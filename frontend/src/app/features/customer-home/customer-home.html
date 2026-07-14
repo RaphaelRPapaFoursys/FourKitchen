@@ -1,13 +1,30 @@
-<main class="customer-home">
-  <app-customer-home-header
-    [cartItemsCount]="cartItemsCount()"
-    [cartRoute]="cartRoute()"
-    [ordersRoute]="ordersRoute()"
-    [showOrdersLink]="showOrdersLink()"
-    (sectionSelected)="scrollToSection($event.sectionId, $event.event)"
-    (cartSelected)="goToCart($event)"
-    (ordersSelected)="goToOrders($event)"
-  />
+<main class="customer-home" [class.customer-home--mesa]="showMesaActions()">
+  @if (showMesaActions()) {
+    <app-mesa-header
+      homeRoute="/mesa"
+      [cartRoute]="cartRoute()"
+      [ordersRoute]="ordersRoute()"
+      [showOrdersLink]="showOrdersLink()"
+      [totalItems]="cartItemsCount()"
+      [atendimento]="atendimentoAtual()"
+      [atendimentoLoading]="carregandoAtendimento()"
+      [attendanceError]="erroAtendimento()"
+      (menuSelected)="scrollToSection('home', $event)"
+      (cartSelected)="goToCart($event)"
+      (ordersSelected)="goToOrders($event)"
+    />
+  } @else {
+    <app-customer-home-header
+      [cartItemsCount]="cartItemsCount()"
+      [cartRoute]="cartRoute()"
+      [ordersRoute]="ordersRoute()"
+      [showOrdersLink]="showOrdersLink()"
+      (sectionSelected)="scrollToSection($event.sectionId, $event.event)"
+      (cartSelected)="goToCart($event)"
+      (ordersSelected)="goToOrders($event)"
+    />
+  }
+
 
   <app-customer-hero (sectionSelected)="scrollToSection($event.sectionId, $event.event)" />
 
@@ -71,6 +88,7 @@
         [productImage]="getProductImage.bind(this)"
         [formatPrice]="formatPrice.bind(this)"
         [trackProduct]="trackByProductId.bind(this)"
+        [canAddToCart]="podeAdicionarAoCarrinho()"
         (productSelected)="openProductDetails($event)"
         (quickAddSelected)="addProductFromCard($event.product, $event.event)"
       />
@@ -92,6 +110,7 @@
       [product]="product"
       [quantity]="selectedQuantity()"
       [observation]="selectedObservation()"
+      [canAddToCart]="podeAdicionarAoCarrinho()"
       [productImage]="getProductImage.bind(this)"
       [formatPrice]="formatPrice.bind(this)"
       (closed)="closeProductDetails()"

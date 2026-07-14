@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   DecisaoProblemaGarcomRequest,
+  FechamentoContaGarcomResponse,
   MesaGarcomDetalheResponse,
   MesaGarcomResponse,
   MesaProblemasGarcomResponse,
@@ -34,5 +35,9 @@ export class GarcomMesaService {
     request: DecisaoProblemaGarcomRequest,
   ): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/${idMesa}/problemas/decisao`, request);
+  }
+
+  fecharConta(idMesa: number): Observable<FechamentoContaGarcomResponse> {
+    return this.http.patch<FechamentoContaGarcomResponse>(`${this.baseUrl}/${idMesa}/fechar-conta`, {});
   }
 }

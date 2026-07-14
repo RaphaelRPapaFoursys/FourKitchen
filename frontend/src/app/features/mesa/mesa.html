@@ -27,10 +27,25 @@
 
   <section class="content">
     <header class="topbar">
-      <button type="button" class="back-button" (click)="voltarDashboard()">
-        <span aria-hidden="true">&lt;</span>
-        Voltar para Dashboard / Detalhes da Mesa
-      </button>
+      <div class="topbar__navigation">
+        <button type="button" class="back-button" (click)="voltarDashboard()">
+          <span aria-hidden="true">&lt;</span>
+          Voltar
+        </button>
+        <strong class="topbar__mesa">{{ mesaNumeroLabel() }}</strong>
+        <button
+          type="button"
+          class="topbar__call"
+          aria-label="Chamar garçom"
+          (click)="chamarGarcom()"
+          [disabled]="carregandoAtendimento() || codigoSessao() === null || chamandoGarcom() || chamadaEnviada()"
+        >
+          <fk-icon name="call-bell" size="1rem" />
+          <span class="topbar__call-label">
+            {{ chamandoGarcom() ? 'Chamando…' : chamadaEnviada() ? 'Garçom chamado' : 'Chamar garçom' }}
+          </span>
+        </button>
+      </div>
 
       <div class="user-chip">
         <span>{{ nomeUsuario() }}</span>
@@ -41,7 +56,7 @@
     <section class="details-grid" aria-label="Detalhes da mesa">
       <article class="status-card">
         <span class="eyebrow">Atendimento ativo</span>
-        <h1>Mesa {{ mesaNumero() < 10 ? '0' + mesaNumero() : mesaNumero() }}</h1>
+        <h1>{{ mesaNumeroLabel() }}</h1>
 
         <span class="status-pill" [class.status-pill--free]="mesaStatus() === 'DISPONIVEL'">
           <span aria-hidden="true">!</span>
@@ -110,6 +125,12 @@
 
         @if (erro()) {
           <p class="alert" role="alert">{{ erro() }}</p>
+        }
+        @if (erroChamada()) {
+          <p class="alert alert--call" role="alert">{{ erroChamada() }}</p>
+        }
+        @if (sucessoChamada()) {
+          <p class="alert alert--call-success" role="status">{{ sucessoChamada() }}</p>
         }
       </div>
     </section>

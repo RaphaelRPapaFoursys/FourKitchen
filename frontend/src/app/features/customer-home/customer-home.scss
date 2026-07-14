@@ -29,6 +29,48 @@ app-customer-hero,
   margin-inline: auto;
 }
 
+.customer-home--mesa app-customer-home-header {
+  box-sizing: border-box;
+  width: 100%;
+  margin-inline: 0;
+  padding-inline: max(1rem, calc((100% - var(--content)) / 2));
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--white);
+  box-shadow: 0 2px 14px rgb(23 24 33 / 8%);
+}
+
+.customer-home--mesa {
+  overflow-x: clip;
+}
+
+.attendance-feedback {
+  box-sizing: border-box;
+  width: min(100% - 2rem, var(--content));
+  margin: 0.75rem auto;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(255 75 31 / 28%);
+  border-radius: 0.75rem;
+  background: rgb(255 75 31 / 8%);
+  color: var(--primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.attendance-feedback--error {
+  border-color: rgb(184 36 36 / 30%);
+  background: rgb(184 36 36 / 8%);
+  color: #a62121;
+}
+
+.attendance-feedback--success {
+  border-color: rgb(42 128 73 / 30%);
+  background: rgb(42 128 73 / 8%);
+  color: #267044;
+}
+
 .state-message {
   margin: 0 auto;
   color: rgb(255 255 255 / 82%);

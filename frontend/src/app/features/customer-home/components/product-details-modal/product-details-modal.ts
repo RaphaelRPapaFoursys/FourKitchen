@@ -14,6 +14,7 @@ export class ProductDetailsModalComponent {
   readonly product = input.required<ProdutoCardapioView>();
   readonly quantity = input(1);
   readonly observation = input('');
+  readonly canAddToCart = input(true);
   readonly productImage = input.required<(product: ProdutoCardapioView) => string>();
   readonly formatPrice = input.required<(price: number) => string>();
 

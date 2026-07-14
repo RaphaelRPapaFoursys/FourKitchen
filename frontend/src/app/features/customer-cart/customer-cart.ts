@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { finalize, Observable, switchMap } from 'rxjs';
+import { finalize, Observable } from 'rxjs';
 
 import { CartItem, CustomerContext } from '../../core/models/cart.models';
-import { PedidoResponse } from '../../core/models/order.models';
+import { MesaAtendimentoAtualResponse, PedidoResponse } from '../../core/models/order.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { CustomerOrderCacheService } from '../../core/services/customer-order-cache.service';
@@ -16,12 +17,14 @@ import { CartItemCardComponent } from './components/cart-item-card/cart-item-car
 import { CartSummaryComponent } from './components/cart-summary/cart-summary';
 import { CustomerCartHeaderComponent } from './components/customer-cart-header/customer-cart-header';
 import { EmptyCartComponent } from './components/empty-cart/empty-cart';
+import { MesaHeaderComponent } from '../../shared/components/mesa-header/mesa-header';
 
 @Component({
   selector: 'app-customer-cart',
   imports: [
     CommonModule,
     CustomerCartHeaderComponent,
+    MesaHeaderComponent,
     CartItemCardComponent,
     CartSummaryComponent,
     CartActionsComponent,
@@ -37,6 +40,7 @@ export class CustomerCart {
   private readonly orderCacheService = inject(CustomerOrderCacheService);
   private readonly customerContextService = inject(CustomerContextService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly items = signal<CartItem[]>(this.cartService.getCart(this.getCurrentContext()));
   protected readonly subtotal = computed(() =>
@@ -47,6 +51,9 @@ export class CustomerCart {
   );
   protected readonly isConfirmingOrder = signal(false);
   protected readonly confirmOrderError = signal('');
+  protected readonly atendimentoAtual = signal<MesaAtendimentoAtualResponse | null>(null);
+  protected readonly carregandoAtendimento = signal(false);
+  protected readonly erroAtendimento = signal('');
   protected readonly homeRoute = computed(() =>
     this.customerContextService.getHomeRoute(this.getCurrentContext()),
   );
@@ -57,6 +64,27 @@ export class CustomerCart {
     this.customerContextService.getOrdersRoute(this.getCurrentContext()),
   );
   protected readonly showOrdersLink = computed(() => this.getCurrentContext() === 'mesa');
+  protected readonly podeFinalizarPedido = computed(() =>
+    this.getCurrentContext() !== 'mesa'
+      || (!this.carregandoAtendimento() && this.isAtendimentoAtivo(this.atendimentoAtual())),
+  );
+  protected readonly atendimentoFeedback = computed(() => {
+    if (this.getCurrentContext() !== 'mesa' || this.carregandoAtendimento()) {
+      return '';
+    }
+
+    return this.erroAtendimento() || (
+      this.atendimentoAtual() === null
+        ? 'Esta mesa ainda não possui um atendimento iniciado.'
+        : ''
+    );
+  });
+
+  constructor() {
+    if (this.getCurrentContext() === 'mesa') {
+      this.carregarAtendimentoAtual();
+    }
+  }
 
   protected increaseQuantity(item: CartItem): void {
     this.items.set(
@@ -84,6 +112,14 @@ export class CustomerCart {
 
   protected removeItem(cartItemId: string): void {
     this.items.set(this.cartService.removeItem(this.getCurrentContext(), cartItemId));
+  }
+
+  protected updateObservation(change: { cartItemId: string; observation: string }): void {
+    this.items.set(this.cartService.updateObservation(
+      this.getCurrentContext(),
+      change.cartItemId,
+      change.observation,
+    ));
   }
 
   protected continueShopping(): void {
@@ -114,20 +150,30 @@ export class CustomerCart {
       return;
     }
 
+    if (context === 'mesa' && !this.podeFinalizarPedido()) {
+      if (!this.carregandoAtendimento()) {
+        this.confirmOrderError.set(this.atendimentoFeedback());
+      }
+      return;
+    }
+
     if (context === 'totem') {
       void this.router.navigate(['/totem/pagamento']);
+      return;
+    }
+
+    const atendimento = this.atendimentoAtual();
+    if (!this.isAtendimentoAtivo(atendimento)) {
       return;
     }
 
     this.confirmOrderError.set('');
     this.isConfirmingOrder.set(true);
 
-    const submitOrder$: Observable<PedidoResponse> = this.orderService.getCurrentTableAttendance().pipe(
-      switchMap(attendance => this.orderService.createMesaOrder({
-        codigoAtendimento: attendance.codigoAtendimento,
-        itens: this.buildOrderItems(),
-      })),
-    );
+    const submitOrder$: Observable<PedidoResponse> = this.orderService.createMesaOrder({
+      codigoAtendimento: atendimento.codigoAtendimento,
+      itens: this.buildOrderItems(),
+    });
 
     submitOrder$
       .pipe(finalize(() => this.isConfirmingOrder.set(false)))
@@ -179,6 +225,33 @@ export class CustomerCart {
     return this.customerContextService.getCurrentContext(this.router.url);
   }
 
+  protected carregarAtendimentoAtual(): void {
+    if (this.getCurrentContext() !== 'mesa') {
+      return;
+    }
+
+    this.carregandoAtendimento.set(true);
+    this.atendimentoAtual.set(null);
+    this.erroAtendimento.set('');
+    this.orderService
+      .getCurrentTableAttendance()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.carregandoAtendimento.set(false)),
+      )
+      .subscribe({
+        next: atendimento => {
+          this.atendimentoAtual.set(this.isAtendimentoAtivo(atendimento) ? atendimento : null);
+        },
+        error: error => {
+          this.atendimentoAtual.set(null);
+          if (!(error instanceof HttpErrorResponse && error.status === 400)) {
+            this.erroAtendimento.set(this.getApiErrorMessage(error));
+          }
+        },
+      });
+  }
+
   private buildOrderItems(): { idProduto: number; quantidade: number; observacao?: string }[] {
     return this.items().map(item => ({
       idProduto: item.productId,
@@ -217,5 +290,12 @@ export class CustomerCart {
     }
 
     return fallbackMessage;
+  }
+
+  private isAtendimentoAtivo(atendimento: MesaAtendimentoAtualResponse | null): atendimento is MesaAtendimentoAtualResponse {
+    return atendimento !== null
+      && atendimento.status.toUpperCase() === 'OCUPADA'
+      && atendimento.idAtendimento > 0
+      && atendimento.codigoAtendimento > 0;
   }
 }

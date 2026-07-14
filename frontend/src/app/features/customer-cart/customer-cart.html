@@ -1,21 +1,39 @@
 <main class="customer-cart">
-  <app-customer-cart-header
-    [homeRoute]="homeRoute()"
-    [cartRoute]="cartRoute()"
-    [ordersRoute]="ordersRoute()"
-    [showOrdersLink]="showOrdersLink()"
-    activeLink="cart"
-    [totalItems]="totalItems()"
-    (menuSelected)="goToMenu($event)"
-    (cartSelected)="goToCart($event)"
-    (ordersSelected)="goToOrders($event)"
-  />
+  @if (getCurrentContext() === 'mesa') {
+    <app-mesa-header
+      [homeRoute]="homeRoute()"
+      [cartRoute]="cartRoute()"
+      [ordersRoute]="ordersRoute()"
+      [showOrdersLink]="showOrdersLink()"
+      activeLink="cart"
+      [totalItems]="totalItems()"
+      [atendimento]="atendimentoAtual()"
+      [atendimentoLoading]="carregandoAtendimento()"
+      [attendanceError]="erroAtendimento()"
+      (menuSelected)="goToMenu($event)"
+      (cartSelected)="goToCart($event)"
+      (ordersSelected)="goToOrders($event)"
+    />
+  } @else {
+    <app-customer-cart-header
+      [homeRoute]="homeRoute()"
+      [cartRoute]="cartRoute()"
+      [ordersRoute]="ordersRoute()"
+      [showOrdersLink]="showOrdersLink()"
+      activeLink="cart"
+      [totalItems]="totalItems()"
+      (menuSelected)="goToMenu($event)"
+      (cartSelected)="goToCart($event)"
+      (ordersSelected)="goToOrders($event)"
+    />
+  }
 
   <section class="cart-panel" aria-labelledby="cart-title">
     <div class="cart-panel__heading">
       <h1 id="cart-title">Seu Pedido</h1>
       <span>{{ totalItems() }} itens</span>
     </div>
+
 
     @if (items().length === 0) {
       <app-empty-cart (continueSelected)="continueShopping()" />
@@ -25,11 +43,13 @@
           @for (item of items(); track trackByCartItemId($index, item)) {
             <app-cart-item-card
               [item]="item"
+              [observationEditable]="getCurrentContext() === 'mesa'"
               [productImage]="getProductImage.bind(this)"
               [formatPrice]="formatPrice.bind(this)"
               (quantityIncreased)="increaseQuantity($event)"
               (quantityDecreased)="decreaseQuantity($event)"
               (itemRemoved)="removeItem($event)"
+              (observationChanged)="updateObservation($event)"
             />
           }
         </div>
@@ -45,6 +65,7 @@
             [isConfirming]="isConfirmingOrder()"
             [confirmLabel]="getCurrentContext() === 'totem' ? 'Ir para pagamento' : 'Confirmar Pedido'"
             [channel]="getCurrentContext()"
+            [confirmDisabled]="!podeFinalizarPedido()"
             (confirmSelected)="confirmOrder()"
             (continueSelected)="continueShopping()"
           />

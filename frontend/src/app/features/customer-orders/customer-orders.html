@@ -1,11 +1,13 @@
 <main class="customer-orders">
-  <app-customer-cart-header
+  <app-mesa-header
     [homeRoute]="homeRoute"
     [cartRoute]="cartRoute"
     [ordersRoute]="ordersRoute"
     [showOrdersLink]="true"
     activeLink="orders"
     [totalItems]="totalItems()"
+    [atendimento]="atendimentoAtual()"
+    [atendimentoLoading]="carregandoAtendimento()"
     (menuSelected)="goToMenu($event)"
     (cartSelected)="goToCart($event)"
     (ordersSelected)="goToOrders($event)"

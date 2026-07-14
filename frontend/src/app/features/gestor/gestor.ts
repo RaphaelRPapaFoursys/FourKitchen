@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgenc
 import { AcaoMesaPainel, MesaPainel } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { FiltroEstadoPainel, OrdenacaoPainel, PainelService } from '../../core/services/painel';
+import { numeroMesaBusca } from '../../core/utils/operational-search';
 import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
@@ -49,6 +50,8 @@ export class Gestor {
   private readonly authService = inject(AuthService);
   private readonly painelService = inject(PainelService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private buscaDebounce: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly usuario = toSignal(this.authService.usuario$, {
     initialValue: this.authService.getCurrentUser(),
@@ -69,6 +72,7 @@ export class Gestor {
   protected readonly mensagemErro = this.painelService.mensagemErro;
 
   protected readonly buscaTermo = signal('');
+  private readonly buscaAplicada = signal('');
   protected readonly filtroGarcom = signal<number | null>(null);
   protected readonly ordenacao = signal<Ordenacao>('CRITICO');
   protected readonly filtroEstado = signal<FiltroEstado>(null);
@@ -90,9 +94,15 @@ export class Gestor {
   protected readonly temProximaPagina = this.painelService.temProximaPagina;
 
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.buscaDebounce !== null) {
+        clearTimeout(this.buscaDebounce);
+      }
+    });
+
     // Qualquer mudança de busca/filtro/ordenação/tamanho volta para a primeira página.
     effect(() => {
-      this.buscaTermo();
+      this.buscaAplicada();
       this.filtroGarcom();
       this.filtroEstado();
       this.ordenacao();
@@ -107,7 +117,7 @@ export class Gestor {
         sort: this.ordenacaoApi(),
         filtroEstado: this.filtroEstado(),
         garcomId: this.filtroGarcom(),
-        busca: this.buscaTermo(),
+        busca: this.buscaAplicada(),
       };
 
       untracked(() => {
@@ -122,6 +132,24 @@ export class Gestor {
       this.filtroGarcom() !== null ||
       this.filtroEstado() !== null,
   );
+
+  protected atualizarBusca(valor: string): void {
+    this.buscaTermo.set(valor);
+
+    if (this.buscaDebounce !== null) {
+      clearTimeout(this.buscaDebounce);
+    }
+
+    if (valor.trim() === '') {
+      this.buscaAplicada.set('');
+      return;
+    }
+
+    this.buscaDebounce = setTimeout(() => {
+      this.buscaAplicada.set(numeroMesaBusca(valor) ?? valor.trim());
+      this.buscaDebounce = null;
+    }, 250);
+  }
 
   protected readonly mesaSelecaoGarcom = computed(() => {
     const selecao = this.selecaoGarcom();
@@ -295,7 +323,7 @@ export class Gestor {
   }
 
   protected limparFiltros(): void {
-    this.buscaTermo.set('');
+    this.atualizarBusca('');
     this.filtroGarcom.set(null);
     this.filtroEstado.set(null);
   }

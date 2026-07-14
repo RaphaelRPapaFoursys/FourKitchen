@@ -6,6 +6,7 @@
   --muted: #eeeae5;
   --white: #fff;
   --content: 1120px;
+  --page-gutter: clamp(0.75rem, 3vw, 1.5rem);
 
   display: block;
   min-height: 100vh;
@@ -22,7 +23,7 @@
 
 .customer-orders {
   min-height: 100vh;
-  padding: 0 clamp(0.75rem, 3vw, 1.5rem) clamp(1.5rem, 4vw, 3rem);
+  padding: 0 var(--page-gutter) clamp(1.5rem, 4vw, 3rem);
   overflow-x: hidden;
 }
 
@@ -30,6 +31,12 @@ app-customer-cart-header,
 .orders-panel {
   width: min(100%, var(--content));
   margin-inline: auto;
+}
+
+app-mesa-header {
+  display: block;
+  width: calc(100% + 2 * var(--page-gutter));
+  margin-inline: calc(-1 * var(--page-gutter));
 }
 
 .orders-panel {

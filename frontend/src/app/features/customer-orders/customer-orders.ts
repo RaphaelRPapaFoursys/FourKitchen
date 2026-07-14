@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { switchMap } from 'rxjs';
+import { finalize, switchMap, tap } from 'rxjs';
 
-import { PedidoMesaStatusResponse, PedidoStatus } from '../../core/models/order.models';
+import { MesaAtendimentoAtualResponse, PedidoMesaStatusResponse, PedidoStatus } from '../../core/models/order.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { OrderService } from '../../core/services/order.service';
-import { CustomerCartHeaderComponent } from '../customer-cart/components/customer-cart-header/customer-cart-header';
+import { MesaHeaderComponent } from '../../shared/components/mesa-header/mesa-header';
 
 type MesaOrdersState =
   | { status: 'loading'; orders: PedidoMesaStatusResponse[]; message: string }
@@ -17,7 +17,7 @@ type MesaOrdersState =
 
 @Component({
   selector: 'app-customer-orders',
-  imports: [CommonModule, CustomerCartHeaderComponent],
+  imports: [CommonModule, MesaHeaderComponent],
   templateUrl: './customer-orders.html',
   styleUrl: './customer-orders.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +32,8 @@ export class CustomerOrders {
   protected readonly cartRoute = '/mesa/carrinho';
   protected readonly ordersRoute = '/mesa/pedidos';
   protected readonly totalItems = computed(() => this.cartService.getSummary('mesa').totalItems);
+  protected readonly atendimentoAtual = signal<MesaAtendimentoAtualResponse | null>(null);
+  protected readonly carregandoAtendimento = signal(true);
   protected readonly state = signal<MesaOrdersState>({
     status: 'loading',
     orders: [],
@@ -51,7 +53,9 @@ export class CustomerOrders {
 
     this.orderService.getCurrentTableAttendance()
       .pipe(
+        tap(atendimento => this.atendimentoAtual.set(atendimento)),
         switchMap(attendance => this.orderService.getMesaOrders(attendance.codigoAtendimento)),
+        finalize(() => this.carregandoAtendimento.set(false)),
       )
       .subscribe({
         next: orders => {
@@ -66,6 +70,7 @@ export class CustomerOrders {
           );
         },
         error: () => {
+          this.atendimentoAtual.set(null);
           this.state.set({
             status: 'error',
             orders: [],

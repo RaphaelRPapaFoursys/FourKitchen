@@ -4,6 +4,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth';
+import { MesaChamadaService } from '../../core/services/mesa-chamada';
+import { OrderService } from '../../core/services/order.service';
+import { Icon } from '../../shared/components/icon/icon';
 
 interface MesaResumo {
   id: number;
@@ -38,23 +41,34 @@ const pedidosAtivos: PedidoMesaAtivo[] = [
 
 @Component({
   selector: 'app-mesa',
-  imports: [],
+  imports: [Icon],
   templateUrl: './mesa.html',
   styleUrl: './mesa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Mesa {
   private readonly authService = inject(AuthService);
+  private readonly mesaChamadaService = inject(MesaChamadaService);
+  private readonly orderService = inject(OrderService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly mesaAtiva = signal<MesaResumo | null>(null);
   protected readonly carregando = signal(false);
   protected readonly erro = signal('');
+  protected readonly erroChamada = signal('');
+  protected readonly sucessoChamada = signal('');
+  protected readonly codigoSessao = signal<number | null>(null);
+  protected readonly carregandoAtendimento = signal(false);
+  protected readonly chamandoGarcom = signal(false);
+  protected readonly chamadaEnviada = signal(false);
   protected readonly pedidosAtivos = signal<PedidoMesaAtivo[]>(pedidosAtivos);
 
-  protected readonly mesaNumero = computed(() =>
-    this.mesaAtiva()?.numero ?? 3
-  );
+  protected readonly mesaNumero = computed(() => this.mesaAtiva()?.numero ?? null);
+
+  protected readonly mesaNumeroLabel = computed(() => {
+    const numero = this.mesaNumero();
+    return numero === null ? 'Mesa —' : `Mesa ${numero.toString().padStart(2, '0')}`;
+  });
 
   protected readonly mesaStatus = computed(() =>
     this.mesaAtiva()?.status ?? 'OCUPADA'
@@ -95,8 +109,33 @@ export class Mesa {
             numero: usuario.idMesa,
             status: 'OCUPADA',
           });
+          this.carregarAtendimentoAtual();
         },
         error: error => this.erro.set(this.getErrorMessage(error)),
+      });
+  }
+
+  protected chamarGarcom(): void {
+    const codigoSessao = this.codigoSessao();
+    if (codigoSessao === null || this.chamandoGarcom() || this.chamadaEnviada()) {
+      return;
+    }
+
+    this.chamandoGarcom.set(true);
+    this.erroChamada.set('');
+    this.sucessoChamada.set('');
+    this.mesaChamadaService
+      .chamarGarcom(codigoSessao)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.chamandoGarcom.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.chamadaEnviada.set(true);
+          this.sucessoChamada.set('Chamada enviada. O garçom foi avisado.');
+        },
+        error: error => this.erroChamada.set(this.getErrorMessage(error)),
       });
   }
 
@@ -110,6 +149,24 @@ export class Mesa {
 
   protected voltarDashboard(): void {
     history.back();
+  }
+
+  private carregarAtendimentoAtual(): void {
+    this.carregandoAtendimento.set(true);
+    this.erroChamada.set('');
+    this.orderService
+      .getCurrentTableAttendance()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.carregandoAtendimento.set(false)),
+      )
+      .subscribe({
+        next: atendimento => this.codigoSessao.set(atendimento.codigoAtendimento),
+        error: error => {
+          this.codigoSessao.set(null);
+          this.erroChamada.set(this.getErrorMessage(error));
+        },
+      });
   }
 
   protected valorPedido(valor: number): string {

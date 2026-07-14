@@ -1,0 +1,29 @@
+:host {
+  display: contents;
+}
+
+.device-indicator {
+  position: fixed;
+  left: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 20;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+  background: rgb(23 26 33 / 82%);
+  color: rgb(255 255 255 / 86%);
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .device-indicator {
+    left: 1rem;
+    bottom: 1rem;
+    font-size: 0.68rem;
+  }
+}

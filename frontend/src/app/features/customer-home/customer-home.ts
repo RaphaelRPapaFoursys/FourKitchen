@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { finalize, firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
@@ -12,9 +14,11 @@ import {
   ProdutoCardapioView,
 } from '../../core/models/menu.models';
 import { CartItem, CustomerContext } from '../../core/models/cart.models';
+import { MesaAtendimentoAtualResponse } from '../../core/models/order.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
-import { MenuContext, MenuService } from '../../core/services/menu.service';
+import { MenuService } from '../../core/services/menu.service';
+import { OrderService } from '../../core/services/order.service';
 import { getBase64ImageSource } from '../../core/utils/product-image.utils';
 import { CategoryCarouselComponent } from './components/category-carousel/category-carousel';
 import { CustomerFooterComponent } from './components/customer-footer/customer-footer';
@@ -23,6 +27,7 @@ import { CustomerHomeHeaderComponent } from './components/customer-home-header/c
 import { MenuFilterBarComponent } from './components/menu-filter-bar/menu-filter-bar';
 import { ProductDetailsModalComponent } from './components/product-details-modal/product-details-modal';
 import { ProductGridComponent } from './components/product-grid/product-grid';
+import { MesaHeaderComponent } from '../../shared/components/mesa-header/mesa-header';
 
 type MenuLoadState =
   | { status: 'loading'; data: null; message: string }
@@ -43,6 +48,7 @@ const MENU_SCROLL_THRESHOLD_PX = 900;
     CommonModule,
     FormsModule,
     CustomerHomeHeaderComponent,
+    MesaHeaderComponent,
     CustomerHeroComponent,
     CategoryCarouselComponent,
     MenuFilterBarComponent,
@@ -61,7 +67,9 @@ export class CustomerHome implements AfterViewInit {
   private readonly menuService = inject(MenuService);
   private readonly cartService = inject(CartService);
   private readonly customerContextService = inject(CustomerContextService);
+  private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private scrollAnimationFrameId: number | null = null;
   private cartFeedbackTimeoutId: number | null = null;
   private nextMenuPage = 0;
@@ -73,6 +81,9 @@ export class CustomerHome implements AfterViewInit {
   protected readonly selectedObservation = signal('');
   protected readonly cartItemsCount = signal(0);
   protected readonly cartFeedback = signal('');
+  protected readonly atendimentoAtual = signal<MesaAtendimentoAtualResponse | null>(null);
+  protected readonly carregandoAtendimento = signal(false);
+  protected readonly erroAtendimento = signal('');
   protected readonly loadingMoreMenu = signal(false);
   protected readonly canScrollCategoriesLeft = signal(false);
   protected readonly canScrollCategoriesRight = signal(false);
@@ -83,6 +94,22 @@ export class CustomerHome implements AfterViewInit {
     this.customerContextService.getOrdersRoute(this.getCurrentContext()),
   );
   protected readonly showOrdersLink = computed(() => this.getCurrentContext() === 'mesa');
+  protected readonly showMesaActions = computed(() => this.getCurrentContext() === 'mesa');
+  protected readonly podeAdicionarAoCarrinho = computed(() =>
+    this.getCurrentContext() !== 'mesa'
+      || (!this.carregandoAtendimento() && this.isAtendimentoAtivo(this.atendimentoAtual())),
+  );
+  protected readonly atendimentoFeedback = computed(() => {
+    if (!this.showMesaActions() || this.carregandoAtendimento()) {
+      return '';
+    }
+
+    return this.erroAtendimento() || (
+      this.atendimentoAtual() === null
+        ? 'Esta mesa ainda não possui um atendimento iniciado.'
+        : ''
+    );
+  });
 
   protected readonly menuState = signal<MenuLoadState>({
     status: 'loading',
@@ -114,6 +141,9 @@ export class CustomerHome implements AfterViewInit {
 
   constructor() {
     this.refreshCartCount();
+    if (this.getCurrentContext() === 'mesa') {
+      this.carregarAtendimentoAtual();
+    }
     void this.loadCategories(false);
     void this.loadFirstMenuPage(false);
 
@@ -402,8 +432,9 @@ export class CustomerHome implements AfterViewInit {
       return;
     }
 
-    this.addProductToCart(product, this.selectedQuantity(), this.selectedObservation());
-    this.closeProductDetails();
+    if (this.addProductToCart(product, this.selectedQuantity(), this.selectedObservation())) {
+      this.closeProductDetails();
+    }
   }
 
   protected addProductFromCard(product: ProdutoCardapioView, event: Event): void {
@@ -422,6 +453,12 @@ export class CustomerHome implements AfterViewInit {
   protected getCategoryImage(category: CategoriaMenuResponse): string {
     if (category.imagemUrl) {
       return this.resolveApiUrl(category.imagemUrl);
+    }
+
+    const image = category.imagem?.trim();
+
+    if (image && this.isValidCategoryImage(image)) {
+      return getBase64ImageSource(image) ?? 'assets/images/category-placeholder.svg';
     }
 
     const normalizedName = this.normalizeCategoryName(category.categoriaNome);
@@ -484,7 +521,14 @@ export class CustomerHome implements AfterViewInit {
     product: ProdutoCardapioView,
     quantity: number,
     observation = '',
-  ): void {
+  ): boolean {
+    if (!this.podeAdicionarAoCarrinho()) {
+      if (!this.carregandoAtendimento() && this.atendimentoFeedback()) {
+        this.showCartFeedback(this.atendimentoFeedback());
+      }
+      return false;
+    }
+
     const cartItem: CartItem = {
       cartItemId: this.createCartItemId(product.id),
       productId: product.id,
@@ -501,6 +545,41 @@ export class CustomerHome implements AfterViewInit {
     this.cartService.addItem(this.getCurrentContext(), cartItem);
     this.refreshCartCount();
     this.showCartFeedback('Item adicionado ao carrinho.');
+    return true;
+  }
+
+  protected carregarAtendimentoAtual(): void {
+    if (this.getCurrentContext() !== 'mesa') {
+      return;
+    }
+
+    this.carregandoAtendimento.set(true);
+    this.atendimentoAtual.set(null);
+    this.erroAtendimento.set('');
+    this.orderService
+      .getCurrentTableAttendance()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.carregandoAtendimento.set(false)),
+      )
+      .subscribe({
+        next: atendimento => {
+          if (this.isAtendimentoAtivo(atendimento)) {
+            this.atendimentoAtual.set(atendimento);
+            return;
+          }
+
+          this.atendimentoAtual.set(null);
+        },
+        error: error => {
+          this.atendimentoAtual.set(null);
+          if (!(error instanceof HttpErrorResponse && error.status === 400)) {
+            this.erroAtendimento.set(
+              this.getApiErrorMessage(error, 'Não foi possível verificar o atendimento atual.'),
+            );
+          }
+        },
+      });
   }
 
   private showCartFeedback(message: string): void {
@@ -513,6 +592,28 @@ export class CustomerHome implements AfterViewInit {
       this.cartFeedback.set('');
       this.cartFeedbackTimeoutId = null;
     }, 2400);
+  }
+
+  private isAtendimentoAtivo(atendimento: MesaAtendimentoAtualResponse | null): atendimento is MesaAtendimentoAtualResponse {
+    return atendimento !== null
+      && atendimento.status.toUpperCase() === 'OCUPADA'
+      && atendimento.idAtendimento > 0
+      && atendimento.codigoAtendimento > 0;
+  }
+
+  private getApiErrorMessage(error: unknown, fallback: string): string {
+    if (
+      error instanceof HttpErrorResponse
+      && error.error
+      && typeof error.error === 'object'
+      && 'msgError' in error.error
+      && typeof error.error.msgError === 'string'
+      && error.error.msgError.trim()
+    ) {
+      return error.error.msgError;
+    }
+
+    return fallback;
   }
 
   private buildProductViews(categories: CategoriaCardapioResponse[]): ProdutoCardapioView[] {
@@ -531,8 +632,22 @@ export class CustomerHome implements AfterViewInit {
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/[^a-z0-9]+/g, '-');
+  }
+
+  private isValidCategoryImage(image: string): boolean {
+    const base64 = /^data:/i.test(image)
+      ? image.match(/^data:image\/[a-z0-9.+-]+;base64,(.+)$/i)?.[1]
+      : image;
+
+    if (!base64) {
+      return false;
+    }
+
+    const normalizedBase64 = base64.replace(/\s/g, '');
+
+    return normalizedBase64.length % 4 !== 1
+      && /^[a-z0-9+/]*={0,2}$/i.test(normalizedBase64);
   }
 
   private resolveApiUrl(url: string): string {

@@ -6,11 +6,12 @@ import { CustomerContext } from '../../core/models/cart.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { CustomerCartHeaderComponent } from '../customer-cart/components/customer-cart-header/customer-cart-header';
+import { MesaHeaderComponent } from '../../shared/components/mesa-header/mesa-header';
 import { OrderSuccessContentComponent } from './components/order-success-content/order-success-content';
 
 @Component({
   selector: 'app-order-success',
-  imports: [CommonModule, CustomerCartHeaderComponent, OrderSuccessContentComponent],
+  imports: [CommonModule, CustomerCartHeaderComponent, MesaHeaderComponent, OrderSuccessContentComponent],
   templateUrl: './order-success.html',
   styleUrl: './order-success.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

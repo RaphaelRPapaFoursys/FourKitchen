@@ -5,10 +5,20 @@
 
   <div class="cart-item__content">
     <h2>{{ item().name }}</h2>
-    @if (item().observation) {
+    <p>{{ item().description }}</p>
+    @if (observationEditable()) {
+      <label class="cart-item__observation">
+        <span>Observação</span>
+        <input
+          type="text"
+          [value]="item().observation ?? ''"
+          [attr.maxlength]="observationMaxLength"
+          placeholder="Ex.: sem cebola"
+          (input)="updateObservation($event)"
+        />
+      </label>
+    } @else if (item().observation) {
       <p>Obs: {{ item().observation }}</p>
-    } @else {
-      <p>{{ item().description }}</p>
     }
   </div>
 

@@ -13,6 +13,7 @@ export class ProductGridComponent {
   readonly productImage = input.required<(product: ProdutoCardapioView) => string>();
   readonly formatPrice = input.required<(price: number) => string>();
   readonly trackProduct = input.required<(index: number, product: ProdutoCardapioView) => number>();
+  readonly canAddToCart = input(true);
 
   readonly productSelected = output<ProdutoCardapioView>();
   readonly quickAddSelected = output<{ product: ProdutoCardapioView; event: Event }>();
