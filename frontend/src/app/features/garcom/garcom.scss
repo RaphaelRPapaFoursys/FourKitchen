@@ -1148,6 +1148,28 @@ button:disabled {
   font-size: 0.73rem;
 }
 
+.modal-order-card .delivery-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: auto;
+  min-height: 2.15rem;
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--fk-green);
+  border-radius: var(--fk-radius-control);
+  background: var(--fk-green-soft);
+  color: var(--fk-green-strong);
+  font-size: 0.73rem;
+  font-weight: 800;
+}
+
+.modal-order-card .delivery-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .section-empty {
   margin: 0;
   padding: 0.75rem;
@@ -1456,6 +1478,10 @@ button:disabled {
   }
 
   .modal-order-card .warning-button {
+    width: 100%;
+  }
+
+  .modal-order-card .delivery-button {
     width: 100%;
   }
 }

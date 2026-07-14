@@ -141,6 +141,7 @@ export const protectedRoutes: Routes = [
     },
     ['ADMIN', 'GESTOR'],
   ),
+  
   protectedRoute(
     {
       path: 'gestor/categorias',
@@ -149,6 +150,16 @@ export const protectedRoutes: Routes = [
     },
     ['ADMIN', 'GESTOR'],
   ),
+  
+  protectedRoute(
+    {
+      path: 'gestor/usuarios',
+      loadComponent: () =>
+        import('../../features/gestor-users/gestor-users').then(m => m.GestorUsers),
+    },
+    ['ADMIN', 'GESTOR'],
+  ),
+  
   protectedRoute(
     {
       path: 'gestor',

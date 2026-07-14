@@ -133,6 +133,27 @@ public class GarcomMesaController {
         return ResponseEntity.ok(garcomMesaService.listarPedidosDaMesa(id, authentication));
     }
 
+    @PatchMapping("/{idMesa}/pedidos/{idPedido}/entregar")
+    @Operation(
+            summary = "Marca pedido pronto como entregue",
+            description = "Valida se a mesa pertence ao garcom autenticado, se o pedido pertence ao atendimento atual e se esta pronto antes de registrar a entrega."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Entrega registrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Pedido nao esta pronto ou dados invalidos", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Mesa nao atribuida ao garcom", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Pedido nao encontrado no atendimento", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<Void> marcarPedidoComoEntregue(
+            @PathVariable Integer idMesa,
+            @PathVariable Integer idPedido,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        garcomMesaService.marcarPedidoComoEntregue(idMesa, idPedido, authentication);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}/problemas/decisao")
     @Operation(
             summary = "Registra a decisao do cliente sobre um problema",

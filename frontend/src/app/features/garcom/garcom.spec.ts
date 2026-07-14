@@ -173,6 +173,25 @@ describe('Garcom', () => {
     });
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([]);
   });
+
+  it('permite ao garcom marcar um pedido pronto como entregue', () => {
+    const elemento: HTMLElement = fixture.nativeElement;
+    abrirDetalhes(elemento, fixture);
+
+    clicarBotao(elemento, 'Marcar entregue');
+    const entrega = httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas/1/pedidos/26/entregar`);
+    expect(entrega.request.method).toBe('PATCH');
+    entrega.flush(null, { status: 204, statusText: 'No Content' });
+
+    httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([{
+      ...criarMesaComProblema(),
+      pedidosAtivos: [{ id: 26, codigo: 100026, canal: 'GARCOM', status: 'ENTREGUE', idAtendimento: 8 }],
+    }]);
+    httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas/1/detalhe`).flush({
+      ...criarDetalheMesa(),
+      pedidos: [criarPedidoEntregue()],
+    });
+  });
 });
 
 function abrirDetalhes(elemento: HTMLElement, fixture: ComponentFixture<Garcom>): void {
