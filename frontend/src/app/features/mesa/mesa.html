@@ -95,6 +95,16 @@
 
         <button
           type="button"
+          class="action action--call"
+          (click)="chamarGarcom()"
+          [disabled]="carregandoAtendimento() || codigoSessao() === null || chamandoGarcom() || chamadaEnviada()"
+        >
+          <fk-icon name="call-bell" size="1.1rem" />
+          {{ chamandoGarcom() ? 'Chamando…' : chamadaEnviada() ? 'Garçom chamado' : 'Chamar garçom' }}
+        </button>
+
+        <button
+          type="button"
           class="action action--danger"
           (click)="fecharConta()"
           [disabled]="mesaStatus() === 'DISPONIVEL'"
@@ -110,6 +120,12 @@
 
         @if (erro()) {
           <p class="alert" role="alert">{{ erro() }}</p>
+        }
+        @if (erroChamada()) {
+          <p class="alert alert--call" role="alert">{{ erroChamada() }}</p>
+        }
+        @if (sucessoChamada()) {
+          <p class="alert alert--call-success" role="status">{{ sucessoChamada() }}</p>
         }
       </div>
     </section>

@@ -363,6 +363,16 @@ h1 {
   color: #ffffff;
 }
 
+.action--call {
+  border: 1px solid #2563eb;
+  background: #eaf1fe;
+  color: #1d4ed8;
+}
+
+.action--call:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
 .action--danger {
   background: #ffffff;
   border: 1px solid var(--danger);
@@ -390,6 +400,18 @@ h1 {
   margin: 0;
   padding: 10px;
   width: 173px;
+}
+
+.alert--call {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.alert--call-success {
+  border-color: #b7e4ca;
+  background: #effaf3;
+  color: #167347;
 }
 
 .loading {

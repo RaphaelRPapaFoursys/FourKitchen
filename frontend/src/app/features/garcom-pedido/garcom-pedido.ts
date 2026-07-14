@@ -13,6 +13,8 @@ import { CategoriaCardapioResponse, ProdutoCardapioResponse } from '../../core/m
 import { GarcomMesaService } from '../../core/services/garcom-mesa';
 import { GarcomPedidoService } from '../../core/services/garcom-pedido';
 import { MenuService } from '../../core/services/menu.service';
+import { Badge } from '../../shared/components/badge/badge';
+import { Icon } from '../../shared/components/icon/icon';
 
 interface ItemCarrinhoGarcom extends ItemPedidoGarcomRequest {
   nome: string;
@@ -21,7 +23,7 @@ interface ItemCarrinhoGarcom extends ItemPedidoGarcomRequest {
 @Component({
   selector: 'app-garcom-pedido',
   standalone: true,
-  imports: [],
+  imports: [Badge, Icon],
   templateUrl: './garcom-pedido.html',
   styleUrl: './garcom-pedido.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,11 +45,18 @@ export class GarcomPedido {
   protected readonly detalhe = signal<MesaGarcomDetalheResponse | null>(null);
   protected readonly categorias = signal<CategoriaCardapioResponse[]>([]);
   protected readonly categoriaSelecionadaId = signal<number | null>(null);
+  protected readonly busca = signal('');
   protected readonly itens = signal<ItemCarrinhoGarcom[]>([]);
 
   protected readonly categoriaSelecionada = computed(() =>
     this.categorias().find(categoria => categoria.categoriaId === this.categoriaSelecionadaId()) ?? null,
   );
+  protected readonly produtosFiltrados = computed(() => {
+    const termo = this.busca().trim().toLocaleLowerCase();
+    return (this.categoriaSelecionada()?.produtos ?? []).filter(produto =>
+      !termo || `${produto.nome} ${produto.descricao}`.toLocaleLowerCase().includes(termo),
+    );
+  });
   protected readonly totalItens = computed(() => this.itens().reduce((total, item) => total + item.quantidade, 0));
   protected readonly total = computed(() => this.itens().reduce(
     (total, item) => total + item.quantidade * item.precoUnitario,
@@ -95,6 +104,10 @@ export class GarcomPedido {
     this.categoriaSelecionadaId.set(id);
   }
 
+  protected atualizarBusca(event: Event): void {
+    this.busca.set((event.target as HTMLInputElement).value);
+  }
+
   protected adicionarProduto(produto: ProdutoCardapioResponse): void {
     this.itens.update(itens => {
       const existente = itens.find(item => item.idProduto === produto.id && !item.observacao);
@@ -111,19 +124,25 @@ export class GarcomPedido {
     });
   }
 
-  protected alterarQuantidade(idProduto: number, quantidade: number): void {
+  protected alterarQuantidade(itemSelecionado: ItemCarrinhoGarcom, quantidade: number): void {
     this.itens.update(itens => itens
-      .map(item => item.idProduto === idProduto ? { ...item, quantidade: Math.max(0, quantidade) } : item)
+      .map(item => item === itemSelecionado ? { ...item, quantidade: Math.max(0, quantidade) } : item)
       .filter(item => item.quantidade > 0),
     );
   }
 
-  protected alterarObservacao(idProduto: number, event: Event): void {
+  protected alterarObservacao(itemSelecionado: ItemCarrinhoGarcom, event: Event): void {
     const observacao = (event.target as HTMLInputElement).value.trim();
-    this.itens.update(itens => itens.map(item => item.idProduto === idProduto
+    this.itens.update(itens => itens.map(item => item === itemSelecionado
       ? { ...item, observacao: observacao || undefined }
       : item,
     ));
+  }
+
+  protected quantidadeNoCarrinho(idProduto: number): number {
+    return this.itens()
+      .filter(item => item.idProduto === idProduto)
+      .reduce((total, item) => total + item.quantidade, 0);
   }
 
   protected enviarPedido(): void {
