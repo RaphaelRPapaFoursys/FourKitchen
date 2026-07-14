@@ -1,0 +1,206 @@
+<div class="catalog-page">
+  <fk-sidebar (sair)="logout()" />
+
+  <div class="catalog-page__main">
+    <img
+      class="catalog-page__wave"
+      src="assets/images/listra-fourkitchen.png"
+      alt=""
+      aria-hidden="true"
+    />
+
+    <fk-topbar
+      [busca]="searchTerm()"
+      (buscaChange)="searchTerm.set($event)"
+      buscaPlaceholder="Pesquisar nome, e-mail ou perfil"
+      [usuarioNome]="usuario()?.nome ?? 'Usuário'"
+      [usuarioInicial]="initials(usuario()?.nome)"
+    />
+
+    <main class="catalog-page__content">
+      <header class="page-heading">
+        <div>
+          <span class="page-heading__eyebrow">Gestão de acessos</span>
+          <h1>Usuários</h1>
+          <p>Cadastre os usuários da operação e defina o perfil de acesso de cada pessoa ou dispositivo.</p>
+        </div>
+
+        <button class="primary-button" type="button" (click)="openCreateDialog()" [disabled]="loading()">
+          <fk-icon name="plus" size="1rem" />
+          Novo usuário
+        </button>
+      </header>
+
+      @if (errorMessage() && !dialogOpen()) {
+        <div class="feedback feedback--error" role="alert">{{ errorMessage() }}</div>
+      }
+
+      @if (successMessage()) {
+        <div class="feedback feedback--success" role="status">{{ successMessage() }}</div>
+      }
+
+      @if (loading()) {
+        <section class="state-card">Carregando usuários...</section>
+      } @else {
+        <section class="products-card users-card">
+          <div class="products-card__header">
+            <div>
+              <strong>{{ filteredUsers().length }}</strong>
+              <span>{{ filteredUsers().length === 1 ? 'usuário encontrado' : 'usuários encontrados' }}</span>
+            </div>
+            <small>A exclusão é lógica e impede novos acessos</small>
+          </div>
+
+          @if (filteredUsers().length === 0) {
+            <div class="empty-state">
+              <fk-icon name="user" size="2rem" />
+              <strong>Nenhum usuário encontrado</strong>
+              <span>Altere a pesquisa ou cadastre o primeiro usuário.</span>
+            </div>
+          } @else {
+            <div class="products-table-wrapper">
+              <table class="products-table users-table">
+                <thead>
+                  <tr>
+                    <th>Usuário</th>
+                    <th>Perfil</th>
+                    <th>Mesa</th>
+                    <th>Status</th>
+                    <th><span class="sr-only">Ações</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (user of filteredUsers(); track trackUser($index, user)) {
+                    <tr>
+                      <td>
+                        <div class="product-cell user-cell">
+                          <span class="user-avatar" aria-hidden="true">{{ initials(user.nome) }}</span>
+                          <div>
+                            <strong>
+                              {{ user.nome }}
+                              @if (isCurrentUser(user)) {
+                                <small class="current-user-label">Você</small>
+                              }
+                            </strong>
+                            <span>{{ user.email }}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="profile-pill">{{ profileLabel(user.perfilUsuario) }}</span></td>
+                      <td>{{ user.idMesa ? 'Mesa ' + user.idMesa : '—' }}</td>
+                      <td>
+                        <span class="status-pill" [class.status-pill--inactive]="!user.ativo">
+                          {{ user.ativo ? 'Ativo' : 'Inativo' }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="row-actions">
+                          <button type="button" (click)="openEditDialog(user)">Editar</button>
+                          <button
+                            type="button"
+                            class="row-actions__status"
+                            [disabled]="actionUserId() !== null || isCurrentUser(user)"
+                            [title]="isCurrentUser(user) ? 'Você não pode inativar o próprio usuário' : 'Inativar usuário'"
+                            (click)="deactivateUser(user)"
+                          >
+                            {{ actionUserId() === user.id ? 'Aguarde...' : 'Inativar' }}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
+    </main>
+  </div>
+</div>
+
+@if (dialogOpen()) {
+  <div class="dialog-backdrop" role="presentation">
+    <section class="product-dialog user-dialog" role="dialog" aria-modal="true" aria-labelledby="user-dialog-title">
+      <header class="product-dialog__header">
+        <div>
+          <span>{{ editingUser() ? 'Editar usuário' : 'Novo usuário' }}</span>
+          <h2 id="user-dialog-title">
+            {{ editingUser() ? editingUser()?.nome : 'Cadastrar usuário' }}
+          </h2>
+        </div>
+        <button type="button" aria-label="Fechar formulário" (click)="closeDialog()" [disabled]="saving()">×</button>
+      </header>
+
+      <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+        @if (errorMessage()) {
+          <div class="feedback feedback--error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <div class="form-grid">
+          <label class="form-field form-field--wide">
+            <span>Nome</span>
+            <input type="text" formControlName="nome" maxlength="120" autocomplete="name" placeholder="Ex.: Maria Silva" />
+            @if (userForm.controls.nome.touched && userForm.controls.nome.invalid) {
+              <small class="form-field__error">Informe um nome entre 3 e 120 caracteres.</small>
+            }
+          </label>
+
+          <label class="form-field form-field--wide">
+            <span>E-mail</span>
+            <input type="email" formControlName="email" autocomplete="email" placeholder="usuario@fourkitchen.com" />
+            @if (userForm.controls.email.touched && userForm.controls.email.invalid) {
+              <small class="form-field__error">Informe um e-mail válido.</small>
+            }
+          </label>
+
+          <label class="form-field">
+            <span>Perfil de acesso</span>
+            <select formControlName="perfilUsuario" (change)="onProfileChanged()">
+              <option [ngValue]="null">Selecione um perfil</option>
+              @for (profile of profileOptions; track profile.value) {
+                <option [ngValue]="profile.value">{{ profile.label }}</option>
+              }
+            </select>
+            @if (userForm.controls.perfilUsuario.touched && userForm.controls.perfilUsuario.invalid) {
+              <small class="form-field__error">Selecione um perfil.</small>
+            }
+          </label>
+
+          @if (isMesaProfile()) {
+            <label class="form-field">
+              <span>ID da mesa</span>
+              <input type="number" formControlName="idMesa" min="1" step="1" placeholder="Ex.: 1" />
+              @if (userForm.controls.idMesa.touched && userForm.controls.idMesa.invalid) {
+                <small class="form-field__error">Informe o identificador da mesa.</small>
+              }
+            </label>
+          }
+
+          <label class="form-field form-field--wide">
+            <span>{{ editingUser() ? 'Nova senha (opcional)' : 'Senha' }}</span>
+            <input
+              type="password"
+              formControlName="senha"
+              autocomplete="new-password"
+              [placeholder]="editingUser() ? 'Deixe vazio para manter a senha' : 'Mínimo de 8 caracteres'"
+            />
+            <small>Use pelo menos 8 caracteres, com letra maiúscula, minúscula e número.</small>
+            @if (userForm.controls.senha.touched && userForm.controls.senha.invalid) {
+              <small class="form-field__error">A senha não atende aos requisitos.</small>
+            }
+          </label>
+        </div>
+
+        <footer class="product-dialog__actions">
+          <button class="secondary-button" type="button" (click)="closeDialog()" [disabled]="saving()">
+            Cancelar
+          </button>
+          <button class="primary-button" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Salvando...' : editingUser() ? 'Salvar alterações' : 'Cadastrar usuário' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}

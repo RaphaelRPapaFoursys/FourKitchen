@@ -1,0 +1,54 @@
+.users-table {
+  min-width: 820px;
+}
+
+.user-cell .user-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--fk-orange) 18%, white);
+  color: var(--fk-orange-dark, #b54708);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.user-cell strong {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.current-user-label {
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: #e8f1ff;
+  color: #245c9f;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.profile-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: var(--fk-navy);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.user-dialog {
+  max-width: 680px;
+}
+
+@media (max-width: 760px) {
+  .user-dialog {
+    max-width: none;
+  }
+}
