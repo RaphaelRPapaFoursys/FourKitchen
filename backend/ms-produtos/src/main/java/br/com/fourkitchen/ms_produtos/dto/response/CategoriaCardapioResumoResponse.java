@@ -4,6 +4,6 @@ public record CategoriaCardapioResumoResponse(
         Integer categoriaId,
         String categoriaNome,
         String categoriaDescricao,
-        String imagem
+        String imagemUrl
 ) {
 }

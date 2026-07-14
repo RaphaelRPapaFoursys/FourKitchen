@@ -19,6 +19,7 @@ import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { MenuService } from '../../core/services/menu.service';
 import { OrderService } from '../../core/services/order.service';
+import { getBase64ImageSource } from '../../core/utils/product-image.utils';
 import { CategoryCarouselComponent } from './components/category-carousel/category-carousel';
 import { CustomerFooterComponent } from './components/customer-footer/customer-footer';
 import { CustomerHeroComponent } from './components/customer-hero/customer-hero';
@@ -450,19 +451,35 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected getCategoryImage(category: CategoriaMenuResponse): string {
-    const image = category.imagem?.trim();
-
-    if (!image || !this.isValidCategoryImage(image)) {
-      return 'assets/images/category-placeholder.svg';
+    if (category.imagemUrl) {
+      return this.resolveApiUrl(category.imagemUrl);
     }
 
-    return /^data:/i.test(image) ? image : `data:image/png;base64,${image}`;
-  }
+    const image = category.imagem?.trim();
 
-  protected useCategoryFallback(event: Event): void {
-    const image = event.target as HTMLImageElement;
-    image.onerror = null;
-    image.src = 'assets/images/category-placeholder.svg';
+    if (image && this.isValidCategoryImage(image)) {
+      return getBase64ImageSource(image) ?? 'assets/images/category-placeholder.svg';
+    }
+
+    const normalizedName = this.normalizeCategoryName(category.categoriaNome);
+
+    if (normalizedName.includes('japones')) {
+      return 'assets/images/japonesa.png';
+    }
+
+    if (normalizedName.includes('veget') || normalizedName.includes('vegan')) {
+      return 'assets/images/vegetariana.png';
+    }
+
+    if (normalizedName.includes('prato') || normalizedName.includes('pronto')) {
+      return 'assets/images/prontos.png';
+    }
+
+    if (normalizedName.includes('entrada') || normalizedName.includes('lanche')) {
+      return 'assets/images/entradas.png';
+    }
+
+    return 'assets/images/category-placeholder.svg';
   }
 
   protected getProductImage(product: ProdutoCardapioView): string {
@@ -474,9 +491,7 @@ export class CustomerHome implements AfterViewInit {
       return 'assets/images/product-placeholder.svg';
     }
 
-    return product.imagem.startsWith('data:image')
-      ? product.imagem
-      : `data:image/png;base64,${product.imagem}`;
+    return getBase64ImageSource(product.imagem) ?? 'assets/images/product-placeholder.svg';
   }
 
   protected formatPrice(price: number): string {
@@ -609,6 +624,15 @@ export class CustomerHome implements AfterViewInit {
         categoriaNome: category.categoriaNome,
       })),
     );
+  }
+
+  private normalizeCategoryName(categoryName: string): string {
+    return categoryName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-');
   }
 
   private isValidCategoryImage(image: string): boolean {

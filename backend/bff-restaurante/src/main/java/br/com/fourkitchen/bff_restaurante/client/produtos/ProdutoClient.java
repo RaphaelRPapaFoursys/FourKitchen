@@ -42,6 +42,9 @@ public interface ProdutoClient {
     @GetMapping("/api/produtos/{id}/imagem")
     ResponseEntity<byte[]> buscarImagem(@PathVariable Integer id);
 
+    @GetMapping("/api/categorias/{id}/imagem")
+    ResponseEntity<byte[]> buscarImagemCategoria(@PathVariable Integer id);
+
     @GetMapping("/api/produtos")
     List<ProdutoGestorClientResponse> listarProdutos();
 

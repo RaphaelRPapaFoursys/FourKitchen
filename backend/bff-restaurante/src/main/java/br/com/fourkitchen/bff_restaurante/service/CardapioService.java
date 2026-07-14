@@ -41,7 +41,7 @@ public class CardapioService {
                             categoria.categoriaId(),
                             categoria.categoriaNome(),
                             categoria.categoriaDescricao(),
-                            categoria.imagem()
+                            categoria.imagemUrl()
                     ))
                     .toList();
         } catch (FeignException e) {
@@ -62,6 +62,14 @@ public class CardapioService {
     public ResponseEntity<byte[]> buscarImagemProduto(Integer id) {
         try {
             return produtoClient.buscarImagem(id);
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_PRODUTOS_INDISPONIVEL);
+        }
+    }
+
+    public ResponseEntity<byte[]> buscarImagemCategoria(Integer id) {
+        try {
+            return produtoClient.buscarImagemCategoria(id);
         } catch (FeignException e) {
             throw new BaseException(ErrorEnum.MS_PRODUTOS_INDISPONIVEL);
         }

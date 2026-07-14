@@ -9,6 +9,7 @@ import br.com.fourkitchen.ms_produtos.mapper.CategoriaCardapioResponseMapper;
 import br.com.fourkitchen.ms_produtos.mapper.ProdutoCardapioResponseMapper;
 import br.com.fourkitchen.ms_produtos.repository.ProdutoCardapioProjection;
 import br.com.fourkitchen.ms_produtos.repository.ProdutoRepository;
+import br.com.fourkitchen.ms_produtos.repository.CategoriaCardapioProjection;
 import br.com.fourkitchen.ms_produtos.repository.CategoriaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,17 +48,27 @@ public class CardapioService {
     }
 
     public List<CategoriaCardapioResumoResponse> buscarCategoriasAtivas() {
-        return categoriaRepository.findByAtivoTrueOrderByNomeAsc()
+        return categoriaRepository.buscarCategoriasAtivasParaCardapio()
                 .stream()
                 .map(categoria -> new CategoriaCardapioResumoResponse(
                         categoria.getId(),
                         categoria.getNome(),
                         categoria.getDescricao(),
-                        categoria.getImagem() == null || categoria.getImagem().length == 0
-                                ? null
-                                : Base64.getEncoder().encodeToString(categoria.getImagem())
+                        criarImagemUrl(categoria)
                 ))
                 .toList();
+    }
+
+    private String criarImagemUrl(CategoriaCardapioProjection categoria) {
+        if (!Boolean.TRUE.equals(categoria.getPossuiImagem())) {
+            return null;
+        }
+
+        long versao = categoria.getImagemAtualizadaEm() == null
+                ? 0
+                : categoria.getImagemAtualizadaEm().toEpochMilli();
+
+        return "/api/categorias/" + categoria.getId() + "/imagem?v=" + versao;
     }
 
     public CardapioPaginadoResponse buscarCardapioPaginado(Integer categoriaId, Pageable pageable) {

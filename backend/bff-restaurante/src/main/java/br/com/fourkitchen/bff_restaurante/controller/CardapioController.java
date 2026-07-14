@@ -161,4 +161,13 @@ public class CardapioController {
     public ResponseEntity<byte[]> buscarImagemProduto(@PathVariable Integer id) {
         return cardapioService.buscarImagemProduto(id);
     }
+
+    @GetMapping("/categorias/{id}/imagem")
+    @Operation(
+            summary = "Busca imagem de categoria",
+            description = "Retorna a imagem binaria da categoria para o carrossel."
+    )
+    public ResponseEntity<byte[]> buscarImagemCategoria(@PathVariable Integer id) {
+        return cardapioService.buscarImagemCategoria(id);
+    }
 }
