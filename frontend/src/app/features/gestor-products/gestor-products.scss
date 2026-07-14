@@ -145,6 +145,12 @@ fk-topbar {
   color: var(--fk-amber-strong);
 }
 
+.state-card__action {
+  align-self: center;
+  margin-top: 0.75rem;
+  text-decoration: none;
+}
+
 .products-card__header {
   display: flex;
   align-items: center;

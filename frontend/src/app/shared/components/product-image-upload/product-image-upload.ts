@@ -24,6 +24,8 @@ import {
 export class ProductImageUpload {
   readonly currentImage = input<string | null>(null);
   readonly disabled = input(false);
+  readonly fieldLabel = input('Imagem do produto');
+  readonly previewAlt = input('Pré-visualização da imagem do produto');
   readonly imageChanged = output<string | null>();
 
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');

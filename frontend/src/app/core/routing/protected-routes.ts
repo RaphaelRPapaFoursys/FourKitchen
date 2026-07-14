@@ -143,6 +143,14 @@ export const protectedRoutes: Routes = [
   ),
   protectedRoute(
     {
+      path: 'gestor/categorias',
+      loadComponent: () =>
+        import('../../features/gestor-categories/gestor-categories').then(m => m.GestorCategories),
+    },
+    ['ADMIN', 'GESTOR'],
+  ),
+  protectedRoute(
+    {
       path: 'gestor',
       loadComponent: () =>
         import('../../features/gestor/gestor').then(m => m.Gestor),

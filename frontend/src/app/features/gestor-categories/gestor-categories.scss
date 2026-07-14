@@ -1,0 +1,22 @@
+.categories-table {
+  min-width: 720px;
+}
+
+.categories-table th:nth-child(2),
+.categories-table td:nth-child(2) {
+  width: 130px;
+}
+
+.category-cell img {
+  border-radius: 12px;
+}
+
+.category-dialog {
+  max-width: 720px;
+}
+
+@media (max-width: 760px) {
+  .category-dialog {
+    max-width: none;
+  }
+}

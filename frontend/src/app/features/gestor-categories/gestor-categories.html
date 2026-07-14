@@ -1,0 +1,170 @@
+<div class="catalog-page">
+  <fk-sidebar (sair)="logout()" />
+
+  <div class="catalog-page__main">
+    <img class="catalog-page__wave" src="assets/images/listra-fourkitchen.png" alt="" aria-hidden="true" />
+
+    <fk-topbar
+      [busca]="searchTerm()"
+      (buscaChange)="searchTerm.set($event)"
+      buscaPlaceholder="Pesquisar categoria ou descrição"
+      [usuarioNome]="usuario()?.nome ?? 'Usuário'"
+      [usuarioInicial]="initials(usuario()?.nome)"
+    />
+
+    <main class="catalog-page__content">
+      <header class="page-heading">
+        <div>
+          <span class="page-heading__eyebrow">Gestão do cardápio</span>
+          <h1>Categorias</h1>
+          <p>Organize os produtos do cardápio e escolha uma imagem de apresentação para cada categoria.</p>
+        </div>
+
+        <button class="primary-button" type="button" (click)="openCreateDialog()" [disabled]="loading()">
+          <fk-icon name="plus" size="1rem" />
+          Nova categoria
+        </button>
+      </header>
+
+      @if (errorMessage() && !dialogOpen()) {
+        <div class="feedback feedback--error" role="alert">{{ errorMessage() }}</div>
+      }
+
+      @if (successMessage()) {
+        <div class="feedback feedback--success" role="status">{{ successMessage() }}</div>
+      }
+
+      @if (loading()) {
+        <section class="state-card">Carregando categorias...</section>
+      } @else {
+        <section class="products-card categories-card">
+          <div class="products-card__header">
+            <div>
+              <strong>{{ filteredCategories().length }}</strong>
+              <span>{{ filteredCategories().length === 1 ? 'categoria encontrada' : 'categorias encontradas' }}</span>
+            </div>
+            <small>Imagens: JPG, JPEG ou PNG • máximo 1 MB</small>
+          </div>
+
+          @if (filteredCategories().length === 0) {
+            <div class="empty-state">
+              <fk-icon name="fork-knife" size="2rem" />
+              <strong>Nenhuma categoria encontrada</strong>
+              <span>Altere a pesquisa ou cadastre a primeira categoria.</span>
+            </div>
+          } @else {
+            <div class="products-table-wrapper">
+              <table class="products-table categories-table">
+                <thead>
+                  <tr>
+                    <th>Categoria</th>
+                    <th>Status</th>
+                    <th><span class="sr-only">Ações</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (category of filteredCategories(); track trackCategory($index, category)) {
+                    <tr>
+                      <td>
+                        <div class="product-cell category-cell">
+                          <img [src]="imageSource(category.imagem)" [alt]="'Imagem de ' + category.nome" />
+                          <div>
+                            <strong>{{ category.nome }}</strong>
+                            <span>{{ category.descricao || 'Sem descrição' }}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="status-pill" [class.status-pill--inactive]="!category.ativo">
+                          {{ category.ativo ? 'Ativa' : 'Inativa' }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="row-actions">
+                          <button type="button" (click)="openEditDialog(category)">Editar</button>
+                          <button
+                            type="button"
+                            class="row-actions__status"
+                            [class.row-actions__status--activate]="!category.ativo"
+                            [disabled]="actionCategoryId() !== null"
+                            (click)="toggleStatus(category)"
+                          >
+                            @if (actionCategoryId() === category.id) {
+                              Aguarde...
+                            } @else {
+                              {{ category.ativo ? 'Desativar' : 'Ativar' }}
+                            }
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
+    </main>
+  </div>
+</div>
+
+@if (dialogOpen()) {
+  <div class="dialog-backdrop" role="presentation">
+    <section class="product-dialog category-dialog" role="dialog" aria-modal="true" aria-labelledby="category-dialog-title">
+      <header class="product-dialog__header">
+        <div>
+          <span>{{ editingCategory() ? 'Editar categoria' : 'Nova categoria' }}</span>
+          <h2 id="category-dialog-title">
+            {{ editingCategory() ? editingCategory()?.nome : 'Cadastrar categoria' }}
+          </h2>
+        </div>
+        <button type="button" aria-label="Fechar formulário" (click)="closeDialog()" [disabled]="saving()">×</button>
+      </header>
+
+      <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+        @if (errorMessage()) {
+          <div class="feedback feedback--error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <div class="form-grid">
+          <label class="form-field form-field--wide">
+            <span>Nome da categoria</span>
+            <input type="text" formControlName="nome" maxlength="80" placeholder="Ex.: Pratos principais" />
+            @if (categoryForm.controls.nome.touched && categoryForm.controls.nome.invalid) {
+              <small class="form-field__error">Informe um nome entre 3 e 80 caracteres.</small>
+            }
+          </label>
+
+          <label class="form-field form-field--wide">
+            <span>Descrição</span>
+            <textarea
+              formControlName="descricao"
+              maxlength="255"
+              rows="3"
+              placeholder="Descreva os produtos que fazem parte desta categoria"
+            ></textarea>
+            <small>{{ categoryForm.controls.descricao.value.length }}/255</small>
+          </label>
+        </div>
+
+        <fk-product-image-upload
+          fieldLabel="Imagem da categoria"
+          previewAlt="Pré-visualização da imagem da categoria"
+          [currentImage]="editingCategory()?.imagem ?? null"
+          [disabled]="saving()"
+          (imageChanged)="onImageChanged($event)"
+        />
+
+        <footer class="product-dialog__actions">
+          <button class="secondary-button" type="button" (click)="closeDialog()" [disabled]="saving()">
+            Cancelar
+          </button>
+          <button class="primary-button" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Salvando...' : editingCategory() ? 'Salvar alterações' : 'Cadastrar categoria' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}

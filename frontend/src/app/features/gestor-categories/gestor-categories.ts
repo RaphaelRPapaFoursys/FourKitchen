@@ -1,15 +1,13 @@
-import { CurrencyPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import {
+  CategoriaGestorRequest,
   CategoriaGestorResponse,
-  ProdutoGestorRequest,
-  ProdutoGestorResponse,
 } from '../../core/models/catalog.models';
 import { AuthService } from '../../core/services/auth';
 import { CatalogService } from '../../core/services/catalog.service';
@@ -20,13 +18,13 @@ import { ProductImageUpload } from '../../shared/components/product-image-upload
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 
 @Component({
-  selector: 'app-gestor-products',
-  imports: [CurrencyPipe, ReactiveFormsModule, RouterLink, Sidebar, Topbar, Icon, ProductImageUpload],
-  templateUrl: './gestor-products.html',
-  styleUrl: './gestor-products.scss',
+  selector: 'app-gestor-categories',
+  imports: [ReactiveFormsModule, Sidebar, Topbar, Icon, ProductImageUpload],
+  templateUrl: './gestor-categories.html',
+  styleUrls: ['../gestor-products/gestor-products.scss', './gestor-categories.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GestorProducts {
+export class GestorCategories {
   private readonly authService = inject(AuthService);
   private readonly catalogService = inject(CatalogService);
   private readonly destroyRef = inject(DestroyRef);
@@ -35,83 +33,58 @@ export class GestorProducts {
   protected readonly usuario = toSignal(this.authService.usuario$, {
     initialValue: this.authService.getCurrentUser(),
   });
-  protected readonly products = signal<ProdutoGestorResponse[]>([]);
   protected readonly categories = signal<CategoriaGestorResponse[]>([]);
   protected readonly searchTerm = signal('');
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
-  protected readonly actionProductId = signal<number | null>(null);
+  protected readonly actionCategoryId = signal<number | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly successMessage = signal('');
   protected readonly dialogOpen = signal(false);
-  protected readonly editingProduct = signal<ProdutoGestorResponse | null>(null);
+  protected readonly editingCategory = signal<CategoriaGestorResponse | null>(null);
   protected readonly pendingImage = signal<string | null>(null);
 
-  protected readonly productForm = new FormGroup({
+  protected readonly categoryForm = new FormGroup({
     nome: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(3), Validators.maxLength(150)],
+      validators: [Validators.required, Validators.minLength(3), Validators.maxLength(80)],
     }),
     descricao: new FormControl('', {
       nonNullable: true,
       validators: [Validators.maxLength(255)],
     }),
-    preco: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(0.01)],
-    }),
-    categoriaId: new FormControl<number | null>(null, {
-      validators: [Validators.required],
-    }),
   });
 
-  protected readonly filteredProducts = computed(() => {
+  protected readonly filteredCategories = computed(() => {
     const term = this.normalizeText(this.searchTerm());
     if (!term) {
-      return this.products();
+      return this.categories();
     }
 
-    return this.products().filter(product =>
-      this.normalizeText(`${product.nome} ${product.descricao ?? ''} ${product.categoria}`).includes(term),
+    return this.categories().filter(category =>
+      this.normalizeText(`${category.nome} ${category.descricao ?? ''}`).includes(term),
     );
   });
-  protected readonly categoryOptions = computed(() => {
-    const currentCategoryId = this.editingProduct()?.categoriaId;
-    return this.categories().filter(category => category.ativo || category.id === currentCategoryId);
-  });
-  protected readonly hasActiveCategory = computed(() => this.categories().some(category => category.ativo));
 
   constructor() {
-    this.loadCatalog();
+    this.loadCategories();
   }
 
   protected openCreateDialog(): void {
     this.clearMessages();
-
-    if (!this.hasActiveCategory()) {
-      this.errorMessage.set('Cadastre ou ative uma categoria antes de criar um produto.');
-      return;
-    }
-
-    this.editingProduct.set(null);
+    this.editingCategory.set(null);
     this.pendingImage.set(null);
-    this.productForm.reset({
-      nome: '',
-      descricao: '',
-      preco: null,
-      categoriaId: null,
-    });
+    this.categoryForm.reset({ nome: '', descricao: '' });
     this.dialogOpen.set(true);
   }
 
-  protected openEditDialog(product: ProdutoGestorResponse): void {
+  protected openEditDialog(category: CategoriaGestorResponse): void {
     this.clearMessages();
-    this.editingProduct.set(product);
+    this.editingCategory.set(category);
     this.pendingImage.set(null);
-    this.productForm.reset({
-      nome: product.nome,
-      descricao: product.descricao ?? '',
-      preco: product.preco,
-      categoriaId: product.categoriaId,
+    this.categoryForm.reset({
+      nome: category.nome,
+      descricao: category.descricao ?? '',
     });
     this.dialogOpen.set(true);
   }
@@ -122,7 +95,7 @@ export class GestorProducts {
     }
 
     this.dialogOpen.set(false);
-    this.editingProduct.set(null);
+    this.editingCategory.set(null);
     this.pendingImage.set(null);
   }
 
@@ -130,31 +103,24 @@ export class GestorProducts {
     this.pendingImage.set(image);
   }
 
-  protected saveProduct(): void {
-    this.errorMessage.set('');
-    this.successMessage.set('');
-    this.productForm.markAllAsTouched();
+  protected saveCategory(): void {
+    this.clearMessages();
+    this.categoryForm.markAllAsTouched();
 
-    if (this.productForm.invalid || this.saving()) {
+    if (this.categoryForm.invalid || this.saving()) {
       return;
     }
 
-    const formValue = this.productForm.getRawValue();
-    if (formValue.preco === null || formValue.categoriaId === null) {
-      return;
-    }
-
-    const request: ProdutoGestorRequest = {
+    const formValue = this.categoryForm.getRawValue();
+    const request: CategoriaGestorRequest = {
       nome: formValue.nome.trim(),
       descricao: formValue.descricao.trim() || null,
       imagem: this.pendingImage(),
-      preco: formValue.preco,
-      categoriaId: formValue.categoriaId,
     };
-    const currentProduct = this.editingProduct();
-    const operation = currentProduct
-      ? this.catalogService.updateProduct(currentProduct.id, request)
-      : this.catalogService.createProduct(request);
+    const currentCategory = this.editingCategory();
+    const operation = currentCategory
+      ? this.catalogService.updateCategory(currentCategory.id, request)
+      : this.catalogService.createCategory(request);
 
     this.saving.set(true);
     operation
@@ -163,38 +129,51 @@ export class GestorProducts {
         finalize(() => this.saving.set(false)),
       )
       .subscribe({
-        next: product => {
-          this.upsertProduct(product);
+        next: category => {
+          this.upsertCategory(category);
           this.dialogOpen.set(false);
-          this.editingProduct.set(null);
+          this.editingCategory.set(null);
           this.pendingImage.set(null);
-          this.successMessage.set(currentProduct ? 'Produto atualizado com sucesso.' : 'Produto cadastrado com sucesso.');
+          this.successMessage.set(
+            currentCategory ? 'Categoria atualizada com sucesso.' : 'Categoria cadastrada com sucesso.',
+          );
         },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
       });
   }
 
-  protected toggleAvailability(product: ProdutoGestorResponse): void {
-    if (this.actionProductId() !== null) {
+  protected toggleStatus(category: CategoriaGestorResponse): void {
+    if (this.actionCategoryId() !== null) {
+      return;
+    }
+
+    if (
+      category.ativo
+      && !window.confirm(
+        `Deseja desativar a categoria ${category.nome}? Os produtos vinculados deixarão de aparecer no cardápio.`,
+      )
+    ) {
       return;
     }
 
     this.clearMessages();
-    this.actionProductId.set(product.id);
-    const operation = product.disponivel
-      ? this.catalogService.deactivateProduct(product.id)
-      : this.catalogService.activateProduct(product.id);
+    this.actionCategoryId.set(category.id);
+    const operation = category.ativo
+      ? this.catalogService.deactivateCategory(category.id)
+      : this.catalogService.activateCategory(category.id);
 
     operation
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.actionProductId.set(null)),
+        finalize(() => this.actionCategoryId.set(null)),
       )
       .subscribe({
-        next: updatedProduct => {
-          this.upsertProduct(updatedProduct);
+        next: updatedCategory => {
+          this.upsertCategory(updatedCategory);
           this.successMessage.set(
-            updatedProduct.disponivel ? 'Produto ativado com sucesso.' : 'Produto desativado com sucesso.',
+            updatedCategory.ativo
+              ? 'Categoria ativada com sucesso.'
+              : 'Categoria desativada com sucesso.',
           );
         },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
@@ -205,8 +184,8 @@ export class GestorProducts {
     return getBase64ImageSource(image) ?? 'assets/images/product-placeholder.svg';
   }
 
-  protected trackProduct(_index: number, product: ProdutoGestorResponse): number {
-    return product.id;
+  protected trackCategory(_index: number, category: CategoriaGestorResponse): number {
+    return category.id;
   }
 
   protected initials(name: string | null | undefined): string {
@@ -218,35 +197,29 @@ export class GestorProducts {
     void this.router.navigateByUrl('/login');
   }
 
-  private loadCatalog(): void {
+  private loadCategories(): void {
     this.loading.set(true);
     this.errorMessage.set('');
-
-    forkJoin({
-      products: this.catalogService.listProducts(),
-      categories: this.catalogService.listCategories(),
-    })
+    this.catalogService
+      .listCategories()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false)),
       )
       .subscribe({
-        next: ({ products, categories }) => {
-          this.products.set(this.sortProducts(products));
-          this.categories.set(categories);
-        },
+        next: categories => this.categories.set(this.sortCategories(categories)),
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
       });
   }
 
-  private upsertProduct(product: ProdutoGestorResponse): void {
-    this.products.update(products =>
-      this.sortProducts([...products.filter(item => item.id !== product.id), product]),
+  private upsertCategory(category: CategoriaGestorResponse): void {
+    this.categories.update(categories =>
+      this.sortCategories([...categories.filter(item => item.id !== category.id), category]),
     );
   }
 
-  private sortProducts(products: ProdutoGestorResponse[]): ProdutoGestorResponse[] {
-    return products.sort((left, right) => left.nome.localeCompare(right.nome, 'pt-BR'));
+  private sortCategories(categories: CategoriaGestorResponse[]): CategoriaGestorResponse[] {
+    return [...categories].sort((left, right) => left.nome.localeCompare(right.nome, 'pt-BR'));
   }
 
   private clearMessages(): void {
@@ -269,9 +242,11 @@ export class GestorProducts {
         return body.msgError;
       }
 
+      if (error.status === 400) return 'Confira os dados e as regras da imagem.';
       if (error.status === 401) return 'Sua sessão expirou. Entre novamente.';
-      if (error.status === 403) return 'Você não tem permissão para gerenciar produtos.';
-      if (error.status === 404) return 'Produto ou categoria não encontrado.';
+      if (error.status === 403) return 'Você não tem permissão para gerenciar categorias.';
+      if (error.status === 404) return 'Categoria não encontrada.';
+      if (error.status === 409) return 'Já existe uma categoria com este nome.';
       if (error.status === 502) return 'O serviço de produtos está indisponível. Tente novamente.';
     }
 

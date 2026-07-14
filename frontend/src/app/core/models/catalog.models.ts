@@ -24,3 +24,9 @@ export interface ProdutoGestorRequest {
   preco: number;
   categoriaId: number;
 }
+
+export interface CategoriaGestorRequest {
+  nome: string;
+  descricao: string | null;
+  imagem: string | null;
+}
