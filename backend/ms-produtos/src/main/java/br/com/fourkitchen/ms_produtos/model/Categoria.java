@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -42,10 +43,18 @@ public class Categoria {
     @Column(name = "imagem")
     private byte[] imagem;
 
+    @Column(name = "imagem_atualizada_em")
+    private Instant imagemAtualizadaEm;
+
     @Column(name = "ativo", nullable = false)
     private Boolean ativo;
 
     @Builder.Default
     @OneToMany(mappedBy = "categoria")
     private List<Produto> produtos = new ArrayList<>();
+
+    public void atualizarImagem(byte[] novaImagem) {
+        this.imagem = novaImagem;
+        this.imagemAtualizadaEm = Instant.now();
+    }
 }

@@ -3,6 +3,7 @@ package br.com.fourkitchen.ms_produtos.service;
 import br.com.fourkitchen.ms_produtos.dto.request.AtualizarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.request.CriarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.CategoriaImagemResponse;
 import br.com.fourkitchen.ms_produtos.exception.BaseException;
 import br.com.fourkitchen.ms_produtos.exception.ErrorEnum;
 import br.com.fourkitchen.ms_produtos.mapper.AtualizarCategoriaRequestMapper;
@@ -74,6 +75,17 @@ public class CategoriaService {
         return categoriaResponseMapper.map(categoriaSalva);
     }
 
+    public CategoriaImagemResponse buscarImagem(Integer id) {
+        Categoria categoria = buscarPorId(id);
+        byte[] imagem = categoria.getImagem();
+
+        if (imagem == null || imagem.length == 0) {
+            throw new BaseException(ErrorEnum.CATEGORIA_NAO_ENCONTRADA);
+        }
+
+        return new CategoriaImagemResponse(imagem, detectarContentType(imagem));
+    }
+
     private Categoria buscarPorId(Integer id) {
         return categoriaRepository.findById(id)
                 .orElseThrow(() -> new BaseException(ErrorEnum.CATEGORIA_NAO_ENCONTRADA));
@@ -89,5 +101,16 @@ public class CategoriaService {
         if (categoriaRepository.existsByNomeIgnoreCaseAndIdNot(nome.trim(), id)) {
             throw new BaseException(ErrorEnum.CATEGORIA_NOME_DUPLICADO);
         }
+    }
+
+    private String detectarContentType(byte[] imagem) {
+        if (imagem.length >= 3
+                && (imagem[0] & 0xFF) == 0xFF
+                && (imagem[1] & 0xFF) == 0xD8
+                && (imagem[2] & 0xFF) == 0xFF) {
+            return "image/jpeg";
+        }
+
+        return "image/png";
     }
 }

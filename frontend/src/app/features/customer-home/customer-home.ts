@@ -420,6 +420,10 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected getCategoryImage(category: CategoriaMenuResponse): string {
+    if (category.imagemUrl) {
+      return this.resolveApiUrl(category.imagemUrl);
+    }
+
     const normalizedName = this.normalizeCategoryName(category.categoriaNome);
 
     if (normalizedName.includes('japones')) {
