@@ -71,6 +71,7 @@ export class Garcom {
   protected readonly mesaParaFechar = signal<MesaGarcomResponse | null>(null);
   protected readonly mesaEmFechamento = signal<number | null>(null);
   protected readonly erroFechamento = signal('');
+  protected readonly pedidoEmEntrega = signal<number | null>(null);
 
   protected readonly mesaEmDetalhe = signal<MesaGarcomResponse | null>(null);
   protected readonly detalheSelecionado = signal<MesaProblemasGarcomResponse | null>(null);
@@ -475,6 +476,32 @@ export class Garcom {
     }
     this.erroFechamento.set('');
     this.mesaParaFechar.set(mesa);
+  }
+
+  protected marcarPedidoComoEntregue(mesa: MesaGarcomResponse, pedido: PedidoDetalheGarcomResponse): void {
+    if (pedido.status !== 'PRONTO' || this.pedidoEmEntrega() !== null) {
+      return;
+    }
+
+    this.pedidoEmEntrega.set(pedido.id);
+    this.erro.set('');
+    this.sucesso.set('');
+    this.garcomMesaService
+      .marcarPedidoComoEntregue(mesa.idMesa, pedido.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.pedidoEmEntrega.set(null)),
+      )
+      .subscribe({
+        next: () => {
+          this.sucesso.set(`Pedido #${pedido.codigo} marcado como entregue.`);
+          this.carregarDashboard(true, true);
+        },
+        error: error => this.erro.set(this.getErrorMessage(
+          error,
+          'Nao foi possivel registrar a entrega do pedido. Tente novamente.',
+        )),
+      });
   }
 
   protected cancelarFechamento(): void {

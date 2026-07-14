@@ -253,7 +253,18 @@
                     </div>
                   }
                 </div>
-                <footer><strong>{{ formatarMoeda(valorPedido(pedido)) }}</strong></footer>
+                <footer>
+                  <strong>{{ formatarMoeda(valorPedido(pedido)) }}</strong>
+                  <button
+                    type="button"
+                    class="delivery-button"
+                    (click)="marcarPedidoComoEntregue(mesa, pedido)"
+                    [disabled]="pedidoEmEntrega() !== null"
+                  >
+                    <fk-icon name="check-circle" size="0.95rem" />
+                    {{ pedidoEmEntrega() === pedido.id ? 'Registrando…' : 'Marcar entregue' }}
+                  </button>
+                </footer>
               </article>
             } @empty {
               <p class="section-empty">Nenhum pedido aguardando entrega.</p>

@@ -152,6 +152,16 @@ class GarcomMesaControllerTest {
     }
 
     @Test
+    void marcarPedidoComoEntregueDeveRetornarSemConteudo() {
+        Authentication authentication = mock(Authentication.class);
+
+        ResponseEntity<Void> response = garcomMesaController.marcarPedidoComoEntregue(1, 25, authentication);
+
+        assertEquals(204, response.getStatusCode().value());
+        verify(garcomMesaService).marcarPedidoComoEntregue(1, 25, authentication);
+    }
+
+    @Test
     void registrarDecisaoProblemaDeveRetornarSemConteudo() {
         Authentication authentication = mock(Authentication.class);
         DecisaoProblemaRequest request = new DecisaoProblemaRequest(
