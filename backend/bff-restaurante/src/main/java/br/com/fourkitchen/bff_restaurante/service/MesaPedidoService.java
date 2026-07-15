@@ -19,6 +19,7 @@ import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ public class MesaPedidoService {
 
     private final PedidoClient pedidoClient;
 
+    @Transactional
     public PedidoMesaResponse criarPedido(CriarPedidoMesaRequest request, Authentication authentication) {
         UsuarioAutenticado usuario = obterUsuarioMesa(authentication);
         SessaoMesaResponse sessao = validarSessaoMesa(usuario.idMesa(), request.codigoAtendimento());
