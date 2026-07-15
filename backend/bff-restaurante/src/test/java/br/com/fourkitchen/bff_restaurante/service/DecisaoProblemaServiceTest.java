@@ -76,6 +76,37 @@ class DecisaoProblemaServiceTest {
         verify(pedidoClient, never()).decisaoProblema(org.mockito.ArgumentMatchers.any());
     }
 
+    @Test
+    void registrarDeveEncaminharObservacaoDoProdutoSubstituto() {
+        DecisaoProblemaRequest request = new DecisaoProblemaRequest(
+                25,
+                80,
+                StatusProdutoPedido.DISPONIVEL,
+                false,
+                12,
+                "Sem pimenta"
+        );
+        when(produtoClient.verificarDisponibilidade(12)).thenReturn(new ProdutoDisponibilidadeResponse(
+                12,
+                "Coxinha de frango",
+                true,
+                new BigDecimal("10.50")
+        ));
+
+        decisaoProblemaService.registrar(request);
+
+        verify(pedidoClient).decisaoProblema(new DecisaoProblemaPedidoRequest(
+                25,
+                80,
+                StatusProdutoPedido.DISPONIVEL,
+                false,
+                12,
+                "Coxinha de frango",
+                new BigDecimal("10.50"),
+                "Sem pimenta"
+        ));
+    }
+
     private DecisaoProblemaRequest criarRequest(Integer idNovoProduto) {
         return new DecisaoProblemaRequest(
                 25,

@@ -11,8 +11,30 @@ public record DecisaoProblemaPedidoRequest(
         Boolean pedidoCancelado,
         Integer idNovoProduto,
         String nomeNovoProduto,
-        BigDecimal precoNovoProduto
+        BigDecimal precoNovoProduto,
+        String observacaoNovoProduto
 ) {
+    public DecisaoProblemaPedidoRequest(
+            Integer idPedido,
+            Integer idProdutoPedido,
+            StatusProdutoPedido novoStatusProdutoPedido,
+            Boolean pedidoCancelado,
+            Integer idNovoProduto,
+            String nomeNovoProduto,
+            BigDecimal precoNovoProduto
+    ) {
+        this(
+                idPedido,
+                idProdutoPedido,
+                novoStatusProdutoPedido,
+                pedidoCancelado,
+                idNovoProduto,
+                nomeNovoProduto,
+                precoNovoProduto,
+                null
+        );
+    }
+
     public DecisaoProblemaPedidoRequest(
             Integer idPedido,
             Integer idProdutoPedido,
@@ -28,6 +50,7 @@ public record DecisaoProblemaPedidoRequest(
                 pedidoCancelado,
                 idNovoProduto,
                 nomeNovoProduto,
+                null,
                 null
         );
     }

@@ -471,6 +471,8 @@ public class PedidoService {
             if (decisaoProblemaRequest.precoNovoProduto() != null) {
                 produtoPedido.setPrecoUnitario(decisaoProblemaRequest.precoNovoProduto());
             }
+            // A observacao pertence ao produto substituto; a anterior nunca e reaproveitada.
+            produtoPedido.setObservacao(normalizarObservacao(decisaoProblemaRequest.observacaoNovoProduto()));
         }
 
         produtoPedido.setStatus(decisaoProblemaRequest.novoStatusProdutoPedido());
@@ -483,5 +485,13 @@ public class PedidoService {
     private boolean pedidoPermiteDecisao(Pedido pedido) {
         return pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO
                 || pedido.getStatus() == StatusPedido.PROBLEMA_COZINHA;
+    }
+
+    private String normalizarObservacao(String observacao) {
+        if (observacao == null || observacao.isBlank()) {
+            return null;
+        }
+
+        return observacao.trim();
     }
 }

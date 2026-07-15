@@ -30,7 +30,8 @@ public class DecisaoProblemaService {
                     request.pedidoCancelado(),
                     produtoSubstituto == null ? null : produtoSubstituto.produtoId(),
                     produtoSubstituto == null ? null : produtoSubstituto.nome(),
-                    produtoSubstituto == null ? null : produtoSubstituto.preco()
+                    produtoSubstituto == null ? null : produtoSubstituto.preco(),
+                    request.observacaoNovoProduto()
             ));
         } catch (FeignException e) {
             if (e.status() == 400) {

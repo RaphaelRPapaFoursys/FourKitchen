@@ -963,7 +963,7 @@ class PedidoServiceTest {
     }
 
     @Test
-    void decisaoProblema_deveSubstituirProduto() {
+    void decisaoProblema_deveSubstituirProdutoELimparObservacaoAnteriorSemNovaObservacao() {
         DecisaoProblemaRequest request =
                 new DecisaoProblemaRequest(
                         1,
@@ -983,6 +983,7 @@ class PedidoServiceTest {
         ProdutoPedido produtoPedido = ProdutoPedido.builder()
                 .id(10)
                 .idProduto(5)
+                .observacao("Sem cebola")
                 .build();
 
         when(pedidoRepository.findById(1))
@@ -1008,9 +1009,44 @@ class PedidoServiceTest {
                 produtoPedido.getPrecoUnitario()
         );
 
+        assertNull(produtoPedido.getObservacao());
+
         assertEquals(
                 StatusPedido.ENVIADO_COZINHA,
                 pedido.getStatus()
         );
+    }
+
+    @Test
+    void decisaoProblema_deveSalvarSomenteObservacaoDoProdutoSubstituto() {
+        DecisaoProblemaRequest request = new DecisaoProblemaRequest(
+                1,
+                10,
+                StatusProdutoPedido.DISPONIVEL,
+                false,
+                99,
+                "Batata",
+                new BigDecimal("18.90"),
+                "  Sem sal  "
+        );
+
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .build();
+
+        ProdutoPedido produtoPedido = ProdutoPedido.builder()
+                .id(10)
+                .idProduto(5)
+                .observacao("Sem cebola")
+                .build();
+
+        when(pedidoRepository.findById(1)).thenReturn(Optional.of(pedido));
+        when(produtoPedidoRepository.findById(10)).thenReturn(Optional.of(produtoPedido));
+
+        pedidoService.decisaoProblema(request);
+
+        assertEquals("Sem sal", produtoPedido.getObservacao());
+        assertEquals(99, produtoPedido.getIdProduto());
     }
 }

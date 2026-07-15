@@ -98,6 +98,7 @@ export interface DecisaoProblemaGarcomRequest {
   novoStatusProdutoPedido: 'DISPONIVEL' | 'REMOVIDO';
   pedidoCancelado: boolean;
   idNovoProduto: number | null;
+  observacaoNovoProduto: string | null;
 }
 
 export interface ItemPedidoGarcomRequest {

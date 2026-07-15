@@ -121,6 +121,11 @@ describe('Garcom', () => {
     produto.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
+    const observacao = elemento.querySelector('textarea') as HTMLTextAreaElement;
+    observacao.value = 'Sem pimenta';
+    observacao.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
     clicarBotao(elemento, 'Confirmar decisão');
     const decisao = httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas/1/problemas/decisao`);
     expect(decisao.request.body).toEqual({
@@ -129,6 +134,7 @@ describe('Garcom', () => {
       novoStatusProdutoPedido: 'DISPONIVEL',
       pedidoCancelado: false,
       idNovoProduto: 12,
+      observacaoNovoProduto: 'Sem pimenta',
     });
     decisao.flush(null, { status: 204, statusText: 'No Content' });
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([]);

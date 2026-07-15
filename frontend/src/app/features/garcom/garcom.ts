@@ -91,6 +91,7 @@ export class Garcom {
   protected readonly erroCardapio = signal('');
   protected readonly categoriaSelecionadaId = signal<number | null>(null);
   protected readonly produtoSelecionadoId = signal<number | null>(null);
+  protected readonly observacaoNovoProduto = signal('');
 
   protected readonly nomeUsuario = computed(() =>
     this.authService.getCurrentUser()?.nome ?? 'Garcom'
@@ -263,6 +264,7 @@ export class Garcom {
     this.acaoDecisao.set('REMOVER_ITEM');
     this.categoriaSelecionadaId.set(null);
     this.produtoSelecionadoId.set(null);
+    this.observacaoNovoProduto.set('');
     this.erro.set('');
     this.erroCancelamento.set('');
     this.carregarSolicitacao(mesa);
@@ -285,6 +287,7 @@ export class Garcom {
     this.mesaEmDetalhe.set(null);
     this.detalheSelecionado.set(null);
     this.problemaSelecionado.set(null);
+    this.observacaoNovoProduto.set('');
   }
 
   protected selecionarProblema(problema: ProblemaPedidoGarcomResponse): void {
@@ -292,6 +295,7 @@ export class Garcom {
     this.acaoDecisao.set('REMOVER_ITEM');
     this.categoriaSelecionadaId.set(null);
     this.produtoSelecionadoId.set(null);
+    this.observacaoNovoProduto.set('');
   }
 
   protected alterarAcaoDecisao(acao: AcaoDecisao): void {
@@ -304,6 +308,7 @@ export class Garcom {
     if (acao !== 'SUBSTITUIR_ITEM') {
       this.categoriaSelecionadaId.set(null);
       this.produtoSelecionadoId.set(null);
+      this.observacaoNovoProduto.set('');
     }
   }
 
@@ -316,6 +321,10 @@ export class Garcom {
   protected alterarProduto(event: Event): void {
     const valor = Number((event.target as HTMLSelectElement).value);
     this.produtoSelecionadoId.set(Number.isFinite(valor) && valor > 0 ? valor : null);
+  }
+
+  protected alterarObservacaoNovoProduto(event: Event): void {
+    this.observacaoNovoProduto.set((event.target as HTMLTextAreaElement).value);
   }
 
   protected podeRegistrarDecisao(): boolean {
@@ -719,6 +728,9 @@ export class Garcom {
       novoStatusProdutoPedido: acao === 'REMOVER_ITEM' ? 'REMOVIDO' : 'DISPONIVEL',
       pedidoCancelado: acao === 'CANCELAR_PEDIDO',
       idNovoProduto: acao === 'SUBSTITUIR_ITEM' ? this.produtoSelecionadoId() : null,
+      observacaoNovoProduto: acao === 'SUBSTITUIR_ITEM'
+        ? this.observacaoNovoProduto().trim() || null
+        : null,
     };
   }
 
