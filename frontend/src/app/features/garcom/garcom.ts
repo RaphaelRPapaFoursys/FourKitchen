@@ -450,6 +450,14 @@ export class Garcom {
     );
   }
 
+  protected itensAtivosPedido(pedido: PedidoDetalheGarcomResponse): PedidoDetalheGarcomResponse['itens'] {
+    return pedido.itens.filter(item => !this.itemRemovido(item));
+  }
+
+  protected itemRemovido(item: PedidoDetalheGarcomResponse['itens'][number]): boolean {
+    return item.status === 'REMOVIDO' || item.status === 'CANCELADO';
+  }
+
   protected pedidoAguardaDecisao(pedido: PedidoDetalheGarcomResponse): boolean {
     return STATUS_PROBLEMA.has(pedido.status);
   }
@@ -622,7 +630,7 @@ export class Garcom {
   }
 
   protected valorPedido(pedido: PedidoDetalheGarcomResponse): number {
-    return pedido.itens.reduce(
+    return this.itensAtivosPedido(pedido).reduce(
       (total, item) => total + item.precoUnitario * item.quantidade,
       0,
     );

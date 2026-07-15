@@ -214,7 +214,7 @@
               <article class="modal-order-card" [class.modal-order-card--problem]="pedidoAguardaDecisao(pedido)">
                 <header><div><strong>Pedido #{{ pedido.codigo }}</strong><small>{{ pedido.canal }}</small></div><fk-badge [variant]="statusPedidoVariant(pedido.status)">{{ statusPedidoLabel(pedido.status) }}</fk-badge></header>
                 <div class="modal-order-items">
-                  @for (item of pedido.itens; track item.id) {
+                  @for (item of itensAtivosPedido(pedido); track item.id) {
                     <div class="modal-order-item">
                       <span><strong>{{ item.quantidade }}×</strong> {{ item.nomeProduto }}</span>
                       <strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong>
@@ -245,7 +245,7 @@
               <article class="modal-order-card modal-order-card--ready">
                 <header><div><strong>Pedido #{{ pedido.codigo }}</strong><small>Pronto {{ pedido.dataPronto ? formatarDataHora(pedido.dataPronto) : '' }}</small></div><fk-badge variant="livre">Aguardando entrega</fk-badge></header>
                 <div class="modal-order-items">
-                  @for (item of pedido.itens; track item.id) {
+                  @for (item of itensAtivosPedido(pedido); track item.id) {
                     <div class="modal-order-item">
                       <span><strong>{{ item.quantidade }}×</strong> {{ item.nomeProduto }}</span>
                       <strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong>
@@ -286,7 +286,13 @@
                 </summary>
                 <div class="history-items">
                   @for (item of pedido.itens; track item.id) {
-                    <p><span>{{ item.quantidade }}× {{ item.nomeProduto }}</span><strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong></p>
+                    <p [class.history-item--removed]="itemRemovido(item)">
+                      <span>
+                        {{ item.quantidade }}× {{ item.nomeProduto }}
+                        @if (itemRemovido(item)) { <small class="history-item-removed">Item removido - não cobrado</small> }
+                      </span>
+                      <strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong>
+                    </p>
                   }
                 </div>
               </details>

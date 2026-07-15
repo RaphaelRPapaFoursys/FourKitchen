@@ -22,6 +22,7 @@ export interface ItemFilaCozinhaResponse {
   quantidade: number;
   precoUnitario: number;
   observacao: string | null;
+  status: StatusProdutoPedido;
 }
 
 export interface PedidoFilaCozinhaResponse {

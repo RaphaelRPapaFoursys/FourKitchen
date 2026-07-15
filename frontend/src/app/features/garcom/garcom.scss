@@ -1359,6 +1359,19 @@ button:disabled {
   font-size: 0.72rem;
 }
 
+.history-item-removed {
+  display: inline-block;
+  margin-left: 0.45rem;
+  color: var(--fk-red-strong);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.history-item--removed > strong {
+  color: var(--fk-red-strong);
+  text-decoration: line-through;
+}
+
 .table-modal__actions {
   position: sticky;
   bottom: 0;

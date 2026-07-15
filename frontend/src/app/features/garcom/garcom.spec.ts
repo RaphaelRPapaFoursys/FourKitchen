@@ -64,6 +64,34 @@ describe('Garcom', () => {
     expect(elemento.textContent).toContain('02/07/2026 | 10:00');
   });
 
+  it('nao exibe nem soma item removido em um pedido ativo', () => {
+    const detalhe: any = criarDetalheMesa();
+    detalhe.pedidos[0] = {
+      ...detalhe.pedidos[0],
+      itens: [
+        ...detalhe.pedidos[0].itens,
+        {
+          id: 83,
+          idProduto: 7,
+          nomeProduto: 'Batata removida',
+          quantidade: 1,
+          precoUnitario: 12,
+          observacao: null,
+          status: 'REMOVIDO',
+        },
+      ],
+    };
+    (component as any).detalhesPorMesa.set({ 1: detalhe });
+    fixture.detectChanges();
+
+    const elemento: HTMLElement = fixture.nativeElement;
+    abrirDetalhes(elemento, fixture);
+
+    const ativos = elemento.querySelector('.orders-section--active') as HTMLElement;
+    expect(ativos.textContent).not.toContain('Batata removida');
+    expect((component as any).valorPedido(detalhe.pedidos[0])).toBe(25);
+  });
+
   it('seleciona categoria e produto antes de registrar a substituicao', () => {
     const elemento: HTMLElement = fixture.nativeElement;
     abrirDetalhes(elemento, fixture);

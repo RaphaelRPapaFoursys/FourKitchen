@@ -42,6 +42,7 @@ public class ProdutoPedido {
     private String observacao;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status_produto_pedido")
-    private StatusProdutoPedido status;
+    @Column(name = "status_produto_pedido", nullable = false)
+    @Builder.Default
+    private StatusProdutoPedido status = StatusProdutoPedido.DISPONIVEL;
 }

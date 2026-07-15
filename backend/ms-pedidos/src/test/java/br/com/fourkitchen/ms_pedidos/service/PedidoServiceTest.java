@@ -31,7 +31,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -115,6 +114,7 @@ class PedidoServiceTest {
         assertEquals(2, produtoPedido.getQuantidade());
         assertEquals(new BigDecimal("29.90"), produtoPedido.getPrecoUnitario());
         assertEquals("Sem cebola", produtoPedido.getObservacao());
+        assertEquals(StatusProdutoPedido.DISPONIVEL, produtoPedido.getStatus());
         verify(pedidoRepository).save(pedido);
         verify(pedidoResponseMapper).map(pedido);
     }
@@ -171,6 +171,7 @@ class PedidoServiceTest {
         assertEquals(2, produtoPedido.getQuantidade());
         assertEquals(new BigDecimal("29.90"), produtoPedido.getPrecoUnitario());
         assertEquals("Sem cebola", produtoPedido.getObservacao());
+        assertEquals(StatusProdutoPedido.DISPONIVEL, produtoPedido.getStatus());
         verify(pedidoRepository).save(pedido);
         verify(pedidoResponseMapper).map(pedido);
     }
@@ -251,12 +252,20 @@ class PedidoServiceTest {
                 .precoUnitario(new BigDecimal("29.90"))
                 .observacao("Sem cebola")
                 .build();
+        ProdutoPedido itemRemovido = ProdutoPedido.builder()
+                .id(6)
+                .idPedido(25)
+                .idProduto(11)
+                .quantidade(1)
+                .precoUnitario(new BigDecimal("8.00"))
+                .status(StatusProdutoPedido.REMOVIDO)
+                .build();
 
         when(pedidoRepository.findByIdAtendimentoInAndStatusInOrderByDataCriacaoAscIdAsc(
                 eq(List.of(8)),
                 anyStatusCollection()
         )).thenReturn(List.of(pedido));
-        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25))).thenReturn(List.of(item));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25))).thenReturn(List.of(item, itemRemovido));
 
         List<PedidoCozinhaResponse> resultado = pedidoService.findPedidosAtivosDetalhadosPorAtendimentos(List.of(8));
 
@@ -339,12 +348,20 @@ class PedidoServiceTest {
                 .precoUnitario(new BigDecimal("29.90"))
                 .observacao("Sem cebola")
                 .build();
+        ProdutoPedido itemRemovido = ProdutoPedido.builder()
+                .id(6)
+                .idPedido(25)
+                .idProduto(11)
+                .quantidade(1)
+                .precoUnitario(new BigDecimal("8.00"))
+                .status(StatusProdutoPedido.REMOVIDO)
+                .build();
 
         when(pedidoRepository.findByStatusInOrderByDataCriacaoAscIdAsc(anyStatusCollection()))
                 .thenReturn(List.of(pedido));
 
         when(produtoPedidoRepository.findByIdPedidoIn(List.of(25)))
-                .thenReturn(List.of(item));
+                .thenReturn(List.of(item, itemRemovido));
 
         List<PedidoCozinhaResponse> resultado = pedidoService.findFilaCozinha();
 
@@ -591,12 +608,18 @@ class PedidoServiceTest {
                 .quantidade(1)
                 .precoUnitario(new BigDecimal("15.50"))
                 .build();
+        ProdutoPedido itemRemovido = ProdutoPedido.builder()
+                .idPedido(26)
+                .quantidade(1)
+                .precoUnitario(new BigDecimal("10.00"))
+                .status(StatusProdutoPedido.REMOVIDO)
+                .build();
 
         when(pedidoRepository.findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
                 8,
                 StatusPedido.CANCELADO
         )).thenReturn(List.of(pedido1, pedido2));
-        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25, 26))).thenReturn(List.of(item1, item2));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(25, 26))).thenReturn(List.of(item1, item2, itemRemovido));
 
         ResumoContaAtendimentoResponse resultado = pedidoService.buscarResumoContaAtendimento(8);
 
@@ -866,6 +889,13 @@ class PedidoServiceTest {
 
         ProdutoPedido produtoPedido = ProdutoPedido.builder()
                 .id(10)
+                .idPedido(1)
+                .status(StatusProdutoPedido.FALTA_PRODUTO)
+                .build();
+
+        ProdutoPedido produtoRestante = ProdutoPedido.builder()
+                .id(11)
+                .idPedido(1)
                 .status(StatusProdutoPedido.DISPONIVEL)
                 .build();
 
@@ -875,10 +905,8 @@ class PedidoServiceTest {
         when(produtoPedidoRepository.findById(10))
                 .thenReturn(Optional.of(produtoPedido));
 
-        when(produtoPedidoRepository.findByIdPedidoAndStatus(
-                1,
-                StatusProdutoPedido.DISPONIVEL
-        )).thenReturn(List.of(produtoPedido));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(1)))
+                .thenReturn(List.of(produtoPedido, produtoRestante));
 
         pedidoService.decisaoProblema(request);
 
@@ -892,11 +920,7 @@ class PedidoServiceTest {
                 pedido.getStatus()
         );
 
-        verify(produtoPedidoRepository)
-                .findByIdPedidoAndStatus(
-                        1,
-                        StatusProdutoPedido.DISPONIVEL
-                );
+        verify(produtoPedidoRepository).findByIdPedidoIn(List.of(1));
     }
 
     @Test
@@ -918,6 +942,7 @@ class PedidoServiceTest {
 
         ProdutoPedido produtoPedido = ProdutoPedido.builder()
                 .id(10)
+                .idPedido(1)
                 .status(StatusProdutoPedido.DISPONIVEL)
                 .build();
 
@@ -927,10 +952,7 @@ class PedidoServiceTest {
         when(produtoPedidoRepository.findById(10))
                 .thenReturn(Optional.of(produtoPedido));
 
-        when(produtoPedidoRepository.findByIdPedidoAndStatus(
-                1,
-                StatusProdutoPedido.DISPONIVEL
-        )).thenReturn(Collections.emptyList());
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(1))).thenReturn(List.of(produtoPedido));
 
         pedidoService.decisaoProblema(request);
 
