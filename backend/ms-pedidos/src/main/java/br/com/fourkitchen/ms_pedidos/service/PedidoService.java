@@ -91,6 +91,7 @@ public class PedidoService {
                         .nomeProduto(item.nomeProduto())
                         .precoUnitario(item.precoUnitario())
                         .observacao(item.observacao())
+                        .status(StatusProdutoPedido.DISPONIVEL)
                         .build();
 
                 produtoPedidoRepository.save(produtoPedido);
@@ -136,6 +137,7 @@ public class PedidoService {
 
         Map<Integer, List<ProdutoPedido>> itensPorPedido = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
                 .stream()
+                .filter(this::itemAtivo)
                 .collect(Collectors.groupingBy(ProdutoPedido::getIdPedido));
 
         return pedidos.stream()
@@ -183,7 +185,10 @@ public class PedidoService {
                 .map(Pedido::getId)
                 .toList();
 
-        List<ProdutoPedido> itens = produtoPedidoRepository.findByIdPedidoIn(idsPedidos);
+        List<ProdutoPedido> itens = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
+                .stream()
+                .filter(this::itemAtivo)
+                .toList();
 
         BigDecimal valorFinal = itens.stream()
                 .map(this::valorItem)
@@ -219,6 +224,7 @@ public class PedidoService {
 
         Map<Integer, List<ProdutoPedido>> itensPorPedido = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
                 .stream()
+                .filter(this::itemAtivo)
                 .collect(Collectors.groupingBy(ProdutoPedido::getIdPedido));
 
         return pedidos.stream()
@@ -383,6 +389,11 @@ public class PedidoService {
         return item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade()));
     }
 
+    private boolean itemAtivo(ProdutoPedido item) {
+        return item.getStatus() != StatusProdutoPedido.REMOVIDO
+                && item.getStatus() != StatusProdutoPedido.CANCELADO;
+    }
+
     private void validarPedidoNaoAguardandoDecisao(Pedido pedido) {
         if (pedidoPermiteDecisao(pedido)) {
             throw new BaseException(ErrorEnum.PEDIDO_AGUARDANDO_DECISAO);
@@ -427,38 +438,38 @@ public class PedidoService {
         ProdutoPedido produtoPedido = produtoPedidoRepository.findById(decisaoProblemaRequest.idProdutoPedido())
                 .orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
 
-        if(decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
+        if (!pedidoPermiteDecisao(pedido)) {
+            throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
+        }
+
+        if (decisaoProblemaRequest.pedidoCancelado()) {
+            pedido.setStatus(StatusPedido.CANCELADO);
+            pedidoRepository.save(pedido);
+            return;
+        }
+
+        if (decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
             produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);
 
-            List<ProdutoPedido> listaProdutos = produtoPedidoRepository
-                    .findByIdPedidoAndStatus(decisaoProblemaRequest.idPedido(), StatusProdutoPedido.DISPONIVEL);
+            boolean possuiItensAtivos = produtoPedidoRepository
+                    .findByIdPedidoIn(List.of(decisaoProblemaRequest.idPedido()))
+                    .stream()
+                    .anyMatch(this::itemAtivo);
 
-            if(listaProdutos.isEmpty()) {
+            if (!possuiItensAtivos) {
                 pedido.setStatus(StatusPedido.CANCELADO);
+                pedidoRepository.save(pedido);
+                produtoPedidoRepository.save(produtoPedido);
                 return;
             }
         }
 
-        if(decisaoProblemaRequest.idNovoProduto() != null) {
+        if (decisaoProblemaRequest.idNovoProduto() != null) {
             produtoPedido.setIdProduto(decisaoProblemaRequest.idNovoProduto());
             produtoPedido.setNomeProduto(decisaoProblemaRequest.nomeNovoProduto());
             if (decisaoProblemaRequest.precoNovoProduto() != null) {
                 produtoPedido.setPrecoUnitario(decisaoProblemaRequest.precoNovoProduto());
             }
-        }
-
-        if(!pedidoPermiteDecisao(pedido)) {
-            throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
-        }
-
-        if(decisaoProblemaRequest.pedidoCancelado()) {
-            pedido.setStatus(StatusPedido.CANCELADO);
-
-            return;
-        }
-
-        if(decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
-            produtoPedido.setStatus(StatusProdutoPedido.REMOVIDO);
         }
 
         produtoPedido.setStatus(decisaoProblemaRequest.novoStatusProdutoPedido());

@@ -369,7 +369,9 @@ export class Cozinha implements OnDestroy {
   }
 
   protected itensPedido(pedido: PedidoFilaCozinhaResponse): ItemFilaCozinhaResponse[] {
-    return pedido.itens ?? [];
+    return (pedido.itens ?? []).filter(item =>
+      item.status !== 'REMOVIDO' && item.status !== 'CANCELADO'
+    );
   }
 
   protected statusLabel(pedido: PedidoFilaCozinhaResponse): string {
