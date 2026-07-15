@@ -1,14 +1,27 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { finalize, forkJoin, switchMap, tap } from 'rxjs';
-
 import {
-  MesaAtendimentoAtualResponse,
-  PedidoMesaStatusResponse,
-  PedidoStatus,
-  ResumoContaMesaResponse,
-} from '../../core/models/order.models';
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
+import {
+  Subject,
+  catchError,
+  exhaustMap,
+  map,
+  merge,
+  of,
+  switchMap,
+  tap,
+  timer,
+} from 'rxjs';
+
+import { MesaAtendimentoAtualResponse, PedidoMesaStatusResponse, PedidoStatus } from '../../core/models/order.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { OrderService } from '../../core/services/order.service';
@@ -28,10 +41,20 @@ type MesaOrdersState =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomerOrders {
+  private static readonly AUTO_REFRESH_INTERVAL_MS = 10_000;
+
   private readonly cartService = inject(CartService);
   private readonly customerContextService = inject(CustomerContextService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
+  private readonly refreshTrigger = new Subject<void>();
+  private readonly terminalStatuses = new Set<PedidoStatus>([
+    'ENTREGUE',
+    'FINALIZADO',
+    'CANCELADO',
+  ]);
+  private hasLoadedOrders = false;
 
   protected readonly homeRoute = '/mesa';
   protected readonly cartRoute = '/mesa/carrinho';
@@ -47,7 +70,7 @@ export class CustomerOrders {
   });
 
   constructor() {
-    this.loadMesaOrders();
+    this.startMesaOrdersUpdates();
   }
 
   protected loadMesaOrders(): void {
@@ -59,38 +82,73 @@ export class CustomerOrders {
       message: 'Carregando pedidos...',
     });
 
-    this.orderService.getCurrentTableAttendance()
+    this.refreshTrigger.next();
+  }
+
+  private startMesaOrdersUpdates(): void {
+    merge(
+      timer(
+        CustomerOrders.AUTO_REFRESH_INTERVAL_MS,
+        CustomerOrders.AUTO_REFRESH_INTERVAL_MS,
+      ),
+      this.refreshTrigger,
+    )
+      .pipe(
+        exhaustMap(() => this.fetchMesaOrders().pipe(
+          map(orders => ({ orders })),
+          catchError(() => of(null)),
+        )),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(result => {
+        this.carregandoAtendimento.set(false);
+
+        if (result === null) {
+          if (!this.hasLoadedOrders) {
+            this.atendimentoAtual.set(null);
+            this.state.set({
+              status: 'error',
+              orders: [],
+              message: 'Nao foi possivel carregar seus pedidos. Tente novamente.',
+            });
+          }
+
+          return;
+        }
+
+        this.hasLoadedOrders = true;
+        const orders = this.sortOrders(result.orders);
+
+        this.state.set(
+          orders.length > 0
+            ? { status: 'success', orders, message: '' }
+            : {
+              status: 'empty',
+              orders: [],
+              message: 'Nenhum pedido encontrado para esta mesa.',
+            },
+        );
+      });
+
+    this.refreshTrigger.next();
+  }
+
+  private fetchMesaOrders() {
+    return this.orderService.getCurrentTableAttendance()
       .pipe(
         tap(atendimento => this.atendimentoAtual.set(atendimento)),
-        switchMap(attendance => forkJoin({
-          orders: this.orderService.getMesaOrders(attendance.codigoAtendimento),
-          resumo: this.orderService.getMesaAccountSummary(attendance.codigoAtendimento),
-        })),
-        finalize(() => this.carregandoAtendimento.set(false)),
-      )
-      .subscribe({
-        next: ({ orders, resumo }) => {
-          this.resumoConta.set(resumo);
-          this.state.set(
-            orders.length > 0
-              ? { status: 'success', orders, message: '' }
-              : {
-                status: 'empty',
-                orders: [],
-                message: 'Nenhum pedido encontrado para esta mesa.',
-              },
-          );
-        },
-        error: () => {
-          this.atendimentoAtual.set(null);
-          this.resumoConta.set(null);
-          this.state.set({
-            status: 'error',
-            orders: [],
-            message: 'Nao foi possivel carregar seus pedidos. Tente novamente.',
-          });
-        },
-      });
+        switchMap(attendance => this.orderService.getMesaOrders(attendance.codigoAtendimento)),
+      );
+  }
+
+  private sortOrders(orders: PedidoMesaStatusResponse[]): PedidoMesaStatusResponse[] {
+    return [...orders].sort((left, right) => (
+      this.getStatusPriority(left.status) - this.getStatusPriority(right.status)
+    ));
+  }
+
+  private getStatusPriority(status: PedidoStatus): number {
+    return this.terminalStatuses.has(status) ? 1 : 0;
   }
 
   protected retryLoadMesaOrders(): void {

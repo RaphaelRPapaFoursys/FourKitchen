@@ -32,36 +32,52 @@ describe('CustomerOrders', () => {
     httpMock.expectOne(request =>
       request.url === `${environment.apiUrl}/api/mesa/pedidos`
       && request.params.get('codigoAtendimento') === '827764',
-    ).flush([{
-      id: 25,
-      codigo: 843011,
-      canal: 'MESA',
-      status: 'EM_PREPARO',
-      idMesa: 10,
-      idAtendimento: 20,
-      codigoAtendimento: 827764,
-      dataCriacao: '2026-07-15T09:26:00',
-      valorTotal: 59.8,
-      itens: [{
-        idProduto: 10,
-        nome: 'X-Burger',
-        quantidade: 2,
-        precoUnitario: 29.9,
-        valorTotal: 59.8,
-        observacao: 'Sem cebola',
-      }],
-    }]);
-    httpMock.expectOne(request =>
-      request.url === `${environment.apiUrl}/api/mesa/pedidos/resumo-conta`
-      && request.params.get('codigoAtendimento') === '827764',
-    ).flush({
-      idAtendimento: 20,
-      codigoAtendimento: 827764,
-      valorFinal: 149.7,
-      totalPedidos: 3,
-      totalItens: 7,
-    });
-    await fixture.whenStable();
+    ).flush([
+      {
+        id: 1,
+        codigo: 100001,
+        canal: 'MESA',
+        status: 'ENTREGUE',
+        idMesa: 10,
+        idAtendimento: 20,
+        codigoAtendimento: 827764,
+        dataCriacao: '2026-07-15T09:00:00',
+        itens: [],
+      },
+      {
+        id: 2,
+        codigo: 100002,
+        canal: 'MESA',
+        status: 'EM_PREPARO',
+        idMesa: 10,
+        idAtendimento: 20,
+        codigoAtendimento: 827764,
+        dataCriacao: '2026-07-15T09:10:00',
+        itens: [],
+      },
+      {
+        id: 3,
+        codigo: 100003,
+        canal: 'MESA',
+        status: 'CANCELADO',
+        idMesa: 10,
+        idAtendimento: 20,
+        codigoAtendimento: 827764,
+        dataCriacao: '2026-07-15T09:20:00',
+        itens: [],
+      },
+      {
+        id: 4,
+        codigo: 100004,
+        canal: 'MESA',
+        status: 'ENVIADO_COZINHA',
+        idMesa: 10,
+        idAtendimento: 20,
+        codigoAtendimento: 827764,
+        dataCriacao: '2026-07-15T09:30:00',
+        itens: [],
+      },
+    ]);
     fixture.detectChanges();
   });
 
@@ -83,6 +99,15 @@ describe('CustomerOrders', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/mesa']);
   });
 
+  it('moves delivered and cancelled orders to the end of the list', () => {
+    const cards = Array.from(
+      fixture.nativeElement.querySelectorAll('.order-card'),
+    ) as HTMLElement[];
+    const orderCodes = cards.map(card => card.querySelector('strong')?.textContent?.trim());
+
+    expect(orderCodes).toEqual(['#100002', '#100004', '#100001', '#100003']);
+  });
+    
   it('shows item, order and account totals', () => {
     const item = fixture.nativeElement.querySelector('.order-card__item-line') as HTMLElement;
     const orderTotal = fixture.nativeElement.querySelector('.order-card__total') as HTMLElement;
