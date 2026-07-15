@@ -10,96 +10,19 @@
       </div>
     </div>
 
-    <div class="kitchen-header__actions">
-      <fk-badge variant="tempo-real" [dot]="!erro()">
-        {{ erro() ? 'Conexão instável' : 'Ao vivo' }}
-      </fk-badge>
-      <button
-        type="button"
-        class="button button--primary"
-        (click)="atualizarFila()"
-        [disabled]="atualizando()"
-      >
-        <fk-icon name="arrows-counter-clockwise" size="1.1rem" />
-        {{ atualizando() ? 'Atualizando...' : 'Atualizar fila' }}
-      </button>
-    </div>
+    <label class="search-field search-field--header">
+      <fk-icon name="magnifying-glass" size="1.15rem" />
+      <span class="sr-only">Buscar por mesa, totem ou número do pedido</span>
+      <input
+        type="search"
+        placeholder="Ex.: Mesa 02, Totem 01 ou #701366"
+        [value]="busca()"
+        (input)="atualizarBusca($event)"
+      />
+    </label>
   </header>
 
   <div class="kitchen-content">
-    <section class="queue-summary" aria-labelledby="resumo-fila">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">Visão geral</span>
-          <h2 id="resumo-fila">Resumo da fila</h2>
-        </div>
-        <span class="sync-status" [class.sync-status--updating]="atualizando()">
-          <span aria-hidden="true"></span>
-          {{ atualizando() ? 'Sincronizando' : 'Atualizado ' + sincronizadoLabel() }}
-        </span>
-      </div>
-
-      <div class="summary-grid">
-        <fk-kpi-card [value]="pedidos().length.toString()" label="Pedidos na fila" size="md">
-          <fk-icon icon name="bag" size="1.35rem" />
-        </fk-kpi-card>
-        <fk-kpi-card
-          [value]="aguardando().length.toString()"
-          label="Aguardando início"
-          size="md"
-          tint="orange"
-        >
-          <fk-icon icon name="bell-simple" size="1.35rem" />
-        </fk-kpi-card>
-        <fk-kpi-card
-          [value]="preparando().length.toString()"
-          label="Em produção"
-          size="md"
-          tint="green"
-        >
-          <fk-icon icon name="bowl-steam" size="1.35rem" />
-        </fk-kpi-card>
-        <fk-kpi-card
-          [value]="aguardandoDecisao().length.toString()"
-          label="Com problema"
-          size="md"
-          tint="red"
-          [alert]="aguardandoDecisao().length > 0"
-        >
-          <fk-icon icon name="warning-circle" size="1.35rem" />
-        </fk-kpi-card>
-      </div>
-
-      @if (urgentes() || altas()) {
-        <div class="priority-summary" aria-label="Pedidos prioritários">
-          @if (urgentes()) {
-            <fk-badge variant="critico">{{ urgentes() }} urgente(s)</fk-badge>
-          }
-          @if (altas()) {
-            <fk-badge variant="atencao">{{ altas() }} em alta prioridade</fk-badge>
-          }
-        </div>
-      }
-    </section>
-
-    <section class="queue-controls" aria-label="Filtros e ordenação da fila">
-      <label class="search-field">
-        <fk-icon name="magnifying-glass" size="1.15rem" />
-        <span class="sr-only">Buscar pedido, mesa ou atendimento</span>
-        <input
-          type="search"
-          placeholder="Buscar por pedido, mesa ou atendimento"
-          [value]="busca()"
-          (input)="atualizarBusca($event)"
-        />
-      </label>
-
-      <button type="button" class="button button--secondary" (click)="alternarOrdenacao()">
-        <fk-icon name="menu" size="1.05rem" />
-        {{ ordenacao() === 'tempo' ? 'Mais antigos primeiro' : 'Prioridade primeiro' }}
-      </button>
-    </section>
-
     <div class="feedback-region" aria-live="polite">
       @if (erro()) {
         <div class="feedback feedback--error" role="alert">
@@ -170,11 +93,7 @@
 
           <div class="orders">
             @for (pedido of aguardando(); track pedido.id) {
-              <article
-                class="order-card order-card--waiting"
-                [class.order-card--high]="prioridade(pedido) === 'alta'"
-                [class.order-card--urgent]="prioridade(pedido) === 'urgente'"
-              >
+              <article class="order-card order-card--waiting">
                 <ng-container
                   [ngTemplateOutlet]="pedidoCard"
                   [ngTemplateOutletContext]="{ $implicit: pedido, acao: 'iniciar' }"
@@ -253,19 +172,23 @@
       <strong class="order-card__code">#{{ pedido.codigo || pedido.id }}</strong>
     </div>
 
-    <div class="order-card__badges">
-      <fk-badge
-        [variant]="statusPronto(pedido) ? 'livre' : acao === 'decisao' ? 'critico' : acao === 'pronto' ? 'atencao' : 'neutral'"
-      >
-        {{ statusLabel(pedido) }}
-      </fk-badge>
-      @if (!statusPronto(pedido)) {
-        <fk-badge
-          [variant]="prioridade(pedido) === 'urgente' ? 'critico' : prioridade(pedido) === 'alta' ? 'atencao' : 'neutral'"
-        >
-          {{ prioridadeLabel(prioridade(pedido)) }}
-        </fk-badge>
-      }
+    <div
+      class="order-card__timer"
+      [class.order-card__timer--waiting]="acao === 'iniciar'"
+      [class.order-card__timer--problem]="acao === 'decisao'"
+    >
+      <span>
+        @if (acao === 'iniciar') {
+          Tempo de espera
+        } @else if (acao === 'decisao') {
+          Aguardando garçom
+        } @else if (statusPronto(pedido)) {
+          Tempo total
+        } @else {
+          Tempo em preparo
+        }
+      </span>
+      <strong>{{ minutosDesdeReferencia(pedido) }} min</strong>
     </div>
   </header>
 
@@ -276,23 +199,8 @@
     </span>
     <span>
       <fk-icon name="bell-simple" size="1rem" />
-      Criado às {{ horario(pedido) }}
+      Criado há {{ minutosDesdeCriacao(pedido) }} min
     </span>
-  </div>
-
-  <div class="order-card__timer" [class.order-card__timer--problem]="acao === 'decisao'">
-    <span>
-      @if (acao === 'iniciar') {
-        Tempo de espera
-      } @else if (acao === 'decisao') {
-        Aguardando garçom
-      } @else if (statusPronto(pedido)) {
-        Tempo total
-      } @else {
-        Tempo em preparo
-      }
-    </span>
-    <strong>{{ minutosDesdeReferencia(pedido) }} min</strong>
   </div>
 
   <section class="order-items" aria-label="Itens do pedido">
@@ -306,31 +214,35 @@
         <li>
           <span class="item-quantity">{{ item.quantidade }}×</span>
           <div class="item-content">
-            <strong>{{ nomeItem(item) }}</strong>
+            <div class="item-content__title">
+              <strong>{{ nomeItem(item) }}</strong>
+              @if (acao !== 'decisao') {
+                <button
+                  type="button"
+                  class="item-action"
+                  aria-label="Sinalizar problema neste item"
+                  title="Sinalizar problema"
+                  (click)="abrirProblema(pedido, item, $event)"
+                  [disabled]="itemAcaoDesabilitada(item) || statusPronto(pedido)"
+                >
+                  <fk-icon name="warning-circle" size="1rem" />
+                </button>
+              }
+            </div>
             @if (item.observacao) {
               <p class="item-note">
                 <span>Observação</span>
                 {{ item.observacao }}
               </p>
             }
-            <div class="item-actions">
-              @if (acao === 'decisao') {
+            @if (acao === 'decisao') {
+              <div class="item-actions">
                 <span class="item-status">
                   <fk-icon name="warning-circle" size="0.95rem" />
                   Decisão do garçom pendente
                 </span>
-              } @else {
-                <button
-                  type="button"
-                  class="item-action"
-                  (click)="abrirProblema(pedido, item, $event)"
-                  [disabled]="itemAcaoDesabilitada(item) || statusPronto(pedido)"
-                >
-                  <fk-icon name="warning-circle" size="1rem" />
-                  Sinalizar problema
-                </button>
-              }
-            </div>
+              </div>
+            }
           </div>
         </li>
       }

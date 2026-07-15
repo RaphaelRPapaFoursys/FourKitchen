@@ -193,6 +193,7 @@ class MesaPedidoServiceTest {
                 "MESA",
                 "PROBLEMA_COZINHA",
                 1,
+                10,
                 8,
                 dataCriacao,
                 null,

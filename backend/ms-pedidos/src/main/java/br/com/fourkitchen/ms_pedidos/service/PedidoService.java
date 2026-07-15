@@ -359,6 +359,7 @@ public class PedidoService {
                 pedido.getCanal(),
                 pedido.getStatus(),
                 pedido.getIdMesa(),
+                pedido.getIdUsuario(),
                 pedido.getIdAtendimento(),
                 pedido.getDataCriacao(),
                 pedido.getDataInicioPreparo(),

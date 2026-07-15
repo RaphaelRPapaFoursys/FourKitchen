@@ -401,6 +401,7 @@ class GestorMesaServiceTest {
                 "MESA",
                 status,
                 1,
+                10,
                 idAtendimento,
                 LocalDateTime.now().minusMinutes(3),
                 null,

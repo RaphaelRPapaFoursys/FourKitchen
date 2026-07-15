@@ -34,6 +34,7 @@ class CozinhaControllerTest {
                 "MESA",
                 "ENVIADO_COZINHA",
                 1,
+                "Mesa 01",
                 8,
                 LocalDateTime.of(2026, 7, 2, 10, 30),
                 null,
@@ -41,13 +42,13 @@ class CozinhaControllerTest {
                 List.of()
         );
 
-        when(cozinhaService.listarFila()).thenReturn(List.of(pedido));
+        when(cozinhaService.listarFila("Bearer token")).thenReturn(List.of(pedido));
 
-        ResponseEntity<List<PedidoFilaCozinhaResponse>> response = cozinhaController.listarFila();
+        ResponseEntity<List<PedidoFilaCozinhaResponse>> response = cozinhaController.listarFila("Bearer token");
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals(List.of(pedido), response.getBody());
-        verify(cozinhaService).listarFila();
+        verify(cozinhaService).listarFila("Bearer token");
     }
 
     @Test

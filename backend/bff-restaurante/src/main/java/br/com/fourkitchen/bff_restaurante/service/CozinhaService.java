@@ -1,7 +1,11 @@
 package br.com.fourkitchen.bff_restaurante.service;
 
+import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.*;
+import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
+import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.EventoPedido;
 import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
@@ -18,6 +22,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,18 +32,58 @@ public class CozinhaService {
 
     private final PedidoClient pedidoClient;
 
+    private final MesaClient mesaClient;
+
+    private final UsuarioClient usuarioClient;
+
     private final NotificacaoService notificacaoService;
 
     private final DecisaoProblemaService decisaoProblemaService;
 
-    public List<PedidoFilaCozinhaResponse> listarFila() {
+    public List<PedidoFilaCozinhaResponse> listarFila(String authorization) {
+        List<PedidoCozinhaResponse> pedidos = listarPedidosDaFila();
+        Map<Integer, Integer> numerosMesas = listarNumerosMesas();
+        Map<Integer, UsuarioClientResponse> usuarios = listarUsuariosDosTotens(pedidos, authorization);
+
+        return pedidos.stream()
+                .map(pedido -> mapearPedido(pedido, numerosMesas, usuarios))
+                .toList();
+    }
+
+    private List<PedidoCozinhaResponse> listarPedidosDaFila() {
         try {
-            return pedidoClient.listarFilaCozinha()
-                    .stream()
-                    .map(this::mapearPedido)
-                    .toList();
+            return pedidoClient.listarFilaCozinha();
         } catch (FeignException e) {
             throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
+    }
+
+    private Map<Integer, Integer> listarNumerosMesas() {
+        try {
+            return mesaClient.listarMesas().stream()
+                    .filter(mesa -> mesa.id() != null && mesa.numero() != null)
+                    .collect(Collectors.toMap(MesaClientResponse::id, MesaClientResponse::numero));
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_MESAS_INDISPONIVEL);
+        }
+    }
+
+    private Map<Integer, UsuarioClientResponse> listarUsuariosDosTotens(
+            List<PedidoCozinhaResponse> pedidos,
+            String authorization
+    ) {
+        boolean existemPedidosDeTotem = pedidos.stream()
+                .anyMatch(pedido -> "TOTEM".equalsIgnoreCase(pedido.canal()) && pedido.idUsuario() != null);
+
+        if (!existemPedidosDeTotem) {
+            return Map.of();
+        }
+
+        try {
+            return usuarioClient.listarUsuariosAtivos(authorization).stream()
+                    .collect(Collectors.toMap(UsuarioClientResponse::id, Function.identity()));
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_USUARIOS_INDISPONIVEL);
         }
     }
 
@@ -84,13 +131,18 @@ public class CozinhaService {
         ));
     }
 
-    private PedidoFilaCozinhaResponse mapearPedido(PedidoCozinhaResponse pedido) {
+    private PedidoFilaCozinhaResponse mapearPedido(
+            PedidoCozinhaResponse pedido,
+            Map<Integer, Integer> numerosMesas,
+            Map<Integer, UsuarioClientResponse> usuarios
+    ) {
         return new PedidoFilaCozinhaResponse(
                 pedido.id(),
                 pedido.codigo(),
                 pedido.canal(),
                 pedido.status(),
                 pedido.idMesa(),
+                resolverOrigemOperacional(pedido, numerosMesas, usuarios),
                 pedido.idAtendimento(),
                 pedido.dataCriacao(),
                 pedido.dataInicioPreparo(),
@@ -99,6 +151,30 @@ public class CozinhaService {
                         .map(this::mapearItem)
                         .toList()
         );
+    }
+
+    private String resolverOrigemOperacional(
+            PedidoCozinhaResponse pedido,
+            Map<Integer, Integer> numerosMesas,
+            Map<Integer, UsuarioClientResponse> usuarios
+    ) {
+        Integer numeroMesa = pedido.idMesa() == null ? null : numerosMesas.get(pedido.idMesa());
+
+        if (numeroMesa != null) {
+            return String.format("Mesa %02d", numeroMesa);
+        }
+
+        if ("TOTEM".equalsIgnoreCase(pedido.canal())) {
+            UsuarioClientResponse usuario = usuarios.get(pedido.idUsuario());
+
+            if (usuario != null && usuario.nome() != null && !usuario.nome().isBlank()) {
+                return usuario.nome().trim();
+            }
+
+            return "Totem";
+        }
+
+        return pedido.canal();
     }
 
     private List<ItemPedidoCozinhaResponse> listarItensDoPedido(PedidoCozinhaResponse pedido) {

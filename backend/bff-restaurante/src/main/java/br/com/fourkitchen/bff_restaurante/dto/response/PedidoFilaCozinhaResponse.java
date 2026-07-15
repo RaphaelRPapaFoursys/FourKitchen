@@ -22,6 +22,9 @@ public record PedidoFilaCozinhaResponse(
         @Schema(description = "Mesa vinculada ao pedido, quando houver", example = "1")
         Integer idMesa,
 
+        @Schema(description = "Origem operacional resolvida do pedido", example = "Mesa 02")
+        String origem,
+
         @Schema(description = "Atendimento/sessao da mesa vinculado ao pedido, quando houver", example = "8")
         Integer idAtendimento,
 
