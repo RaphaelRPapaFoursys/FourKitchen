@@ -15,8 +15,15 @@
 
   <section class="orders-panel" aria-labelledby="orders-title">
     <div class="orders-panel__heading">
-      <h1 id="orders-title">Acompanhar Pedido</h1>
-      <p>Veja os pedidos feitos por esta mesa e acompanhe o status atual.</p>
+      <div>
+        <h1 id="orders-title">Acompanhar Pedido</h1>
+        <p>Veja os pedidos feitos por esta mesa e acompanhe o status atual.</p>
+      </div>
+
+      <button class="orders-panel__new-order" type="button" (click)="backToMenu()">
+        <span aria-hidden="true">+</span>
+        Fazer novo pedido
+      </button>
     </div>
 
     @if (state().status === 'loading') {
