@@ -21,7 +21,7 @@ import {
   timer,
 } from 'rxjs';
 
-import { MesaAtendimentoAtualResponse, PedidoMesaStatusResponse, PedidoStatus } from '../../core/models/order.models';
+import { MesaAtendimentoAtualResponse, PedidoMesaStatusResponse, PedidoStatus, ResumoContaMesaResponse } from '../../core/models/order.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { OrderService } from '../../core/services/order.service';
