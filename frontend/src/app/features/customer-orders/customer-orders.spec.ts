@@ -32,8 +32,52 @@ describe('CustomerOrders', () => {
     httpMock.expectOne(request =>
       request.url === `${environment.apiUrl}/api/mesa/pedidos`
       && request.params.get('codigoAtendimento') === '827764',
-    ).flush([]);
-    await fixture.whenStable();
+    ).flush([
+      {
+        id: 1,
+        codigo: 100001,
+        canal: 'MESA',
+        status: 'ENTREGUE',
+        idMesa: 10,
+        idAtendimento: 20,
+        codigoAtendimento: 827764,
+        dataCriacao: '2026-07-15T09:00:00',
+        itens: [],
+      },
+      {
+        id: 2,
+        codigo: 100002,
+        canal: 'MESA',
+        status: 'EM_PREPARO',
+        idMesa: 10,
+        idAtendimento: 20,
+        codigoAtendimento: 827764,
+        dataCriacao: '2026-07-15T09:10:00',
+        itens: [],
+      },
+      {
+        id: 3,
+        codigo: 100003,
+        canal: 'MESA',
+        status: 'CANCELADO',
+        idMesa: 10,
+        idAtendimento: 20,
+        codigoAtendimento: 827764,
+        dataCriacao: '2026-07-15T09:20:00',
+        itens: [],
+      },
+      {
+        id: 4,
+        codigo: 100004,
+        canal: 'MESA',
+        status: 'ENVIADO_COZINHA',
+        idMesa: 10,
+        idAtendimento: 20,
+        codigoAtendimento: 827764,
+        dataCriacao: '2026-07-15T09:30:00',
+        itens: [],
+      },
+    ]);
     fixture.detectChanges();
   });
 
@@ -53,5 +97,14 @@ describe('CustomerOrders', () => {
     button.click();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/mesa']);
+  });
+
+  it('moves delivered and cancelled orders to the end of the list', () => {
+    const cards = Array.from(
+      fixture.nativeElement.querySelectorAll('.order-card'),
+    ) as HTMLElement[];
+    const orderCodes = cards.map(card => card.querySelector('strong')?.textContent?.trim());
+
+    expect(orderCodes).toEqual(['#100002', '#100004', '#100001', '#100003']);
   });
 });
