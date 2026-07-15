@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { environment } from '../../../environments/environment';
-import { ProdutoGestorRequest } from '../models/catalog.models';
+import { CategoriaGestorRequest, ProdutoGestorRequest } from '../models/catalog.models';
 import { CatalogService } from './catalog.service';
 
 describe('CatalogService', () => {
@@ -56,5 +56,45 @@ describe('CatalogService', () => {
     expect(httpRequest.request.method).toBe('PUT');
     expect(httpRequest.request.body.imagem).toBeNull();
     httpRequest.flush({});
+  });
+
+  it('creates a category with an optional Base64 image', () => {
+    const request: CategoriaGestorRequest = {
+      nome: 'Pratos principais',
+      descricao: 'Refeições servidas no almoço',
+      imagem: 'data:image/png;base64,iVBORw0KGgo',
+    };
+
+    service.createCategory(request).subscribe();
+    const httpRequest = httpMock.expectOne(`${baseUrl}/categorias`);
+    expect(httpRequest.request.method).toBe('POST');
+    expect(httpRequest.request.body).toEqual(request);
+    httpRequest.flush({});
+  });
+
+  it('updates a category while preserving its current image', () => {
+    const request: CategoriaGestorRequest = {
+      nome: 'Pratos especiais',
+      descricao: null,
+      imagem: null,
+    };
+
+    service.updateCategory(3, request).subscribe();
+    const httpRequest = httpMock.expectOne(`${baseUrl}/categorias/3`);
+    expect(httpRequest.request.method).toBe('PUT');
+    expect(httpRequest.request.body.imagem).toBeNull();
+    httpRequest.flush({});
+  });
+
+  it('activates and deactivates a category', () => {
+    service.activateCategory(3).subscribe();
+    const activateRequest = httpMock.expectOne(`${baseUrl}/categorias/3/ativar`);
+    expect(activateRequest.request.method).toBe('PATCH');
+    activateRequest.flush({});
+
+    service.deactivateCategory(3).subscribe();
+    const deactivateRequest = httpMock.expectOne(`${baseUrl}/categorias/3/desativar`);
+    expect(deactivateRequest.request.method).toBe('PATCH');
+    deactivateRequest.flush({});
   });
 });

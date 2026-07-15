@@ -1,7 +1,7 @@
 <section class="image-upload" aria-labelledby="product-image-label">
   <div class="image-upload__heading">
     <div>
-      <strong id="product-image-label">Imagem do produto</strong>
+      <strong id="product-image-label">{{ fieldLabel() }}</strong>
       <span>Opcional</span>
     </div>
     <small>JPG, JPEG ou PNG • até 1 MB • proporção 4:3</small>
@@ -37,7 +37,7 @@
 
     <div class="image-upload__preview" [class.image-upload__preview--empty]="!previewSource()">
       @if (previewSource(); as preview) {
-        <img [src]="preview" alt="Pré-visualização da imagem do produto" />
+        <img [src]="preview" [alt]="previewAlt()" />
       } @else {
         <span aria-hidden="true">▧</span>
         <small>Nenhuma imagem selecionada</small>

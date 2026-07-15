@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
+  CategoriaGestorRequest,
   CategoriaGestorResponse,
   ProdutoGestorRequest,
   ProdutoGestorResponse,
@@ -38,5 +39,21 @@ export class CatalogService {
 
   listCategories(): Observable<CategoriaGestorResponse[]> {
     return this.http.get<CategoriaGestorResponse[]>(`${this.baseUrl}/categorias`);
+  }
+
+  createCategory(request: CategoriaGestorRequest): Observable<CategoriaGestorResponse> {
+    return this.http.post<CategoriaGestorResponse>(`${this.baseUrl}/categorias`, request);
+  }
+
+  updateCategory(id: number, request: CategoriaGestorRequest): Observable<CategoriaGestorResponse> {
+    return this.http.put<CategoriaGestorResponse>(`${this.baseUrl}/categorias/${id}`, request);
+  }
+
+  activateCategory(id: number): Observable<CategoriaGestorResponse> {
+    return this.http.patch<CategoriaGestorResponse>(`${this.baseUrl}/categorias/${id}/ativar`, {});
+  }
+
+  deactivateCategory(id: number): Observable<CategoriaGestorResponse> {
+    return this.http.patch<CategoriaGestorResponse>(`${this.baseUrl}/categorias/${id}/desativar`, {});
   }
 }
