@@ -29,6 +29,12 @@ app-customer-hero,
   margin-inline: auto;
 }
 
+.categories app-category-carousel {
+  display: block;
+  width: 100%;
+  padding-top: -8rem;
+}
+
 .customer-home--mesa app-customer-home-header {
   box-sizing: border-box;
   width: 100%;
@@ -111,19 +117,41 @@ app-customer-hero,
   color: var(--white);
 }
 
-.categories__inner {
-  min-height: 82vh;
-  padding: 2rem 0 6rem;
+.section-heading h2 {
+  position: relative;
+  display: inline-block;
+
+  &::after {
+    content: "";
+    position: absolute;
+
+    left: 50%;
+    bottom: -12px;
+    transform: translateX(-50%);
+
+    width: 400px;
+    height: 4px;
+
+    border-radius: 999px;
+
+    background: linear-gradient(
+      90deg,
+      rgba(255, 107, 45, 0) 0%,
+      #ff6b2d 15%,
+      #ff6b2d 85%,
+      rgba(255, 107, 45, 0) 100%
+    );
+  }
 }
 
 .section-heading {
-  margin-bottom: clamp(5.5rem, 25vh, 7.2rem);
+  margin-bottom: 5rem;
   text-align: center;
 }
 
 .section-heading h2,
 .menu-intro h2 {
-  margin: 0;
+   margin-top: 2rem;
   font-size: clamp(2.4rem, 5.4vw, 3rem);
   font-weight: 600;
   line-height: 1.08;
@@ -131,7 +159,7 @@ app-customer-hero,
 
 .section-heading p {
   width: min(100%, 36rem);
-  margin: 1.5rem auto 0;
+  margin: 0rem auto;
   color: rgb(255 255 255 / 72%);
   font-family: "Inter", Arial, sans-serif;
 }

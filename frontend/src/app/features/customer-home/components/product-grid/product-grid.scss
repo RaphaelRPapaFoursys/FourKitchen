@@ -95,6 +95,20 @@
   background: var(--primary);
   color: var(--white);
   cursor: pointer;
+
+   transition:
+    transform .15s ease,
+    box-shadow .2s ease,
+    background .2s ease;
+}
+
+.product-card__footer button:hover:not(:disabled) {
+  transform: scale(1.08);
+  box-shadow: 0 8px 18px rgb(255 75 31 / 35%);
+}
+
+.product-card__footer button:active:not(:disabled) {
+  transform: scale(.92);
 }
 
 .product-card__footer button:disabled {
