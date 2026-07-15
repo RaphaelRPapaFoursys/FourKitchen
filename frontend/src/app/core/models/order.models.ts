@@ -14,6 +14,8 @@ export interface PedidoStatusItemResponse {
   idProduto: number;
   nome?: string | null;
   quantidade: number;
+  precoUnitario: number | null;
+  valorTotal: number;
   observacao?: string;
 }
 
@@ -26,7 +28,16 @@ export interface PedidoMesaStatusResponse {
   idAtendimento: number;
   codigoAtendimento: number;
   dataCriacao: string;
+  valorTotal: number;
   itens: PedidoStatusItemResponse[];
+}
+
+export interface ResumoContaMesaResponse {
+  idAtendimento: number;
+  codigoAtendimento: number;
+  valorFinal: number;
+  totalPedidos: number;
+  totalItens: number;
 }
 
 export interface MesaAtendimentoAtualResponse {

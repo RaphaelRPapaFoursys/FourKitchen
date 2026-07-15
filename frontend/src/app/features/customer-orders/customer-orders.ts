@@ -1,9 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { finalize, switchMap, tap } from 'rxjs';
+import { finalize, forkJoin, switchMap, tap } from 'rxjs';
 
-import { MesaAtendimentoAtualResponse, PedidoMesaStatusResponse, PedidoStatus } from '../../core/models/order.models';
+import {
+  MesaAtendimentoAtualResponse,
+  PedidoMesaStatusResponse,
+  PedidoStatus,
+  ResumoContaMesaResponse,
+} from '../../core/models/order.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { OrderService } from '../../core/services/order.service';
@@ -34,6 +39,7 @@ export class CustomerOrders {
   protected readonly totalItems = computed(() => this.cartService.getSummary('mesa').totalItems);
   protected readonly atendimentoAtual = signal<MesaAtendimentoAtualResponse | null>(null);
   protected readonly carregandoAtendimento = signal(true);
+  protected readonly resumoConta = signal<ResumoContaMesaResponse | null>(null);
   protected readonly state = signal<MesaOrdersState>({
     status: 'loading',
     orders: [],
@@ -45,6 +51,8 @@ export class CustomerOrders {
   }
 
   protected loadMesaOrders(): void {
+    this.carregandoAtendimento.set(true);
+    this.resumoConta.set(null);
     this.state.set({
       status: 'loading',
       orders: [],
@@ -54,11 +62,15 @@ export class CustomerOrders {
     this.orderService.getCurrentTableAttendance()
       .pipe(
         tap(atendimento => this.atendimentoAtual.set(atendimento)),
-        switchMap(attendance => this.orderService.getMesaOrders(attendance.codigoAtendimento)),
+        switchMap(attendance => forkJoin({
+          orders: this.orderService.getMesaOrders(attendance.codigoAtendimento),
+          resumo: this.orderService.getMesaAccountSummary(attendance.codigoAtendimento),
+        })),
         finalize(() => this.carregandoAtendimento.set(false)),
       )
       .subscribe({
-        next: orders => {
+        next: ({ orders, resumo }) => {
+          this.resumoConta.set(resumo);
           this.state.set(
             orders.length > 0
               ? { status: 'success', orders, message: '' }
@@ -71,6 +83,7 @@ export class CustomerOrders {
         },
         error: () => {
           this.atendimentoAtual.set(null);
+          this.resumoConta.set(null);
           this.state.set({
             status: 'error',
             orders: [],
@@ -138,5 +151,12 @@ export class CustomerOrders {
 
   protected getItemName(item: PedidoMesaStatusResponse['itens'][number]): string {
     return item.nome?.trim() || `Produto #${item.idProduto}`;
+  }
+
+  protected formatPrice(price: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(price);
   }
 }
