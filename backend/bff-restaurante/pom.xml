@@ -107,6 +107,10 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
+        </dependency>
 
     </dependencies>
 	<dependencyManagement>

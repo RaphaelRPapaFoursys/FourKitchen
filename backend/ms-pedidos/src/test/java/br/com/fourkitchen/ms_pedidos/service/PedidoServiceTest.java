@@ -63,7 +63,15 @@ class PedidoServiceTest {
 
     @Test
     void createPedidoDeveGerarCodigoEnviarParaCozinhaVincularAtendimentoESalvarItens() {
-        ProdutoPedidoRequest item = new ProdutoPedidoRequest(10, "X-Burger", 2, new BigDecimal("29.90"), "Sem cebola");
+
+        ProdutoPedidoRequest item = new ProdutoPedidoRequest(
+                10,
+                "X-Burger",
+                2,
+                new BigDecimal("29.90"),
+                "Sem cebola"
+        );
+
         CriarPedidoRequest request = new CriarPedidoRequest(
                 null,
                 null,
@@ -74,11 +82,13 @@ class PedidoServiceTest {
                 8,
                 List.of(item)
         );
+
         Pedido pedido = Pedido.builder()
                 .canal(CanaisPedido.MESA)
                 .idMesa(1)
                 .idAtendimento(8)
                 .build();
+
         PedidoResponse response = new PedidoResponse(
                 25,
                 123456,
@@ -91,10 +101,13 @@ class PedidoServiceTest {
 
         when(criarPedidoRequestMapper.map(request)).thenReturn(pedido);
         when(pedidoRepository.existsByCodigo(anyInt())).thenReturn(false);
-        when(pedidoRepository.save(pedido)).thenAnswer(invocation -> {
-            pedido.setId(25);
-            return pedido;
+
+        when(pedidoRepository.saveAndFlush(any(Pedido.class))).thenAnswer(invocation -> {
+            Pedido p = invocation.getArgument(0);
+            p.setId(25);
+            return p;
         });
+
         when(pedidoResponseMapper.map(pedido)).thenReturn(response);
 
         PedidoResponse resultado = pedidoService.createPedido(request);
@@ -104,10 +117,17 @@ class PedidoServiceTest {
         assertEquals(StatusPedido.ENVIADO_COZINHA, pedido.getStatus());
         assertEquals(8, pedido.getIdAtendimento());
 
-        ArgumentCaptor<ProdutoPedido> produtoPedidoCaptor = ArgumentCaptor.forClass(ProdutoPedido.class);
-        verify(produtoPedidoRepository).save(produtoPedidoCaptor.capture());
+        ArgumentCaptor<List<ProdutoPedido>> captor =
+                ArgumentCaptor.forClass(List.class);
 
-        ProdutoPedido produtoPedido = produtoPedidoCaptor.getValue();
+        verify(produtoPedidoRepository).saveAll(captor.capture());
+
+        List<ProdutoPedido> produtos = captor.getValue();
+
+        assertEquals(1, produtos.size());
+
+        ProdutoPedido produtoPedido = produtos.get(0);
+
         assertEquals(25, produtoPedido.getIdPedido());
         assertEquals(10, produtoPedido.getIdProduto());
         assertEquals("X-Burger", produtoPedido.getNomeProduto());
@@ -115,13 +135,22 @@ class PedidoServiceTest {
         assertEquals(new BigDecimal("29.90"), produtoPedido.getPrecoUnitario());
         assertEquals("Sem cebola", produtoPedido.getObservacao());
         assertEquals(StatusProdutoPedido.DISPONIVEL, produtoPedido.getStatus());
-        verify(pedidoRepository).save(pedido);
+
+        verify(pedidoRepository).saveAndFlush(pedido);
         verify(pedidoResponseMapper).map(pedido);
     }
 
     @Test
     void createPedidoTotemDevePermitirPedidoSemMesa() {
-        ProdutoPedidoRequest item = new ProdutoPedidoRequest(10, "X-Burger", 2, new BigDecimal("29.90"), "Sem cebola");
+
+        ProdutoPedidoRequest item = new ProdutoPedidoRequest(
+                10,
+                "X-Burger",
+                2,
+                new BigDecimal("29.90"),
+                "Sem cebola"
+        );
+
         CriarPedidoRequest request = new CriarPedidoRequest(
                 null,
                 null,
@@ -132,9 +161,11 @@ class PedidoServiceTest {
                 null,
                 List.of(item)
         );
+
         Pedido pedido = Pedido.builder()
                 .canal(CanaisPedido.TOTEM)
                 .build();
+
         PedidoResponse response = new PedidoResponse(
                 25,
                 123456,
@@ -147,10 +178,13 @@ class PedidoServiceTest {
 
         when(criarPedidoRequestMapper.map(request)).thenReturn(pedido);
         when(pedidoRepository.existsByCodigo(anyInt())).thenReturn(false);
-        when(pedidoRepository.save(pedido)).thenAnswer(invocation -> {
-            pedido.setId(25);
-            return pedido;
+
+        when(pedidoRepository.saveAndFlush(any(Pedido.class))).thenAnswer(invocation -> {
+            Pedido p = invocation.getArgument(0);
+            p.setId(25);
+            return p;
         });
+
         when(pedidoResponseMapper.map(pedido)).thenReturn(response);
 
         PedidoResponse resultado = pedidoService.createPedido(request);
@@ -159,12 +193,19 @@ class PedidoServiceTest {
         assertNotNull(pedido.getCodigo());
         assertEquals(CanaisPedido.TOTEM, pedido.getCanal());
         assertEquals(StatusPedido.ENVIADO_COZINHA, pedido.getStatus());
-        assertEquals(null, pedido.getIdMesa());
+        assertNull(pedido.getIdMesa());
 
-        ArgumentCaptor<ProdutoPedido> produtoPedidoCaptor = ArgumentCaptor.forClass(ProdutoPedido.class);
-        verify(produtoPedidoRepository).save(produtoPedidoCaptor.capture());
+        ArgumentCaptor<List<ProdutoPedido>> captor =
+                ArgumentCaptor.forClass(List.class);
 
-        ProdutoPedido produtoPedido = produtoPedidoCaptor.getValue();
+        verify(produtoPedidoRepository).saveAll(captor.capture());
+
+        List<ProdutoPedido> produtos = captor.getValue();
+
+        assertEquals(1, produtos.size());
+
+        ProdutoPedido produtoPedido = produtos.get(0);
+
         assertEquals(25, produtoPedido.getIdPedido());
         assertEquals(10, produtoPedido.getIdProduto());
         assertEquals("X-Burger", produtoPedido.getNomeProduto());
@@ -172,7 +213,8 @@ class PedidoServiceTest {
         assertEquals(new BigDecimal("29.90"), produtoPedido.getPrecoUnitario());
         assertEquals("Sem cebola", produtoPedido.getObservacao());
         assertEquals(StatusProdutoPedido.DISPONIVEL, produtoPedido.getStatus());
-        verify(pedidoRepository).save(pedido);
+
+        verify(pedidoRepository).saveAndFlush(pedido);
         verify(pedidoResponseMapper).map(pedido);
     }
 

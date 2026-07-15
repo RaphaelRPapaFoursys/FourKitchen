@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,7 @@ public class PedidoService {
     @Autowired
     private CriarPedidoRequestMapper criarPedidoRequestMapper;
 
+    @Transactional
     public PedidoResponse createPedido(CriarPedidoRequest pedidoRequest) {
         Pedido pedido = criarPedidoRequestMapper.map(pedidoRequest);
 
@@ -79,7 +81,9 @@ public class PedidoService {
 
         pedido.setStatus(StatusPedido.ENVIADO_COZINHA);
 
-        pedidoRepository.save(pedido);
+        pedidoRepository.saveAndFlush(pedido);
+
+        List<ProdutoPedido> produtosPedido = new ArrayList<>();
 
         if (pedidoRequest.itens() != null) {
             for (ProdutoPedidoRequest item : pedidoRequest.itens()) {
@@ -94,9 +98,11 @@ public class PedidoService {
                         .status(StatusProdutoPedido.DISPONIVEL)
                         .build();
 
-                produtoPedidoRepository.save(produtoPedido);
+                produtosPedido.add(produtoPedido);
             }
         }
+
+        produtoPedidoRepository.saveAll(produtosPedido);
 
         return pedidoResponseMapper.map(pedido);
     }

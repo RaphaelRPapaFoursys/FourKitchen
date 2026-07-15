@@ -26,6 +26,7 @@ public class ProdutoPedidoService {
     @Autowired
     private CriarProdutoPedidoRequestMapper criarProdutoPedidoRequestMapper;
 
+    @Transactional
     public void createProdutoPedido(CriarProdutoPedidoRequest produtoPedidoRequest) {
         ProdutoPedido produtoPedido = criarProdutoPedidoRequestMapper.map(produtoPedidoRequest);
 
