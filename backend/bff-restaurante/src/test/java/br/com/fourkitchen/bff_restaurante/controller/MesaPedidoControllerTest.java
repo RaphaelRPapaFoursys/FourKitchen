@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.dto.request.ItemPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.ItemPedidoMesaStatusResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaStatusResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ResumoContaMesaResponse;
 import br.com.fourkitchen.bff_restaurante.service.MesaPedidoService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -69,7 +71,15 @@ class MesaPedidoControllerTest {
                 8,
                 123456,
                 LocalDateTime.of(2026, 7, 2, 10, 30),
-                List.of(new ItemPedidoMesaStatusResponse(10, null, 2, "Sem cebola"))
+                new BigDecimal("59.80"),
+                List.of(new ItemPedidoMesaStatusResponse(
+                        10,
+                        null,
+                        2,
+                        new BigDecimal("29.90"),
+                        new BigDecimal("59.80"),
+                        "Sem cebola"
+                ))
         );
 
         when(mesaPedidoService.listarPedidosDoAtendimentoAtual(123456, authentication))
@@ -81,5 +91,26 @@ class MesaPedidoControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertEquals(List.of(pedidoResponse), response.getBody());
         verify(mesaPedidoService).listarPedidosDoAtendimentoAtual(123456, authentication);
+    }
+
+    @Test
+    void buscarResumoContaAtualDeveRetornarOk() {
+        Authentication authentication = mock(Authentication.class);
+        ResumoContaMesaResponse resumo = new ResumoContaMesaResponse(
+                8,
+                123456,
+                new BigDecimal("149.70"),
+                3,
+                7
+        );
+
+        when(mesaPedidoService.buscarResumoContaAtual(123456, authentication)).thenReturn(resumo);
+
+        ResponseEntity<ResumoContaMesaResponse> response =
+                mesaPedidoController.buscarResumoContaAtual(123456, authentication);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertSame(resumo, response.getBody());
+        verify(mesaPedidoService).buscarResumoContaAtual(123456, authentication);
     }
 }

@@ -2,6 +2,7 @@ package br.com.fourkitchen.bff_restaurante.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,6 +44,9 @@ public record PedidoMesaStatusResponse(
 
         @Schema(description = "Data e hora de criacao do pedido", example = "2026-07-02T10:30:00", nullable = true)
         LocalDateTime dataCriacao,
+
+        @Schema(description = "Valor total cobrado pelo pedido", example = "59.80")
+        BigDecimal valorTotal,
 
         @Schema(description = "Itens do pedido")
         List<ItemPedidoMesaStatusResponse> itens

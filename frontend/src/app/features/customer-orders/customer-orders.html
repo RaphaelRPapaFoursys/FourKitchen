@@ -76,7 +76,17 @@
               <ul class="order-card__items">
                 @for (item of order.itens; track item.idProduto) {
                   <li>
-                    <span>{{ item.quantidade }}x {{ getItemName(item) }}</span>
+                    <div class="order-card__item-line">
+                      <span>{{ item.quantidade }}x {{ getItemName(item) }}</span>
+                      @if (item.precoUnitario !== null) {
+                        <strong>{{ formatPrice(item.valorTotal) }}</strong>
+                      } @else {
+                        <strong>Preco indisponivel</strong>
+                      }
+                    </div>
+                    @if (item.precoUnitario !== null && item.quantidade > 1) {
+                      <small>{{ formatPrice(item.precoUnitario) }} por unidade</small>
+                    }
                     @if (item.observacao) {
                       <small>{{ item.observacao }}</small>
                     }
@@ -84,9 +94,24 @@
                 }
               </ul>
             }
+
+            <div class="order-card__total">
+              <span>{{ order.status === 'CANCELADO' ? 'Total cobrado' : 'Total do pedido' }}</span>
+              <strong>{{ formatPrice(order.valorTotal) }}</strong>
+            </div>
           </article>
         }
       </div>
+
+      @if (resumoConta(); as resumo) {
+        <aside class="orders-summary" aria-label="Resumo da conta da mesa">
+          <div>
+            <span>Total da conta</span>
+            <small>{{ resumo.totalPedidos }} pedido(s) · {{ resumo.totalItens }} item(ns)</small>
+          </div>
+          <strong>{{ formatPrice(resumo.valorFinal) }}</strong>
+        </aside>
+      }
     }
   </section>
 </main>

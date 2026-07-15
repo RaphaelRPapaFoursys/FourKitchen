@@ -62,6 +62,7 @@ export class CustomerOrders {
   protected readonly totalItems = computed(() => this.cartService.getSummary('mesa').totalItems);
   protected readonly atendimentoAtual = signal<MesaAtendimentoAtualResponse | null>(null);
   protected readonly carregandoAtendimento = signal(true);
+  protected readonly resumoConta = signal<ResumoContaMesaResponse | null>(null);
   protected readonly state = signal<MesaOrdersState>({
     status: 'loading',
     orders: [],
@@ -73,6 +74,8 @@ export class CustomerOrders {
   }
 
   protected loadMesaOrders(): void {
+    this.carregandoAtendimento.set(true);
+    this.resumoConta.set(null);
     this.state.set({
       status: 'loading',
       orders: [],
@@ -206,5 +209,12 @@ export class CustomerOrders {
 
   protected getItemName(item: PedidoMesaStatusResponse['itens'][number]): string {
     return item.nome?.trim() || `Produto #${item.idProduto}`;
+  }
+
+  protected formatPrice(price: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(price);
   }
 }

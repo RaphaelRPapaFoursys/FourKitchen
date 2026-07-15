@@ -107,4 +107,23 @@ describe('CustomerOrders', () => {
 
     expect(orderCodes).toEqual(['#100002', '#100004', '#100001', '#100003']);
   });
+    
+  it('shows item, order and account totals', () => {
+    const item = fixture.nativeElement.querySelector('.order-card__item-line') as HTMLElement;
+    const orderTotal = fixture.nativeElement.querySelector('.order-card__total') as HTMLElement;
+    const accountTotal = fixture.nativeElement.querySelector('.orders-summary') as HTMLElement;
+
+    expect(item.textContent).toContain('2x X-Burger');
+    expect(item.textContent).toContain('R$ 59,80');
+    expect(orderTotal.textContent).toContain('Total do pedido');
+    expect(orderTotal.textContent).toContain('R$ 59,80');
+    expect(accountTotal.textContent).toContain('Total da conta');
+    expect(accountTotal.textContent).toContain('R$ 149,70');
+  });
+
+  it('shows the complete preparation status', () => {
+    const status = fixture.nativeElement.querySelector('.orders-status') as HTMLElement;
+
+    expect(status.textContent?.trim()).toBe('Em preparo');
+  });
 });
