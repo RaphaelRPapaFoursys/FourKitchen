@@ -3,6 +3,17 @@
   font-family: "Nunito", sans-serif;
 }
 
+
+@keyframes floatingCart {
+  0%,100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
 .floating-cart {
   position: fixed;
   right: clamp(1rem, 3vw, 2rem);
@@ -17,7 +28,19 @@
   background: #ff4b1f;
   box-shadow: 0 16px 30px rgb(255 75 31 / 32%);
   cursor: pointer;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+
+  animation: floatingCart 3s ease-in-out infinite;
 }
+
+.floating-cart:hover {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 20px 36px rgb(255 75 31 / 45%);
+}
+
 
 .floating-cart img {
   width: 1.55rem;

@@ -28,37 +28,42 @@
 
   <app-customer-hero (sectionSelected)="scrollToSection($event.sectionId, $event.event)" />
 
-  <section class="categories" id="categorias" aria-labelledby="categories-title">
-    <div class="categories__inner">
-      <header class="section-heading">
-        <h2 id="categories-title">Nossas Categorias</h2>
-        <p>Escolha uma categoria para explorar os itens disponiveis.</p>
-      </header>
+ <section class="categories" id="categorias" aria-labelledby="categories-title">
+  <div class="categories__inner">
+    <header class="section-heading">
+      <h2 id="categories-title">Nossas Categorias</h2>
+      <p>Escolha uma categoria para explorar os itens disponiveis.</p>
+    </header>
 
-      @if (categoryState().status === 'loading') {
-        <p class="state-message" role="status">{{ categoryState().message }}</p>
-      } @else if (categoryState().status === 'error') {
-        <div class="state-message state-message--error" role="alert">
-          <p>{{ categoryState().message }}</p>
-          <button type="button" (click)="retryLoadMenu()">Tentar novamente</button>
-        </div>
-      } @else if (categories().length === 0) {
-        <p class="state-message">Nenhuma categoria disponivel no momento.</p>
-      } @else {
-        <app-category-carousel
-          [categories]="categories()"
-          [selectedCategoryId]="selectedCategoryId()"
-          [canScrollLeft]="canScrollCategoriesLeft()"
-          [canScrollRight]="canScrollCategoriesRight()"
-          [categoryImage]="getCategoryImage.bind(this)"
-          [trackCategory]="trackByCategoryId.bind(this)"
-          (categorySelected)="selectCategoryFromCard($event)"
-          (scrollRequested)="scrollCategories($event)"
-          (scrolled)="updateCategoriesScrollState()"
-        />
-      }
-    </div>
-  </section>
+    @if (categoryState().status === 'loading') {
+      <p class="state-message" role="status">{{ categoryState().message }}</p>
+    } @else if (categoryState().status === 'error') {
+      <div class="state-message state-message--error" role="alert">
+        <p>{{ categoryState().message }}</p>
+        <button type="button" (click)="retryLoadMenu()">Tentar novamente</button>
+      </div>
+    } @else if (categories().length === 0) {
+      <p class="state-message">Nenhuma categoria disponivel no momento.</p>
+    }
+  </div>
+
+  @if (categoryState().status !== 'loading'
+      && categoryState().status !== 'error'
+      && categories().length > 0) {
+
+    <app-category-carousel
+      [categories]="categories()"
+      [selectedCategoryId]="selectedCategoryId()"
+      [canScrollLeft]="canScrollCategoriesLeft()"
+      [canScrollRight]="canScrollCategoriesRight()"
+      [categoryImage]="getCategoryImage.bind(this)"
+      [trackCategory]="trackByCategoryId.bind(this)"
+      (categorySelected)="selectCategoryFromCard($event)"
+      (scrollRequested)="scrollCategories($event)"
+      (scrolled)="updateCategoriesScrollState()"
+    />
+  }
+</section>
 
   <section class="menu-intro" aria-labelledby="menu-title">
     <img class="menu-intro__banner" src="assets/banner1.png" alt="" aria-hidden="true" />

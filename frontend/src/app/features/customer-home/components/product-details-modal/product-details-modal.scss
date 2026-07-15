@@ -2,6 +2,28 @@
   display: block;
 }
 
+@keyframes fadeBackdrop {
+  from {
+    background: rgb(0 0 0 / 0%);
+  }
+
+  to {
+    background: rgb(0 0 0 / 74%);
+  }
+}
+
+@keyframes modalOpen {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .product-modal {
   position: fixed;
   inset: 0;
@@ -22,7 +44,9 @@
   border-radius: 18px;
   background: #fffaf4;
   box-shadow: 0 28px 70px rgb(0 0 0 / 34%);
+  animation: modalOpen .35s ease;
 }
+
 
 .product-modal__close {
   position: absolute;
@@ -40,6 +64,14 @@
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 600;
+  transition:
+    transform .2s ease,
+    background .2s ease;
+}
+
+.product-modal__close:hover {
+  background: white;
+  transform: rotate(90deg) scale(1.05);
 }
 
 .product-modal__media {
@@ -117,6 +149,15 @@
   background: var(--white);
   color: var(--text);
   font: inherit;
+   transition:
+    border-color .25s ease,
+    box-shadow .25s ease;
+}
+
+.product-modal__notes textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgb(255 75 31 / 15%);
 }
 
 .product-modal__actions {
@@ -141,6 +182,18 @@
   border: 0;
   cursor: pointer;
   font: inherit;
+  transition:
+    background .2s ease,
+    transform .15s ease,
+    color .2s ease;
+}
+
+.quantity-control button:hover {
+  background: rgba(255,75,31,.08);
+}
+
+.quantity-control button:active {
+  transform: scale(.85);
 }
 
 .quantity-control button {
@@ -169,11 +222,29 @@
   box-shadow: 0 14px 24px rgb(255 75 31 / 22%);
   font-size: clamp(1.25rem, 2.4vw, 1.9rem);
   font-weight: 400;
+   transition:
+    transform .18s ease,
+    box-shadow .25s ease,
+    background-color .25s ease;
+}
+
+.product-modal__add:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 35px rgb(255 75 31 / 35%);
+}
+
+.product-modal__add:active:not(:disabled) {
+  transform: scale(.97);
 }
 
 .product-modal__add img {
   width: 1.45rem;
   filter: brightness(0) invert(1);
+   transition: transform .25s ease;
+}
+
+.product-modal__add:hover img {
+  transform: translateX(4px);
 }
 
 .product-modal__add:disabled {

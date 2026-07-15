@@ -97,6 +97,18 @@
   background: transparent;
   color: var(--primary);
   font-size: 1.25rem;
+  transition:
+    background .2s ease,
+    color .2s ease,
+    transform .15s ease;
+}
+
+.cart-item__quantity button:hover {
+  background: rgba(255, 75, 31, .08);
+}
+
+.cart-item__quantity button:active {
+  transform: scale(.88);
 }
 
 .cart-item__quantity span {
@@ -119,6 +131,20 @@
   background: #f3eee9;
   color: var(--muted-text);
   font-weight: 600;
+  transition:
+    background .25s ease,
+    color .25s ease,
+    transform .2s ease;
+}
+
+.cart-item__remove:hover {
+  background: #ff4b1f;
+  color: white;
+  transform: rotate(90deg);
+}
+
+.cart-item__remove:active {
+  transform: rotate(90deg) scale(.9);
 }
 
 @media (max-width: 1040px) {

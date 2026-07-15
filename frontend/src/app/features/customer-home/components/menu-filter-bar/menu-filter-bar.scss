@@ -6,30 +6,103 @@
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: rem;
 }
 
 .menu-filters__button {
-  min-width: 7.5rem;
+  position: relative;
+  overflow: hidden;
+
+  min-width: 5.0rem;
   min-height: 2.75rem;
+  padding: 0 1.0rem;
+  margin-bottom: 2.0rem;
+
   border: 0;
   border-radius: var(--pill);
+
   background: var(--muted);
   color: #766c68;
+
   cursor: pointer;
-  font-weight: 400;
+  font: inherit;
+  font-weight: 500;
+
+  transition:
+    background-color .25s ease,
+    color .25s ease,
+    transform .25s ease,
+    box-shadow .25s ease;
 }
 
+/* Brilho passando */
+.menu-filters__button::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: -120%;
+
+  width: 45%;
+  height: 100%;
+
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,.35),
+    transparent
+  );
+
+  transform: skewX(-20deg);
+
+  transition: left .6s ease;
+}
+
+/* Hover */
+.menu-filters__button:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.12);
+}
+
+.menu-filters__button:hover::before {
+  left: 160%;
+}
+
+/* Clique */
+.menu-filters__button:active {
+  transform: scale(.97);
+}
+
+/* Botão selecionado */
 .menu-filters__button--active {
   background: var(--primary);
   color: var(--white);
+
+  box-shadow:
+    0 8px 20px rgba(255,75,31,.3);
+}
+
+/* Hover do ativo */
+.menu-filters__button--active:hover {
+  background: #ff5a2c;
+
+  box-shadow:
+    0 10px 24px rgba(255,75,31,.4);
 }
 
 @media (max-width: 640px) {
   .menu-filters {
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 0.35rem;
+    padding-bottom: .35rem;
+
+    scrollbar-width: none;
+  }
+
+  .menu-filters::-webkit-scrollbar {
+    display: none;
   }
 
   .menu-filters__button {

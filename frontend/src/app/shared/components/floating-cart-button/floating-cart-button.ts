@@ -46,4 +46,6 @@ export class FloatingCartButton {
   protected goToCart(): void {
     this.router.navigate([this.customerContextService.getCartRoute(this.context())]);
   }
+
+  
 }

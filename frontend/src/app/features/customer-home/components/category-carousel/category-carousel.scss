@@ -4,6 +4,7 @@
 
 .categories-carousel {
   position: relative;
+
 }
 
 .categories__grid {
@@ -11,7 +12,7 @@
   gap: clamp(1.75rem, 3.4vw, 2.6rem);
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 6.25rem 0.25rem 0.6rem;
+  padding: 6.5rem 0.25rem 5rem 2.5rem;
   overscroll-behavior-inline: contain;
   scroll-behavior: smooth;
   scroll-snap-type: none;
@@ -56,17 +57,47 @@
     transform 180ms ease;
 }
 
+.categories-carousel__button {
+  position: absolute;
+  top: 54%;
+  z-index: 10;
+
+  display: grid;
+  place-items: center;
+
+  width: 3rem;
+  height: 3rem;
+
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 50%;
+
+  background: rgba(255,255,255,.08);
+  backdrop-filter: blur(10px);
+
+  color: white;
+  font-size: 1.6rem;
+
+  transition: .25s;
+}
+
+.categories-carousel__button:hover{
+    background: rgba(255,255,255,.18);
+    transform: translateY(-50%) scale(1.08);
+}
+
 .categories-carousel__button:hover {
   transform: translateY(-50%) scale(1.08);
 }
 
 .categories-carousel__button--left {
-  left: -1.25rem;
+  left: 1rem;
 }
 
 .categories-carousel__button--right {
-  right: -1.25rem;
+  right: 1em;
 }
+
+
 
 .category-card {
   position: relative;
@@ -74,6 +105,7 @@
   flex: 0 0 clamp(16rem, 24vw, 18rem);
   min-height: 19rem;
   padding: 8.25rem 1.7rem 1.8rem;
+ 
   border: 2px solid rgb(255 255 255 / 86%);
   border-radius: 0 12px 54px 12px;
   background: transparent;
@@ -87,11 +119,23 @@
     color 220ms ease,
     transform 220ms ease,
     border-color 220ms ease;
+    box-shadow:
+    0 0 8px rgba(255,255,255,.06),
+    0 0 18px rgba(255,255,255,.05),
+    0 10px 20px rgba(0,0,0,.35);
 }
 
 .category-card:hover,
 .category-card:focus-visible {
-  transform: translateY(-0.35rem);
+  transform: translateY(-6px);
+
+  box-shadow:
+    0 0 12px rgba(255,255,255,.12),
+    0 0 25px rgba(255,255,255,.10),
+    0 0 45px rgba(255,255,255,.08),
+    0 16px 30px rgba(0,0,0,.45);
+
+  border-color: rgba(255,255,255,.55);
 }
 
 .category-card--active {
