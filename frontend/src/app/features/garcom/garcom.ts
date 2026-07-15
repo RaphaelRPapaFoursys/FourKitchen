@@ -32,6 +32,7 @@ import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 
 type FiltroMesa = 'todas' | 'chamadas' | 'problemas';
 type AcaoDecisao = 'REMOVER_ITEM' | 'SUBSTITUIR_ITEM' | 'CANCELAR_PEDIDO';
+type ModoDivisaoConta = 'UNICA' | 'DIVIDIDA';
 
 const STATUS_PROBLEMA = new Set(['AGUARDANDO_DECISAO', 'PROBLEMA_COZINHA']);
 const INTERVALO_ATUALIZACAO_MS = 10_000;
@@ -72,6 +73,8 @@ export class Garcom {
   protected readonly mesaEmFechamento = signal<number | null>(null);
   protected readonly erroFechamento = signal('');
   protected readonly pedidoEmEntrega = signal<number | null>(null);
+  protected readonly modoDivisaoConta = signal<ModoDivisaoConta>('UNICA');
+  protected readonly quantidadePessoas = signal(2);
 
   protected readonly mesaEmDetalhe = signal<MesaGarcomResponse | null>(null);
   protected readonly detalheSelecionado = signal<MesaProblemasGarcomResponse | null>(null);
@@ -475,6 +478,8 @@ export class Garcom {
       return;
     }
     this.erroFechamento.set('');
+    this.modoDivisaoConta.set('UNICA');
+    this.quantidadePessoas.set(2);
     this.mesaParaFechar.set(mesa);
   }
 
@@ -508,7 +513,37 @@ export class Garcom {
     if (this.mesaEmFechamento() === null) {
       this.mesaParaFechar.set(null);
       this.erroFechamento.set('');
+      this.modoDivisaoConta.set('UNICA');
     }
+  }
+
+  protected selecionarModoDivisao(modo: ModoDivisaoConta): void {
+    this.modoDivisaoConta.set(modo);
+  }
+
+  protected alterarQuantidadePessoas(variacao: number): void {
+    this.quantidadePessoas.update(quantidade => Math.min(20, Math.max(2, quantidade + variacao)));
+  }
+
+  protected parcelasConta(total: number): number[] {
+    if (this.modoDivisaoConta() === 'UNICA') {
+      return [total];
+    }
+
+    const totalEmCentavos = Math.round(total * 100);
+    const quantidade = this.quantidadePessoas();
+    const valorBase = Math.floor(totalEmCentavos / quantidade);
+    const centavosRestantes = totalEmCentavos % quantidade;
+
+    return Array.from(
+      { length: quantidade },
+      (_, indice) => (valorBase + (indice < centavosRestantes ? 1 : 0)) / 100,
+    );
+  }
+
+  protected possuiAjusteDeCentavos(total: number): boolean {
+    return this.modoDivisaoConta() === 'DIVIDIDA'
+      && Math.round(total * 100) % this.quantidadePessoas() !== 0;
   }
 
   protected confirmarFechamento(): void {
@@ -597,12 +632,16 @@ export class Garcom {
     if (!valor) return 'Não informado';
     const data = new Date(valor);
     if (Number.isNaN(data.getTime())) return 'Não informado';
-    return new Intl.DateTimeFormat('pt-BR', {
+    const dataFormatada = new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
+      year: 'numeric',
+    }).format(data);
+    const horario = new Intl.DateTimeFormat('pt-BR', {
       hour: '2-digit',
       minute: '2-digit',
     }).format(data);
+    return `${dataFormatada} | ${horario}`;
   }
 
   protected trackMesa(_: number, mesa: MesaGarcomResponse): number {
