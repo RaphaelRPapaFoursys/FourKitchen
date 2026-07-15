@@ -12,6 +12,7 @@ import {
   PedidoMesaResponse,
   PedidoMesaStatusResponse,
   PedidoTotemResponse,
+  ResumoContaMesaResponse,
 } from '../models/order.models';
 
 @Injectable({
@@ -37,6 +38,13 @@ export class OrderService {
   getMesaOrders(codigoAtendimento: number): Observable<PedidoMesaStatusResponse[]> {
     return this.http.get<PedidoMesaStatusResponse[]>(
       `${environment.apiUrl}/api/mesa/pedidos`,
+      { params: { codigoAtendimento } },
+    );
+  }
+
+  getMesaAccountSummary(codigoAtendimento: number): Observable<ResumoContaMesaResponse> {
+    return this.http.get<ResumoContaMesaResponse>(
+      `${environment.apiUrl}/api/mesa/pedidos/resumo-conta`,
       { params: { codigoAtendimento } },
     );
   }

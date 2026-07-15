@@ -6,12 +6,14 @@ import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.CriarPedidoRequest;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.request.ItemPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaStatusResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ResumoContaMesaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
@@ -197,15 +199,26 @@ class MesaPedidoServiceTest {
                 dataCriacao,
                 null,
                 null,
-                List.of(new ItemPedidoCozinhaResponse(
-                        5,
-                        10,
-                        "Produto teste",
-                        2,
-                        new BigDecimal("29.90"),
-                        "Sem cebola",
-                        "DISPONIVEL"
-                ))
+                List.of(
+                        new ItemPedidoCozinhaResponse(
+                                5,
+                                10,
+                                "Produto teste",
+                                2,
+                                new BigDecimal("29.90"),
+                                "Sem cebola",
+                                "DISPONIVEL"
+                        ),
+                        new ItemPedidoCozinhaResponse(
+                                6,
+                                11,
+                                "Produto removido",
+                                1,
+                                new BigDecimal("10.00"),
+                                null,
+                                "REMOVIDO"
+                        )
+                )
         );
 
         when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
@@ -224,10 +237,13 @@ class MesaPedidoServiceTest {
         assertEquals(8, pedidoResponse.idAtendimento());
         assertEquals(123456, pedidoResponse.codigoAtendimento());
         assertEquals(dataCriacao, pedidoResponse.dataCriacao());
+        assertEquals(new BigDecimal("59.80"), pedidoResponse.valorTotal());
         assertEquals(1, pedidoResponse.itens().size());
         assertEquals(10, pedidoResponse.itens().getFirst().idProduto());
         assertEquals("Produto teste", pedidoResponse.itens().getFirst().nome());
         assertEquals(2, pedidoResponse.itens().getFirst().quantidade());
+        assertEquals(new BigDecimal("29.90"), pedidoResponse.itens().getFirst().precoUnitario());
+        assertEquals(new BigDecimal("59.80"), pedidoResponse.itens().getFirst().valorTotal());
         assertEquals("Sem cebola", pedidoResponse.itens().getFirst().observacao());
         verify(mesaClient).validarSessaoMesa(1, 123456);
         verify(pedidoClient).listarPedidosDetalhadosPorAtendimento(8);
@@ -248,6 +264,48 @@ class MesaPedidoServiceTest {
         assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
         verify(mesaClient).validarSessaoMesa(1, 123456);
         verify(pedidoClient).listarPedidosDetalhadosPorAtendimento(8);
+    }
+
+    @Test
+    void buscarResumoContaAtualDeveValidarSessaoEMapearResumo() {
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
+        ResumoContaAtendimentoResponse resumo = new ResumoContaAtendimentoResponse(
+                8,
+                new BigDecimal("149.70"),
+                3,
+                7
+        );
+
+        when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
+        when(pedidoClient.buscarResumoContaAtendimento(8)).thenReturn(resumo);
+
+        ResumoContaMesaResponse response =
+                mesaPedidoService.buscarResumoContaAtual(123456, criarAuthenticationMesa());
+
+        assertEquals(8, response.idAtendimento());
+        assertEquals(123456, response.codigoAtendimento());
+        assertEquals(new BigDecimal("149.70"), response.valorFinal());
+        assertEquals(3, response.totalPedidos());
+        assertEquals(7, response.totalItens());
+        verify(mesaClient).validarSessaoMesa(1, 123456);
+        verify(pedidoClient).buscarResumoContaAtendimento(8);
+    }
+
+    @Test
+    void buscarResumoContaAtualDeveMapearFalhaDoMsPedidos() {
+        SessaoMesaResponse sessao = new SessaoMesaResponse(1, 8, 123456, 7, "OCUPADA");
+
+        when(mesaClient.validarSessaoMesa(1, 123456)).thenReturn(sessao);
+        when(pedidoClient.buscarResumoContaAtendimento(8)).thenThrow(feignException(500));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> mesaPedidoService.buscarResumoContaAtual(123456, criarAuthenticationMesa())
+        );
+
+        assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
+        verify(mesaClient).validarSessaoMesa(1, 123456);
+        verify(pedidoClient).buscarResumoContaAtendimento(8);
     }
 
     private CriarPedidoMesaRequest criarRequest() {

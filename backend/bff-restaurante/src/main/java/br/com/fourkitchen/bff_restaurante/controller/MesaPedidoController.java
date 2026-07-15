@@ -3,6 +3,7 @@ package br.com.fourkitchen.bff_restaurante.controller;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarPedidoMesaRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaStatusResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ResumoContaMesaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.MesaPedidoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,7 +86,7 @@ public class MesaPedidoController {
                     description = "Pedidos do atendimento retornados com sucesso",
                     content = @Content(
                             array = @ArraySchema(schema = @Schema(implementation = PedidoMesaStatusResponse.class)),
-                            examples = @ExampleObject(value = "[{\"id\":25,\"codigo\":100025,\"canal\":\"MESA\",\"status\":\"ENVIADO_COZINHA\",\"idMesa\":1,\"idAtendimento\":8,\"codigoAtendimento\":123456,\"dataCriacao\":\"2026-07-02T10:30:00\",\"itens\":[{\"idProduto\":10,\"nome\":null,\"quantidade\":2,\"observacao\":\"Sem cebola\"}]}]")
+                            examples = @ExampleObject(value = "[{\"id\":25,\"codigo\":100025,\"canal\":\"MESA\",\"status\":\"ENVIADO_COZINHA\",\"idMesa\":1,\"idAtendimento\":8,\"codigoAtendimento\":123456,\"dataCriacao\":\"2026-07-02T10:30:00\",\"valorTotal\":59.80,\"itens\":[{\"idProduto\":10,\"nome\":\"X-Burger\",\"quantidade\":2,\"precoUnitario\":29.90,\"valorTotal\":59.80,\"observacao\":\"Sem cebola\"}]}]")
                     )
             ),
             @ApiResponse(
@@ -107,6 +108,39 @@ public class MesaPedidoController {
     ) {
         return ResponseEntity.ok(
                 mesaPedidoService.listarPedidosDoAtendimentoAtual(codigoAtendimento, authentication)
+        );
+    }
+
+    @GetMapping("/resumo-conta")
+    @Operation(
+            summary = "Consulta o resumo da conta da mesa",
+            description = "Identifica a mesa pelo token, valida o atendimento atual e retorna o valor final e os totais considerados na conta."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Resumo da conta retornado com sucesso",
+                    content = @Content(
+                            schema = @Schema(implementation = ResumoContaMesaResponse.class),
+                            examples = @ExampleObject(value = "{\"idAtendimento\":8,\"codigoAtendimento\":123456,\"valorFinal\":149.70,\"totalPedidos\":3,\"totalItens\":7}")
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Codigo de atendimento invalido ou sessao da mesa invalida",
+                    content = @Content(schema = @Schema(implementation = ErrorObject.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem perfil MESA", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<ResumoContaMesaResponse> buscarResumoContaAtual(
+            @Parameter(description = "Codigo do atendimento/sessao exibido no tablet da mesa", example = "123456")
+            @RequestParam("codigoAtendimento") Integer codigoAtendimento,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        return ResponseEntity.ok(
+                mesaPedidoService.buscarResumoContaAtual(codigoAtendimento, authentication)
         );
     }
 }
