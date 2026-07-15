@@ -719,7 +719,8 @@ button:disabled {
   font-weight: 800;
 }
 
-.replacement-fields select {
+.replacement-fields select,
+.replacement-fields textarea {
   width: 100%;
   min-height: 2.65rem;
   padding: 0.45rem 0.65rem;
@@ -727,6 +728,11 @@ button:disabled {
   border-radius: var(--fk-radius-control);
   background: var(--fk-card);
   color: var(--fk-text);
+}
+
+.replacement-fields textarea {
+  min-height: 5rem;
+  resize: vertical;
 }
 
 .replacement-fields small {
