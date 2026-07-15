@@ -112,6 +112,7 @@ class GarcomProblemaServiceTest {
                 "MESA",
                 "AGUARDANDO_DECISAO",
                 1,
+                10,
                 8,
                 LocalDateTime.of(2026, 7, 2, 10, 30),
                 null,

@@ -31,6 +31,7 @@ export interface PedidoFilaCozinhaResponse {
   canal: string;
   status: StatusPedidoCozinha;
   idMesa: number | null;
+  origem: string;
   idAtendimento: number | null;
   dataCriacao: string;
   dataInicioPreparo: string | null;

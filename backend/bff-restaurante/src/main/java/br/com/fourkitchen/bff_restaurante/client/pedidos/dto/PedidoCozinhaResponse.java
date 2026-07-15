@@ -9,6 +9,7 @@ public record PedidoCozinhaResponse(
         String canal,
         String status,
         Integer idMesa,
+        Integer idUsuario,
         Integer idAtendimento,
         LocalDateTime dataCriacao,
         LocalDateTime dataInicioPreparo,

@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,8 +72,10 @@ public class CozinhaController {
                     )
             )
     })
-    public ResponseEntity<List<PedidoFilaCozinhaResponse>> listarFila() {
-        return ResponseEntity.ok(cozinhaService.listarFila());
+    public ResponseEntity<List<PedidoFilaCozinhaResponse>> listarFila(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        return ResponseEntity.ok(cozinhaService.listarFila(authorization));
     }
 
     @PatchMapping("/pedidos/{id}/iniciar")

@@ -51,3 +51,64 @@ export function mesaCorrespondeBuscaParcial(numero: number | null | undefined, b
     ? numeroFormatado.includes(termo)
     : numeroFormatado === termo;
 }
+
+/** Busca operacional usada na fila da cozinha, sem depender de IDs internos. */
+export function correspondeBuscaFilaCozinha(
+  codigoPedido: number | null | undefined,
+  origem: string | null | undefined,
+  valor: unknown,
+): boolean {
+  const busca = normalizarBuscaOperacional(valor);
+
+  if (!busca) {
+    return true;
+  }
+
+  const origemNormalizada = normalizarBuscaOperacional(origem);
+  const buscaIdentificada = busca.match(/^(mesa|totem|pedido|#)(\d*)$/);
+
+  if (buscaIdentificada) {
+    const [, tipo, numero] = buscaIdentificada;
+
+    if (tipo === 'pedido' || tipo === '#') {
+      return numero !== '' && codigoPedidoCorresponde(codigoPedido, numero);
+    }
+
+    return origemCorresponde(tipo, numero, origemNormalizada);
+  }
+
+  if (/^\d+$/.test(busca)) {
+    return codigoPedidoCorresponde(codigoPedido, busca)
+      || origemCorrespondeNumero(busca, origemNormalizada);
+  }
+
+  return origemNormalizada.includes(busca);
+}
+
+function codigoPedidoCorresponde(codigoPedido: number | null | undefined, busca: string): boolean {
+  return codigoPedido !== null
+    && codigoPedido !== undefined
+    && String(codigoPedido).includes(busca);
+}
+
+function origemCorresponde(tipo: string, numero: string, origem: string): boolean {
+  if (!origem.startsWith(tipo)) {
+    return false;
+  }
+
+  return numero === '' || origemCorrespondeNumero(numero, origem);
+}
+
+function origemCorrespondeNumero(busca: string, origem: string): boolean {
+  const numeroOrigem = origem.match(/\d+$/)?.[0];
+
+  if (!numeroOrigem) {
+    return false;
+  }
+
+  return normalizarNumeroOperacional(numeroOrigem) === normalizarNumeroOperacional(busca);
+}
+
+function normalizarNumeroOperacional(numero: string): string {
+  return numero.replace(/^0+(?=\d)/, '');
+}

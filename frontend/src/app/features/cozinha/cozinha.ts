@@ -18,17 +18,12 @@ import {
 } from '../../core/models/cozinha.models';
 import { CozinhaService } from '../../core/services/cozinha';
 import {
+  correspondeBuscaFilaCozinha,
   normalizarBuscaOperacional,
-  mesaCorrespondeBuscaParcial,
-  numeroContemBusca,
-  numeroBuscaOperacional,
 } from '../../core/utils/operational-search';
 import { Badge } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
-import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 
-type PrioridadePedido = 'urgente' | 'alta' | 'normal';
-type OrdenacaoPedido = 'tempo' | 'prioridade';
 type TipoProblema = SinalizarProblemaRequest['statusProdutoPedido'];
 
 interface ItemPedidoSelecionado {
@@ -44,7 +39,7 @@ interface OpcaoProblema {
 
 @Component({
   selector: 'app-cozinha',
-  imports: [NgTemplateOutlet, Badge, Icon, KpiCard],
+  imports: [NgTemplateOutlet, Badge, Icon],
   templateUrl: './cozinha.html',
   styleUrl: './cozinha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,7 +51,6 @@ export class Cozinha implements OnDestroy {
   private elementoFocoAnterior: HTMLElement | null = null;
   protected readonly pedidos = signal<PedidoFilaCozinhaResponse[]>([]);
   protected readonly busca = signal('');
-  protected readonly ordenacao = signal<OrdenacaoPedido>('tempo');
   protected readonly sincronizadoEm = signal<Date | null>(null);
   protected readonly carregando = signal(false);
   protected readonly atualizando = signal(false);
@@ -105,42 +99,25 @@ export class Cozinha implements OnDestroy {
 
   protected readonly pedidosFiltrados = computed(() => {
     const termo = normalizarBuscaOperacional(this.busca());
-    const prioridadePeso: Record<PrioridadePedido, number> = {
-      urgente: 0,
-      alta: 1,
-      normal: 2,
-    };
-
     return this.pedidos()
       .filter(pedido => {
         if (!termo) {
           return true;
         }
 
-        if (numeroBuscaOperacional(termo) !== null) {
-          return mesaCorrespondeBuscaParcial(pedido.idMesa, termo)
-            || numeroContemBusca(pedido.id, termo)
-            || numeroContemBusca(pedido.codigo, termo)
-            || numeroContemBusca(pedido.idAtendimento, termo);
+        if (correspondeBuscaFilaCozinha(pedido.codigo, pedido.origem, termo)) {
+          return true;
         }
 
         const texto = normalizarBuscaOperacional([
           pedido.status,
           this.origem(pedido),
-          this.prioridade(pedido),
           ...this.itensPedido(pedido).flatMap(item => [this.nomeItem(item), item.observacao]),
         ].join(' '));
 
         return texto.includes(termo);
       })
-      .sort((a, b) => {
-        if (this.ordenacao() === 'prioridade') {
-          return prioridadePeso[this.prioridade(a)] - prioridadePeso[this.prioridade(b)]
-            || this.minutosDesdeReferencia(b) - this.minutosDesdeReferencia(a);
-        }
-
-        return this.minutosDesdeReferencia(b) - this.minutosDesdeReferencia(a);
-      });
+      .sort((a, b) => this.minutosDesdeReferencia(b) - this.minutosDesdeReferencia(a));
   });
 
   protected readonly aguardando = computed(() =>
@@ -159,14 +136,6 @@ export class Cozinha implements OnDestroy {
     this.pedidosFiltrados().filter(pedido => this.statusNormalizado(pedido) === 'AGUARDANDO_DECISAO')
   );
 
-  protected readonly urgentes = computed(() =>
-    this.pedidos().filter(pedido => this.prioridade(pedido) === 'urgente').length
-  );
-
-  protected readonly altas = computed(() =>
-    this.pedidos().filter(pedido => this.prioridade(pedido) === 'alta').length
-  );
-
   protected readonly tempoMedio = computed(() => {
     const pedidos = this.pedidos();
     const total = pedidos.reduce((soma, pedido) => soma + this.minutosDesdeReferencia(pedido), 0);
@@ -176,10 +145,6 @@ export class Cozinha implements OnDestroy {
 
   protected atualizarBusca(event: Event): void {
     this.busca.set((event.target as HTMLInputElement).value);
-  }
-
-  protected alternarOrdenacao(): void {
-    this.ordenacao.update(valor => valor === 'tempo' ? 'prioridade' : 'tempo');
   }
 
   protected atualizarFila(): void {
@@ -307,43 +272,8 @@ export class Cozinha implements OnDestroy {
     });
   }
 
-  protected prioridadeLabel(prioridade: PrioridadePedido): string {
-    const labels: Record<PrioridadePedido, string> = {
-      urgente: 'Urgente',
-      alta: 'Alta',
-      normal: 'Normal',
-    };
-
-    return labels[prioridade];
-  }
-
-  protected prioridade(pedido: PedidoFilaCozinhaResponse): PrioridadePedido {
-    const minutos = this.minutosDesdeCriacao(pedido);
-
-    if (minutos >= 10) {
-      return 'urgente';
-    }
-
-    if (minutos >= 5) {
-      return 'alta';
-    }
-
-    return 'normal';
-  }
-
   protected origem(pedido: PedidoFilaCozinhaResponse): string {
-    if (pedido.idMesa) {
-      return `Mesa ${pedido.idMesa.toString().padStart(2, '0')}`;
-    }
-
-    return pedido.canal.toLowerCase() === 'totem' ? 'Totem' : pedido.canal;
-  }
-
-  protected horario(pedido: PedidoFilaCozinhaResponse): string {
-    return new Date(pedido.dataCriacao).toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return pedido.origem?.trim() || pedido.canal;
   }
 
   protected minutosDesdeCriacao(pedido: PedidoFilaCozinhaResponse): number {
@@ -372,20 +302,6 @@ export class Cozinha implements OnDestroy {
     return (pedido.itens ?? []).filter(item =>
       item.status !== 'REMOVIDO' && item.status !== 'CANCELADO'
     );
-  }
-
-  protected statusLabel(pedido: PedidoFilaCozinhaResponse): string {
-    const labels: Record<string, string> = {
-      ENVIADO_COZINHA: 'Aguardando',
-      EM_PREPARO: 'Em preparo',
-      AGUARDANDO_DECISAO: 'Aguardando decisao',
-      PRONTO: 'Pronto',
-      ENTREGUE: 'Entregue',
-      FINALIZADO: 'Finalizado',
-      CANCELADO: 'Cancelado',
-    };
-
-    return labels[this.statusNormalizado(pedido)] ?? pedido.status;
   }
 
   protected acaoDesabilitada(pedido: PedidoFilaCozinhaResponse): boolean {

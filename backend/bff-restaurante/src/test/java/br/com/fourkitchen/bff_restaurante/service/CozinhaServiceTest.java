@@ -1,9 +1,13 @@
 package br.com.fourkitchen.bff_restaurante.service;
 
+import br.com.fourkitchen.bff_restaurante.client.mesas.MesaClient;
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
+import br.com.fourkitchen.bff_restaurante.client.usuarios.UsuarioClient;
+import br.com.fourkitchen.bff_restaurante.client.usuarios.dto.UsuarioClientResponse;
 import br.com.fourkitchen.bff_restaurante.dto.DestinoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.TipoNotificacao;
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
@@ -40,6 +44,12 @@ class CozinhaServiceTest {
     private PedidoClient pedidoClient;
 
     @Mock
+    private MesaClient mesaClient;
+
+    @Mock
+    private UsuarioClient usuarioClient;
+
+    @Mock
     private NotificacaoService notificacaoService;
 
     @Mock
@@ -53,8 +63,11 @@ class CozinhaServiceTest {
         PedidoCozinhaResponse response = criarResponse();
 
         when(pedidoClient.listarFilaCozinha()).thenReturn(List.of(response));
+        when(mesaClient.listarMesas()).thenReturn(List.of(new MesaClientResponse(
+                1, 2, "OCUPADA", null, null, null, null, 8
+        )));
 
-        List<PedidoFilaCozinhaResponse> resultado = cozinhaService.listarFila();
+        List<PedidoFilaCozinhaResponse> resultado = cozinhaService.listarFila("Bearer token");
 
         assertEquals(1, resultado.size());
         PedidoFilaCozinhaResponse pedido = resultado.getFirst();
@@ -63,6 +76,7 @@ class CozinhaServiceTest {
         assertEquals("MESA", pedido.canal());
         assertEquals("ENVIADO_COZINHA", pedido.status());
         assertEquals(1, pedido.idMesa());
+        assertEquals("Mesa 02", pedido.origem());
         assertEquals(8, pedido.idAtendimento());
         assertEquals(LocalDateTime.of(2026, 7, 2, 10, 30), pedido.dataCriacao());
         assertEquals(LocalDateTime.of(2026, 7, 2, 10, 36), pedido.dataInicioPreparo());
@@ -71,6 +85,7 @@ class CozinhaServiceTest {
         assertEquals("X-Burger", pedido.itens().getFirst().nomeProduto());
         assertEquals("Sem cebola", pedido.itens().getFirst().observacao());
         verify(pedidoClient).listarFilaCozinha();
+        verify(mesaClient).listarMesas();
     }
 
     @Test
@@ -144,10 +159,37 @@ class CozinhaServiceTest {
     void listarFilaDeveMapearMsPedidosIndisponivel() {
         when(pedidoClient.listarFilaCozinha()).thenThrow(feignException(500));
 
-        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.listarFila());
+        BaseException exception = assertThrows(BaseException.class, () -> cozinhaService.listarFila("Bearer token"));
 
         assertEquals(ErrorEnum.MS_PEDIDOS_INDISPONIVEL, exception.getErrorEnum());
         verify(pedidoClient).listarFilaCozinha();
+    }
+
+    @Test
+    void listarFilaDeveResolverOrigemDoTotemPeloNomeDoUsuario() {
+        PedidoCozinhaResponse response = new PedidoCozinhaResponse(
+                26,
+                123457,
+                "TOTEM",
+                "ENVIADO_COZINHA",
+                null,
+                42,
+                null,
+                LocalDateTime.of(2026, 7, 2, 10, 30),
+                null,
+                null,
+                List.of()
+        );
+        when(pedidoClient.listarFilaCozinha()).thenReturn(List.of(response));
+        when(mesaClient.listarMesas()).thenReturn(List.of());
+        when(usuarioClient.listarUsuariosAtivos("Bearer token")).thenReturn(List.of(
+                new UsuarioClientResponse(42, "Totem 01", "totem01@fourkitchen.com", "TOTEM", null, true)
+        ));
+
+        List<PedidoFilaCozinhaResponse> resultado = cozinhaService.listarFila("Bearer token");
+
+        assertEquals("Totem 01", resultado.getFirst().origem());
+        verify(usuarioClient).listarUsuariosAtivos("Bearer token");
     }
 
     private PedidoCozinhaResponse criarResponse() {
@@ -157,6 +199,7 @@ class CozinhaServiceTest {
                 "MESA",
                 "ENVIADO_COZINHA",
                 1,
+                10,
                 8,
                 LocalDateTime.of(2026, 7, 2, 10, 30),
                 LocalDateTime.of(2026, 7, 2, 10, 36),

@@ -12,6 +12,7 @@ public record PedidoCozinhaResponse(
         CanaisPedido canal,
         StatusPedido status,
         Integer idMesa,
+        Integer idUsuario,
         Integer idAtendimento,
         LocalDateTime dataCriacao,
         LocalDateTime dataInicioPreparo,
