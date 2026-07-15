@@ -47,7 +47,15 @@ app-mesa-header {
 }
 
 .orders-panel__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.orders-panel__heading > div {
+  min-width: 0;
 }
 
 .orders-panel h1 {
@@ -59,6 +67,38 @@ app-mesa-header {
 .orders-panel p {
   margin: 0;
   color: var(--muted-text);
+}
+
+.orders-panel__new-order {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.9rem;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  padding: 0.65rem 1.1rem;
+  background: var(--primary);
+  color: var(--white);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.orders-panel__new-order span {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.orders-panel__new-order:hover {
+  filter: brightness(0.94);
+}
+
+.orders-panel__new-order:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
 }
 
 .orders-state {
@@ -193,6 +233,15 @@ app-mesa-header {
 }
 
 @media (max-width: 640px) {
+  .orders-panel__heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .orders-panel__new-order {
+    align-self: flex-start;
+  }
+
   .orders-panel {
     border-radius: 14px;
     padding: 0.9rem;
