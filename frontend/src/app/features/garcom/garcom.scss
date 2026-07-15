@@ -794,6 +794,118 @@ button:disabled {
   font-weight: 900;
 }
 
+.bill-split {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--fk-border-soft);
+  border-radius: var(--fk-radius-control);
+  background: var(--fk-tint-green);
+}
+
+.bill-split__heading h3,
+.bill-split__heading p {
+  margin: 0;
+}
+
+.bill-split__heading h3 {
+  font-size: 0.95rem;
+}
+
+.bill-split__heading p,
+.bill-split__rounding {
+  color: var(--fk-muted);
+  font-size: 0.75rem;
+}
+
+.bill-split__modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.bill-split__modes button {
+  min-height: 2.5rem;
+  border: 1px solid var(--fk-border-strong);
+  border-radius: var(--fk-radius-control);
+  background: var(--fk-card);
+  color: var(--fk-text-2);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.bill-split__modes .bill-split__mode--active {
+  border-color: var(--fk-green);
+  background: var(--fk-green-soft);
+  color: var(--fk-green-strong);
+}
+
+.bill-split__quantity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  color: var(--fk-text-2);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.quantity-stepper {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 2rem);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--fk-border-strong);
+  border-radius: var(--fk-radius-control);
+  background: var(--fk-card);
+  text-align: center;
+}
+
+.quantity-stepper button {
+  min-height: 2rem;
+  border: 0;
+  background: transparent;
+  color: var(--fk-green-strong);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.quantity-stepper button:disabled {
+  color: var(--fk-border-strong);
+}
+
+.bill-split__shares {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.8rem, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.bill-split__shares article {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.65rem;
+  border: 1px solid #bfe7cb;
+  border-radius: var(--fk-radius-control);
+  background: var(--fk-card);
+}
+
+.bill-split__shares span {
+  color: var(--fk-muted);
+  font-size: 0.7rem;
+}
+
+.bill-split__shares strong {
+  color: var(--fk-green-strong);
+  font-size: 0.95rem;
+}
+
+.bill-split__rounding {
+  display: block;
+  margin-top: 0.65rem;
+}
+
 .modal-inline-error {
   padding: 0.7rem;
   border-radius: var(--fk-radius-control);
@@ -1403,7 +1515,8 @@ button:disabled {
   }
 
   .table-actions,
-  .confirm-summary {
+  .confirm-summary,
+  .bill-split__modes {
     grid-template-columns: 1fr;
   }
 

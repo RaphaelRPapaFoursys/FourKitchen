@@ -174,6 +174,35 @@ describe('Garcom', () => {
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([]);
   });
 
+  it('permite visualizar a divisao da conta por pessoas antes do fechamento', () => {
+    const mesaElegivel = {
+      ...criarMesaComProblema(),
+      pedidosAtivos: [{ id: 27, codigo: 100027, canal: 'MESA', status: 'ENTREGUE', idAtendimento: 8 }],
+    };
+    const detalheElegivel = { ...criarDetalheMesa(), pedidos: [criarPedidoEntregue()] };
+    (component as any).mesas.set([mesaElegivel]);
+    (component as any).detalhesPorMesa.set({ 1: detalheElegivel });
+    fixture.detectChanges();
+
+    const elemento: HTMLElement = fixture.nativeElement;
+    abrirDetalhes(elemento, fixture);
+    clicarBotao(elemento, 'Fechar mesa');
+    fixture.detectChanges();
+    clicarBotao(elemento, 'Dividir por pessoas');
+    fixture.detectChanges();
+
+    expect(elemento.textContent).toContain('Pessoa 1');
+    expect(elemento.textContent).toContain('Pessoa 2');
+    expect(elemento.textContent).toContain('R$ 35,00');
+
+    (elemento.querySelector('[aria-label="Adicionar pessoa"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(elemento.textContent).toContain('Pessoa 3');
+    expect(elemento.textContent).toContain('R$ 23,34');
+    expect(elemento.textContent).toContain('R$ 23,33');
+  });
+
   it('permite ao garcom marcar um pedido pronto como entregue', () => {
     const elemento: HTMLElement = fixture.nativeElement;
     abrirDetalhes(elemento, fixture);

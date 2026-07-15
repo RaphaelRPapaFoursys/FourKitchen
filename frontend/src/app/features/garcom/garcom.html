@@ -378,8 +378,33 @@
     <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="close-title" (click)="$event.stopPropagation()">
       <span class="confirm-modal__icon"><fk-icon name="cash-register" size="1.5rem" /></span>
       <h2 id="close-title">Fechar mesa {{ mesa.numero.toString().padStart(2, '0') }}</h2>
-      <p>Confirme o fechamento da conta. O backend verificará novamente se o estado da mesa permite esta ação.</p>
-      @if (detalheMesa(mesa); as detalhe) { <dl class="confirm-summary"><div><dt>Total da conta</dt><dd>{{ formatarMoeda(detalhe.conta.total) }}</dd></div><div><dt>Pedidos</dt><dd>{{ detalhe.conta.totalPedidos }}</dd></div></dl> }
+      <p>Confira o resumo da conta e escolha como o valor será dividido antes de confirmar.</p>
+      @if (detalheMesa(mesa); as detalhe) {
+        <dl class="confirm-summary"><div><dt>Total da conta</dt><dd>{{ formatarMoeda(detalhe.conta.total) }}</dd></div><div><dt>Pedidos</dt><dd>{{ detalhe.conta.totalPedidos }}</dd></div></dl>
+        <section class="bill-split" aria-labelledby="bill-split-title">
+          <div class="bill-split__heading"><div><h3 id="bill-split-title">Divisão da conta</h3><p>Escolha conta única ou informe quantas pessoas vão dividir.</p></div></div>
+          <div class="bill-split__modes" role="group" aria-label="Forma de divisão">
+            <button type="button" [class.bill-split__mode--active]="modoDivisaoConta() === 'UNICA'" (click)="selecionarModoDivisao('UNICA')">Conta única</button>
+            <button type="button" [class.bill-split__mode--active]="modoDivisaoConta() === 'DIVIDIDA'" (click)="selecionarModoDivisao('DIVIDIDA')">Dividir por pessoas</button>
+          </div>
+          @if (modoDivisaoConta() === 'DIVIDIDA') {
+            <div class="bill-split__quantity">
+              <span>Pessoas na mesa</span>
+              <div class="quantity-stepper">
+                <button type="button" aria-label="Remover pessoa" (click)="alterarQuantidadePessoas(-1)" [disabled]="quantidadePessoas() === 2">−</button>
+                <strong>{{ quantidadePessoas() }}</strong>
+                <button type="button" aria-label="Adicionar pessoa" (click)="alterarQuantidadePessoas(1)" [disabled]="quantidadePessoas() === 20">+</button>
+              </div>
+            </div>
+            <div class="bill-split__shares" aria-label="Valores por pessoa">
+              @for (parcela of parcelasConta(detalhe.conta.total); track $index) {
+                <article><span>Pessoa {{ $index + 1 }}</span><strong>{{ formatarMoeda(parcela) }}</strong></article>
+              }
+            </div>
+            @if (possuiAjusteDeCentavos(detalhe.conta.total)) { <small class="bill-split__rounding">O ajuste de centavos foi distribuído entre as primeiras parcelas.</small> }
+          }
+        </section>
+      }
       @if (erroFechamento()) { <p class="modal-inline-error" role="alert">{{ erroFechamento() }}</p> }
       <footer><button type="button" class="modal-secondary" (click)="cancelarFechamento()" [disabled]="mesaEmFechamento() !== null">Voltar</button><button type="button" class="modal-primary" (click)="confirmarFechamento()" [disabled]="mesaEmFechamento() !== null">{{ mesaEmFechamento() === mesa.idMesa ? 'Fechando…' : 'Confirmar fechamento' }}</button></footer>
     </section>
