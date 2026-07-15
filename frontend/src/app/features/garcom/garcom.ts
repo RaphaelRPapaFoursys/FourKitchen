@@ -632,12 +632,16 @@ export class Garcom {
     if (!valor) return 'Não informado';
     const data = new Date(valor);
     if (Number.isNaN(data.getTime())) return 'Não informado';
-    return new Intl.DateTimeFormat('pt-BR', {
+    const dataFormatada = new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
+      year: 'numeric',
+    }).format(data);
+    const horario = new Intl.DateTimeFormat('pt-BR', {
       hour: '2-digit',
       minute: '2-digit',
     }).format(data);
+    return `${dataFormatada} | ${horario}`;
   }
 
   protected trackMesa(_: number, mesa: MesaGarcomResponse): number {

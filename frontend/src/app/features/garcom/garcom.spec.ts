@@ -57,6 +57,13 @@ describe('Garcom', () => {
     expect(historico.textContent).toContain('#100027');
   });
 
+  it('exibe a abertura com dia, mes, ano e horario', () => {
+    const elemento: HTMLElement = fixture.nativeElement;
+    abrirDetalhes(elemento, fixture);
+
+    expect(elemento.textContent).toContain('02/07/2026 | 10:00');
+  });
+
   it('seleciona categoria e produto antes de registrar a substituicao', () => {
     const elemento: HTMLElement = fixture.nativeElement;
     abrirDetalhes(elemento, fixture);
