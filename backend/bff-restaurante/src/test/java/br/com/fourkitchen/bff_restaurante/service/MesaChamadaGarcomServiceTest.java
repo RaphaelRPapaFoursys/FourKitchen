@@ -9,6 +9,7 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import feign.Request;
@@ -41,6 +42,9 @@ class MesaChamadaGarcomServiceTest {
 
     @Mock
     private NotificacaoService notificacaoService;
+
+    @Mock
+    private RealtimeNotifier realtimeNotifier;
 
     @InjectMocks
     private MesaChamadaGarcomService mesaChamadaGarcomService;

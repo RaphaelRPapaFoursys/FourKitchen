@@ -19,6 +19,7 @@ import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.mapper.GarcomResumoResponseMapper;
 import br.com.fourkitchen.bff_restaurante.mapper.MesaGestorMapperSource;
 import br.com.fourkitchen.bff_restaurante.mapper.MesaGestorResponseMapper;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
@@ -65,6 +66,9 @@ class GestorMesaServiceTest {
 
     @Mock
     private GarcomResumoResponseMapper garcomResumoResponseMapper;
+
+    @Mock
+    private RealtimeNotifier realtimeNotifier;
 
     @InjectMocks
     private GestorMesaService gestorMesaService;

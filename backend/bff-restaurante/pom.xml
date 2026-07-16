@@ -111,7 +111,6 @@
             <groupId>jakarta.transaction</groupId>
             <artifactId>jakarta.transaction-api</artifactId>
         </dependency>
-
     </dependencies>
 	<dependencyManagement>
 		<dependencies>

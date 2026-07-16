@@ -40,15 +40,6 @@
           <h1>Olá, {{ nomeUsuario() }}</h1>
           <p>Acompanhe suas mesas, pedidos e chamadas em um só lugar.</p>
         </div>
-        <button
-          type="button"
-          class="refresh-button"
-          (click)="carregarDashboard()"
-          [disabled]="carregando() || atualizandoSilencioso()"
-        >
-          <fk-icon name="arrows-counter-clockwise" size="1rem" />
-          {{ carregando() || atualizandoSilencioso() ? 'Atualizando…' : 'Atualizar dados' }}
-        </button>
       </header>
 
       <section class="summary" aria-label="Resumo das mesas">
@@ -101,7 +92,6 @@
             <span class="empty-state__icon"><fk-icon name="picnic-table" size="2rem" /></span>
             <h3>Nenhuma mesa atribuída</h3>
             <p>Quando uma mesa for vinculada ao seu atendimento, ela aparecerá aqui.</p>
-            <button type="button" class="secondary-button" (click)="carregarDashboard()">Atualizar mesas</button>
           </section>
         } @else if (mesasFiltradas().length === 0) {
           <section class="empty-state empty-state--compact">

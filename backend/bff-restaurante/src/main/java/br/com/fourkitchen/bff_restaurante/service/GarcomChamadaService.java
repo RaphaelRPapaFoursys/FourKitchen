@@ -3,6 +3,8 @@ package br.com.fourkitchen.bff_restaurante.service;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -18,6 +20,8 @@ public class GarcomChamadaService {
 
     private final GarcomMesaService garcomMesaService;
 
+    private final RealtimeNotifier realtimeNotifier;
+
     public NotificacaoResponse concluirChamada(Integer idNotificacao, Authentication authentication) {
         extrairIdGarcom(authentication);
 
@@ -30,7 +34,15 @@ public class GarcomChamadaService {
             throw new BaseException(ErrorEnum.CHAMADA_GARCOM_NAO_PERTENCE_AO_GARCOM);
         }
 
-        return notificacaoService.marcarComoLida(idNotificacao);
+        NotificacaoResponse notificacao = notificacaoService.marcarComoLida(idNotificacao);
+        realtimeNotifier.chamadaGarcomAlterada(
+                RealtimeEventType.CHAMADA_GARCOM_CONCLUIDA,
+                notificacao.id(),
+                notificacao.idMesa(),
+                notificacao.idAtendimento(),
+                notificacao.idGarcom()
+        );
+        return notificacao;
     }
 
     private Integer extrairIdGarcom(Authentication authentication) {

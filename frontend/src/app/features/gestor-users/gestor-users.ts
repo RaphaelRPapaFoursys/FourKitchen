@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { debounceTime, finalize } from 'rxjs';
 
 import {
   AtualizarUsuarioGestorRequest,
@@ -13,6 +13,8 @@ import {
 } from '../../core/models/user-management.models';
 import { AuthService } from '../../core/services/auth';
 import { UserManagementService } from '../../core/services/user-management.service';
+import { RealtimeTopic } from '../../core/models/realtime.models';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
@@ -36,6 +38,7 @@ export class GestorUsers {
   private readonly userManagementService = inject(UserManagementService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly realtimeService = inject(RealtimeService);
 
   protected readonly usuario = toSignal(this.authService.usuario$, {
     initialValue: this.authService.getCurrentUser(),
@@ -97,6 +100,13 @@ export class GestorUsers {
 
   constructor() {
     this.loadUsers();
+    this.realtimeService
+      .watch(RealtimeTopic.gestorUsuarios)
+      .pipe(debounceTime(200), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadUsers());
+    this.realtimeService.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadUsers());
   }
 
   protected openCreateDialog(): void {

@@ -3,13 +3,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
-  OnDestroy,
   computed,
   effect,
+  inject,
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime } from 'rxjs';
 
 import {
   ItemFilaCozinhaResponse,
@@ -17,6 +20,8 @@ import {
   SinalizarProblemaRequest,
 } from '../../core/models/cozinha.models';
 import { CozinhaService } from '../../core/services/cozinha';
+import { RealtimeTopic } from '../../core/models/realtime.models';
+import { RealtimeService } from '../../core/services/realtime.service';
 import {
   correspondeBuscaFilaCozinha,
   normalizarBuscaOperacional,
@@ -44,8 +49,9 @@ interface OpcaoProblema {
   styleUrl: './cozinha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Cozinha implements OnDestroy {
-  private readonly intervaloAtualizacao: ReturnType<typeof setInterval>;
+export class Cozinha {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly realtimeService = inject(RealtimeService);
   private readonly modalProblema = viewChild<ElementRef<HTMLElement>>('modalProblema');
   private filaEmCarregamento = false;
   private elementoFocoAnterior: HTMLElement | null = null;
@@ -90,11 +96,20 @@ export class Cozinha implements OnDestroy {
 
   constructor(private readonly cozinhaService: CozinhaService) {
     this.carregarFila();
-    this.intervaloAtualizacao = setInterval(() => this.carregarFila(true), 10_000);
-  }
-
-  ngOnDestroy(): void {
-    clearInterval(this.intervaloAtualizacao);
+    this.realtimeService
+      .watch(RealtimeTopic.cozinhaPedidos)
+      .pipe(debounceTime(150), takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        if (event.type === 'PEDIDO_CRIADO') {
+          this.sucesso.set('Novo pedido recebido.');
+        } else if (event.type === 'PEDIDO_PROBLEMA_RESOLVIDO') {
+          this.sucesso.set('Decisao recebida. A fila foi atualizada.');
+        }
+        this.carregarFila(true);
+      });
+    this.realtimeService.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.carregarFila(true));
   }
 
   protected readonly pedidosFiltrados = computed(() => {

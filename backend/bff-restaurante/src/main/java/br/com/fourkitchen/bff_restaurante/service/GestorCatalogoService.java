@@ -13,6 +13,8 @@ import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ProdutoGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ import java.util.List;
 public class GestorCatalogoService {
 
     private final ProdutoClient produtoClient;
+
+    private final RealtimeNotifier realtimeNotifier;
 
     public List<ProdutoGestorResponse> listarProdutos() {
         try {
@@ -40,7 +44,9 @@ public class GestorCatalogoService {
 
     public ProdutoGestorResponse criarProduto(CriarProdutoGestorRequest request) {
         try {
-            return mapearProduto(produtoClient.criarProduto(mapearProdutoRequest(request)));
+            ProdutoGestorResponse produto = mapearProduto(produtoClient.criarProduto(mapearProdutoRequest(request)));
+            realtimeNotifier.catalogoAlterado(RealtimeEventType.PRODUTO_ALTERADO, produto.id());
+            return produto;
         } catch (FeignException e) {
             throw mapearErroProduto(e);
         }
@@ -48,7 +54,9 @@ public class GestorCatalogoService {
 
     public ProdutoGestorResponse atualizarProduto(Integer id, AtualizarProdutoGestorRequest request) {
         try {
-            return mapearProduto(produtoClient.atualizarProduto(id, mapearProdutoRequest(request)));
+            ProdutoGestorResponse produto = mapearProduto(produtoClient.atualizarProduto(id, mapearProdutoRequest(request)));
+            realtimeNotifier.catalogoAlterado(RealtimeEventType.PRODUTO_ALTERADO, produto.id());
+            return produto;
         } catch (FeignException e) {
             throw mapearErroProduto(e);
         }
@@ -56,7 +64,9 @@ public class GestorCatalogoService {
 
     public ProdutoGestorResponse ativarProduto(Integer id) {
         try {
-            return mapearProduto(produtoClient.ativarProduto(id));
+            ProdutoGestorResponse produto = mapearProduto(produtoClient.ativarProduto(id));
+            realtimeNotifier.catalogoAlterado(RealtimeEventType.PRODUTO_ALTERADO, produto.id());
+            return produto;
         } catch (FeignException e) {
             throw mapearErroProduto(e);
         }
@@ -64,7 +74,9 @@ public class GestorCatalogoService {
 
     public ProdutoGestorResponse desativarProduto(Integer id) {
         try {
-            return mapearProduto(produtoClient.desativarProduto(id));
+            ProdutoGestorResponse produto = mapearProduto(produtoClient.desativarProduto(id));
+            realtimeNotifier.catalogoAlterado(RealtimeEventType.PRODUTO_ALTERADO, produto.id());
+            return produto;
         } catch (FeignException e) {
             throw mapearErroProduto(e);
         }
@@ -84,7 +96,9 @@ public class GestorCatalogoService {
 
     public CategoriaGestorResponse criarCategoria(CriarCategoriaGestorRequest request) {
         try {
-            return mapearCategoria(produtoClient.criarCategoria(mapearCategoriaRequest(request)));
+            CategoriaGestorResponse categoria = mapearCategoria(produtoClient.criarCategoria(mapearCategoriaRequest(request)));
+            realtimeNotifier.catalogoAlterado(RealtimeEventType.CATEGORIA_ALTERADA, categoria.id());
+            return categoria;
         } catch (FeignException e) {
             throw mapearErroCategoria(e);
         }
@@ -92,7 +106,9 @@ public class GestorCatalogoService {
 
     public CategoriaGestorResponse atualizarCategoria(Integer id, AtualizarCategoriaGestorRequest request) {
         try {
-            return mapearCategoria(produtoClient.atualizarCategoria(id, mapearCategoriaRequest(request)));
+            CategoriaGestorResponse categoria = mapearCategoria(produtoClient.atualizarCategoria(id, mapearCategoriaRequest(request)));
+            realtimeNotifier.catalogoAlterado(RealtimeEventType.CATEGORIA_ALTERADA, categoria.id());
+            return categoria;
         } catch (FeignException e) {
             throw mapearErroCategoria(e);
         }
@@ -100,7 +116,9 @@ public class GestorCatalogoService {
 
     public CategoriaGestorResponse ativarCategoria(Integer id) {
         try {
-            return mapearCategoria(produtoClient.ativarCategoria(id));
+            CategoriaGestorResponse categoria = mapearCategoria(produtoClient.ativarCategoria(id));
+            realtimeNotifier.catalogoAlterado(RealtimeEventType.CATEGORIA_ALTERADA, categoria.id());
+            return categoria;
         } catch (FeignException e) {
             throw mapearErroCategoria(e);
         }
@@ -108,7 +126,9 @@ public class GestorCatalogoService {
 
     public CategoriaGestorResponse desativarCategoria(Integer id) {
         try {
-            return mapearCategoria(produtoClient.desativarCategoria(id));
+            CategoriaGestorResponse categoria = mapearCategoria(produtoClient.desativarCategoria(id));
+            realtimeNotifier.catalogoAlterado(RealtimeEventType.CATEGORIA_ALTERADA, categoria.id());
+            return categoria;
         } catch (FeignException e) {
             throw mapearErroCategoria(e);
         }

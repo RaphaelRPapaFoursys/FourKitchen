@@ -14,6 +14,8 @@ import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.mapper.ItemPedidoTotemMapperSource;
 import br.com.fourkitchen.bff_restaurante.mapper.ItemPedidoTotemRequestMapper;
 import br.com.fourkitchen.bff_restaurante.mapper.PedidoTotemResponseMapper;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +42,19 @@ public class TotemPedidoService {
 
     private final PedidoTotemResponseMapper pedidoTotemResponseMapper;
 
+    private final RealtimeNotifier realtimeNotifier;
+
     public PedidoTotemResponse criarPedido(CriarPedidoTotemRequest request, Authentication authentication) {
         UsuarioAutenticado usuario = obterUsuarioAutenticado(authentication);
         List<ProdutoPedidoRequest> itens = mapearItensComPrecoAtual(request.itens());
         PedidoResponse pedido = criarPedidoNoMsPedidos(usuario, itens);
+        realtimeNotifier.pedidoAlterado(
+                RealtimeEventType.PEDIDO_CRIADO,
+                pedido.id(),
+                pedido.idMesa(),
+                pedido.idAtendimento(),
+                pedido.status()
+        );
 
         return pedidoTotemResponseMapper.map(pedido);
     }

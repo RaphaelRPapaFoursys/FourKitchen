@@ -9,12 +9,14 @@ import {
   LoginResponse,
   UsuarioAutenticadoResponse,
 } from '../models/auth.models';
+import { RealtimeService } from './realtime.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly realtimeService = inject(RealtimeService);
   private readonly tokenStorageKey = 'fourkitchen_access_token';
   private readonly legacyUserStorageKey = 'fourkitchen_user';
   private readonly usuarioSubject = new BehaviorSubject<UsuarioAutenticadoResponse | null>(null);
@@ -43,6 +45,7 @@ export class AuthService {
   }
 
   logout(): void {
+    this.realtimeService.disconnect();
     this.removeStoredValue(this.tokenStorageKey);
     this.removeStoredValue(this.legacyUserStorageKey);
     this.usuarioSubject.next(null);

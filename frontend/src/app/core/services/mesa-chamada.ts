@@ -31,6 +31,10 @@ export class MesaChamadaService {
     () => this.chamadaPendente()?.codigoAtendimento ?? null,
   );
 
+  readonly chamadaNotificacaoIdAtual = computed(
+    () => this.chamadaPendente()?.notificacaoId ?? null,
+  );
+
   chamarGarcom(codigoSessao: number): Observable<NotificacaoResponse> {
     const request: ChamarGarcomRequest = { codigoSessao };
 
@@ -58,6 +62,12 @@ export class MesaChamadaService {
         }
       }),
     );
+  }
+
+  concluirChamadaEmAndamento(notificacaoId: number): void {
+    if (this.chamadaPendente()?.notificacaoId === notificacaoId) {
+      this.clearStoredCall();
+    }
   }
 
   private readStoredCall(): ChamadaGarcomPendente | null {

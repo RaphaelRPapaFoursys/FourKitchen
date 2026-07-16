@@ -22,8 +22,12 @@ import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.mapper.GarcomResumoResponseMapper;
 import br.com.fourkitchen.bff_restaurante.mapper.MesaGestorMapperSource;
 import br.com.fourkitchen.bff_restaurante.mapper.MesaGestorResponseMapper;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEvent;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -73,6 +77,8 @@ public class GestorMesaService {
     private final MesaGestorResponseMapper mesaGestorResponseMapper;
 
     private final GarcomResumoResponseMapper garcomResumoResponseMapper;
+
+    private final RealtimeNotifier realtimeNotifier;
 
     private final Object painelCacheLock = new Object();
 
@@ -192,6 +198,12 @@ public class GestorMesaService {
 
     public MesaGestorResponse abrirMesa(Integer id, String authorization) {
         MesaClientResponse mesa = executarAlteracaoMesa(() -> mesaClient.abrirMesa(id));
+        realtimeNotifier.mesaAlterada(
+                RealtimeEventType.MESA_ABERTA,
+                mesa.id(),
+                mesa.idAtendimento(),
+                mesa.garcomId()
+        );
         return mapearMesa(
                 mesa,
                 buscarGarconsPorIdQuandoNecessario(authorization, List.of(mesa)),
@@ -201,6 +213,12 @@ public class GestorMesaService {
 
     public MesaGestorResponse fecharMesa(Integer id, String authorization) {
         MesaClientResponse mesa = executarAlteracaoMesa(() -> mesaClient.fecharMesa(id));
+        realtimeNotifier.mesaAlterada(
+                RealtimeEventType.MESA_FECHADA,
+                mesa.id(),
+                mesa.idAtendimento(),
+                mesa.garcomId()
+        );
         return mapearMesa(
                 mesa,
                 buscarGarconsPorIdQuandoNecessario(authorization, List.of(mesa)),
@@ -214,6 +232,12 @@ public class GestorMesaService {
                 id,
                 new AtribuirGarcomClientRequest(request.garcomId())
         ));
+        realtimeNotifier.mesaAlterada(
+                RealtimeEventType.GARCOM_ATRIBUIDO,
+                mesa.id(),
+                mesa.idAtendimento(),
+                mesa.garcomId()
+        );
 
         List<PedidoGestorResponse> pedidos = buscarPedidosPorAtendimento(List.of(mesa))
                 .getOrDefault(mesa.idAtendimento(), List.of());
@@ -249,7 +273,14 @@ public class GestorMesaService {
 
     private void entregarPedido(Integer idPedido) {
         try {
-            pedidoClient.entregarPedido(idPedido);
+            var pedido = pedidoClient.entregarPedido(idPedido);
+            realtimeNotifier.pedidoAlterado(
+                    RealtimeEventType.PEDIDO_ENTREGUE,
+                    pedido.id(),
+                    pedido.idMesa(),
+                    pedido.idAtendimento(),
+                    pedido.status()
+            );
         } catch (FeignException e) {
             throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
         }
@@ -341,6 +372,15 @@ public class GestorMesaService {
 
     private void invalidarCachePainel() {
         painelSnapshot = null;
+    }
+
+    @EventListener
+    public void invalidarCacheAoReceberEvento(RealtimeEvent event) {
+        if (event.type() != RealtimeEventType.PRODUTO_ALTERADO
+                && event.type() != RealtimeEventType.CATEGORIA_ALTERADA
+                && event.type() != RealtimeEventType.USUARIO_ALTERADO) {
+            invalidarCachePainel();
+        }
     }
 
     private List<MesaPainelCalculo> carregarMesasPainel(

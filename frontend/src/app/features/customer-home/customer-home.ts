@@ -4,7 +4,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementR
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize, firstValueFrom } from 'rxjs';
+import { debounceTime, finalize, firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
@@ -19,6 +19,8 @@ import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { MenuService } from '../../core/services/menu.service';
 import { OrderService } from '../../core/services/order.service';
+import { RealtimeTopic } from '../../core/models/realtime.models';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { getBase64ImageSource } from '../../core/utils/product-image.utils';
 import { CategoryCarouselComponent } from './components/category-carousel/category-carousel';
 import { CustomerFooterComponent } from './components/customer-footer/customer-footer';
@@ -70,6 +72,7 @@ export class CustomerHome implements AfterViewInit {
   private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly realtimeService = inject(RealtimeService);
   private scrollAnimationFrameId: number | null = null;
   private cartFeedbackTimeoutId: number | null = null;
   private nextMenuPage = 0;
@@ -146,6 +149,13 @@ export class CustomerHome implements AfterViewInit {
     }
     void this.loadCategories(false);
     void this.loadFirstMenuPage(false);
+    this.realtimeService
+      .watch(RealtimeTopic.cardapio)
+      .pipe(debounceTime(200), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.reloadMenuAfterRealtimeEvent());
+    this.realtimeService.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.reloadMenuAfterRealtimeEvent());
 
     effect(() => {
       this.categories();
@@ -183,6 +193,11 @@ export class CustomerHome implements AfterViewInit {
 
   protected retryLoadMenu(): void {
     this.loadMenu();
+  }
+
+  private reloadMenuAfterRealtimeEvent(): void {
+    void this.loadCategories(true);
+    void this.loadFirstMenuPage(true);
   }
 
   private async loadCategories(forceRefresh: boolean): Promise<void> {

@@ -1,12 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, finalize, of, switchMap, timer } from 'rxjs';
+import { finalize } from 'rxjs';
 
 import { MesaAtendimentoAtualResponse } from '../../../core/models/order.models';
 import { AuthService } from '../../../core/services/auth';
 import { MesaChamadaService } from '../../../core/services/mesa-chamada';
 import { OrderService } from '../../../core/services/order.service';
+import { RealtimeTopic } from '../../../core/models/realtime.models';
+import { RealtimeService } from '../../../core/services/realtime.service';
 import { Icon } from '../icon/icon';
 
 export type MesaHeaderActiveLink = 'orders' | 'cart' | null;
@@ -42,6 +44,7 @@ export class MesaHeaderComponent implements OnInit {
   private readonly mesaChamadaService = inject(MesaChamadaService);
   private readonly orderService = inject(OrderService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly realtimeService = inject(RealtimeService);
 
   private readonly atendimentoInterno = signal<MesaAtendimentoAtualResponse | null>(null);
   private readonly carregandoAtendimentoInterno = signal(true);
@@ -96,18 +99,24 @@ export class MesaHeaderComponent implements OnInit {
 
   constructor() {
     effect(onCleanup => {
-      const atendimento = this.atendimentoAtual();
-      if (!atendimento || !this.chamadaEnviada()) {
+      const idMesa = this.mesaNumero();
+      if (idMesa === null) {
         return;
       }
 
-      const subscription = timer(0, 10_000)
-        .pipe(
-          switchMap(() => this.mesaChamadaService
-            .sincronizarChamadaPendente(atendimento.codigoAtendimento)
-            .pipe(catchError(() => of(true)))),
-        )
-        .subscribe();
+      const subscription = this.realtimeService
+        .watch(RealtimeTopic.mesa(idMesa))
+        .subscribe(event => {
+          if (event.type !== 'CHAMADA_GARCOM_CONCLUIDA') {
+            return;
+          }
+
+          const idNotificacao = Number(event.data['idNotificacao']);
+          if (Number.isInteger(idNotificacao)) {
+            this.mesaChamadaService.concluirChamadaEmAndamento(idNotificacao);
+            this.showToast('Sua chamada foi atendida.', 'success');
+          }
+        });
 
       onCleanup(() => subscription.unsubscribe());
     });
@@ -128,6 +137,17 @@ export class MesaHeaderComponent implements OnInit {
     });
 
     this.destroyRef.onDestroy(() => this.clearToastTimeout());
+    this.realtimeService.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const atendimento = this.atendimentoAtual();
+        if (atendimento && this.chamadaEnviada()) {
+          this.mesaChamadaService
+            .sincronizarChamadaPendente(atendimento.codigoAtendimento)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe();
+        }
+      });
   }
 
   ngOnInit(): void {

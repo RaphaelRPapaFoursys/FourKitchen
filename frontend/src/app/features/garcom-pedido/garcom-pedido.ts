@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import { debounceTime, finalize, forkJoin } from 'rxjs';
 
 import {
   CriarPedidoGarcomRequest,
@@ -13,6 +13,8 @@ import { CategoriaCardapioResponse, ProdutoCardapioResponse } from '../../core/m
 import { GarcomMesaService } from '../../core/services/garcom-mesa';
 import { GarcomPedidoService } from '../../core/services/garcom-pedido';
 import { MenuService } from '../../core/services/menu.service';
+import { RealtimeTopic } from '../../core/models/realtime.models';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { Badge } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
 
@@ -35,6 +37,7 @@ export class GarcomPedido {
   private readonly garcomMesaService = inject(GarcomMesaService);
   private readonly garcomPedidoService = inject(GarcomPedidoService);
   private readonly menuService = inject(MenuService);
+  private readonly realtimeService = inject(RealtimeService);
 
   private readonly idMesa = Number(this.route.snapshot.paramMap.get('id'));
 
@@ -70,6 +73,13 @@ export class GarcomPedido {
 
   constructor() {
     this.carregar();
+    this.realtimeService
+      .watch(RealtimeTopic.cardapio)
+      .pipe(debounceTime(200), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.atualizarCardapio());
+    this.realtimeService.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.atualizarCardapio());
   }
 
   protected carregar(): void {
@@ -102,6 +112,24 @@ export class GarcomPedido {
 
   protected selecionarCategoria(id: number): void {
     this.categoriaSelecionadaId.set(id);
+  }
+
+  private atualizarCardapio(): void {
+    this.menuService
+      .refreshMenu('garcom')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: categorias => {
+          const categoriasComProdutos = categorias.filter(categoria => categoria.produtos.length > 0);
+          const categoriaAtual = this.categoriaSelecionadaId();
+          this.categorias.set(categoriasComProdutos);
+          this.categoriaSelecionadaId.set(
+            categoriasComProdutos.some(categoria => categoria.categoriaId === categoriaAtual)
+              ? categoriaAtual
+              : categoriasComProdutos[0]?.categoriaId ?? null,
+          );
+        },
+      });
   }
 
   protected atualizarBusca(event: Event): void {

@@ -13,6 +13,8 @@ import br.com.fourkitchen.bff_restaurante.dto.request.ItemPedidoGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -35,10 +37,19 @@ public class GarcomPedidoService {
 
     private final PedidoClient pedidoClient;
 
+    private final RealtimeNotifier realtimeNotifier;
+
     public PedidoGarcomResponse criarPedido(CriarPedidoGarcomRequest request, Authentication authentication) {
         Integer idGarcom = extrairIdGarcom(authentication);
         SessaoMesaResponse sessao = validarMesaDoGarcom(request.idMesa(), idGarcom);
         PedidoResponse pedido = criarPedidoNoMsPedidos(request, sessao, idGarcom);
+        realtimeNotifier.pedidoAlterado(
+                RealtimeEventType.PEDIDO_CRIADO,
+                pedido.id(),
+                pedido.idMesa(),
+                pedido.idAtendimento(),
+                pedido.status()
+        );
 
         return new PedidoGarcomResponse(
                 pedido.id(),

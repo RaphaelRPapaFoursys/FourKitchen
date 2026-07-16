@@ -16,6 +16,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaStatusResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoContaMesaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import feign.Request;
@@ -53,6 +54,9 @@ class MesaPedidoServiceTest {
 
     @Mock
     private ProdutoClient produtoClient;
+
+    @Mock
+    private RealtimeNotifier realtimeNotifier;
 
     @InjectMocks
     private MesaPedidoService mesaPedidoService;

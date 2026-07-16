@@ -171,13 +171,11 @@ public class PedidoController {
     }
 
     @PatchMapping("/decisao-problema")
-    public ResponseEntity<Void> decisaoProblema(
+    public ResponseEntity<PedidoResponse> decisaoProblema(
             @RequestBody DecisaoProblemaRequest decisaoProblemaRequest
     ) {
         try{
-            pedidoService.decisaoProblema(decisaoProblemaRequest);
-
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(pedidoService.decisaoProblema(decisaoProblemaRequest));
         } catch (BaseException error) {
             return ResponseEntity
                     .badRequest().build();

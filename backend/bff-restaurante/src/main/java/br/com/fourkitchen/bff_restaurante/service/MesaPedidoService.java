@@ -19,6 +19,8 @@ import br.com.fourkitchen.bff_restaurante.dto.response.PedidoMesaStatusResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoContaMesaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import jakarta.transaction.Transactional;
@@ -51,12 +53,21 @@ public class MesaPedidoService {
 
     private final PedidoClient pedidoClient;
 
+    private final RealtimeNotifier realtimeNotifier;
+
     @Transactional
     public PedidoMesaResponse criarPedido(CriarPedidoMesaRequest request, Authentication authentication) {
         UsuarioAutenticado usuario = obterUsuarioMesa(authentication);
         SessaoMesaResponse sessao = validarSessaoMesa(usuario.idMesa(), request.codigoAtendimento());
         List<ProdutoPedidoRequest> itens = mapearItensComPrecoAtual(request.itens());
         PedidoResponse pedido = criarPedidoNoMsPedidos(usuario, sessao, itens);
+        realtimeNotifier.pedidoAlterado(
+                RealtimeEventType.PEDIDO_CRIADO,
+                pedido.id(),
+                pedido.idMesa(),
+                pedido.idAtendimento(),
+                pedido.status()
+        );
 
         return new PedidoMesaResponse(
                 pedido.id(),

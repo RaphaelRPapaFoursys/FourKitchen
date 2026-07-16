@@ -9,6 +9,7 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.UsuarioGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import feign.Request;
@@ -40,6 +41,9 @@ class GestorUsuarioServiceTest {
 
     @Mock
     private UsuarioClient usuarioClient;
+
+    @Mock
+    private RealtimeNotifier realtimeNotifier;
 
     @InjectMocks
     private GestorUsuarioService gestorUsuarioService;

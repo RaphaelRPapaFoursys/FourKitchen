@@ -433,12 +433,14 @@ public class PedidoService {
                 pedido.getId(),
                 produtoPedido.getId(),
                 pedido.getStatus(),
-                produtoPedido.getStatus()
+                produtoPedido.getStatus(),
+                pedido.getIdMesa(),
+                pedido.getIdAtendimento()
         );
     }
 
     @Transactional
-    public void decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
+    public PedidoResponse decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
         Pedido pedido = pedidoRepository.findById(decisaoProblemaRequest.idPedido())
                 .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
 
@@ -452,7 +454,7 @@ public class PedidoService {
         if (decisaoProblemaRequest.pedidoCancelado()) {
             pedido.setStatus(StatusPedido.CANCELADO);
             pedidoRepository.save(pedido);
-            return;
+            return pedidoResponseMapper.map(pedido);
         }
 
         if (decisaoProblemaRequest.novoStatusProdutoPedido().equals(StatusProdutoPedido.REMOVIDO)) {
@@ -467,7 +469,7 @@ public class PedidoService {
                 pedido.setStatus(StatusPedido.CANCELADO);
                 pedidoRepository.save(pedido);
                 produtoPedidoRepository.save(produtoPedido);
-                return;
+                return pedidoResponseMapper.map(pedido);
             }
         }
 
@@ -486,6 +488,7 @@ public class PedidoService {
 
         pedidoRepository.save(pedido);
         produtoPedidoRepository.save(produtoPedido);
+        return pedidoResponseMapper.map(pedido);
     }
 
     private boolean pedidoPermiteDecisao(Pedido pedido) {

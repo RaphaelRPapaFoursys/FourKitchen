@@ -15,6 +15,7 @@ import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.mapper.MesaGarcomMapperSource;
 import br.com.fourkitchen.bff_restaurante.mapper.MesaGarcomResponseMapper;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import feign.Request;
@@ -57,6 +58,9 @@ class GarcomMesaServiceTest {
 
     @Mock
     private MesaGarcomResponseMapper mesaGarcomResponseMapper;
+
+    @Mock
+    private RealtimeNotifier realtimeNotifier;
 
     @InjectMocks
     private GarcomMesaService garcomMesaService;
@@ -222,6 +226,8 @@ class GarcomMesaServiceTest {
 
         when(mesaClient.listarMesasPorGarcom(7)).thenReturn(List.of(criarMesa()));
         when(pedidoClient.listarPedidosDetalhadosPorAtendimento(8)).thenReturn(List.of(pedidoPronto));
+        when(pedidoClient.entregarPedido(25))
+                .thenReturn(new PedidoResponse(25, 100025, "MESA", "ENTREGUE", 1, 7, 8));
 
         garcomMesaService.marcarPedidoComoEntregue(1, 25, authentication);
 

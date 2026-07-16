@@ -34,3 +34,7 @@ server:
 
 jwt:
   secret: ${JWT_SECRET}
+
+websocket:
+  allowed-origins: ${WEBSOCKET_ALLOWED_ORIGINS:http://localhost:4200}
+  heartbeat-ms: ${WEBSOCKET_HEARTBEAT_MS:10000}

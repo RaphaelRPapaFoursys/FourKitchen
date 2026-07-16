@@ -2,12 +2,14 @@ package br.com.fourkitchen.bff_restaurante.service;
 
 import br.com.fourkitchen.bff_restaurante.client.pedidos.PedidoClient;
 import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.DecisaoProblemaPedidoRequest;
+import br.com.fourkitchen.bff_restaurante.client.pedidos.dto.PedidoResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.ProdutoClient;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.bff_restaurante.enums.StatusProdutoPedido;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,6 +33,9 @@ class DecisaoProblemaServiceTest {
     @Mock
     private ProdutoClient produtoClient;
 
+    @Mock
+    private RealtimeNotifier realtimeNotifier;
+
     @InjectMocks
     private DecisaoProblemaService decisaoProblemaService;
 
@@ -43,6 +48,8 @@ class DecisaoProblemaServiceTest {
                 true,
                 new BigDecimal("10.50")
         ));
+        when(pedidoClient.decisaoProblema(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new PedidoResponse(25, 100025, "MESA", "ENVIADO_COZINHA", 1, 7, 8));
 
         decisaoProblemaService.registrar(request);
 
@@ -66,7 +73,6 @@ class DecisaoProblemaServiceTest {
                 false,
                 new BigDecimal("10.50")
         ));
-
         BaseException exception = assertThrows(
                 BaseException.class,
                 () -> decisaoProblemaService.registrar(request)
@@ -92,6 +98,8 @@ class DecisaoProblemaServiceTest {
                 true,
                 new BigDecimal("10.50")
         ));
+        when(pedidoClient.decisaoProblema(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new PedidoResponse(25, 100025, "MESA", "ENVIADO_COZINHA", 1, 7, 8));
 
         decisaoProblemaService.registrar(request);
 

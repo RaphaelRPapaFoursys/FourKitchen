@@ -7,6 +7,8 @@ import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibili
 import br.com.fourkitchen.bff_restaurante.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,11 +21,13 @@ public class DecisaoProblemaService {
 
     private final ProdutoClient produtoClient;
 
+    private final RealtimeNotifier realtimeNotifier;
+
     public void registrar(DecisaoProblemaRequest request) {
         ProdutoDisponibilidadeResponse produtoSubstituto = buscarProdutoSubstituto(request.idNovoProduto());
 
         try {
-            pedidoClient.decisaoProblema(new DecisaoProblemaPedidoRequest(
+            var pedido = pedidoClient.decisaoProblema(new DecisaoProblemaPedidoRequest(
                     request.idPedido(),
                     request.idProdutoPedido(),
                     request.novoStatusProdutoPedido(),
@@ -33,6 +37,15 @@ public class DecisaoProblemaService {
                     produtoSubstituto == null ? null : produtoSubstituto.preco(),
                     request.observacaoNovoProduto()
             ));
+            realtimeNotifier.pedidoAlterado(
+                    Boolean.TRUE.equals(request.pedidoCancelado())
+                            ? RealtimeEventType.PEDIDO_CANCELADO
+                            : RealtimeEventType.PEDIDO_PROBLEMA_RESOLVIDO,
+                    pedido.id(),
+                    pedido.idMesa(),
+                    pedido.idAtendimento(),
+                    pedido.status()
+            );
         } catch (FeignException e) {
             if (e.status() == 400) {
                 throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);

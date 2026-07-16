@@ -11,6 +11,7 @@ import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.mapper.ItemPedidoTotemRequestMapper;
 import br.com.fourkitchen.bff_restaurante.mapper.PedidoTotemResponseMapper;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import feign.Request;
@@ -46,6 +47,9 @@ class TotemPedidoServiceTest {
     @Mock
     private PedidoClient pedidoClient;
 
+    @Mock
+    private RealtimeNotifier realtimeNotifier;
+
     private final ItemPedidoTotemRequestMapper itemPedidoTotemRequestMapper = new ItemPedidoTotemRequestMapper();
 
     private final PedidoTotemResponseMapper pedidoTotemResponseMapper = new PedidoTotemResponseMapper();
@@ -58,7 +62,8 @@ class TotemPedidoServiceTest {
                 produtoClient,
                 pedidoClient,
                 itemPedidoTotemRequestMapper,
-                pedidoTotemResponseMapper
+                pedidoTotemResponseMapper,
+                realtimeNotifier
         );
     }
 

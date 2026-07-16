@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { nivelCargaGarcom, resolverAcaoPrimaria } from '../constants/urgencia.constants';
@@ -20,6 +21,8 @@ import {
   montarResumoExpediente,
 } from './expediente.util';
 import { mesaCorrespondeBuscaParcial, numeroMesaBusca } from '../utils/operational-search';
+import { RealtimeTopic } from '../models/realtime.models';
+import { RealtimeService } from './realtime.service';
 
 interface PedidoGestorApiResponse {
   id: number;
@@ -124,8 +127,6 @@ const MAXIMO_ULTIMOS_PEDIDOS = 5;
 const STORAGE_EXPEDIENTE_FECHADO = 'fk.expediente.fechado';
 const STORAGE_EXPEDIENTE_INICIO = 'fk.expediente.inicio';
 
-const INTERVALO_POLLING_MS = 10000;
-
 /** Intervalo entre os prefetch das páginas vizinhas — evita disparar as duas requisições coladas. */
 const PREFETCH_INTERVALO_MS = 400;
 
@@ -184,6 +185,7 @@ export class PainelService {
   private readonly baseUrl = `${environment.apiUrl}/api/gestor`;
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly realtimeService = inject(RealtimeService);
 
   private readonly mesasSignal = signal<MesaPainel[]>([]);
   private readonly cargaGarconsSignal = signal<CargaGarcom[]>([]);
@@ -237,22 +239,21 @@ export class PainelService {
       .catch(() => this.mensagemErroSignal.set('Não foi possível carregar o painel. Verifique os serviços e tente novamente.'))
       .finally(() => this.carregandoSignal.set(false));
 
-    const idPollingMesas = setInterval(() => {
-      if (
-        this.carregandoSignal() ||
-        this.expedienteFechado() ||
-        this.acaoEmAndamentoSignal() ||
-        this.atualizacaoPainelPromise !== null ||
-        this.consultaMesasEmAndamento
-      ) {
-        return;
-      }
-
-      void this.atualizarPainelSilencioso();
-    }, INTERVALO_POLLING_MS);
+    this.realtimeService
+      .watch(RealtimeTopic.gestorOperacao)
+      .pipe(debounceTime(150), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.invalidarCache();
+        void this.atualizarPainelSilencioso();
+      });
+    this.realtimeService.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.invalidarCache();
+        void this.atualizarPainelSilencioso();
+      });
 
     this.destroyRef.onDestroy(() => {
-      clearInterval(idPollingMesas);
       // Mata qualquer loop de prefetch ainda em voo ao sair da tela.
       this.geracaoPrefetch++;
     });

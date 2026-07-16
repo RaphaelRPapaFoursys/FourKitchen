@@ -17,6 +17,8 @@ import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaRespon
 import br.com.fourkitchen.bff_restaurante.enums.StatusProdutoPedido;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,8 @@ public class CozinhaService {
     private final NotificacaoService notificacaoService;
 
     private final DecisaoProblemaService decisaoProblemaService;
+
+    private final RealtimeNotifier realtimeNotifier;
 
     public List<PedidoFilaCozinhaResponse> listarFila(String authorization) {
         List<PedidoCozinhaResponse> pedidos = listarPedidosDaFila();
@@ -90,6 +94,13 @@ public class CozinhaService {
     public PedidoStatusCozinhaResponse iniciarPreparo(Integer id) {
         PedidoResponse pedido = alterarStatus(id, EventoPedido.PEDIDO_EM_PREPARO);
         registrarEvento(EventoPedido.PEDIDO_EM_PREPARO);
+        realtimeNotifier.pedidoAlterado(
+                RealtimeEventType.PEDIDO_EM_PREPARO,
+                pedido.id(),
+                pedido.idMesa(),
+                pedido.idAtendimento(),
+                pedido.status()
+        );
 
         return mapearStatus(pedido);
     }
@@ -97,6 +108,13 @@ public class CozinhaService {
     public PedidoStatusCozinhaResponse finalizarPreparo(Integer id) {
         PedidoResponse pedido = alterarStatus(id, EventoPedido.PEDIDO_PRONTO);
         registrarEvento(EventoPedido.PEDIDO_PRONTO);
+        realtimeNotifier.pedidoAlterado(
+                RealtimeEventType.PEDIDO_PRONTO,
+                pedido.id(),
+                pedido.idMesa(),
+                pedido.idAtendimento(),
+                pedido.status()
+        );
 
         return mapearStatus(pedido);
     }
@@ -220,6 +238,14 @@ public class CozinhaService {
                 registrarEvento(EventoPedido.PEDIDO_INDISPONIVEL);
             }
 
+            realtimeNotifier.pedidoAlterado(
+                    RealtimeEventType.PEDIDO_PROBLEMA_SINALIZADO,
+                    response.idPedido(),
+                    response.idMesa(),
+                    response.idAtendimento(),
+                    response.statusPedido()
+            );
+
 
             return response;
         } catch (FeignException e) {
@@ -238,4 +264,5 @@ public class CozinhaService {
     public void decisaoProblema(DecisaoProblemaRequest decisaoProblemaRequest) {
         decisaoProblemaService.registrar(decisaoProblemaRequest);
     }
+
 }

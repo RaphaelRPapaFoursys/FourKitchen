@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { TimeoutError, finalize, timeout } from 'rxjs';
+import { TimeoutError, debounceTime, finalize, timeout } from 'rxjs';
 
 import {
   ChamadaPendenteMesaResponse,
@@ -19,6 +19,8 @@ import { AuthService } from '../../core/services/auth';
 import { GarcomChamadaService } from '../../core/services/garcom-chamada';
 import { GarcomMesaService } from '../../core/services/garcom-mesa';
 import { MenuService } from '../../core/services/menu.service';
+import { RealtimeTopic } from '../../core/models/realtime.models';
+import { RealtimeService } from '../../core/services/realtime.service';
 import {
   normalizarBuscaOperacional,
   mesaCorrespondeBuscaParcial,
@@ -35,7 +37,6 @@ type AcaoDecisao = 'REMOVER_ITEM' | 'SUBSTITUIR_ITEM' | 'CANCELAR_PEDIDO';
 type ModoDivisaoConta = 'UNICA' | 'DIVIDIDA';
 
 const STATUS_PROBLEMA = new Set(['AGUARDANDO_DECISAO', 'PROBLEMA_COZINHA']);
-const INTERVALO_ATUALIZACAO_MS = 10_000;
 
 @Component({
   selector: 'app-garcom',
@@ -52,10 +53,10 @@ export class Garcom {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly realtimeService = inject(RealtimeService);
 
   private dashboardEmCarregamento = false;
   private atualizacaoPendente: { silencioso: boolean; forcarDetalhes: boolean } | null = null;
-  private intervaloAtualizacao: ReturnType<typeof setInterval> | null = null;
 
   protected readonly mesas = signal<MesaGarcomResponse[]>([]);
   protected readonly busca = signal('');
@@ -161,15 +162,22 @@ export class Garcom {
 
   constructor() {
     this.carregarDashboard();
-    this.intervaloAtualizacao = setInterval(
-      () => this.carregarDashboard(true),
-      INTERVALO_ATUALIZACAO_MS,
-    );
-    this.destroyRef.onDestroy(() => {
-      if (this.intervaloAtualizacao !== null) {
-        clearInterval(this.intervaloAtualizacao);
-      }
-    });
+    this.realtimeService
+      .watch(RealtimeTopic.garcomOperacao)
+      .pipe(debounceTime(150), takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        if (event.type === 'CHAMADA_GARCOM_CRIADA') {
+          this.sucesso.set('Nova chamada de mesa recebida.');
+        } else if (event.type === 'PEDIDO_PRONTO') {
+          this.sucesso.set('Um pedido ficou pronto para entrega.');
+        } else if (event.type === 'PEDIDO_PROBLEMA_SINALIZADO') {
+          this.sucesso.set('A cozinha solicitou uma decisao.');
+        }
+        this.carregarDashboard(true, true);
+      });
+    this.realtimeService.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.carregarDashboard(true, true));
   }
 
   protected carregarDashboard(silencioso = false, forcarDetalhes = !silencioso): void {

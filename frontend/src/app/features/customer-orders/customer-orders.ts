@@ -10,6 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
+  EMPTY,
   Subject,
   catchError,
   exhaustMap,
@@ -18,13 +19,16 @@ import {
   of,
   switchMap,
   tap,
-  timer,
+  map,
 } from 'rxjs';
 
 import { MesaAtendimentoAtualResponse, PedidoMesaStatusResponse, PedidoStatus, ResumoContaMesaResponse } from '../../core/models/order.models';
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { OrderService } from '../../core/services/order.service';
+import { AuthService } from '../../core/services/auth';
+import { RealtimeTopic } from '../../core/models/realtime.models';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { MesaHeaderComponent } from '../../shared/components/mesa-header/mesa-header';
 
 type MesaOrdersState =
@@ -41,13 +45,13 @@ type MesaOrdersState =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomerOrders {
-  private static readonly AUTO_REFRESH_INTERVAL_MS = 10_000;
-
+  private readonly authService = inject(AuthService);
   private readonly cartService = inject(CartService);
   private readonly customerContextService = inject(CustomerContextService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
+  private readonly realtimeService = inject(RealtimeService);
   private readonly refreshTrigger = new Subject<void>();
   private readonly terminalStatuses = new Set<PedidoStatus>([
     'ENTREGUE',
@@ -86,12 +90,17 @@ export class CustomerOrders {
   }
 
   private startMesaOrdersUpdates(): void {
+    const idMesa = this.authService.getCurrentUser()?.idMesa;
+    const realtimeUpdates = idMesa
+      ? merge(
+          this.realtimeService.watch(RealtimeTopic.mesa(idMesa)),
+          this.realtimeService.reconnected$,
+        ).pipe(map(() => undefined))
+      : EMPTY;
+
     merge(
-      timer(
-        CustomerOrders.AUTO_REFRESH_INTERVAL_MS,
-        CustomerOrders.AUTO_REFRESH_INTERVAL_MS,
-      ),
       this.refreshTrigger,
+      realtimeUpdates,
     )
       .pipe(
         exhaustMap(() => this.fetchMesaOrders().pipe(

@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { debounceTime, finalize } from 'rxjs';
 
 import {
   CategoriaGestorRequest,
@@ -11,6 +11,8 @@ import {
 } from '../../core/models/catalog.models';
 import { AuthService } from '../../core/services/auth';
 import { CatalogService } from '../../core/services/catalog.service';
+import { RealtimeTopic } from '../../core/models/realtime.models';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { getBase64ImageSource } from '../../core/utils/product-image.utils';
 import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
@@ -29,6 +31,7 @@ export class GestorCategories {
   private readonly catalogService = inject(CatalogService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly realtimeService = inject(RealtimeService);
 
   protected readonly usuario = toSignal(this.authService.usuario$, {
     initialValue: this.authService.getCurrentUser(),
@@ -68,6 +71,13 @@ export class GestorCategories {
 
   constructor() {
     this.loadCategories();
+    this.realtimeService
+      .watch(RealtimeTopic.gestorCatalogo)
+      .pipe(debounceTime(200), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadCategories());
+    this.realtimeService.reconnected$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadCategories());
   }
 
   protected openCreateDialog(): void {

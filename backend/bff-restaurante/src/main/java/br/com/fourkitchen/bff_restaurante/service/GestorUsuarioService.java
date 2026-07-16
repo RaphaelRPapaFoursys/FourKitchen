@@ -9,6 +9,7 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarUsuarioRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.UsuarioGestorResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ import java.util.List;
 public class GestorUsuarioService {
 
     private final UsuarioClient usuarioClient;
+
+    private final RealtimeNotifier realtimeNotifier;
 
     public List<UsuarioGestorResponse> listarUsuarios(String authorization) {
         validarAuthorization(authorization);
@@ -50,7 +53,9 @@ public class GestorUsuarioService {
         );
 
         try {
-            return mapearUsuario(usuarioClient.criarUsuario(clientRequest, authorization));
+            UsuarioGestorResponse usuario = mapearUsuario(usuarioClient.criarUsuario(clientRequest, authorization));
+            realtimeNotifier.usuarioAlterado(usuario.id());
+            return usuario;
         } catch (FeignException e) {
             throw mapearErroMsUsuarios(e);
         }
@@ -72,7 +77,9 @@ public class GestorUsuarioService {
         );
 
         try {
-            return mapearUsuario(usuarioClient.atualizarUsuario(id, clientRequest, authorization));
+            UsuarioGestorResponse usuario = mapearUsuario(usuarioClient.atualizarUsuario(id, clientRequest, authorization));
+            realtimeNotifier.usuarioAlterado(usuario.id());
+            return usuario;
         } catch (FeignException e) {
             throw mapearErroMsUsuarios(e);
         }
@@ -89,6 +96,7 @@ public class GestorUsuarioService {
 
         try {
             usuarioClient.inativarUsuario(id, authorization);
+            realtimeNotifier.usuarioAlterado(id);
         } catch (FeignException e) {
             throw mapearErroMsUsuarios(e);
         }

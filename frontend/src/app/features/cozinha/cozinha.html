@@ -67,10 +67,6 @@
         </div>
         <h2>A fila está vazia</h2>
         <p>Novos pedidos aparecerão aqui automaticamente.</p>
-        <button type="button" class="button button--secondary" (click)="atualizarFila()" [disabled]="atualizando()">
-          <fk-icon name="arrows-counter-clockwise" size="1rem" />
-          Tentar novamente
-        </button>
       </section>
     } @else if (pedidosFiltrados().length === 0) {
       <section class="interface-state">

@@ -23,6 +23,8 @@ import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import br.com.fourkitchen.bff_restaurante.mapper.MesaGarcomMapperSource;
 import br.com.fourkitchen.bff_restaurante.mapper.MesaGarcomResponseMapper;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventType;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +65,8 @@ public class GarcomMesaService {
     private final NotificacaoClient notificacaoClient;
 
     private final MesaGarcomResponseMapper mesaGarcomResponseMapper;
+
+    private final RealtimeNotifier realtimeNotifier;
 
     public List<MesaGarcomResponse> listarMesas(Authentication authentication) {
         Integer idGarcom = extrairIdGarcom(authentication);
@@ -175,6 +179,12 @@ public class GarcomMesaService {
 
         ContaGarcomResponse conta = mapearConta(buscarResumoConta(mesa.idAtendimento()));
         MesaClientResponse mesaFechada = fecharMesaNoMsMesas(idMesa);
+        realtimeNotifier.mesaAlterada(
+                RealtimeEventType.MESA_FECHADA,
+                mesaFechada.id(),
+                mesa.idAtendimento(),
+                mesaFechada.garcomId()
+        );
 
         return new FechamentoContaGarcomResponse(
                 mesa.idMesa(),
@@ -276,7 +286,14 @@ public class GarcomMesaService {
 
     private void entregarPedidoNoMsPedidos(Integer idPedido) {
         try {
-            pedidoClient.entregarPedido(idPedido);
+            var pedido = pedidoClient.entregarPedido(idPedido);
+            realtimeNotifier.pedidoAlterado(
+                    RealtimeEventType.PEDIDO_ENTREGUE,
+                    pedido.id(),
+                    pedido.idMesa(),
+                    pedido.idAtendimento(),
+                    pedido.status()
+            );
         } catch (FeignException e) {
             if (e.status() == 404) {
                 throw new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO);

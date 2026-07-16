@@ -15,6 +15,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.PedidoFilaCozinhaResponse
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeNotifier;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
@@ -54,6 +55,9 @@ class CozinhaServiceTest {
 
     @Mock
     private DecisaoProblemaService decisaoProblemaService;
+
+    @Mock
+    private RealtimeNotifier realtimeNotifier;
 
     @InjectMocks
     private CozinhaService cozinhaService;

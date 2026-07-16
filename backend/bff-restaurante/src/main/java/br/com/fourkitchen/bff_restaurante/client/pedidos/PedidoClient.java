@@ -57,7 +57,7 @@ public interface PedidoClient {
     SinalizarProblemaResponse sinalizarProblema(@RequestBody SinalizarProblemaRequest request);
 
     @PatchMapping("/api/pedidos/decisao-problema")
-    Void decisaoProblema(
+    PedidoResponse decisaoProblema(
             @RequestBody DecisaoProblemaPedidoRequest decisaoProblemaRequest
     );
 }

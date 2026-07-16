@@ -7,6 +7,8 @@ public record SinalizarProblemaResponse(
         Integer idPedido,
         Integer idProdutoPedido,
         StatusPedido statusPedido,
-        StatusProdutoPedido statusProdutoPedido
+        StatusProdutoPedido statusProdutoPedido,
+        Integer idMesa,
+        Integer idAtendimento
 ) {
 }
