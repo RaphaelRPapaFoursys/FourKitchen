@@ -320,12 +320,12 @@ export class CustomerHome implements AfterViewInit {
   }
 
   protected selectCategoryFromCard(categoryId: number): void {
-    this.selectedCategoryId.set(categoryId);
+    this.selectCategory(categoryId);
     this.scrollToMenuSection();
   }
 
   protected selectCategoryFromFilter(categoryId: number | null): void {
-    this.selectedCategoryId.set(categoryId);
+    this.selectCategory(categoryId);
   }
 
   protected scrollCategories(direction: 'left' | 'right'): void {
