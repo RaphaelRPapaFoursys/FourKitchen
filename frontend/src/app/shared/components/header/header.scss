@@ -38,7 +38,7 @@
 
 .topbar__acoes {
   display: flex;
-    align-items: center;
+  align-items: center;
 }
 
 .topbar__notificacao {
@@ -52,6 +52,7 @@
   background: var(--fk-card);
   box-shadow: var(--fk-shadow-card);
   color: var(--fk-text-2);
+  margin-right: 2rem;
   cursor: pointer;
   transition: background 120ms ease;
 }
