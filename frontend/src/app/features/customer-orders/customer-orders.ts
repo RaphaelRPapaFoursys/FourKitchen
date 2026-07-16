@@ -13,7 +13,7 @@ import {
   Subject,
   catchError,
   exhaustMap,
-  map,
+  forkJoin,
   merge,
   of,
   switchMap,
@@ -95,7 +95,6 @@ export class CustomerOrders {
     )
       .pipe(
         exhaustMap(() => this.fetchMesaOrders().pipe(
-          map(orders => ({ orders })),
           catchError(() => of(null)),
         )),
         takeUntilDestroyed(this.destroyRef),
@@ -117,6 +116,7 @@ export class CustomerOrders {
         }
 
         this.hasLoadedOrders = true;
+        this.resumoConta.set(result.resumo);
         const orders = this.sortOrders(result.orders);
 
         this.state.set(
@@ -137,7 +137,10 @@ export class CustomerOrders {
     return this.orderService.getCurrentTableAttendance()
       .pipe(
         tap(atendimento => this.atendimentoAtual.set(atendimento)),
-        switchMap(attendance => this.orderService.getMesaOrders(attendance.codigoAtendimento)),
+        switchMap(attendance => forkJoin({
+          orders: this.orderService.getMesaOrders(attendance.codigoAtendimento),
+          resumo: this.orderService.getMesaAccountSummary(attendance.codigoAtendimento),
+        })),
       );
   }
 
@@ -197,10 +200,19 @@ export class CustomerOrders {
       return 'Horario indisponivel';
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(new Date(date));
+    const orderDate = new Date(date);
+    const formattedDate = new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(orderDate);
+    const formattedTime = new Intl.DateTimeFormat('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(orderDate);
+
+    return `${formattedDate} | ${formattedTime}`;
   }
 
   protected trackByOrderId(_index: number, order: PedidoMesaStatusResponse): number {

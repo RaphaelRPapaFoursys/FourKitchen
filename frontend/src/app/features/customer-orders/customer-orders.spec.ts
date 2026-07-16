@@ -42,7 +42,14 @@ describe('CustomerOrders', () => {
         idAtendimento: 20,
         codigoAtendimento: 827764,
         dataCriacao: '2026-07-15T09:00:00',
-        itens: [],
+        valorTotal: 66,
+        itens: [{
+          idProduto: 11,
+          nome: 'Pedido entregue',
+          quantidade: 1,
+          precoUnitario: 66,
+          valorTotal: 66,
+        }],
       },
       {
         id: 2,
@@ -53,7 +60,14 @@ describe('CustomerOrders', () => {
         idAtendimento: 20,
         codigoAtendimento: 827764,
         dataCriacao: '2026-07-15T09:10:00',
-        itens: [],
+        valorTotal: 59.8,
+        itens: [{
+          idProduto: 10,
+          nome: 'X-Burger',
+          quantidade: 2,
+          precoUnitario: 29.9,
+          valorTotal: 59.8,
+        }],
       },
       {
         id: 3,
@@ -64,6 +78,7 @@ describe('CustomerOrders', () => {
         idAtendimento: 20,
         codigoAtendimento: 827764,
         dataCriacao: '2026-07-15T09:20:00',
+        valorTotal: 0,
         itens: [],
       },
       {
@@ -75,9 +90,26 @@ describe('CustomerOrders', () => {
         idAtendimento: 20,
         codigoAtendimento: 827764,
         dataCriacao: '2026-07-15T09:30:00',
-        itens: [],
+        valorTotal: 23.9,
+        itens: [{
+          idProduto: 12,
+          nome: 'Limonada',
+          quantidade: 1,
+          precoUnitario: 23.9,
+          valorTotal: 23.9,
+        }],
       },
     ]);
+    httpMock.expectOne(request =>
+      request.url === `${environment.apiUrl}/api/mesa/pedidos/resumo-conta`
+      && request.params.get('codigoAtendimento') === '827764',
+    ).flush({
+      idAtendimento: 20,
+      codigoAtendimento: 827764,
+      valorFinal: 149.7,
+      totalPedidos: 3,
+      totalItens: 4,
+    });
     fixture.detectChanges();
   });
 
@@ -125,5 +157,11 @@ describe('CustomerOrders', () => {
     const status = fixture.nativeElement.querySelector('.orders-status') as HTMLElement;
 
     expect(status.textContent?.trim()).toBe('Em preparo');
+  });
+
+  it('shows the creation date separated from the time by a vertical bar', () => {
+    const createdAt = fixture.nativeElement.querySelector('.order-card__meta dd') as HTMLElement;
+
+    expect(createdAt.textContent?.trim()).toBe('15/07/2026 | 09:10');
   });
 });

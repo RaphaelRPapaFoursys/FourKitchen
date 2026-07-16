@@ -50,6 +50,7 @@ export class CustomerCart {
     this.items().reduce((total, item) => total + item.quantity, 0),
   );
   protected readonly isConfirmingOrder = signal(false);
+  protected readonly isClearConfirmationVisible = signal(false);
   protected readonly confirmOrderError = signal('');
   protected readonly atendimentoAtual = signal<MesaAtendimentoAtualResponse | null>(null);
   protected readonly carregandoAtendimento = signal(false);
@@ -112,6 +113,21 @@ export class CustomerCart {
 
   protected removeItem(cartItemId: string): void {
     this.items.set(this.cartService.removeItem(this.getCurrentContext(), cartItemId));
+  }
+
+  protected clearCart(): void {
+    this.isClearConfirmationVisible.set(true);
+  }
+
+  protected confirmClearCart(): void {
+    this.cartService.clearCart(this.getCurrentContext());
+    this.items.set([]);
+    this.confirmOrderError.set('');
+    this.isClearConfirmationVisible.set(false);
+  }
+
+  protected cancelClearCart(): void {
+    this.isClearConfirmationVisible.set(false);
   }
 
   protected updateObservation(change: { cartItemId: string; observation: string }): void {
