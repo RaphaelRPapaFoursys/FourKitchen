@@ -124,16 +124,12 @@ app-customer-hero,
   &::after {
     content: "";
     position: absolute;
-
     left: 50%;
     bottom: -12px;
     transform: translateX(-50%);
-
     width: 400px;
     height: 4px;
-
     border-radius: 999px;
-
     background: linear-gradient(
       90deg,
       rgba(255, 107, 45, 0) 0%,
@@ -145,7 +141,7 @@ app-customer-hero,
 }
 
 .section-heading {
-  margin-bottom: 5rem;
+  margin-bottom: 4rem;
   text-align: center;
 }
 
@@ -159,7 +155,7 @@ app-customer-hero,
 
 .section-heading p {
   width: min(100%, 36rem);
-  margin: 0rem auto;
+  margin: -0.5rem auto;
   color: rgb(255 255 255 / 72%);
   font-family: "Inter", Arial, sans-serif;
 }

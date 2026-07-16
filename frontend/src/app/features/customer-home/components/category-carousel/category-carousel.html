@@ -26,10 +26,14 @@
         <div class="category-card__media">
           <img [src]="categoryImage()(category)" [alt]="category.categoriaNome" loading="eager" draggable="false" (error)="useCategoryFallback($event)" />
         </div>
-        <h3>{{ category.categoriaNome }}</h3>
+
+        <div class="category-card__content">
+          <h3>{{ category.categoriaNome }}</h3>
+
         @if (category.categoriaDescricao) {
           <p>{{ category.categoriaDescricao }}</p>
-        }
+       }
+  </div>
       </button>
     }
   </div>

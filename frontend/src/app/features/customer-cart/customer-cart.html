@@ -29,8 +29,11 @@
   }
 
   <section class="cart-panel" aria-labelledby="cart-title">
-    <div class="cart-panel__heading">
+    <div class="cart-panel__heading" class="cart-panel__title">
       <h1 id="cart-title">Seu Pedido</h1>
+      <small>
+        Revise os itens antes de confirmar.
+    </small>
       <div class="cart-panel__heading-actions">
         <span>{{ totalItems() }} itens</span>
         @if (items().length > 0) {
@@ -42,6 +45,7 @@
               aria-controls="clear-cart-confirmation"
               (click)="clearCart()"
             >
+            
               Limpar carrinho
             </button>
 

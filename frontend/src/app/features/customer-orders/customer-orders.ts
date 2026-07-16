@@ -229,4 +229,18 @@ export class CustomerOrders {
       currency: 'BRL',
     }).format(price);
   }
+
+  private readonly statusOrder = [
+  'ENVIADO_COZINHA',
+  'EM_PREPARO',
+  'PRONTO',
+  'ENTREGUE'
+];
+
+isStepDone(current: string, target: string): boolean {
+  return (
+    this.statusOrder.indexOf(current) >=
+    this.statusOrder.indexOf(target)
+  );
+}
 }
