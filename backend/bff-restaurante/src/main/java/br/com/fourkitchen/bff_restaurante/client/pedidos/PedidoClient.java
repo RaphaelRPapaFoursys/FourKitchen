@@ -53,6 +53,9 @@ public interface PedidoClient {
     @PatchMapping("/api/pedidos/{id}/entregar")
     PedidoResponse entregarPedido(@PathVariable Integer id);
 
+    @PatchMapping("/api/pedidos/{id}/cancelar")
+    Void cancelarPedidoAntesDoPreparo(@PathVariable Integer id);
+
     @PatchMapping("/api/pedidos/sinalizar-problema")
     SinalizarProblemaResponse sinalizarProblema(@RequestBody SinalizarProblemaRequest request);
 

@@ -246,6 +246,36 @@ class GarcomMesaServiceTest {
     }
 
     @Test
+    void cancelarPedidoAntesDoPreparoDeveValidarMesaEPedidoEnviadoAntesDeCancelar() {
+        Authentication authentication = criarAuthentication(7L);
+        PedidoCozinhaResponse pedidoEnviado = criarPedidoDetalhado(25, "ENVIADO_COZINHA", null);
+
+        when(mesaClient.listarMesasPorGarcom(7)).thenReturn(List.of(criarMesa()));
+        when(pedidoClient.listarPedidosDetalhadosPorAtendimento(8)).thenReturn(List.of(pedidoEnviado));
+
+        garcomMesaService.cancelarPedidoAntesDoPreparo(1, 25, authentication);
+
+        verify(pedidoClient).cancelarPedidoAntesDoPreparo(25);
+    }
+
+    @Test
+    void cancelarPedidoAntesDoPreparoDeveRecusarPedidoEmPreparo() {
+        Authentication authentication = criarAuthentication(7L);
+        PedidoCozinhaResponse pedidoEmPreparo = criarPedidoDetalhado(25, "EM_PREPARO", null);
+
+        when(mesaClient.listarMesasPorGarcom(7)).thenReturn(List.of(criarMesa()));
+        when(pedidoClient.listarPedidosDetalhadosPorAtendimento(8)).thenReturn(List.of(pedidoEmPreparo));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> garcomMesaService.cancelarPedidoAntesDoPreparo(1, 25, authentication)
+        );
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        verify(pedidoClient, never()).cancelarPedidoAntesDoPreparo(25);
+    }
+
+    @Test
     void listarMesasDeveLancarTokenInvalidoQuandoAuthenticationForNulo() {
         BaseException exception = assertThrows(BaseException.class, () -> garcomMesaService.listarMesas(null));
 

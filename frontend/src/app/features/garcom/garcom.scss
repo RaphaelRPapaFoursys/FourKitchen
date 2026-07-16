@@ -1288,6 +1288,12 @@ button:disabled {
   opacity: 0.65;
 }
 
+.modal-order-card .delivery-button--danger {
+  border-color: var(--fk-red);
+  background: var(--fk-red-soft);
+  color: var(--fk-red);
+}
+
 .section-empty {
   margin: 0;
   padding: 0.75rem;
@@ -1347,6 +1353,12 @@ button:disabled {
   font-size: 0.78rem;
 }
 
+.history-order--cancelled summary > strong,
+.history-order--cancelled .history-items p > strong {
+  color: var(--fk-red-strong);
+  text-decoration: line-through;
+}
+
 .history-order summary small {
   font-size: 0.68rem;
 }
@@ -1376,6 +1388,13 @@ button:disabled {
 .history-item--removed > strong {
   color: var(--fk-red-strong);
   text-decoration: line-through;
+}
+
+.history-item-observation {
+  display: block;
+  margin: -0.05rem 0 0.3rem;
+  color: var(--fk-muted);
+  font-size: 0.68rem;
 }
 
 .table-modal__actions {

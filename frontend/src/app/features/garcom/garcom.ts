@@ -33,6 +33,10 @@ import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 type FiltroMesa = 'todas' | 'chamadas' | 'problemas';
 type AcaoDecisao = 'REMOVER_ITEM' | 'SUBSTITUIR_ITEM' | 'CANCELAR_PEDIDO';
 type ModoDivisaoConta = 'UNICA' | 'DIVIDIDA';
+type CancelamentoDireto = {
+  mesa: MesaGarcomResponse;
+  pedido: PedidoDetalheGarcomResponse;
+};
 
 const STATUS_PROBLEMA = new Set(['AGUARDANDO_DECISAO', 'PROBLEMA_COZINHA']);
 const INTERVALO_ATUALIZACAO_MS = 10_000;
@@ -84,6 +88,7 @@ export class Garcom {
   protected readonly salvandoDecisao = signal(false);
   protected readonly confirmandoCancelamento = signal(false);
   protected readonly erroCancelamento = signal('');
+  protected readonly cancelamentoDireto = signal<CancelamentoDireto | null>(null);
   protected readonly acaoDecisao = signal<AcaoDecisao>('REMOVER_ITEM');
 
   protected readonly categorias = signal<CategoriaCardapioResponse[]>([]);
@@ -102,6 +107,24 @@ export class Garcom {
   protected readonly produtosDaCategoria = computed<ProdutoCardapioResponse[]>(() => {
     const categoriaId = this.categoriaSelecionadaId();
     return this.categorias().find(categoria => categoria.categoriaId === categoriaId)?.produtos ?? [];
+  });
+
+  protected readonly mesaDoCancelamento = computed(() =>
+    this.cancelamentoDireto()?.mesa ?? this.mesaEmDetalhe()
+  );
+
+  protected readonly pedidoDoCancelamento = computed(() => {
+    const cancelamentoDireto = this.cancelamentoDireto();
+    if (cancelamentoDireto) {
+      return cancelamentoDireto.pedido;
+    }
+
+    const problema = this.problemaSelecionado();
+    if (!problema) {
+      return null;
+    }
+
+    return this.detalheSelecionado()?.pedidos.find(pedido => pedido.id === problema.idPedido) ?? null;
   });
 
   protected readonly mesasFiltradas = computed(() => {
@@ -288,6 +311,7 @@ export class Garcom {
     this.detalheSelecionado.set(null);
     this.problemaSelecionado.set(null);
     this.observacaoNovoProduto.set('');
+    this.cancelamentoDireto.set(null);
   }
 
   protected selecionarProblema(problema: ProblemaPedidoGarcomResponse): void {
@@ -342,6 +366,7 @@ export class Garcom {
 
     if (this.acaoDecisao() === 'CANCELAR_PEDIDO') {
       this.erroCancelamento.set('');
+      this.cancelamentoDireto.set(null);
       this.confirmandoCancelamento.set(true);
       return;
     }
@@ -353,10 +378,17 @@ export class Garcom {
     if (!this.salvandoDecisao()) {
       this.confirmandoCancelamento.set(false);
       this.erroCancelamento.set('');
+      this.cancelamentoDireto.set(null);
     }
   }
 
   protected confirmarCancelamentoPedido(): void {
+    const cancelamentoDireto = this.cancelamentoDireto();
+    if (cancelamentoDireto) {
+      this.enviarCancelamentoDireto(cancelamentoDireto);
+      return;
+    }
+
     const mesa = this.mesaEmDetalhe();
     const problema = this.problemaSelecionado();
     if (!mesa || !problema || this.salvandoDecisao()) {
@@ -364,6 +396,16 @@ export class Garcom {
     }
 
     this.enviarDecisao(mesa, problema, true);
+  }
+
+  protected solicitarCancelamentoPedido(mesa: MesaGarcomResponse, pedido: PedidoDetalheGarcomResponse): void {
+    if (!this.podeCancelarPedidoDiretamente(pedido) || this.salvandoDecisao() || this.confirmandoCancelamento()) {
+      return;
+    }
+
+    this.erroCancelamento.set('');
+    this.cancelamentoDireto.set({ mesa, pedido });
+    this.confirmandoCancelamento.set(true);
   }
 
   private enviarDecisao(
@@ -387,6 +429,7 @@ export class Garcom {
       .subscribe({
         next: () => {
           this.confirmandoCancelamento.set(false);
+          this.cancelamentoDireto.set(null);
           this.mesaEmDetalhe.set(null);
           this.detalheSelecionado.set(null);
           this.problemaSelecionado.set(null);
@@ -408,6 +451,32 @@ export class Garcom {
             this.erro.set(mensagem);
           }
         },
+      });
+  }
+
+  private enviarCancelamentoDireto(cancelamento: CancelamentoDireto): void {
+    this.salvandoDecisao.set(true);
+    this.erro.set('');
+    this.erroCancelamento.set('');
+    this.sucesso.set('');
+
+    this.garcomMesaService
+      .cancelarPedidoAntesDoPreparo(cancelamento.mesa.idMesa, cancelamento.pedido.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.salvandoDecisao.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.confirmandoCancelamento.set(false);
+          this.cancelamentoDireto.set(null);
+          this.sucesso.set(`Pedido #${cancelamento.pedido.codigo} cancelado com sucesso.`);
+          this.carregarDashboard(true, true);
+        },
+        error: error => this.erroCancelamento.set(this.getErrorMessage(
+          error,
+          'Nao foi possivel cancelar o pedido. O preparo pode ja ter sido iniciado.',
+        )),
       });
   }
 
@@ -467,8 +536,16 @@ export class Garcom {
     return item.status === 'REMOVIDO' || item.status === 'CANCELADO';
   }
 
+  protected pedidoCancelado(pedido: PedidoDetalheGarcomResponse): boolean {
+    return pedido.status === 'CANCELADO';
+  }
+
   protected pedidoAguardaDecisao(pedido: PedidoDetalheGarcomResponse): boolean {
     return STATUS_PROBLEMA.has(pedido.status);
+  }
+
+  protected podeCancelarPedidoDiretamente(pedido: PedidoDetalheGarcomResponse): boolean {
+    return pedido.status === 'ENVIADO_COZINHA';
   }
 
   protected podeFecharConta(mesa: MesaGarcomResponse): boolean {

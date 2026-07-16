@@ -162,6 +162,16 @@ class GarcomMesaControllerTest {
     }
 
     @Test
+    void cancelarPedidoAntesDoPreparoDeveRetornarSemConteudo() {
+        Authentication authentication = mock(Authentication.class);
+
+        ResponseEntity<Void> response = garcomMesaController.cancelarPedidoAntesDoPreparo(1, 25, authentication);
+
+        assertEquals(204, response.getStatusCode().value());
+        verify(garcomMesaService).cancelarPedidoAntesDoPreparo(1, 25, authentication);
+    }
+
+    @Test
     void registrarDecisaoProblemaDeveRetornarSemConteudo() {
         Authentication authentication = mock(Authentication.class);
         DecisaoProblemaRequest request = new DecisaoProblemaRequest(

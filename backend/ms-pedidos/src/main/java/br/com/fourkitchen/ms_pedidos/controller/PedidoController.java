@@ -82,6 +82,12 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.entregarPedido(id));
     }
 
+    @PatchMapping("/{id}/cancelar")
+    public ResponseEntity<Void> cancelarPedidoAntesDoPreparo(@PathVariable Integer id) {
+        pedidoService.cancelarPedidoAntesDoPreparo(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/atendimentos/{atendimentoId}/possui-ativos")
     public ResponseEntity<Boolean> possuiPedidosAtivos(
             @PathVariable Integer atendimentoId
