@@ -78,32 +78,9 @@
   color: #fff;
 }
 
-.sidebar__nav-item:focus-visible,
-.sidebar__sair:focus-visible {
+.sidebar__nav-item:focus-visible {
   outline: 2px solid var(--fk-orange);
   outline-offset: 2px;
-}
-
-.sidebar__sair {
-  position: relative;
-  z-index: 1;
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.65rem 0.85rem;
-  border: 0;
-  border-radius: var(--fk-radius-control);
-  background: transparent;
-  color: var(--fk-on-navy-muted);
-  font: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: color 120ms ease;
-}
-
-.sidebar__sair:hover {
-  color: var(--fk-on-navy);
 }
 
 /* Folhas + onda decorativas ancoradas logo acima do botão "Sair" (fora do fluxo,

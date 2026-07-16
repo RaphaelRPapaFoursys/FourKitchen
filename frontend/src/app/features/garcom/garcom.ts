@@ -25,10 +25,10 @@ import {
   numeroContemBusca,
   numeroBuscaOperacional,
 } from '../../core/utils/operational-search';
-import { Avatar } from '../../shared/components/avatar/avatar';
 import { Badge, BadgeVariant } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { UserMenu } from '../../shared/components/user-menu/user-menu';
 
 type FiltroMesa = 'todas' | 'chamadas' | 'problemas';
 type AcaoDecisao = 'REMOVER_ITEM' | 'SUBSTITUIR_ITEM' | 'CANCELAR_PEDIDO';
@@ -40,7 +40,7 @@ const INTERVALO_ATUALIZACAO_MS = 10_000;
 @Component({
   selector: 'app-garcom',
   standalone: true,
-  imports: [Avatar, Badge, Icon, KpiCard],
+  imports: [Badge, Icon, KpiCard, UserMenu],
   templateUrl: './garcom.html',
   styleUrl: './garcom.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

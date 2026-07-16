@@ -107,6 +107,7 @@ public class PedidoService {
         return pedidoResponseMapper.map(pedido);
     }
 
+
     public PedidoResponse findById(Integer id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
