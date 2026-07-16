@@ -294,6 +294,10 @@ export class Cozinha implements OnDestroy {
     return this.statusNormalizado(pedido) === 'PRONTO';
   }
 
+  protected podeSinalizarProblema(pedido: PedidoFilaCozinhaResponse): boolean {
+    return this.statusNormalizado(pedido) === 'ENVIADO_COZINHA';
+  }
+
   protected nomeItem(item: PedidoFilaCozinhaResponse['itens'][number]): string {
     return item.nomeProduto?.trim() || `Produto #${item.idProduto}`;
   }

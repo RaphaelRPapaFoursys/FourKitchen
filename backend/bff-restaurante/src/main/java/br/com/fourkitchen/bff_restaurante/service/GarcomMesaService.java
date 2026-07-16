@@ -163,6 +163,28 @@ public class GarcomMesaService {
         entregarPedidoNoMsPedidos(idPedido);
     }
 
+    public void cancelarPedidoAntesDoPreparo(Integer idMesa, Integer idPedido, Authentication authentication) {
+        if (idPedido == null || idPedido <= 0) {
+            throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+        }
+
+        Integer idGarcom = extrairIdGarcom(authentication);
+        MesaGarcomClientResponse mesa = buscarMesaAtribuidaAoGarcom(idMesa, idGarcom);
+        validarAtendimentoAberto(mesa);
+
+        PedidoCozinhaResponse pedido = buscarPedidosDetalhados(mesa.idAtendimento())
+                .stream()
+                .filter(item -> idPedido.equals(item.id()))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
+
+        if (!"ENVIADO_COZINHA".equals(pedido.status())) {
+            throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+        }
+
+        cancelarPedidoNoMsPedidos(idPedido);
+    }
+
     public FechamentoContaGarcomResponse fecharConta(Integer idMesa, Authentication authentication) {
         Integer idGarcom = extrairIdGarcom(authentication);
         MesaGarcomClientResponse mesa = buscarMesaAtribuidaAoGarcom(idMesa, idGarcom);
@@ -277,6 +299,22 @@ public class GarcomMesaService {
     private void entregarPedidoNoMsPedidos(Integer idPedido) {
         try {
             pedidoClient.entregarPedido(idPedido);
+        } catch (FeignException e) {
+            if (e.status() == 404) {
+                throw new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO);
+            }
+
+            if (e.status() == 400) {
+                throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+            }
+
+            throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
+    }
+
+    private void cancelarPedidoNoMsPedidos(Integer idPedido) {
+        try {
+            pedidoClient.cancelarPedidoAntesDoPreparo(idPedido);
         } catch (FeignException e) {
             if (e.status() == 404) {
                 throw new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO);

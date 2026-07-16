@@ -227,6 +227,17 @@
                   @if (pedidoAguardaDecisao(pedido)) {
                     <button type="button" class="warning-button" (click)="abrirSolicitacao(mesa)">Ver solicitação da cozinha</button>
                   }
+                  @if (podeCancelarPedidoDiretamente(pedido)) {
+                    <button
+                      type="button"
+                      class="delivery-button delivery-button--danger"
+                      (click)="solicitarCancelamentoPedido(mesa, pedido)"
+                      [disabled]="confirmandoCancelamento() || salvandoDecisao()"
+                    >
+                      <fk-icon name="warning-circle" size="0.95rem" />
+                      Cancelar pedido
+                    </button>
+                  }
                 </footer>
               </article>
             } @empty {
@@ -279,7 +290,7 @@
           </div>
           <div class="history-list">
             @for (pedido of pedidosHistoricoDetalhe(detalhe); track pedido.id) {
-              <details class="history-order">
+              <details class="history-order" [class.history-order--cancelled]="pedidoCancelado(pedido)">
                 <summary>
                   <span><strong>Pedido #{{ pedido.codigo }}</strong><small>{{ statusPedidoLabel(pedido.status) }}</small></span>
                   <strong>{{ formatarMoeda(valorPedido(pedido)) }}</strong>
@@ -293,6 +304,7 @@
                       </span>
                       <strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong>
                     </p>
+                    @if (item.observacao) { <small class="history-item-observation">Observação: {{ item.observacao }}</small> }
                   }
                 </div>
               </details>
@@ -367,13 +379,13 @@
   </div>
 }
 
-@if (confirmandoCancelamento() && mesaEmDetalhe(); as mesa) {
+@if (confirmandoCancelamento() && mesaDoCancelamento(); as mesa) {
   <div class="modal-backdrop modal-backdrop--top">
     <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="cancel-title">
       <span class="confirm-modal__icon confirm-modal__icon--danger"><fk-icon name="warning-circle" size="1.5rem" /></span>
       <h2 id="cancel-title">Cancelar pedido</h2>
-      @if (problemaSelecionado(); as problema) {
-        <dl class="confirm-summary"><div><dt>Pedido</dt><dd>#{{ pedidoCodigo(problema) }}</dd></div><div><dt>Mesa</dt><dd>{{ mesa.numero.toString().padStart(2, '0') }}</dd></div></dl>
+      @if (pedidoDoCancelamento(); as pedido) {
+        <dl class="confirm-summary"><div><dt>Pedido</dt><dd>#{{ pedido.codigo }}</dd></div><div><dt>Mesa</dt><dd>{{ mesa.numero.toString().padStart(2, '0') }}</dd></div></dl>
       }
       <p>Esta ação não poderá ser desfeita. Confirme somente após alinhar a decisão com o cliente.</p>
       @if (erroCancelamento()) { <p class="modal-inline-error" role="alert">{{ erroCancelamento() }}</p> }

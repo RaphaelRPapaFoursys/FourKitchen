@@ -264,7 +264,7 @@ public class PedidoService {
 
     @Transactional
     public PedidoResponse iniciarPreparo(Integer id) {
-        Pedido pedido = buscarPedido(id);
+        Pedido pedido = buscarPedidoParaAtualizacao(id);
 
         validarPedidoNaoAguardandoDecisao(pedido);
 
@@ -331,9 +331,14 @@ public class PedidoService {
 
     @Transactional
     public void softDelete(Integer id) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
+        cancelarPedidoAntesDoPreparo(id);
+    }
 
+    @Transactional
+    public void cancelarPedidoAntesDoPreparo(Integer id) {
+        Pedido pedido = buscarPedidoParaAtualizacao(id);
+
+        validarPedidoPodeSerCanceladoAntesDoPreparo(pedido);
         pedido.setStatus(StatusPedido.CANCELADO);
     }
 
@@ -410,21 +415,20 @@ public class PedidoService {
     @Transactional
     public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
 
-        Pedido pedido = pedidoRepository.findById(request.idPedido())
+        Pedido pedido = pedidoRepository.findByIdForUpdate(request.idPedido())
                 .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
+
+        StatusPedido status = pedido.getStatus();
+
+        if (status != StatusPedido.ENVIADO_COZINHA) {
+            throw new BaseException(ErrorEnum.PEDIDO_ENCERRADO);
+        }
 
         ProdutoPedido produtoPedido = produtoPedidoRepository
                 .findByIdPedidoAndId(
                         request.idPedido(),
                         request.idProdutoPedido()
                 ).orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
-
-        StatusPedido status = pedido.getStatus();
-
-        if (status != StatusPedido.ENVIADO_COZINHA
-                && status != StatusPedido.EM_PREPARO) {
-            throw new BaseException(ErrorEnum.PEDIDO_ENCERRADO);
-        }
 
         pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
         produtoPedido.setStatus(request.statusProdutoPedido());
@@ -450,6 +454,7 @@ public class PedidoService {
         }
 
         if (decisaoProblemaRequest.pedidoCancelado()) {
+            validarPedidoPodeSerCanceladoAntesDoPreparo(pedido);
             pedido.setStatus(StatusPedido.CANCELADO);
             pedidoRepository.save(pedido);
             return;
@@ -464,6 +469,7 @@ public class PedidoService {
                     .anyMatch(this::itemAtivo);
 
             if (!possuiItensAtivos) {
+                validarPedidoPodeSerCanceladoAntesDoPreparo(pedido);
                 pedido.setStatus(StatusPedido.CANCELADO);
                 pedidoRepository.save(pedido);
                 produtoPedidoRepository.save(produtoPedido);
@@ -491,6 +497,20 @@ public class PedidoService {
     private boolean pedidoPermiteDecisao(Pedido pedido) {
         return pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO
                 || pedido.getStatus() == StatusPedido.PROBLEMA_COZINHA;
+    }
+
+    private Pedido buscarPedidoParaAtualizacao(Integer id) {
+        return pedidoRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
+    }
+
+    private void validarPedidoPodeSerCanceladoAntesDoPreparo(Pedido pedido) {
+        boolean pedidoEnviadoOuAguardandoDecisao = pedido.getStatus() == StatusPedido.ENVIADO_COZINHA
+                || pedidoPermiteDecisao(pedido);
+
+        if (!pedidoEnviadoOuAguardandoDecisao || pedido.getDataInicioPreparo() != null) {
+            throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+        }
     }
 
     private String normalizarObservacao(String observacao) {

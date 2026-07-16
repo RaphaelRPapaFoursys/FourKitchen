@@ -44,4 +44,8 @@ export class GarcomMesaService {
   marcarPedidoComoEntregue(idMesa: number, idPedido: number): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/${idMesa}/pedidos/${idPedido}/entregar`, {});
   }
+
+  cancelarPedidoAntesDoPreparo(idMesa: number, idPedido: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${idMesa}/pedidos/${idPedido}/cancelar`, {});
+  }
 }
