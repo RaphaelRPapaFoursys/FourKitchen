@@ -38,6 +38,9 @@ public class Pedido {
     @Column(name = "id_usuario")
     private Integer idUsuario;
 
+    @Column(name = "id_garcom_responsavel_problema")
+    private Integer idGarcomResponsavelProblema;
+
     @Column(name = "id_atendimento")
     private Integer idAtendimento;
 

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { TimeoutError, finalize, timeout } from 'rxjs';
+import { TimeoutError, finalize, forkJoin, timeout } from 'rxjs';
 
 import {
   ChamadaPendenteMesaResponse,
@@ -11,6 +11,7 @@ import {
   MesaGarcomResponse,
   MesaProblemasGarcomResponse,
   PedidoDetalheGarcomResponse,
+  PedidoProblemaTotemGarcomResponse,
   ProblemaPedidoGarcomResponse,
 } from '../../core/models/garcom.models';
 import { PedidoStatus } from '../../core/models/order.models';
@@ -18,6 +19,7 @@ import { CategoriaCardapioResponse, ProdutoCardapioResponse } from '../../core/m
 import { AuthService } from '../../core/services/auth';
 import { GarcomChamadaService } from '../../core/services/garcom-chamada';
 import { GarcomMesaService } from '../../core/services/garcom-mesa';
+import { GarcomTotemProblemaService } from '../../core/services/garcom-totem-problema';
 import { MenuService } from '../../core/services/menu.service';
 import {
   normalizarBuscaOperacional,
@@ -51,6 +53,7 @@ const INTERVALO_ATUALIZACAO_MS = 10_000;
 })
 export class Garcom {
   private readonly garcomMesaService = inject(GarcomMesaService);
+  private readonly garcomTotemProblemaService = inject(GarcomTotemProblemaService);
   private readonly garcomChamadaService = inject(GarcomChamadaService);
   private readonly menuService = inject(MenuService);
   private readonly authService = inject(AuthService);
@@ -62,6 +65,9 @@ export class Garcom {
   private intervaloAtualizacao: ReturnType<typeof setInterval> | null = null;
 
   protected readonly mesas = signal<MesaGarcomResponse[]>([]);
+  protected readonly problemasTotem = signal<PedidoProblemaTotemGarcomResponse[]>([]);
+  protected readonly problemaTotemEmDecisao = signal<PedidoProblemaTotemGarcomResponse | null>(null);
+  protected readonly problemaTotemEmAssuncao = signal<number | null>(null);
   protected readonly busca = signal('');
   protected readonly filtro = signal<FiltroMesa>('todas');
   protected readonly carregando = signal(false);
@@ -101,6 +107,7 @@ export class Garcom {
   protected readonly nomeUsuario = computed(() =>
     this.authService.getCurrentUser()?.nome ?? 'Garcom'
   );
+  protected readonly idGarcomAtual = computed(() => this.authService.getCurrentUser()?.id ?? null);
 
   protected readonly inicialUsuario = computed(() => this.nomeUsuario().trim().charAt(0).toUpperCase() || 'G');
 
@@ -181,6 +188,13 @@ export class Garcom {
   protected readonly totalChamadas = computed(() =>
     this.mesas().reduce((total, mesa) => total + mesa.chamadasPendentes.length, 0)
   );
+  protected readonly problemasTotemDisponiveis = computed(() =>
+    this.problemasTotem().filter(problema => problema.idGarcomResponsavelProblema === null)
+  );
+  protected readonly problemasTotemAssumidosPorMim = computed(() => {
+    const idGarcom = this.authService.getCurrentUser()?.id;
+    return this.problemasTotem().filter(problema => problema.idGarcomResponsavelProblema === idGarcom);
+  });
 
   constructor() {
     this.carregarDashboard();
@@ -214,8 +228,10 @@ export class Garcom {
       this.atualizandoSilencioso.set(true);
     }
 
-    this.garcomMesaService
-      .listarMesas()
+    forkJoin({
+      mesas: this.garcomMesaService.listarMesas(),
+      problemasTotem: this.garcomTotemProblemaService.listarProblemas(),
+    })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => {
@@ -234,8 +250,9 @@ export class Garcom {
         })
       )
       .subscribe({
-        next: mesas => {
+        next: ({ mesas, problemasTotem }) => {
           this.mesas.set(mesas);
+          this.problemasTotem.set(problemasTotem);
           const mesaAberta = this.mesaDetalhesAberta();
           if (mesaAberta) {
             this.mesaDetalhesAberta.set(mesas.find(mesa => mesa.idMesa === mesaAberta.idMesa) ?? null);
@@ -283,6 +300,7 @@ export class Garcom {
   }
 
   protected abrirSolicitacao(mesa: MesaGarcomResponse): void {
+    this.problemaTotemEmDecisao.set(null);
     this.mesaEmDetalhe.set(mesa);
     this.acaoDecisao.set('REMOVER_ITEM');
     this.categoriaSelecionadaId.set(null);
@@ -291,6 +309,99 @@ export class Garcom {
     this.erro.set('');
     this.erroCancelamento.set('');
     this.carregarSolicitacao(mesa);
+  }
+
+  protected assumirProblemaTotem(problemaTotem: PedidoProblemaTotemGarcomResponse): void {
+    if (this.problemaTotemEmAssuncao() !== null) {
+      return;
+    }
+
+    const idGarcom = this.authService.getCurrentUser()?.id;
+    if (problemaTotem.idGarcomResponsavelProblema !== null
+      && problemaTotem.idGarcomResponsavelProblema !== idGarcom) {
+      return;
+    }
+
+    this.problemaTotemEmAssuncao.set(problemaTotem.id);
+    this.erro.set('');
+    this.sucesso.set('');
+    this.garcomTotemProblemaService
+      .assumir(problemaTotem.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.problemaTotemEmAssuncao.set(null)),
+      )
+      .subscribe({
+        next: () => this.abrirSolicitacaoTotem(problemaTotem),
+        error: error => {
+          this.erro.set(this.getErrorMessage(
+            error,
+            'Este problema ja foi assumido ou resolvido por outro garcom.',
+          ));
+          this.carregarDashboard(true, true);
+        },
+      });
+  }
+
+  private abrirSolicitacaoTotem(pedido: PedidoProblemaTotemGarcomResponse): void {
+    const itemComProblema = pedido.itens.find(item =>
+      ['FALTA_PRODUTO', 'ERRO', 'INDISPONIVEL'].includes(item.status),
+    );
+    if (!itemComProblema) {
+      this.erro.set('O pedido TOTEM nao possui um item pendente de decisao.');
+      this.carregarDashboard(true, true);
+      return;
+    }
+
+    const problema: ProblemaPedidoGarcomResponse = {
+      idPedido: pedido.id,
+      idProdutoPedido: itemComProblema.id,
+      tipo: itemComProblema.status,
+      mensagem: 'A cozinha sinalizou um problema neste item do pedido TOTEM.',
+    };
+    const mesaVirtual: MesaGarcomResponse = {
+      idMesa: -pedido.id,
+      numero: 0,
+      status: 'OCUPADA',
+      idAtendimento: null,
+      codigoSessao: null,
+      idGarcom: null,
+      dataAbertura: pedido.dataCriacao,
+      pedidosAtivos: [],
+      chamadasPendentes: [],
+      possuiChamadaPendente: false,
+    };
+
+    this.problemaTotemEmDecisao.set(pedido);
+    this.mesaEmDetalhe.set(mesaVirtual);
+    this.detalheSelecionado.set({
+      mesa: {
+        idMesa: mesaVirtual.idMesa,
+        numero: 0,
+        status: 'OCUPADA',
+        idAtendimento: 0,
+        codigoSessao: 0,
+        dataAbertura: pedido.dataCriacao,
+      },
+      pedidos: [{
+        id: pedido.id,
+        codigo: pedido.codigo,
+        canal: 'TOTEM',
+        status: pedido.status,
+        dataCriacao: pedido.dataCriacao,
+        dataInicioPreparo: null,
+        dataPronto: null,
+        itens: pedido.itens,
+      }],
+      problemas: [problema],
+    });
+    this.problemaSelecionado.set(problema);
+    this.acaoDecisao.set('REMOVER_ITEM');
+    this.categoriaSelecionadaId.set(null);
+    this.produtoSelecionadoId.set(null);
+    this.observacaoNovoProduto.set('');
+    this.erroDetalhe.set('');
+    this.erroCancelamento.set('');
   }
 
   protected tentarCarregarSolicitacao(): void {
@@ -312,6 +423,7 @@ export class Garcom {
     this.problemaSelecionado.set(null);
     this.observacaoNovoProduto.set('');
     this.cancelamentoDireto.set(null);
+    this.problemaTotemEmDecisao.set(null);
   }
 
   protected selecionarProblema(problema: ProblemaPedidoGarcomResponse): void {
@@ -420,8 +532,12 @@ export class Garcom {
     this.erroCancelamento.set('');
     this.sucesso.set('');
 
-    this.garcomMesaService
-      .registrarDecisao(mesa.idMesa, request)
+    const problemaTotem = this.problemaTotemEmDecisao();
+    const registrarDecisao = problemaTotem && problemaTotem.id === problema.idPedido
+      ? this.garcomTotemProblemaService.registrarDecisao(problema.idPedido, request)
+      : this.garcomMesaService.registrarDecisao(mesa.idMesa, request);
+
+    registrarDecisao
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.salvandoDecisao.set(false))
@@ -433,9 +549,12 @@ export class Garcom {
           this.mesaEmDetalhe.set(null);
           this.detalheSelecionado.set(null);
           this.problemaSelecionado.set(null);
+          this.problemaTotemEmDecisao.set(null);
           this.sucesso.set(cancelamento
             ? `Pedido #${codigoPedido} cancelado com sucesso.`
-            : `Decisao da mesa ${mesa.numero} enviada para a cozinha.`);
+            : problemaTotem
+              ? `Decisao do pedido TOTEM #${codigoPedido} enviada para a cozinha.`
+              : `Decisao da mesa ${mesa.numero} enviada para a cozinha.`);
           this.carregarDashboard(true, true);
         },
         error: error => {
