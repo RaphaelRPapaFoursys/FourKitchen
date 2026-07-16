@@ -10,7 +10,7 @@ spring:
         config:
           ms-mesas:
             connectTimeout: 2000
-            readTimeout: 4000
+            readTimeout: 15000
           ms-pedidos:
             connectTimeout: 2000
             readTimeout: 300000
