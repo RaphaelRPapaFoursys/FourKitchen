@@ -3,12 +3,14 @@ package br.com.fourkitchen.ms_pedidos.service;
 import br.com.fourkitchen.ms_pedidos.dto.request.*;
 import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoProblemaTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
+import br.com.fourkitchen.ms_pedidos.enums.CanaisPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.exceptions.*;
@@ -57,6 +59,11 @@ public class PedidoService {
             StatusPedido.ENVIADO_COZINHA,
             StatusPedido.EM_PREPARO,
             StatusPedido.AGUARDANDO_DECISAO
+    );
+
+    private static final Collection<StatusPedido> STATUS_PROBLEMA = List.of(
+            StatusPedido.AGUARDANDO_DECISAO,
+            StatusPedido.PROBLEMA_COZINHA
     );
 
     @Autowired
@@ -149,6 +156,35 @@ public class PedidoService {
 
         return pedidos.stream()
                 .map(pedido -> mapearPedidoCozinha(pedido, itensPorPedido.getOrDefault(pedido.getId(), List.of())))
+                .toList();
+    }
+
+    public List<PedidoProblemaTotemResponse> findProblemasTotem() {
+        List<Pedido> pedidos = pedidoRepository.findByCanalAndStatusInOrderByDataCriacaoAscIdAsc(
+                CanaisPedido.TOTEM,
+                STATUS_PROBLEMA
+        );
+
+        if (pedidos.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> idsPedidos = pedidos.stream().map(Pedido::getId).toList();
+        Map<Integer, List<ProdutoPedido>> itensPorPedido = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
+                .stream()
+                .collect(Collectors.groupingBy(ProdutoPedido::getIdPedido));
+
+        return pedidos.stream()
+                .map(pedido -> new PedidoProblemaTotemResponse(
+                        pedido.getId(),
+                        pedido.getCodigo(),
+                        pedido.getStatus(),
+                        pedido.getDataCriacao(),
+                        pedido.getIdGarcomResponsavelProblema(),
+                        itensPorPedido.getOrDefault(pedido.getId(), List.of()).stream()
+                                .map(this::mapearItemCozinha)
+                                .toList()
+                ))
                 .toList();
     }
 
@@ -495,9 +531,44 @@ public class PedidoService {
         produtoPedidoRepository.save(produtoPedido);
     }
 
+    @Transactional
+    public void assumirProblemaTotem(Integer idPedido, Integer idGarcom) {
+        Pedido pedido = buscarPedidoParaAtualizacao(idPedido);
+        validarPedidoProblemaTotem(pedido);
+
+        Integer responsavelAtual = pedido.getIdGarcomResponsavelProblema();
+        if (responsavelAtual == null) {
+            pedido.setIdGarcomResponsavelProblema(idGarcom);
+            return;
+        }
+
+        if (!responsavelAtual.equals(idGarcom)) {
+            throw new BaseException(ErrorEnum.PROBLEMA_TOTEM_NAO_DISPONIVEL);
+        }
+    }
+
+    @Transactional
+    public void decisaoProblemaTotem(Integer idGarcom, DecisaoProblemaRequest request) {
+        Pedido pedido = buscarPedidoParaAtualizacao(request.idPedido());
+        validarPedidoProblemaTotem(pedido);
+
+        if (!idGarcom.equals(pedido.getIdGarcomResponsavelProblema())) {
+            throw new BaseException(ErrorEnum.PROBLEMA_TOTEM_NAO_DISPONIVEL);
+        }
+
+        decisaoProblema(request);
+        pedido.setIdGarcomResponsavelProblema(null);
+    }
+
     private boolean pedidoPermiteDecisao(Pedido pedido) {
         return pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO
                 || pedido.getStatus() == StatusPedido.PROBLEMA_COZINHA;
+    }
+
+    private void validarPedidoProblemaTotem(Pedido pedido) {
+        if (pedido.getCanal() != CanaisPedido.TOTEM || !pedidoPermiteDecisao(pedido)) {
+            throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
+        }
     }
 
     private Pedido buscarPedidoParaAtualizacao(Integer id) {

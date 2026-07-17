@@ -60,6 +60,12 @@ public enum ErrorEnum {
             HttpStatus.NOT_FOUND
     ),
 
+    PROBLEMA_TOTEM_NAO_DISPONIVEL(
+            "008",
+            "O problema do pedido TOTEM ja foi assumido ou resolvido por outro garcom.",
+            HttpStatus.CONFLICT
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor.",

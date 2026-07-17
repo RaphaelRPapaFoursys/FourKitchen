@@ -21,6 +21,9 @@ public interface PedidoClient {
     @GetMapping("/api/pedidos/cozinha/fila")
     List<PedidoCozinhaResponse> listarFilaCozinha();
 
+    @GetMapping("/api/pedidos/totem/problemas")
+    List<PedidoProblemaTotemResponse> listarProblemasTotem();
+
     @PatchMapping("/api/pedidos/{id}/iniciar-preparo")
     PedidoResponse iniciarPreparo(@PathVariable Integer id);
 
@@ -62,5 +65,17 @@ public interface PedidoClient {
     @PatchMapping("/api/pedidos/decisao-problema")
     Void decisaoProblema(
             @RequestBody DecisaoProblemaPedidoRequest decisaoProblemaRequest
+    );
+
+    @PatchMapping("/api/pedidos/{id}/problemas-totem/assumir")
+    Void assumirProblemaTotem(
+            @PathVariable Integer id,
+            @RequestBody AssumirProblemaTotemRequest request
+    );
+
+    @PatchMapping("/api/pedidos/problemas-totem/decisao")
+    Void decisaoProblemaTotem(
+            @RequestParam("idGarcom") Integer idGarcom,
+            @RequestBody DecisaoProblemaPedidoRequest request
     );
 }

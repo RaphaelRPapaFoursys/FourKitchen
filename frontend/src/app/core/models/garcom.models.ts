@@ -56,6 +56,15 @@ export interface ProblemaPedidoGarcomResponse {
   mensagem: string;
 }
 
+export interface PedidoProblemaTotemGarcomResponse {
+  id: number;
+  codigo: number;
+  status: PedidoStatus;
+  dataCriacao: string;
+  idGarcomResponsavelProblema: number | null;
+  itens: ItemPedidoDetalheGarcomResponse[];
+}
+
 export interface MesaGarcomDetalheResponse {
   mesa: {
     idMesa: number;
