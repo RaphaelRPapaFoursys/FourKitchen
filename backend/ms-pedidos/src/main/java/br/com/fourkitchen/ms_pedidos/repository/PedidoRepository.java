@@ -46,7 +46,4 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
             StatusPedido status
     );
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select p from Pedido p where p.id = :id")
-    Optional<Pedido> findByIdForUpdate(@Param("id") Integer id);
 }
