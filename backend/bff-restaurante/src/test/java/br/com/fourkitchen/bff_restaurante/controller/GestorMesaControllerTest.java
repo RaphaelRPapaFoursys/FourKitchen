@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.service.GestorMesaService;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,17 @@ class GestorMesaControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertSame(mesa, response.getBody().getFirst());
         verify(gestorMesaService).listarMesas(AUTHORIZATION);
+    }
+
+    @Test
+    void listarPedidosDetalhadosDeveRetornarOk() {
+        when(gestorMesaService.listarPedidosDetalhados(1)).thenReturn(List.of());
+
+        ResponseEntity<List<PedidoDetalheGarcomResponse>> response = gestorMesaController.listarPedidosDetalhados(1);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(List.of(), response.getBody());
+        verify(gestorMesaService).listarPedidosDetalhados(1);
     }
 
     @Test

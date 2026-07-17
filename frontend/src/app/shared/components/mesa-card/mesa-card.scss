@@ -95,18 +95,6 @@
   color: var(--fk-muted);
 }
 
-.mesa-card__itens,
-.mesa-card__conta {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--fk-text-2);
-}
-
-.mesa-card__conta {
-  font-weight: 600;
-  color: var(--fk-text);
-}
-
 .mesa-card__vazio {
   flex: 1;
   display: flex;
@@ -189,17 +177,6 @@
   border-color: var(--fk-orange);
   background: var(--fk-tint-orange);
   color: var(--fk-orange);
-}
-
-/* Marcar entrega → vermelho preenchido (CTA forte). */
-.mesa-card__acao--entrega {
-  border-color: var(--fk-red);
-  background: var(--fk-red);
-  color: #fff;
-}
-
-.mesa-card__acao--entrega:focus-visible {
-  outline-color: var(--fk-red);
 }
 
 /* Abrir mesa / Atribuir garçom → verde suave. */

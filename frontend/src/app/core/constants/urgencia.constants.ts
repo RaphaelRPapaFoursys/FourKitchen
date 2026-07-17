@@ -53,7 +53,7 @@ export function resolverAcaoPrimaria(mesa: MesaPainel): { tipo: AcaoMesaPainel; 
   if (mesa.status === 'OCUPADA' && mesa.garcomId === null) {
     return { tipo: 'REATRIBUIR_GARCOM', label: 'Atribuir garçom' };
   }
-  if (mesa.statusPedido === 'PRONTO_ENTREGA') return { tipo: 'MARCAR_ENTREGUE', label: 'Marcar entregue' };
+  if (mesa.statusPedido === 'PRONTO_ENTREGA') return { tipo: 'VER_PEDIDO', label: 'Ver pedido' };
   if (mesa.statusPedido === 'CONTA_ABERTA') return { tipo: 'FECHAR_CONTA', label: 'Fechar conta' };
   return { tipo: 'VER_PEDIDO', label: 'Ver pedido' };
 }

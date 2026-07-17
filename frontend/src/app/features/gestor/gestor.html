@@ -1,180 +1,88 @@
 @if (carregando()) {
-  <div class="painel__carregando">Carregando painel...</div>
+  <div class="painel__carregando">Carregando mesas...</div>
 } @else {
-<div class="painel">
-  <fk-sidebar />
+  <div class="painel">
+    <fk-sidebar />
 
-  <div class="painel__main">
-    <img
-      class="painel__onda"
-      src="assets/images/listra-fourkitchen.png"
-      alt=""
-      aria-hidden="true"
-    />
+    <div class="painel__main">
+      <img class="painel__onda" src="assets/images/listra-fourkitchen.png" alt="" aria-hidden="true" />
+      <fk-topbar
+        [busca]="buscaTermo()"
+        (buscaChange)="atualizarBusca($event)"
+        buscaPlaceholder="Buscar número da mesa"
+        [usuarioNome]="usuario()?.nome ?? 'Usuário'"
+        [usuarioInicial]="iniciais(usuario()?.nome)"
+      />
 
-    <fk-topbar
-      [busca]="buscaTermo()"
-      (buscaChange)="atualizarBusca($event)"
-      [usuarioNome]="usuario()?.nome ?? 'Usuário'"
-      [usuarioInicial]="iniciais(usuario()?.nome)"
-    />
+      <main class="painel__content">
+        @if (expedienteFechado()) {
+          <div class="aviso-expediente" role="status">
+            Expediente encerrado. As ações nas mesas estão bloqueadas até a reabertura.
+          </div>
+        }
 
-    <main class="painel__content">
-      @if (expedienteFechado()) {
-        <div class="aviso-expediente">
-          Expediente encerrado. Ações nas mesas estão bloqueadas até a reabertura.
-        </div>
-      }
+        <header class="pagina-cabecalho">
+          <div>
+            <span class="pagina-cabecalho__eyebrow">Operação em tempo real</span>
+            <h1>Gestão de Mesas</h1>
+            <p>Monitore, abra, feche e distribua o atendimento.</p>
+          </div>
+          <button class="botao-atualizar" type="button" [disabled]="carregandoMesas()" (click)="atualizarDados()">
+            <fk-icon name="arrows-counter-clockwise" size="1rem" />
+            Atualizar mesas
+          </button>
+        </header>
 
-      <div class="painel-grid">
-        <div class="painel-grid__main">
-        <div class="resumo-cards">
-          <fk-kpi-card
-            [clickable]="true"
-            tint="orange"
-            [active]="filtroEstado() === 'LIVRE'"
-            [value]="resumo().mesasLivres.toString().padStart(2, '0')"
-            label="Mesas livres"
-            (select)="alternarFiltroEstado('LIVRE')"
-          >
-            <fk-icon icon class="kpi-icon kpi-icon--laranja" name="picnic-table" size="1.5rem" />
-          </fk-kpi-card>
+        <div class="gestao-layout">
+          <section class="gestao-mesas" aria-labelledby="titulo-lista-mesas">
+            <div class="filtros">
+              <div class="filtros__status" aria-label="Filtrar mesas por status">
+                <span>Status:</span>
+                <button type="button" [class.ativo]="filtroEstado() === null" (click)="filtroEstado.set(null)">Todos</button>
+                <button type="button" [class.ativo]="filtroEstado() === 'LIVRE'" (click)="alternarFiltroEstado('LIVRE')">Disponíveis</button>
+                <button type="button" [class.ativo]="filtroEstado() === 'EM_PREPARO'" (click)="alternarFiltroEstado('EM_PREPARO')">Em preparo</button>
+                <button type="button" [class.ativo]="filtroEstado() === 'PRONTOS'" (click)="alternarFiltroEstado('PRONTOS')">Prontos</button>
+                <button type="button" [class.ativo]="filtroEstado() === 'PROBLEMAS'" (click)="alternarFiltroEstado('PROBLEMAS')">Atenção</button>
+              </div>
 
-          <fk-kpi-card
-            [clickable]="true"
-            tint="orange"
-            [active]="filtroEstado() === 'EM_PREPARO'"
-            [value]="resumo().emPreparo.toString().padStart(2, '0')"
-            label="Em preparo"
-            (select)="alternarFiltroEstado('EM_PREPARO')"
-          >
-            <fk-icon icon class="kpi-icon kpi-icon--laranja" name="cooking-pot" size="1.5rem" />
-          </fk-kpi-card>
+              <div class="filtros__controles">
+                <label>
+                  <span class="sr-only">Filtrar por garçom</span>
+                  <select [ngModel]="filtroGarcom()" (ngModelChange)="filtroGarcom.set($event)">
+                    <option [ngValue]="null">Todos os garçons</option>
+                    @for (garcom of cargaGarcons(); track garcom.id) {
+                      <option [ngValue]="garcom.id">{{ garcom.nome }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  <span class="sr-only">Ordenar mesas</span>
+                  <select [ngModel]="ordenacao()" (ngModelChange)="ordenacao.set($event)">
+                    <option value="CRITICO">Ordenar: criticidade</option>
+                    <option value="NUMERO">Ordenar: número</option>
+                    <option value="MAIOR_VALOR">Ordenar: maior valor</option>
+                    <option value="MENOR_VALOR">Ordenar: menor valor</option>
+                  </select>
+                </label>
+                <button class="filtros__limpar" type="button" [disabled]="!temFiltrosAtivos()" (click)="limparFiltros()">
+                  Limpar filtros
+                </button>
+              </div>
 
-          <fk-kpi-card
-            [clickable]="true"
-            tint="green"
-            [active]="filtroEstado() === 'PRONTOS'"
-            [value]="resumo().prontos.toString().padStart(2, '0')"
-            label="Prontos"
-            (select)="alternarFiltroEstado('PRONTOS')"
-          >
-            <fk-icon icon class="kpi-icon kpi-icon--verde" name="check-circle" size="1.5rem" />
-          </fk-kpi-card>
-
-          <fk-kpi-card
-            [clickable]="true"
-            tint="red"
-            [alert]="true"
-            [active]="filtroEstado() === 'PROBLEMAS'"
-            [value]="resumo().problemas.toString().padStart(2, '0')"
-            label="Problemas"
-            (select)="alternarFiltroEstado('PROBLEMAS')"
-          >
-            <fk-icon icon class="kpi-icon kpi-icon--vermelho" name="warning-circle" size="1.5rem" />
-          </fk-kpi-card>
-
-          <fk-kpi-card
-            [value]="resumo().ticketMedio !== null ? ((resumo().ticketMedio | currency: 'BRL') ?? '—') : '—'"
-            label="Ticket médio"
-          >
-            <fk-icon icon class="kpi-icon" name="piggy-bank" size="1.5rem" />
-          </fk-kpi-card>
-        </div>
-
-        <div class="monitoramento__mesas">
-          <h2>Monitoramento de mesas</h2>
-
-            <div class="filtros-rapidos" aria-label="Filtros rápidos de status">
-              <button
-                type="button"
-                class="filtros-rapidos__botao"
-                [class.filtros-rapidos__botao--active]="filtroEstado() === 'SEM_GARCOM'"
-                (click)="alternarFiltroEstado('SEM_GARCOM')"
-              >
-                Sem garçom
-              </button>
-              <button
-                type="button"
-                class="filtros-rapidos__botao"
-                [class.filtros-rapidos__botao--active]="filtroEstado() === 'CONTA_ABERTA'"
-                (click)="alternarFiltroEstado('CONTA_ABERTA')"
-              >
-                Conta aberta
-              </button>
-              <button
-                type="button"
-                class="filtros-rapidos__botao"
-                [class.filtros-rapidos__botao--active]="filtroEstado() === 'ATRASADAS'"
-                (click)="alternarFiltroEstado('ATRASADAS')"
-              >
-                Atrasadas
-              </button>
-              <button
-                type="button"
-                class="filtros-rapidos__botao"
-                [class.filtros-rapidos__botao--active]="filtroEstado() === 'AGUARDANDO_PEDIDO'"
-                (click)="alternarFiltroEstado('AGUARDANDO_PEDIDO')"
-              >
-                Aguardando pedido
-              </button>
-
-              <button
-                class="filtros__limpar"
-                type="button"
-                [disabled]="!temFiltrosAtivos()"
-                (click)="limparFiltros()"
-              >
-                <fk-icon name="arrows-counter-clockwise" size="1rem" />
-                Limpar filtros
-              </button>
+              <div class="filtros__atalhos" aria-label="Filtros rápidos">
+                <button type="button" [class.ativo]="filtroEstado() === 'SEM_GARCOM'" (click)="alternarFiltroEstado('SEM_GARCOM')">Sem garçom</button>
+                <button type="button" [class.ativo]="filtroEstado() === 'CONTA_ABERTA'" (click)="alternarFiltroEstado('CONTA_ABERTA')">Conta aberta</button>
+                <button type="button" [class.ativo]="filtroEstado() === 'ATRASADAS'" (click)="alternarFiltroEstado('ATRASADAS')">Atrasadas</button>
+                <button type="button" [class.ativo]="filtroEstado() === 'AGUARDANDO_PEDIDO'" (click)="alternarFiltroEstado('AGUARDANDO_PEDIDO')">Aguardando pedido</button>
+              </div>
             </div>
 
-            <div class="ordenacao">
-              <span>Ordenação:</span>
-              <select
-                [ngModel]="ordenacao()"
-                (ngModelChange)="ordenacao.set($event)"
-              >
-                <option value="CRITICO">Mais crítico</option>
-                <option value="NUMERO">Número da mesa</option>
-                <option value="MAIOR_VALOR">Maior valor</option>
-                <option value="MENOR_VALOR">Menor valor</option>
-              </select>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="ordenacao__info" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 11v5" />
-                <path d="M12 8h.01" />
-              </svg>
-
-              <span class="ordenacao__garcom-label">Garçom:</span>
-              <select
-                id="filtro-garcom"
-                [ngModel]="filtroGarcom()"
-                (ngModelChange)="filtroGarcom.set($event)"
-              >
-                <option [ngValue]="null">Todos</option>
-                @for (garcom of cargaGarcons(); track garcom.id) {
-                  <option [ngValue]="garcom.id">{{ garcom.nome }}</option>
-                }
-              </select>
-
-              <label class="ordenacao__paginacao paginacao__itens">
-                Mostrar:
-                <input
-                  #itensInput
-                  type="number"
-                  min="1"
-                  [value]="itensPorPagina()"
-                  (input)="aoDigitarItensPorPagina(itensInput.value)"
-                  (blur)="aoSairItensPorPagina(itensInput.value)"
-                />
-                mesas
-              </label>
+            <div class="lista-cabecalho">
+              <h2 id="titulo-lista-mesas">Mesas do restaurante</h2>
+              <span>{{ totalElementos() }} mesas encontradas</span>
             </div>
 
-            <div class="mesas-grid-wrapper">
-              <div class="mesas-grid" [class.mesas-grid--carregando]="carregandoMesas()">
+            <div class="mesas-grid" [class.mesas-grid--carregando]="carregandoMesas()">
               @for (mesa of mesasPagina(); track mesa.numero) {
                 <fk-mesa-card
                   [mesa]="mesa"
@@ -184,85 +92,52 @@
                   [destacada]="mesaDestacada() === mesa.numero"
                   (acao)="executarAcao(mesa)"
                   (trocar)="abrirReatribuicao(mesa)"
-                  (verPedido)="verPedido()"
+                  (verPedido)="verPedido(mesa)"
                 />
               } @empty {
-                <p class="mesas-grid__vazio">
-                  @if (temFiltrosAtivos()) {
-                    Nenhuma mesa encontrada para a busca e os filtros atuais.
-                  } @else {
-                    Nenhuma mesa para exibir no momento.
-                  }
-                </p>
+                <div class="mesas-grid__vazio">
+                  <fk-icon name="magnifying-glass" size="1.6rem" />
+                  <strong>Nenhuma mesa encontrada</strong>
+                  <span>Revise a busca ou limpe os filtros para tentar novamente.</span>
+                </div>
               }
-              </div>
             </div>
 
-            @if (totalPaginas() > 1) {
-              <div class="paginacao__nav">
-                <button
-                  type="button"
-                  class="paginacao__botao"
-                  [disabled]="!temPaginaAnterior()"
-                  (click)="paginaAnterior()"
-                >
-                  ‹ Anterior
-                </button>
-                <span class="paginacao__status">Página {{ paginaEfetiva() }} de {{ totalPaginas() }}</span>
-                <button
-                  type="button"
-                  class="paginacao__botao"
-                  [disabled]="!temProximaPagina()"
-                  (click)="proximaPagina()"
-                >
-                  Próxima ›
-                </button>
+            <footer class="paginacao">
+              <label>
+                Exibir
+                <input #itensInput type="number" min="1" [value]="itensPorPagina()"
+                  (input)="aoDigitarItensPorPagina(itensInput.value)"
+                  (blur)="aoSairItensPorPagina(itensInput.value)" />
+                por página
+              </label>
+              <span>Página {{ paginaEfetiva() }} de {{ totalPaginas() }}</span>
+              <div class="paginacao__acoes">
+                <button type="button" [disabled]="!temPaginaAnterior()" (click)="paginaAnterior()" aria-label="Página anterior">‹</button>
+                <button type="button" [disabled]="!temProximaPagina()" (click)="proximaPagina()" aria-label="Próxima página">›</button>
               </div>
-            }
-        </div>
-        </div>
+            </footer>
+          </section>
 
-        <aside class="coluna-lateral">
-          <div class="carga-garcons">
-            <h3>
-              Carga dos garçons
-              <button
-                type="button"
-                class="carga-garcons__config-botao"
-                [class.carga-garcons__config-botao--ativo]="configCargaAberta()"
-                [attr.aria-expanded]="configCargaAberta()"
-                aria-label="Ajustar limites de carga"
-                (click)="alternarConfigCarga()"
-              >
+          <aside class="equipe">
+            <div class="equipe__cabecalho">
+              <div>
+                <h2>Carga da equipe</h2>
+                <p>Capacidade em tempo real</p>
+              </div>
+              <button type="button" [class.ativo]="configCargaAberta()" (click)="alternarConfigCarga()" aria-label="Configurar limites de carga">
                 <fk-icon name="gear-six" size="1rem" />
               </button>
-            </h3>
-            <p>Mesas ativas por garçom</p>
+            </div>
 
             @if (configCargaAberta()) {
-              <div class="carga-garcons__config">
-                <label class="carga-garcons__config-campo">
-                  <span><span class="carga-garcons__ponto carga-garcons__ponto--laranja"></span> Laranja a partir de</span>
-                  <input
-                    type="number"
-                    min="1"
-                    [ngModel]="limiarCargaLaranja()"
-                    (ngModelChange)="atualizarLimiarLaranja($event)"
-                  />
-                </label>
-                <label class="carga-garcons__config-campo">
-                  <span><span class="carga-garcons__ponto carga-garcons__ponto--vermelho"></span> Vermelho a partir de</span>
-                  <input
-                    type="number"
-                    [min]="limiarCargaLaranja() + 1"
-                    [ngModel]="limiarCargaVermelho()"
-                    (ngModelChange)="atualizarLimiarVermelho($event)"
-                  />
-                </label>
+              <div class="equipe__config">
+                <label>Laranja a partir de <input type="number" min="1" [ngModel]="limiarCargaLaranja()" (ngModelChange)="atualizarLimiarLaranja($event)" /></label>
+                <label>Vermelho a partir de <input type="number" [min]="limiarCargaLaranja() + 1" [ngModel]="limiarCargaVermelho()" (ngModelChange)="atualizarLimiarVermelho($event)" /></label>
               </div>
             }
 
-            <ul class="carga-garcons__lista">
+            <ul class="equipe__lista">
               @for (garcom of cargaGarcons(); track garcom.id) {
                 <li>
                   <fk-waiter-load-item
@@ -274,292 +149,166 @@
                     [level]="nivelCarga(garcom.mesasAtivas)"
                   />
                 </li>
+              } @empty {
+                <li class="equipe__vazio">Nenhum garçom disponível.</li>
               }
             </ul>
 
-            <div class="carga-garcons__disponiveis">
-              <fk-icon name="user-circle" size="1.1rem" />
+            <div class="equipe__resumo">
+              <fk-icon name="user-circle" size="1.15rem" />
               <span>Garçons disponíveis</span>
-              <strong>{{ resumo().garconsDisponiveis }} disponíveis</strong>
-            </div>
-          </div>
-
-          <div class="ultimos-pedidos">
-              <h3>Últimos pedidos</h3>
-              <p>
-                @if (ultimosPedidos().length === 0) {
-                  Nenhum pedido fechado ainda
-                } @else if (ultimosPedidos().length === 1) {
-                  Mostrando o pedido mais recente
-                } @else {
-                  Mostrando os {{ ultimosPedidos().length }} mais recentes
-                }
-              </p>
-
-              <ul class="ultimos-pedidos__lista">
-                @for (pedido of ultimosPedidos(); track pedido.pedidoId) {
-                  <li>
-                    <button
-                      type="button"
-                      class="ultimos-pedidos__linha"
-                      (click)="destacarMesa(pedido.numeroMesa)"
-                    >
-                      <span class="ultimos-pedidos__mesa">Mesa {{ pedido.numeroMesa.toString().padStart(2, '0') }}</span>
-                      <span>{{ pedido.valor | currency: 'BRL' }}</span>
-                      <span>{{ pedido.garcom }}</span>
-                      <span>{{ tempoAtrasLabel(pedido.tempoAtendimentoMinutos) }}</span>
-                    </button>
-                  </li>
-                }
-              </ul>
-
-              <div class="ultimos-pedidos__rodape">
-                <span>Total de atendimentos: <strong>{{ totalAtendimentosAtivos() }}</strong></span>
-                <span>Valor arrecadado: <strong>{{ totalArrecadadoAtendimentosAtivos() | currency: 'BRL' }}</strong></span>
-              </div>
+              <strong>{{ resumo().garconsDisponiveis }}</strong>
             </div>
           </aside>
-      </div>
+        </div>
+      </main>
+    </div>
+  </div>
 
-      <section class="secao secao--fechamento">
-        <button type="button" class="secao--fechamento__cabecalho" (click)="alternarFechamentoExpediente()">
+  @if (mesaDetalhes(); as mesa) {
+    <div class="overlay" (click)="fecharDetalhes()">
+      <section class="modal modal--detalhes" role="dialog" aria-modal="true" aria-labelledby="titulo-detalhes-pedido" (click)="$event.stopPropagation()">
+        <header>
           <div>
-            <h2>2. Fechamento do expediente</h2>
-            <p>{{ expedienteFechado() ? 'Expediente encerrado — veja o resumo' : 'Expandir no encerramento do expediente' }}</p>
+            <span>Detalhes do atendimento</span>
+            <h2 id="titulo-detalhes-pedido">Mesa {{ mesa.numero.toString().padStart(2, '0') }}</h2>
           </div>
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            class="secao--fechamento__chevron"
-            [class.secao--fechamento__chevron--aberto]="fechamentoExpandido()"
-            aria-hidden="true"
-          >
-            <path d="m9 6 6 6-6 6" />
-          </svg>
-        </button>
+          <button type="button" (click)="fecharDetalhes()" aria-label="Fechar detalhes">×</button>
+        </header>
 
-        @if (fechamentoExpandido()) {
-          <div class="secao--fechamento__corpo">
-            @if (!expedienteFechado()) {
-              <div class="fechamento-acao">
-                <button
-                  type="button"
-                  class="fechamento-acao__botao"
-                  [disabled]="!podeFecharExpediente()"
-                  (click)="abrirConfirmacaoFechamento()"
-                >
-                  Fechar expediente
-                </button>
+        <div class="detalhes-meta">
+          <div><span>Garçom responsável</span><strong>{{ mesa.garcom ?? 'Não atribuído' }}</strong></div>
+          <div><span>Início do atendimento</span><strong>{{ mesa.abertaEm ? (mesa.abertaEm | date: 'dd/MM/yyyy HH:mm') : '—' }}</strong></div>
+        </div>
 
-                @if (!podeFecharExpediente()) {
-                  <p class="fechamento-acao__aviso">{{ mensagemBloqueioFechamento() }}</p>
-                }
-              </div>
-            } @else {
-              <div class="fechamento-resumo">
-                <div class="fechamento-acao">
-                  <button type="button" class="fechamento-acao__botao" (click)="abrirNovoExpediente()">
-                    Abrir novo expediente
-                  </button>
-                  <p class="fechamento-acao__aviso">
-                    Inicia um novo expediente do zero: reabre as mesas e limpa as métricas acumuladas.
-                  </p>
+        @if (carregandoDetalhes()) {
+          <div class="detalhes-estado" role="status">
+            <span class="spinner spinner--escuro"></span>
+            <strong>Carregando itens dos pedidos...</strong>
+          </div>
+        } @else if (erroDetalhes(); as erro) {
+          <div class="detalhes-estado detalhes-estado--erro" role="alert">
+            <fk-icon name="warning-circle" size="1.5rem" />
+            <strong>{{ erro }}</strong>
+            <button type="button" (click)="recarregarDetalhes()">Tentar novamente</button>
+          </div>
+        } @else if (pedidosDetalhes().length > 0) {
+          <div class="detalhes-pedidos">
+            @for (pedido of pedidosDetalhes(); track pedido.id) {
+              <article class="detalhe-pedido" [class.detalhe-pedido--cancelado]="pedido.status === 'CANCELADO'">
+                <div class="detalhes-pedidos__cabecalho">
+                  <div>
+                    <span>Pedido</span>
+                    <strong>#{{ pedido.codigo || pedido.id }}</strong>
+                    <small>{{ pedido.dataCriacao | date: 'dd/MM/yyyy HH:mm' }}</small>
+                  </div>
+                  <span class="detalhes-pedidos__status" [class]="'detalhes-pedidos__status detalhes-pedidos__status--' + statusPedidoClasse(pedido.status)">
+                    {{ statusPedidoDetalhe(pedido.status) }}
+                  </span>
                 </div>
 
-                <div class="resumo-cards">
-                  <fk-kpi-card
-                    size="md"
-                    [value]="(resumoExpediente().valorTotal | currency: 'BRL') ?? '—'"
-                    label="Valor total do expediente"
-                  />
-
-                  <fk-kpi-card
-                    size="md"
-                    [value]="resumoExpediente().atendimentosRealizados.toString()"
-                    label="Atendimentos realizados"
-                  />
-
-                  <fk-kpi-card
-                    size="md"
-                    [value]="resumoExpediente().pedidosFeitos.toString()"
-                    label="Pedidos feitos"
-                  />
-
-                  <fk-kpi-card
-                    size="md"
-                    [alert]="resumoExpediente().problemas > 0"
-                    [value]="resumoExpediente().problemas.toString()"
-                    label="Problemas"
-                  />
-
-                  <fk-kpi-card size="md" [value]="garcomDestaqueLabel()" label="Garçom com mais atendimentos" />
-
-                  <fk-kpi-card size="md" [value]="tempoMedioPreparoLabel()" label="Tempo médio de preparo" />
-                </div>
-
-                <div class="grafico-mesas">
-                  <h3>Mesas mais ocupadas</h3>
-
-                  @if (resumoExpediente().mesasMaisOcupadas.length === 0) {
-                    <p class="grafico-mesas__vazio">Nenhum atendimento registrado no expediente.</p>
-                  } @else {
-                    <ul class="grafico-mesas__lista">
-                      @for (item of resumoExpediente().mesasMaisOcupadas; track item.numeroMesa) {
-                        <li>
-                          <span class="grafico-mesas__label">Mesa {{ item.numeroMesa.toString().padStart(2, '0') }}</span>
-                          <fk-progress-bar
-                            thickness="lg"
-                            variant="blue"
-                            [value]="larguraBarraMesaOcupada(item.pedidos)"
-                          />
-                          <span class="grafico-mesas__valor">
-                            {{ item.pedidos }} {{ item.pedidos === 1 ? 'pedido' : 'pedidos' }}
-                          </span>
-                        </li>
-                      }
-                    </ul>
+                <div class="detalhes-progresso" aria-label="Progresso do pedido">
+                  @for (etapa of etapasPedido; track etapa.status) {
+                    <div class="detalhes-progresso__etapa" [class.detalhes-progresso__etapa--concluida]="etapaConcluida(pedido.status, etapa.status)">
+                      <span><fk-icon name="check" size=".65rem" /></span>
+                      <small>{{ etapa.label }}</small>
+                    </div>
                   }
                 </div>
-              </div>
+
+                <ul class="detalhes-itens">
+                  @for (item of pedido.itens; track item.id) {
+                    <li [class.detalhes-itens__item--removido]="item.status === 'REMOVIDO'">
+                      <div class="detalhes-itens__linha">
+                        <div>
+                          <strong>{{ item.quantidade }}× {{ item.nomeProduto || ('Produto #' + item.idProduto) }}</strong>
+                          @if (item.status === 'REMOVIDO') { <span>Removido</span> }
+                        </div>
+                        <strong>{{ item.precoUnitario * item.quantidade | currency: 'BRL' }}</strong>
+                      </div>
+                      <small>{{ item.precoUnitario | currency: 'BRL' }} por unidade</small>
+                      @if (item.observacao) {
+                        <p><fk-icon name="mail" size=".8rem" /> {{ item.observacao }}</p>
+                      }
+                    </li>
+                  } @empty {
+                    <li class="detalhes-itens__vazio">Nenhum item retornado para este pedido.</li>
+                  }
+                </ul>
+
+                <div class="detalhes-pedido-total">
+                  <span>{{ pedido.status === 'CANCELADO' ? 'Total cobrado' : 'Total do pedido' }}</span>
+                  <strong>{{ valorPedidoDetalhado(pedido) | currency: 'BRL' }}</strong>
+                </div>
+              </article>
             }
+          </div>
+
+          <div class="detalhes-totais">
+            <div><span>Total de itens</span><strong>{{ totalItensDetalhes() }}</strong></div>
+            <div><span>Valor total da conta</span><strong>{{ valorTotalDetalhes() | currency: 'BRL' }}</strong></div>
+          </div>
+        } @else {
+          <div class="detalhes-vazio">
+            <fk-icon name="call-bell" size="1.6rem" />
+            <strong>Nenhum pedido registrado</strong>
+            <span>Esta mesa ainda está aguardando o primeiro pedido.</span>
           </div>
         }
       </section>
-    </main>
-  </div>
+    </div>
+  }
 
   @if (mesaSelecaoGarcom(); as mesa) {
-    <div class="reatribuicao-overlay" (click)="fecharSelecaoGarcom()">
-      <div class="reatribuicao-modal" (click)="$event.stopPropagation()">
-        <header class="reatribuicao-modal__header">
-          <h3>
-            {{ selecaoGarcom()?.modo === 'ABRIR' ? 'Abrir mesa' : 'Reatribuir garçom' }}
-            · Mesa {{ mesa.numero.toString().padStart(2, '0') }}
-          </h3>
-          <button type="button" class="reatribuicao-modal__fechar" (click)="fecharSelecaoGarcom()" aria-label="Fechar">
-            ✕
-          </button>
+    <div class="overlay" (click)="fecharSelecaoGarcom()">
+      <section class="modal modal--garcons" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <header>
+          <div>
+            <span>Distribuição de atendimento</span>
+            <h2>{{ selecaoGarcom()?.modo === 'ABRIR' ? 'Abrir mesa' : 'Trocar garçom' }} · Mesa {{ mesa.numero.toString().padStart(2, '0') }}</h2>
+          </div>
+          <button type="button" (click)="fecharSelecaoGarcom()" aria-label="Fechar">×</button>
         </header>
-
-        <ul class="reatribuicao-modal__lista">
+        <ul>
           @for (garcom of cargaGarcons(); track garcom.id) {
             <li>
-              <button
-                type="button"
-                class="reatribuicao-modal__opcao"
-                [disabled]="garcomJaAtribuido(garcom.id)"
-                [title]="garcomJaAtribuido(garcom.id) ? 'Já atribuído a esta mesa' : ''"
-                (click)="confirmarSelecaoGarcom(garcom.id)"
-              >
-                <fk-waiter-load-item
-                  [name]="garcom.nome"
-                  [initial]="iniciais(garcom.nome)"
-                  [color]="garcom.cor"
-                  [count]="garcom.mesasAtivas"
-                  [barWidth]="garcom.mesasAtivas * 20"
-                  [level]="nivelCarga(garcom.mesasAtivas)"
-                />
+              <button type="button" [disabled]="garcomJaAtribuido(garcom.id)" (click)="confirmarSelecaoGarcom(garcom.id)">
+                <fk-waiter-load-item [name]="garcom.nome" [initial]="iniciais(garcom.nome)" [color]="garcom.cor"
+                  [count]="garcom.mesasAtivas" [barWidth]="larguraBarraCarga(garcom.mesasAtivas)" [level]="nivelCarga(garcom.mesasAtivas)" />
               </button>
             </li>
           }
         </ul>
-      </div>
-    </div>
-  }
-
-  @if (acaoEmAndamento()) {
-    <div class="carregando-overlay">
-      <div class="carregando-overlay__caixa">
-        <span class="carregando-overlay__spinner" aria-hidden="true"></span>
-        <span>{{ descricaoAcao() ?? 'Processando...' }}</span>
-      </div>
-    </div>
-  }
-
-  @if (carregandoMesas()) {
-    <div class="atualizando-toast" role="status" aria-live="polite">
-      <span class="carregando-overlay__spinner" aria-hidden="true"></span>
-      <span>Atualizando mesas...</span>
-    </div>
-  }
-
-  @if (mensagemErro(); as erro) {
-    <div class="erro-overlay" (click)="fecharErro()">
-      <div class="erro-modal" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
-        <button type="button" class="erro-modal__fechar" (click)="fecharErro()" aria-label="Fechar">✕</button>
-        <span class="erro-modal__icone" aria-hidden="true">
-          <fk-icon name="warning-circle" size="1.6rem" />
-        </span>
-        <h3 class="erro-modal__titulo">Não foi possível concluir a ação</h3>
-        <p class="erro-modal__mensagem">{{ erro }}</p>
-        <button type="button" class="erro-modal__botao" (click)="fecharErro()">Entendi</button>
-      </div>
-    </div>
-  }
-
-  @if (confirmandoFechamento()) {
-    <div class="reatribuicao-overlay" (click)="cancelarFechamento()">
-      <div class="reatribuicao-modal" (click)="$event.stopPropagation()">
-        <header class="reatribuicao-modal__header">
-          <h3>Confirmar fechamento do expediente</h3>
-          <button type="button" class="reatribuicao-modal__fechar" (click)="cancelarFechamento()" aria-label="Fechar">
-            ✕
-          </button>
-        </header>
-
-        <p class="fechamento-confirmacao__texto">
-          Essa ação encerra o expediente e bloqueia novas ações operacionais nas mesas. Deseja continuar?
-        </p>
-
-        <div class="fechamento-confirmacao__acoes">
-          <button type="button" class="mesa-card__acao mesa-card__acao--secundaria" (click)="cancelarFechamento()">
-            Cancelar
-          </button>
-          <button type="button" class="mesa-card__acao mesa-card__acao--info" (click)="confirmarFechamento()">
-            Fechar expediente
-          </button>
-        </div>
-      </div>
+      </section>
     </div>
   }
 
   @if (confirmacaoAcao(); as confirmacao) {
-    <div class="reatribuicao-overlay" (click)="cancelarConfirmacaoAcao()">
-      <div class="reatribuicao-modal" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
-        <header class="reatribuicao-modal__header">
-          <h3>{{ confirmacao.titulo }}</h3>
-          <button
-            type="button"
-            class="reatribuicao-modal__fechar"
-            (click)="cancelarConfirmacaoAcao()"
-            aria-label="Fechar"
-          >
-            ✕
-          </button>
-        </header>
-
-        <p class="fechamento-confirmacao__texto">
-          {{ confirmacao.mensagem }}
-        </p>
-
-        <div class="fechamento-confirmacao__acoes">
-          <button type="button" class="mesa-card__acao mesa-card__acao--secundaria" (click)="cancelarConfirmacaoAcao()">
-            Cancelar
-          </button>
-          <button
-            type="button"
-            class="mesa-card__acao"
-            [class.mesa-card__acao--conta]="confirmacao.tipo === 'FECHAR_CONTA'"
-            [class.mesa-card__acao--entrega]="confirmacao.tipo === 'MARCAR_ENTREGUE'"
-            (click)="confirmarAcaoCritica()"
-          >
-            {{ confirmacao.confirmarLabel }}
-          </button>
+    <div class="overlay" (click)="cancelarConfirmacaoAcao()">
+      <section class="modal modal--confirmacao" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <div class="modal__icone"><fk-icon name="warning-circle" size="1.5rem" /></div>
+        <h2>{{ confirmacao.titulo }}</h2>
+        <p>{{ confirmacao.mensagem }}</p>
+        <div class="modal__acoes">
+          <button type="button" class="botao-secundario" (click)="cancelarConfirmacaoAcao()">Cancelar</button>
+          <button type="button" class="botao-primario" (click)="confirmarAcaoCritica()">{{ confirmacao.confirmarLabel }}</button>
         </div>
-      </div>
+      </section>
     </div>
   }
-</div>
+
+  @if (acaoEmAndamento()) {
+    <div class="feedback" role="status"><span class="spinner"></span>{{ descricaoAcao() ?? 'Processando...' }}</div>
+  }
+
+  @if (mensagemErro(); as erro) {
+    <div class="overlay" (click)="fecharErro()">
+      <section class="modal modal--confirmacao" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <div class="modal__icone modal__icone--erro"><fk-icon name="warning-circle" size="1.5rem" /></div>
+        <h2>Não foi possível concluir a ação</h2>
+        <p>{{ erro }}</p>
+        <div class="modal__acoes"><button type="button" class="botao-primario" (click)="fecharErro()">Entendi</button></div>
+      </section>
+    </div>
+  }
 }

@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.GestorMesaService;
@@ -64,6 +65,23 @@ public class GestorMesaController {
             @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
         return ResponseEntity.ok(gestorMesaService.listarMesas(authorization));
+    }
+
+    @GetMapping("/mesas/{id}/pedidos")
+    @Operation(
+            summary = "Lista os pedidos detalhados de uma mesa",
+            description = "Retorna código, status, progresso e itens dos pedidos do atendimento atual para o modal do gestor."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedidos detalhados retornados com sucesso", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PedidoDetalheGarcomResponse.class)))),
+            @ApiResponse(responseCode = "400", description = "Mesa sem atendimento aberto", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Mesa não encontrada", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Serviço de mesas ou pedidos indisponível", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<List<PedidoDetalheGarcomResponse>> listarPedidosDetalhados(
+            @PathVariable Integer id
+    ) {
+        return ResponseEntity.ok(gestorMesaService.listarPedidosDetalhados(id));
     }
 
     @GetMapping("/mesas/paginadas")

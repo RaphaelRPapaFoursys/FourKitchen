@@ -1,19 +1,17 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgencia.constants';
-import { AcaoMesaPainel, MesaPainel } from '../../core/models/painel.models';
+import { AcaoMesaPainel, MesaPainel, PedidoDetalheGestor } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { FiltroEstadoPainel, OrdenacaoPainel, PainelService } from '../../core/services/painel';
 import { numeroMesaBusca } from '../../core/utils/operational-search';
 import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
-import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 import { MesaCard } from '../../shared/components/mesa-card/mesa-card';
-import { ProgressBar } from '../../shared/components/progress-bar/progress-bar';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { WaiterLoadItem } from '../../shared/components/waiter-load-item/waiter-load-item';
 
@@ -21,7 +19,22 @@ type Ordenacao = 'CRITICO' | 'NUMERO' | 'MAIOR_VALOR' | 'MENOR_VALOR';
 type Criticidade = ReturnType<typeof resolverCriticidadeMesa>;
 type FiltroEstado = FiltroEstadoPainel | null;
 type ModoSelecaoGarcom = 'ABRIR' | 'REATRIBUIR';
-type AcaoCritica = Extract<AcaoMesaPainel, 'FECHAR_CONTA' | 'MARCAR_ENTREGUE'>;
+type AcaoCritica = Extract<AcaoMesaPainel, 'FECHAR_CONTA'>;
+
+const FILTROS_ESTADO_VALIDOS: ReadonlySet<Exclude<FiltroEstado, null>> = new Set([
+  'PROBLEMAS',
+  'PRONTOS',
+  'EM_PREPARO',
+  'LIVRE',
+  'SEM_GARCOM',
+  'CONTA_ABERTA',
+  'ATRASADAS',
+  'AGUARDANDO_PEDIDO',
+]);
+
+function filtroEstadoValido(valor: string | null): valor is Exclude<FiltroEstado, null> {
+  return valor !== null && FILTROS_ESTADO_VALIDOS.has(valor as Exclude<FiltroEstado, null>);
+}
 
 interface SelecaoGarcomEstado {
   mesaId: number;
@@ -40,7 +53,7 @@ interface ConfirmacaoAcaoEstado {
 
 @Component({
   selector: 'app-gestor',
-  imports: [FormsModule, CurrencyPipe, Icon, KpiCard, ProgressBar, WaiterLoadItem, Sidebar, Topbar, MesaCard],
+  imports: [FormsModule, CurrencyPipe, DatePipe, Icon, WaiterLoadItem, Sidebar, Topbar, MesaCard],
   templateUrl: './gestor.html',
   styleUrl: './gestor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,8 +63,11 @@ export class Gestor {
   private readonly authService = inject(AuthService);
   private readonly painelService = inject(PainelService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private buscaDebounce: ReturnType<typeof setTimeout> | null = null;
+  private sequenciaDetalhes = 0;
+  private mesaDaRotaAberta = false;
 
   protected readonly usuario = toSignal(this.authService.usuario$, {
     initialValue: this.authService.getCurrentUser(),
@@ -86,14 +102,38 @@ export class Gestor {
   protected readonly mesaDestacada = signal<number | null>(null);
   protected readonly confirmandoFechamento = signal(false);
   protected readonly confirmacaoAcao = signal<ConfirmacaoAcaoEstado | null>(null);
+  protected readonly mesaDetalhes = signal<MesaPainel | null>(null);
+  protected readonly pedidosDetalhes = signal<PedidoDetalheGestor[]>([]);
+  protected readonly carregandoDetalhes = signal(false);
+  protected readonly erroDetalhes = signal<string | null>(null);
+  protected readonly etapasPedido = [
+    { status: 'ENVIADO_COZINHA', label: 'Recebido' },
+    { status: 'EM_PREPARO', label: 'Preparo' },
+    { status: 'PRONTO', label: 'Pronto' },
+    { status: 'ENTREGUE', label: 'Entregue' },
+  ] as const;
 
   protected readonly mesasPagina = this.painelService.mesas;
   protected readonly totalPaginas = this.painelService.totalPaginas;
+  protected readonly totalElementos = this.painelService.totalElementos;
   protected readonly paginaEfetiva = this.painelService.paginaEfetiva;
   protected readonly temPaginaAnterior = this.painelService.temPaginaAnterior;
   protected readonly temProximaPagina = this.painelService.temProximaPagina;
 
   constructor() {
+    const filtroRota = this.route.snapshot.queryParamMap.get('filtro');
+    if (filtroEstadoValido(filtroRota)) {
+      this.filtroEstado.set(filtroRota);
+    }
+
+    const garcomIdRota = Number(this.route.snapshot.queryParamMap.get('garcomId'));
+    if (Number.isInteger(garcomIdRota) && garcomIdRota > 0) {
+      this.filtroGarcom.set(garcomIdRota);
+    }
+
+    const mesaIdRota = Number(this.route.snapshot.queryParamMap.get('mesa'));
+    const deveAbrirDetalhes = this.route.snapshot.queryParamMap.get('abrirDetalhes') === 'true';
+
     this.destroyRef.onDestroy(() => {
       if (this.buscaDebounce !== null) {
         clearTimeout(this.buscaDebounce);
@@ -123,6 +163,17 @@ export class Gestor {
       untracked(() => {
         void this.painelService.atualizarConsulta(consulta);
       });
+    });
+
+    effect(() => {
+      const mesa = deveAbrirDetalhes && Number.isInteger(mesaIdRota) && mesaIdRota > 0
+        ? this.mesasPagina().find(item => item.id === mesaIdRota)
+        : null;
+
+      if (mesa && !this.mesaDaRotaAberta) {
+        this.mesaDaRotaAberta = true;
+        untracked(() => this.verPedido(mesa));
+      }
     });
   }
 
@@ -165,6 +216,11 @@ export class Gestor {
   }
 
   protected executarAcao(mesa: MesaPainel): void {
+    if (this.acaoPrimaria(mesa).tipo === 'VER_PEDIDO') {
+      this.verPedido(mesa);
+      return;
+    }
+
     if (this.expedienteFechado() || this.acaoEmAndamento()) return;
 
     switch (this.acaoPrimaria(mesa).tipo) {
@@ -178,12 +234,7 @@ export class Gestor {
       case 'FECHAR_CONTA':
         this.abrirConfirmacaoAcao(mesa, 'FECHAR_CONTA');
         break;
-      case 'MARCAR_ENTREGUE':
-        this.abrirConfirmacaoAcao(mesa, 'MARCAR_ENTREGUE');
-        break;
-      case 'VER_PEDIDO':
-        this.verPedido();
-        break;
+      case 'VER_PEDIDO': break;
     }
   }
 
@@ -191,32 +242,109 @@ export class Gestor {
     this.painelService.limparErro();
   }
 
-  protected verPedido(): void {
-    // TODO: sem tela de detalhe do pedido ainda (Fase 2 / integração com backend).
+  protected verPedido(mesa: MesaPainel): void {
+    this.mesaDetalhes.set(mesa);
+    void this.carregarDetalhes(mesa);
+  }
+
+  protected fecharDetalhes(): void {
+    this.sequenciaDetalhes++;
+    this.mesaDetalhes.set(null);
+    this.pedidosDetalhes.set([]);
+    this.erroDetalhes.set(null);
+  }
+
+  protected recarregarDetalhes(): void {
+    const mesa = this.mesaDetalhes();
+    if (mesa) void this.carregarDetalhes(mesa);
+  }
+
+  private async carregarDetalhes(mesa: MesaPainel): Promise<void> {
+    const sequencia = ++this.sequenciaDetalhes;
+    this.carregandoDetalhes.set(true);
+    this.erroDetalhes.set(null);
+    this.pedidosDetalhes.set([]);
+
+    try {
+      const pedidos = await this.painelService.buscarPedidosDetalhados(mesa.id);
+      if (sequencia !== this.sequenciaDetalhes) return;
+      this.pedidosDetalhes.set(this.ordenarPedidosMaisNovos(pedidos ?? []));
+    } catch {
+      if (sequencia !== this.sequenciaDetalhes) return;
+      this.erroDetalhes.set('Não foi possível carregar os itens dos pedidos. Tente novamente.');
+    } finally {
+      if (sequencia === this.sequenciaDetalhes) this.carregandoDetalhes.set(false);
+    }
+  }
+
+  protected totalItensDetalhes(): number {
+    return this.pedidosDetalhes().flatMap(pedido => pedido.itens)
+      .filter(item => item.status !== 'REMOVIDO')
+      .reduce((total, item) => total + item.quantidade, 0);
+  }
+
+  protected valorTotalDetalhes(): number {
+    return this.pedidosDetalhes().reduce((total, pedido) => total + this.valorPedidoDetalhado(pedido), 0);
+  }
+
+  protected valorPedidoDetalhado(pedido: PedidoDetalheGestor): number {
+    if (pedido.status === 'CANCELADO') return 0;
+    return pedido.itens
+      .filter(item => item.status !== 'REMOVIDO')
+      .reduce((total, item) => total + item.precoUnitario * item.quantidade, 0);
+  }
+
+  private ordenarPedidosMaisNovos(pedidos: PedidoDetalheGestor[]): PedidoDetalheGestor[] {
+    return [...pedidos].sort((a, b) => {
+      const dataA = new Date(a.dataCriacao).getTime();
+      const dataB = new Date(b.dataCriacao).getTime();
+      const timestampA = Number.isNaN(dataA) ? 0 : dataA;
+      const timestampB = Number.isNaN(dataB) ? 0 : dataB;
+      return timestampB - timestampA || b.id - a.id;
+    });
+  }
+
+  protected etapaConcluida(statusAtual: string, statusEtapa: string): boolean {
+    const ordem: Record<string, number> = {
+      ENVIADO_COZINHA: 0,
+      EM_PREPARO: 1,
+      AGUARDANDO_DECISAO: 1,
+      PROBLEMA_COZINHA: 1,
+      PRONTO: 2,
+      ENTREGUE: 3,
+      FINALIZADO: 3,
+    };
+    return (ordem[statusAtual] ?? -1) >= (ordem[statusEtapa] ?? 0);
+  }
+
+  protected statusPedidoClasse(status: string): string {
+    return status.toLocaleLowerCase('pt-BR').replaceAll('_', '-');
+  }
+
+  protected statusPedidoDetalhe(status: string): string {
+    switch (status) {
+      case 'ENVIADO_COZINHA': return 'Enviado à cozinha';
+      case 'EM_PREPARO': return 'Em preparo';
+      case 'AGUARDANDO_DECISAO': return 'Aguardando decisão';
+      case 'PROBLEMA_COZINHA': return 'Problema na cozinha';
+      case 'PRONTO': return 'Pronto';
+      case 'ENTREGUE': return 'Entregue';
+      case 'FINALIZADO': return 'Finalizado';
+      case 'CANCELADO': return 'Cancelado';
+      default: return status.replaceAll('_', ' ').toLocaleLowerCase('pt-BR');
+    }
   }
 
   protected abrirConfirmacaoAcao(mesa: MesaPainel, tipo: AcaoCritica): void {
     const numeroMesa = mesa.numero.toString().padStart(2, '0');
 
-    if (tipo === 'FECHAR_CONTA') {
-      this.confirmacaoAcao.set({
-        mesaId: mesa.id,
-        numeroMesa: mesa.numero,
-        tipo,
-        titulo: `Fechar conta da Mesa ${numeroMesa}`,
-        mensagem: 'Confirme o fechamento da conta. O atendimento será registrado no resumo do expediente e a mesa será liberada.',
-        confirmarLabel: 'Fechar conta',
-      });
-      return;
-    }
-
     this.confirmacaoAcao.set({
       mesaId: mesa.id,
       numeroMesa: mesa.numero,
       tipo,
-      titulo: `Marcar entrega da Mesa ${numeroMesa}`,
-      mensagem: 'Confirme que o pedido pronto foi entregue ao cliente. Essa ação avança o pedido para entregue.',
-      confirmarLabel: 'Marcar entregue',
+      titulo: `Fechar conta da Mesa ${numeroMesa}`,
+      mensagem: 'Confirme o fechamento da conta. O atendimento será registrado no resumo do expediente e a mesa será liberada.',
+      confirmarLabel: 'Fechar conta',
     });
   }
 
@@ -230,12 +358,7 @@ export class Gestor {
 
     this.confirmacaoAcao.set(null);
 
-    if (confirmacao.tipo === 'FECHAR_CONTA') {
-      void this.painelService.fecharConta(confirmacao.mesaId);
-      return;
-    }
-
-    void this.painelService.marcarEntregue(confirmacao.mesaId);
+    void this.painelService.fecharConta(confirmacao.mesaId);
   }
 
   protected destacarMesa(numero: number): void {
@@ -326,6 +449,10 @@ export class Gestor {
     this.atualizarBusca('');
     this.filtroGarcom.set(null);
     this.filtroEstado.set(null);
+  }
+
+  protected atualizarDados(): void {
+    void this.painelService.recarregarPainel();
   }
 
   protected alternarFechamentoExpediente(): void {

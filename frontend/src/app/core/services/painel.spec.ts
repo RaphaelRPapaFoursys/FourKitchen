@@ -176,15 +176,6 @@ describe('PainelService', () => {
       await promise;
     });
 
-    it('marcarEntregue chama o PATCH de marcar-entregue e recarrega as mesas', async () => {
-      const promise = service.marcarEntregue(1);
-
-      httpMock.expectOne(`${BASE_URL}/mesas/1/marcar-entregue`).flush({});
-      await esperarMicrotarefas();
-      flushPainel();
-      await promise;
-    });
-
     it('reatribuirGarcom chama o PATCH de atribuir-garcom com o id do garçom e recarrega as mesas', async () => {
       const promise = service.reatribuirGarcom(1, 8);
 

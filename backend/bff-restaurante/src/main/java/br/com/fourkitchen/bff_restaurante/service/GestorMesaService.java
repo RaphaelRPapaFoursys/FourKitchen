@@ -13,8 +13,10 @@ import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.CargaGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ItemPedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
@@ -87,6 +89,52 @@ public class GestorMesaService {
                 .sorted(Comparator.comparing(MesaClientResponse::numero))
                 .map(mesa -> mapearMesa(mesa, garconsPorId, pedidosPorAtendimento))
                 .toList();
+    }
+
+    public List<PedidoDetalheGarcomResponse> listarPedidosDetalhados(Integer idMesa) {
+        MesaClientResponse mesa = buscarMesas().stream()
+                .filter(item -> Objects.equals(item.id(), idMesa))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(ErrorEnum.MESA_NAO_ENCONTRADA));
+
+        if (mesa.idAtendimento() == null) {
+            throw new BaseException(ErrorEnum.ATENDIMENTO_NAO_ABERTO);
+        }
+
+        try {
+            return pedidoClient.listarPedidosDetalhadosPorAtendimento(mesa.idAtendimento())
+                    .stream()
+                    .map(this::mapearPedidoDetalhe)
+                    .toList();
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
+    }
+
+    private PedidoDetalheGarcomResponse mapearPedidoDetalhe(PedidoCozinhaResponse pedido) {
+        List<ItemPedidoCozinhaResponse> itens = pedido.itens() == null ? List.of() : pedido.itens();
+        return new PedidoDetalheGarcomResponse(
+                pedido.id(),
+                pedido.codigo(),
+                pedido.canal(),
+                pedido.status(),
+                pedido.dataCriacao(),
+                pedido.dataInicioPreparo(),
+                pedido.dataPronto(),
+                itens.stream().map(this::mapearItemDetalhe).toList()
+        );
+    }
+
+    private ItemPedidoDetalheGarcomResponse mapearItemDetalhe(ItemPedidoCozinhaResponse item) {
+        return new ItemPedidoDetalheGarcomResponse(
+                item.id(),
+                item.idProduto(),
+                item.nomeProduto(),
+                item.quantidade(),
+                item.precoUnitario(),
+                item.observacao(),
+                item.status()
+        );
     }
 
     // RESPOSTA MESA GESTOR
