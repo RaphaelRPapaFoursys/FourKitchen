@@ -51,6 +51,20 @@ app-mesa-header {
   margin-inline: calc(-1 * var(--page-gutter));
 }
 
+app-mesa-header,
+app-customer-cart-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  background: rgba(251,250,248,.92);
+  backdrop-filter: blur(14px);
+
+  transition:
+      backdrop-filter .3s,
+      box-shadow .3s;
+}
+
 .orders-panel {
   border-radius: 18px;
   background: var(--white);
@@ -336,6 +350,79 @@ app-mesa-header {
   color: var(--primary);
   font-size: clamp(1.25rem, 3vw, 1.6rem);
   white-space: nowrap;
+}
+
+.order-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: .5rem 0 1.4rem;
+  position: relative;
+}
+
+.order-progress::before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 7%;
+  right: 7%;
+  height: 3px;
+  background: #e8e8e8;
+  z-index: 0;
+}
+
+.order-progress__step {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .45rem;
+
+  flex: 1;
+}
+
+.order-progress__step span {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+
+  background: white;
+  border: 3px solid #d7d7d7;
+
+  transition: .3s;
+}
+
+.order-progress__step small {
+  font-size: .78rem;
+  color: var(--muted-text);
+  text-align: center;
+}
+
+.order-progress__step--done span {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.order-progress__step--done small {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.order-card--current {
+  position: relative;
+}
+
+.order-card--current::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  bottom: 1rem;
+  width: 5px;
+  border-radius: 999px;
+  background: var(--primary);
 }
 
 @media (max-width: 640px) {
