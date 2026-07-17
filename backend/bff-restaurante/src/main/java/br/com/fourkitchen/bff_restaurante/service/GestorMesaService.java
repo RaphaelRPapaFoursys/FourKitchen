@@ -184,6 +184,10 @@ public class GestorMesaService {
         int mesasLivres = (int) mesas.stream()
                 .filter(mesa -> STATUS_MESA_DISPONIVEL.equals(mesa.mesa().status()))
                 .count();
+        int mesasSemGarcom = (int) mesas.stream()
+                .filter(mesa -> STATUS_MESA_OCUPADA.equals(mesa.mesa().status()))
+                .filter(mesa -> mesa.mesa().garcomId() == null)
+                .count();
         int emPreparo = (int) mesas.stream()
                 .filter(mesa -> STATUS_PAINEL_EM_PREPARO.equals(mesa.statusPedido()))
                 .count();
@@ -217,7 +221,7 @@ public class GestorMesaService {
                 ))
                 .toList();
 
-        return new ResumoPainelResponse(mesasLivres, emPreparo, prontos, problemas, ticketMedio, cargaGarcons);
+        return new ResumoPainelResponse(mesasLivres, mesasSemGarcom, emPreparo, prontos, problemas, ticketMedio, cargaGarcons);
     }
 
     public List<GarcomResumoResponse> listarGarcons(String authorization) {

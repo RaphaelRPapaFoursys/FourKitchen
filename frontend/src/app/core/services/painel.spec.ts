@@ -59,6 +59,7 @@ const PAGINA_MESAS_API = {
 
 const RESUMO_API = {
   mesasLivres: 1,
+  mesasSemGarcom: 0,
   emPreparo: 1,
   prontos: 0,
   problemas: 0,

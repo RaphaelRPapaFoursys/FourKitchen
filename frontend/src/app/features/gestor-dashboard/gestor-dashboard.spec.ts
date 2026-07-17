@@ -42,6 +42,7 @@ describe('GestorDashboard', () => {
     });
     httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush({
       mesasLivres: 0,
+      mesasSemGarcom: 4,
       emPreparo: 0,
       prontos: 0,
       problemas: 1,
@@ -80,6 +81,13 @@ describe('GestorDashboard', () => {
   it('direciona a carga do garçom para o filtro correspondente', () => {
     const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.carga li a');
     expect(link.getAttribute('href')).toContain('garcomId=7');
+  });
+
+  it('exibe a contagem global de mesas ocupadas sem garçom retornada pelo resumo', () => {
+    const alerta = [...fixture.nativeElement.querySelectorAll('.alertas li')]
+      .find((item: HTMLElement) => item.textContent?.includes('ocupadas sem garçom'));
+
+    expect(alerta?.textContent).toContain('4 mesas ocupadas sem garçom');
   });
 
   it('abre os detalhes de um atendimento recente', () => {

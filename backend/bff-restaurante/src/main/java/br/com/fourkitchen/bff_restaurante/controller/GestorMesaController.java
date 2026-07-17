@@ -139,7 +139,7 @@ public class GestorMesaController {
                     description = "Resumo retornado com sucesso",
                     content = @Content(
                             schema = @Schema(implementation = ResumoPainelResponse.class),
-                            examples = @ExampleObject(value = "{\"mesasLivres\":12,\"emPreparo\":5,\"prontos\":3,\"problemas\":2,\"ticketMedio\":82.50,\"cargaGarcons\":[{\"id\":7,\"nome\":\"Amanda Souza\",\"mesasAtivas\":3}]}")
+                            examples = @ExampleObject(value = "{\"mesasLivres\":12,\"mesasSemGarcom\":2,\"emPreparo\":5,\"prontos\":3,\"problemas\":2,\"ticketMedio\":82.50,\"cargaGarcons\":[{\"id\":7,\"nome\":\"Amanda Souza\",\"mesasAtivas\":3}]}")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),

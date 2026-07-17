@@ -61,7 +61,7 @@ export class GestorDashboard {
     1,
   ));
   protected readonly mesasPreview = computed(() => this.mesas().slice(0, 5));
-  protected readonly mesasSemGarcom = computed(() => this.mesas().filter(mesa => mesa.status === 'OCUPADA' && mesa.garcomId === null).length);
+  protected readonly mesasSemGarcom = computed(() => this.resumo().mesasSemGarcom);
   protected readonly historicoOrdenado = computed(() => [...this.historicoAtendimentos()].sort(
     (a, b) => new Date(b.dataFechamento).getTime() - new Date(a.dataFechamento).getTime(),
   ));

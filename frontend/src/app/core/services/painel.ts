@@ -61,6 +61,7 @@ interface CargaGarcomApiResponse {
 
 interface ResumoPainelApiResponse {
   mesasLivres: number;
+  mesasSemGarcom: number;
   emPreparo: number;
   prontos: number;
   problemas: number;
@@ -142,6 +143,7 @@ const CONSULTA_INICIAL: ConsultaMesasPainel = {
 
 const RESUMO_INICIAL: ResumoAtendimento = {
   mesasLivres: 0,
+  mesasSemGarcom: 0,
   emPreparo: 0,
   prontos: 0,
   problemas: 0,
@@ -632,6 +634,7 @@ export class PainelService {
     this.cargaGarconsSignal.set(cargaGarcons);
     this.resumoSignal.set({
       mesasLivres: resumo.mesasLivres,
+      mesasSemGarcom: resumo.mesasSemGarcom,
       emPreparo: resumo.emPreparo,
       prontos: resumo.prontos,
       problemas: resumo.problemas,

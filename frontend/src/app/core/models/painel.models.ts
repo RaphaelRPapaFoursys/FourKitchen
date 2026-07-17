@@ -7,6 +7,7 @@ export type AcaoMesaPainel = 'VER_PEDIDO' | 'FECHAR_CONTA' | 'ABRIR_MESA' | 'REA
 
 export interface ResumoAtendimento {
   mesasLivres: number;
+  mesasSemGarcom: number;
   emPreparo: number;
   prontos: number;
   problemas: number;

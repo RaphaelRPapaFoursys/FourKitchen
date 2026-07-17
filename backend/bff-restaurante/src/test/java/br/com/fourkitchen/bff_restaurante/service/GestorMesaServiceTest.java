@@ -176,11 +176,36 @@ class GestorMesaServiceTest {
         ResumoPainelResponse resultado = gestorMesaService.buscarResumoPainel(AUTHORIZATION);
 
         assertEquals(0, resultado.mesasLivres());
+        assertEquals(0, resultado.mesasSemGarcom());
         assertEquals(0, resultado.emPreparo());
         assertEquals(1, resultado.prontos());
         assertEquals(0, resultado.problemas());
         assertEquals(new BigDecimal("20.00"), resultado.ticketMedio());
         assertEquals(1, resultado.cargaGarcons().getFirst().mesasAtivas());
+    }
+
+    @Test
+    void buscarResumoPainelDeveContarGlobalmenteSomenteMesasOcupadasSemGarcom() {
+        MesaClientResponse ocupadaSemGarcom = criarMesaComAtendimento(1, 10, null, 100);
+        MesaClientResponse livreSemGarcom = new MesaClientResponse(
+                2,
+                11,
+                "DISPONIVEL",
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(ocupadaSemGarcom, livreSemGarcom));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of());
+        when(pedidoClient.listarPedidosAtivosDetalhadosPorAtendimentos(List.of(100))).thenReturn(List.of());
+
+        ResumoPainelResponse resultado = gestorMesaService.buscarResumoPainel(AUTHORIZATION);
+
+        assertEquals(1, resultado.mesasSemGarcom());
+        assertEquals(1, resultado.mesasLivres());
     }
 
     @Test

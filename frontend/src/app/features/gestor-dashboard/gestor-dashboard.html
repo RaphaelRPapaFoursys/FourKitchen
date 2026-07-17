@@ -130,7 +130,7 @@
               </div>
               <ul>
                 <li [class.alertas__item--ativo]="resumo().problemas > 0"><a routerLink="/gestor/mesas" [queryParams]="{ filtro: 'PROBLEMAS' }"><i><fk-icon name="warning-circle" size="1rem" /></i><div><strong>{{ resumo().problemas }} problemas identificados</strong><span>Confira as mesas com maior criticidade.</span></div></a></li>
-                <li [class.alertas__item--ativo]="mesasSemGarcom() > 0"><a routerLink="/gestor/mesas" [queryParams]="{ filtro: 'SEM_GARCOM' }"><i><fk-icon name="user-circle" size="1rem" /></i><div><strong>{{ mesasSemGarcom() }} mesas sem garçom</strong><span>Distribua a equipe para iniciar o atendimento.</span></div></a></li>
+                <li [class.alertas__item--ativo]="mesasSemGarcom() > 0"><a routerLink="/gestor/mesas" [queryParams]="{ filtro: 'SEM_GARCOM' }"><i><fk-icon name="user-circle" size="1rem" /></i><div><strong>{{ mesasSemGarcom() }} mesas ocupadas sem garçom</strong><span>Atribua um responsável aos atendimentos já abertos.</span></div></a></li>
                 <li [class.alertas__item--ativo]="resumo().prontos > 0"><a routerLink="/gestor/mesas" [queryParams]="{ filtro: 'PRONTOS' }"><i><fk-icon name="check-circle" size="1rem" /></i><div><strong>{{ resumo().prontos }} pedidos prontos</strong><span>Aguardando retirada pela equipe.</span></div></a></li>
               </ul>
               <a routerLink="/gestor/mesas">Ir para gestão de mesas</a>

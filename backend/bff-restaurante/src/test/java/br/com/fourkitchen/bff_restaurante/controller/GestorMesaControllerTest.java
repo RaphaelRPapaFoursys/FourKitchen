@@ -107,7 +107,7 @@ class GestorMesaControllerTest {
 
     @Test
     void buscarResumoPainelDeveRetornarOk() {
-        ResumoPainelResponse resumo = new ResumoPainelResponse(1, 2, 3, 4, null, List.of());
+        ResumoPainelResponse resumo = new ResumoPainelResponse(1, 2, 3, 4, 5, null, List.of());
 
         when(gestorMesaService.buscarResumoPainel(AUTHORIZATION)).thenReturn(resumo);
 
