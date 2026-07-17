@@ -23,6 +23,7 @@ import {
 } from '../../core/utils/operational-search';
 import { Badge } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
+import { UserMenu } from '../../shared/components/user-menu/user-menu';
 
 type TipoProblema = SinalizarProblemaRequest['statusProdutoPedido'];
 
@@ -39,7 +40,7 @@ interface OpcaoProblema {
 
 @Component({
   selector: 'app-cozinha',
-  imports: [NgTemplateOutlet, Badge, Icon],
+  imports: [NgTemplateOutlet, Badge, Icon, UserMenu],
   templateUrl: './cozinha.html',
   styleUrl: './cozinha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -28,7 +28,6 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   background: var(--fk-bg);
 }
 
@@ -51,14 +50,13 @@
 /* A topbar (fk-topbar) e o conteúdo ficam acima da onda decorativa. */
 fk-topbar {
   position: relative;
-  z-index: 1;
+  z-index: 1000;
 }
 
 .painel__content {
   position: relative;
   z-index: 1;
   flex: 1;
-  overflow-y: auto;
   padding: 1.25rem 1.5rem 2rem;
 }
 

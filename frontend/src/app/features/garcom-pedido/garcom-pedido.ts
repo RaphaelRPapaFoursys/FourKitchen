@@ -13,8 +13,10 @@ import { CategoriaCardapioResponse, ProdutoCardapioResponse } from '../../core/m
 import { GarcomMesaService } from '../../core/services/garcom-mesa';
 import { GarcomPedidoService } from '../../core/services/garcom-pedido';
 import { MenuService } from '../../core/services/menu.service';
+import { AuthService } from '../../core/services/auth';
 import { Badge } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
+import { UserMenu } from '../../shared/components/user-menu/user-menu';
 
 interface ItemCarrinhoGarcom extends ItemPedidoGarcomRequest {
   nome: string;
@@ -23,7 +25,7 @@ interface ItemCarrinhoGarcom extends ItemPedidoGarcomRequest {
 @Component({
   selector: 'app-garcom-pedido',
   standalone: true,
-  imports: [Badge, Icon],
+  imports: [Badge, Icon, UserMenu],
   templateUrl: './garcom-pedido.html',
   styleUrl: './garcom-pedido.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +37,7 @@ export class GarcomPedido {
   private readonly garcomMesaService = inject(GarcomMesaService);
   private readonly garcomPedidoService = inject(GarcomPedidoService);
   private readonly menuService = inject(MenuService);
+  private readonly authService = inject(AuthService);
 
   private readonly idMesa = Number(this.route.snapshot.paramMap.get('id'));
 
@@ -47,6 +50,8 @@ export class GarcomPedido {
   protected readonly categoriaSelecionadaId = signal<number | null>(null);
   protected readonly busca = signal('');
   protected readonly itens = signal<ItemCarrinhoGarcom[]>([]);
+  protected readonly nomeUsuario = this.authService.getCurrentUser()?.nome ?? 'Garçom';
+  protected readonly inicialUsuario = this.nomeUsuario.charAt(0).toUpperCase();
 
   protected readonly categoriaSelecionada = computed(() =>
     this.categorias().find(categoria => categoria.categoriaId === this.categoriaSelecionadaId()) ?? null,

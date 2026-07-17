@@ -10,10 +10,6 @@
         <span>Minhas mesas</span>
       </a>
     </nav>
-    <button type="button" class="logout" (click)="sair()">
-      <fk-icon name="sign-out" size="1.2rem" />
-      <span>Sair</span>
-    </button>
   </aside>
 
   <section class="dashboard">
@@ -29,7 +25,7 @@
       </label>
       <div class="user">
         <div class="user__copy"><span>Garçom</span><strong>{{ nomeUsuario() }}</strong></div>
-        <fk-avatar [initial]="inicialUsuario()" color="var(--fk-navy)" />
+        <fk-user-menu [name]="nomeUsuario()" [initial]="inicialUsuario()" [showName]="false" />
       </div>
     </header>
 
