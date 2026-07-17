@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-cart-actions',
   templateUrl: './cart-actions.html',
   styleUrl: './cart-actions.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
 })
 export class CartActionsComponent {
   readonly isConfirming = input(false);

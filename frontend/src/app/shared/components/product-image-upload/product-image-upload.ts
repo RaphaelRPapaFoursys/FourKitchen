@@ -3,11 +3,13 @@ import {
   Component,
   ElementRef,
   computed,
+  inject,
   input,
   output,
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import {
   getBase64ImageSource,
@@ -20,6 +22,7 @@ import {
   templateUrl: './product-image-upload.html',
   styleUrl: './product-image-upload.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
 })
 export class ProductImageUpload {
   readonly currentImage = input<string | null>(null);
@@ -30,6 +33,7 @@ export class ProductImageUpload {
 
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
   private selectionSequence = 0;
+  private readonly translate = inject(TranslateService);
 
   protected readonly selectedImage = signal<string | null>(null);
   protected readonly selectedFileName = signal('');
@@ -117,7 +121,7 @@ export class ProductImageUpload {
       this.imageChanged.emit(dataUrl);
     } catch {
       if (sequence === this.selectionSequence) {
-        this.rejectSelection('Não foi possível ler a imagem selecionada.');
+        this.rejectSelection(this.translate.instant('ERROR.IMAGE_READ'));
       }
     } finally {
       if (sequence === this.selectionSequence) {

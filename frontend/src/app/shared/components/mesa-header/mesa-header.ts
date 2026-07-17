@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, finalize, of, switchMap, timer } from 'rxjs';
 
 import { MesaAtendimentoAtualResponse } from '../../../core/models/order.models';
@@ -8,6 +9,7 @@ import { AuthService } from '../../../core/services/auth';
 import { MesaChamadaService } from '../../../core/services/mesa-chamada';
 import { OrderService } from '../../../core/services/order.service';
 import { Icon } from '../icon/icon';
+import { LanguageSelector } from '../language-selector/language-selector';
 
 export type MesaHeaderActiveLink = 'orders' | 'cart' | null;
 type MesaToastType = 'success' | 'warning' | 'error';
@@ -18,7 +20,7 @@ interface MesaToast {
 
 @Component({
   selector: 'app-mesa-header',
-  imports: [Icon],
+  imports: [Icon, LanguageSelector, TranslatePipe],
   templateUrl: './mesa-header.html',
   styleUrl: './mesa-header.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +44,7 @@ export class MesaHeaderComponent implements OnInit {
   private readonly mesaChamadaService = inject(MesaChamadaService);
   private readonly orderService = inject(OrderService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   private readonly atendimentoInterno = signal<MesaAtendimentoAtualResponse | null>(null);
   private readonly carregandoAtendimentoInterno = signal(true);
@@ -60,7 +63,9 @@ export class MesaHeaderComponent implements OnInit {
 
   protected readonly mesaLabel = computed(() => {
     const numero = this.mesaNumero();
-    return numero === null ? 'Mesa —' : `Mesa ${String(numero).padStart(2, '0')}`;
+    return numero === null
+      ? this.translate.instant('COMMON.TABLE', { number: '—' })
+      : this.translate.instant('COMMON.TABLE', { number: String(numero).padStart(2, '0') });
   });
 
   protected readonly atendimentoAtivo = computed(() =>
@@ -84,14 +89,14 @@ export class MesaHeaderComponent implements OnInit {
 
   protected readonly chamadaLabel = computed(() => {
     if (this.chamandoGarcom()) {
-      return 'Chamando garçom';
+      return this.translate.instant('BUTTON.CALLING_WAITER');
     }
 
     if (this.chamadaEnviada()) {
-      return 'Garçom a caminho';
+      return this.translate.instant('BUTTON.WAITER_ON_THE_WAY');
     }
 
-    return 'Chamar garçom';
+    return this.translate.instant('BUTTON.CALL_WAITER');
   });
 
   constructor() {
@@ -119,11 +124,11 @@ export class MesaHeaderComponent implements OnInit {
 
       if (this.attendanceError()) {
         this.showToast(
-          'Não conseguimos verificar o atendimento da mesa agora. Tente novamente em instantes.',
+          this.translate.instant('ERROR.ATTENDANCE_UNAVAILABLE'),
           'error',
         );
       } else if (!this.atendimentoAtivo()) {
-        this.showToast('O atendimento desta mesa ainda não foi iniciado.', 'warning');
+        this.showToast(this.translate.instant('ERROR.ATTENDANCE_NOT_STARTED'), 'warning');
       }
     });
 
@@ -169,7 +174,7 @@ export class MesaHeaderComponent implements OnInit {
             atendimento.codigoAtendimento,
             response.id,
           );
-          this.showToast('Garçom avisado. Ele está a caminho.', 'success');
+          this.showToast(this.translate.instant('SUCCESS.WAITER_CALLED'), 'success');
         },
         error: error => this.showToast(this.getFriendlyErrorMessage(error), 'error'),
       });
@@ -190,14 +195,14 @@ export class MesaHeaderComponent implements OnInit {
         next: atendimento => {
           this.atendimentoInterno.set(this.isAtendimentoAtivo(atendimento) ? atendimento : null);
           if (!this.isAtendimentoAtivo(atendimento)) {
-            this.showToast('O atendimento desta mesa ainda não foi iniciado.', 'warning');
+            this.showToast(this.translate.instant('ERROR.ATTENDANCE_NOT_STARTED'), 'warning');
           }
         },
         error: error => {
           this.atendimentoInterno.set(null);
           this.showToast(
             error instanceof HttpErrorResponse && error.status === 400
-              ? 'O atendimento desta mesa ainda não foi iniciado.'
+              ? this.translate.instant('ERROR.ATTENDANCE_NOT_STARTED')
               : this.getFriendlyErrorMessage(error),
             error instanceof HttpErrorResponse && error.status === 400 ? 'warning' : 'error',
           );
@@ -235,13 +240,13 @@ export class MesaHeaderComponent implements OnInit {
 
   private getFriendlyErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse && error.status === 401) {
-      return 'Sua sessão terminou. Entre novamente para continuar.';
+      return this.translate.instant('ERROR.SESSION_EXPIRED');
     }
 
     if (error instanceof HttpErrorResponse && error.status === 403) {
-      return 'Esta mesa não pode chamar o garçom no momento.';
+      return this.translate.instant('ERROR.WAITER_CALL_FORBIDDEN');
     }
 
-    return 'Não conseguimos chamar o garçom agora. Tente novamente em instantes.';
+    return this.translate.instant('ERROR.WAITER_CALL_UNAVAILABLE');
   }
 }

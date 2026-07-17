@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, inject, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { CommonModule } from '@angular/common';
 
@@ -25,14 +25,6 @@ import { UserMenu } from '../user-menu/user-menu';
 })
 
 export class Topbar {
-  constructor(
-    private translate: TranslateService
-  ) {}
-
-  trocarIdioma(idioma: string) {
-       localStorage.setItem('lang', idioma);
-       this.translate.use(idioma);
-   }
   private readonly elementRef = inject(ElementRef);
 
   readonly busca = model('');

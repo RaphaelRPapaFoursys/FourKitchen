@@ -3,13 +3,13 @@
   <img class="hero__leaves hero__leaves--right" src="assets/images/login-leaves.png" alt="" aria-hidden="true" />
 
   <div class="hero__copy">
-    <h1 id="hero-title">Bem-Vindos ao <span>FourKitchen</span>!</h1>
-    <p>Faca seu pedido de forma rapida, pratica e sem filas.</p>
+    <h1 id="hero-title">{{ 'CUSTOMER.HERO_TITLE' | translate }}</h1>
+    <p>{{ 'CUSTOMER.HERO_SUBTITLE' | translate }}</p>
     
 
-    <div class="hero__actions" aria-label="Atalhos da home">
-      <a class="hero__button hero__button--primary" href="#categorias" (click)="selectSection('categorias', $event)">Categorias</a>
-      <a class="hero__button hero__button--dark" href="#menu" (click)="selectSection('menu', $event)">Menu</a>
+    <div class="hero__actions" [attr.aria-label]="'CUSTOMER.HOME_SHORTCUTS' | translate">
+      <a class="hero__button hero__button--primary" href="#categorias" (click)="selectSection('categorias', $event)">{{ 'MENU.CATEGORIES' | translate }}</a>
+      <a class="hero__button hero__button--dark" href="#menu" (click)="selectSection('menu', $event)">{{ 'CUSTOMER.MENU' | translate }}</a>
     </div>
   </div>
 

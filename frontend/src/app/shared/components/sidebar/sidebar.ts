@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Icon } from '../icon/icon';
 
@@ -7,7 +8,7 @@ import { Icon } from '../icon/icon';
 @Component({
   selector: 'fk-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, RouterLink, RouterLinkActive],
+  imports: [Icon, RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })

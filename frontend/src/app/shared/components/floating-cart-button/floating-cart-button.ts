@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { CustomerContext } from '../../../core/models/cart.models';
 import { CartService } from '../../../core/services/cart.service';
@@ -9,7 +10,7 @@ import { CustomerContextService } from '../../../core/services/customer-context.
 
 @Component({
   selector: 'app-floating-cart-button',
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './floating-cart-button.html',
   styleUrl: './floating-cart-button.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

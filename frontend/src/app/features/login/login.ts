@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { ApiError, UsuarioAutenticadoResponse } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth';
@@ -14,7 +15,7 @@ type LoginField = 'email' | 'password';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, LoginFormComponent, LoginFooterComponent],
+  imports: [ReactiveFormsModule, LoginFormComponent, LoginFooterComponent, TranslatePipe],
   templateUrl: './login.html',
   styleUrl: './login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +24,7 @@ export class Login {
   private readonly authService = inject(AuthService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   protected passwordVisible = false;
   protected readonly isLoading = signal(false);
@@ -75,11 +77,11 @@ export class Login {
       const apiError = this.getApiError(error.error);
 
       if (error.status === 502) {
-        return 'Nao foi possivel entrar no sistema. Tente novamente mais tarde.';
+        return this.translate.instant('ERROR.LOGIN_UNAVAILABLE');
       }
       
       if (error.status === 401) {
-        return 'E-mail ou senha invalidos.';
+        return this.translate.instant('ERROR.LOGIN_INVALID_CREDENTIALS');
       }
 
       if (apiError?.msgError) {
@@ -87,11 +89,11 @@ export class Login {
       }
 
       if (error.status === 400) {
-        return 'Dados invalidos. Verifique e tente novamente.';
+        return this.translate.instant('ERROR.LOGIN_INVALID_DATA');
       }
     }
 
-    return 'Nao foi possivel entrar no sistema. Tente novamente mais tarde.';
+    return this.translate.instant('ERROR.LOGIN_UNAVAILABLE');
   }
 
   private getApiError(error: unknown): ApiError | null {

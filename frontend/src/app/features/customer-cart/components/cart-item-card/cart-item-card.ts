@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { CART_OBSERVATION_MAX_LENGTH, CartItem } from '../../../../core/models/cart.models';
 
@@ -7,6 +8,7 @@ import { CART_OBSERVATION_MAX_LENGTH, CartItem } from '../../../../core/models/c
   templateUrl: './cart-item-card.html',
   styleUrl: './cart-item-card.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
 })
 export class CartItemCardComponent {
   readonly item = input.required<CartItem>();

@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize, switchMap } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { CartItem } from '../../core/models/cart.models';
 import { PagamentoResponse, PaymentMethod } from '../../core/models/payment.models';
@@ -11,12 +12,13 @@ import { CartService } from '../../core/services/cart.service';
 import { CustomerOrderCacheService } from '../../core/services/customer-order-cache.service';
 import { OrderService } from '../../core/services/order.service';
 import { PaymentService } from '../../core/services/payment.service';
+import { LanguageSelector } from '../../shared/components/language-selector/language-selector';
 
 type PaymentState = 'idle' | 'processing' | 'declined' | 'payment-error' | 'order-error';
 
 @Component({
   selector: 'app-totem-payment',
-  imports: [CommonModule],
+  imports: [CommonModule, LanguageSelector, TranslatePipe],
   templateUrl: './totem-payment.html',
   styleUrl: './totem-payment.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +29,7 @@ export class TotemPayment {
   private readonly orderCacheService = inject(CustomerOrderCacheService);
   private readonly paymentService = inject(PaymentService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   protected readonly items = signal<CartItem[]>(this.cartService.getCart('totem'));
   protected readonly selectedMethod = signal<PaymentMethod>('CREDITO');
@@ -125,22 +128,22 @@ export class TotemPayment {
 
     if (error instanceof HttpErrorResponse && error.status === 402) {
       this.state.set('declined');
-      this.errorMessage.set(this.getApiMessage(error, 'Pagamento recusado. Escolha outra forma e tente novamente.'));
+      this.errorMessage.set(this.getApiMessage(error, this.translate.instant('CUSTOMER.PAYMENT_DECLINED')));
       return;
     }
 
     this.state.set('payment-error');
     this.errorMessage.set(
       error instanceof HttpErrorResponse
-        ? this.getApiMessage(error, 'Falha ao processar o pagamento. Tente novamente.')
-        : 'Falha ao processar o pagamento. Tente novamente.',
+        ? this.getApiMessage(error, this.translate.instant('CUSTOMER.PAYMENT_ERROR'))
+        : this.translate.instant('CUSTOMER.PAYMENT_ERROR'),
     );
   }
 
   private showOrderError(): void {
     this.state.set('order-error');
     this.errorMessage.set(
-      'O pagamento foi aprovado, mas não foi possível enviar o pedido para a cozinha. Volte ao carrinho e procure atendimento antes de tentar novamente.',
+      this.translate.instant('CUSTOMER.ORDER_NOT_SENT'),
     );
   }
 

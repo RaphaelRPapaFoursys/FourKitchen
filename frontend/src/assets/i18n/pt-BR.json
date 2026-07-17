@@ -1,11 +1,112 @@
 {
-  "MENU": {
-    "HOME": "Início",
-    "PEDIDOS": "Pedidos",
-    "CLIENTES": "Clientes"
+  "COMMON": {
+    "OPTIONAL": "Opcional",
+    "ACTIONS": "Ações",
+    "STATUS": "Status",
+    "LOADING": "Carregando...",
+    "ITEMS": "{{count}} itens",
+    "TABLE": "Mesa {{number}}",
+    "CLOSE_NOTIFICATION": "Fechar notificação",
+    "CURRENT_DEVICE": "Dispositivo atual",
+    "NOTIFICATIONS": "Notificações",
+    "NO_NEW_NOTIFICATIONS": "Nenhuma nova notificação."
   },
   "BUTTON": {
     "SAVE": "Salvar",
-    "CANCEL": "Cancelar"
+    "CANCEL": "Cancelar",
+    "CANCEL_SELECTION": "Cancelar seleção",
+    "CLOSE": "Fechar",
+    "BACK": "Voltar",
+    "NEXT": "Próximo",
+    "CONFIRM": "Confirmar",
+    "RETRY": "Tentar novamente",
+    "CHANGE": "Trocar",
+    "VIEW_ORDER": "Ver pedido",
+    "TRACK_ORDER": "Acompanhar pedido",
+    "CART": "Carrinho",
+    "CALL_WAITER": "Chamar garçom",
+    "CALLING_WAITER": "Chamando garçom",
+    "WAITER_ON_THE_WAY": "Garçom a caminho",
+    "LOGIN": "Entrar no sistema",
+    "LOGGING_IN": "Entrando..."
+  },
+  "MENU": {
+    "HOME": "Início",
+    "PEDIDOS": "Pedidos",
+    "CLIENTES": "Clientes",
+    "MANAGEMENT": "Gestão",
+    "CATEGORIES": "Categorias",
+    "PRODUCTS": "Produtos",
+    "USERS": "Usuários"
+  },
+  "LOGIN": {
+    "TITLE": "Entrar",
+    "SUBTITLE": "Acesse sua conta para gerenciar o restaurante.",
+    "NO_ACCESS": "Ainda não possui acesso?",
+    "REQUEST_ACCOUNT": "Solicite sua conta",
+    "CORPORATE_EMAIL": "E-mail corporativo",
+    "PASSWORD": "Senha",
+    "FORGOT_PASSWORD": "Esqueci minha senha",
+    "SHOW_PASSWORD": "Mostrar senha",
+    "HIDE_PASSWORD": "Ocultar senha",
+    "SECURE_ENVIRONMENT": "Ambiente seguro SSL",
+    "COPYRIGHT": "© 2026 FourKitchen Inc. Todos os direitos reservados."
+  },
+  "PLACEHOLDER": {
+    "CORPORATE_EMAIL": "E-mail corporativo",
+    "PASSWORD": "Senha"
+  },
+  "VALIDATION": {
+    "EMAIL_INVALID": "Informe um e-mail válido.",
+    "PASSWORD_REQUIRED": "Informe sua senha."
+  },
+  "ERROR": {
+    "LOGIN_UNAVAILABLE": "Não foi possível entrar no sistema. Tente novamente mais tarde.",
+    "LOGIN_INVALID_CREDENTIALS": "E-mail ou senha inválidos.",
+    "LOGIN_INVALID_DATA": "Dados inválidos. Verifique e tente novamente.",
+    "ATTENDANCE_UNAVAILABLE": "Não conseguimos verificar o atendimento da mesa agora. Tente novamente em instantes.",
+    "ATTENDANCE_NOT_STARTED": "O atendimento desta mesa ainda não foi iniciado.",
+    "WAITER_CALL_UNAVAILABLE": "Não conseguimos chamar o garçom agora. Tente novamente em instantes.",
+    "SESSION_EXPIRED": "Sua sessão terminou. Entre novamente para continuar.",
+    "WAITER_CALL_FORBIDDEN": "Esta mesa não pode chamar o garçom no momento.",
+    "IMAGE_READ": "Não foi possível ler a imagem selecionada."
+  },
+  "SUCCESS": {
+    "WAITER_CALLED": "Garçom avisado. Ele está a caminho."
+  },
+  "TABLE": {
+    "NAVIGATION": "Navegação da mesa",
+    "BRAND_HOME": "Página inicial FourKitchen",
+    "NO_WAITER": "Garçom: —",
+    "WAITER": "Garçom: {{name}}",
+    "AVAILABLE": "Mesa disponível",
+    "WAITING_ORDER": "Aguardando pedido",
+    "ORDER": "Pedido: {{items}}",
+    "BILL": "Conta: {{value}}",
+    "STAGE": "Etapa {{current}} de {{total}}: {{name}}",
+    "STAGES": "{{count}} etapas",
+    "COMING_SOON": "Em breve",
+    "LATE": "Atrasada",
+    "ATTENTION": "Atenção",
+    "FREE": "Livre",
+    "IN_PREPARATION": "Em preparo",
+    "READY_FOR_DELIVERY": "Pronto para entrega",
+    "OPEN_BILL": "Conta aberta",
+    "STAGE_SENT": "Pedido enviado à cozinha",
+    "STAGE_PREPARATION": "Em preparo",
+    "STAGE_FINISHING": "Finalização",
+    "STAGE_READY": "Pronto para entrega"
+  },
+  "IMAGE": {
+    "FORMATS": "JPG, JPEG ou PNG • até 1 MB • proporção 4:3",
+    "READING": "Lendo imagem...",
+    "DROP": "Arraste a imagem aqui",
+    "SELECT": "ou clique para selecionar",
+    "MAX_DIMENSIONS": "Máximo 1200 × 900 pixels",
+    "NONE_SELECTED": "Nenhuma imagem selecionada",
+    "KEEP_CURRENT": "A imagem atual será mantida se nenhuma nova imagem for selecionada."
+  }
+  ,"CUSTOMER": {
+    "HOME": "Início", "MENU": "Cardápio", "MAIN_NAVIGATION": "Navegação principal", "CONTINUE_SHOPPING": "Continuar comprando", "EMPTY_CART": "Seu carrinho está vazio.", "YOUR_ORDER": "Seu pedido", "ORDER_SUMMARY": "Resumo do pedido", "SUBTOTAL": "Subtotal", "TOTAL": "Total", "OBSERVATION": "Observação", "QUANTITY": "Quantidade", "DECREASE_QUANTITY": "Diminuir quantidade", "INCREASE_QUANTITY": "Aumentar quantidade", "REMOVE_ITEM": "Remover item", "ADD_ITEM": "Adicionar item", "CLOSE_DETAILS": "Fechar detalhes", "PREVIOUS_CATEGORIES": "Ver categorias anteriores", "NEXT_CATEGORIES": "Ver próximas categorias", "FILTERS": "Filtros do cardápio", "NO_ITEMS": "Nenhum item disponível no momento.", "NO_CATEGORIES": "Nenhuma categoria disponível no momento.", "RETRY": "Tentar novamente", "CATEGORIES_TITLE": "Nossas categorias", "CATEGORIES_SUBTITLE": "Escolha uma categoria para explorar os itens disponíveis.", "MENU_TITLE": "Explore nosso cardápio!", "LOADING_MORE": "Carregando mais itens...", "HERO_TITLE": "Bem-vindos ao FourKitchen!", "HERO_SUBTITLE": "Faça seu pedido de forma rápida, prática e sem filas.", "HOME_SHORTCUTS": "Atalhos da página inicial", "VISIT_US": "Venha nos visitar", "VISIT_SUBTITLE": "Esperamos você para uma experiência deliciosa.", "ADDRESS": "Endereço", "PHONE": "Telefone", "HOURS": "Horário", "BACK_TO_CART": "Voltar ao carrinho", "PAYMENT": "Pagamento", "PAYMENT_PROMPT": "Escolha como deseja pagar seu pedido.", "PAYMENT_METHOD": "Forma de pagamento", "CREDIT_CARD": "Cartão de crédito", "DEBIT_CARD": "Cartão de débito", "PAYMENT_DECLINED": "Pagamento recusado", "ORDER_NOT_SENT": "Pedido não enviado", "PAYMENT_ERROR": "Erro no pagamento", "PROCESSING_PAYMENT": "Processando pagamento...", "MAKE_PAYMENT": "Realizar pagamento"
   }
 }

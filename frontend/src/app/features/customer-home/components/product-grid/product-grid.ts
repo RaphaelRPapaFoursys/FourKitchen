@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ProdutoCardapioView } from '../../../../core/models/menu.models';
 
@@ -7,6 +8,7 @@ import { ProdutoCardapioView } from '../../../../core/models/menu.models';
   templateUrl: './product-grid.html',
   styleUrl: './product-grid.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
 })
 export class ProductGridComponent {
   readonly products = input.required<ProdutoCardapioView[]>();

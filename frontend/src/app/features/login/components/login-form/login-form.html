@@ -4,31 +4,31 @@
   }
 
   <div class="login-form__field">
-    <label for="email">E-mail corporativo</label>
+    <label for="email">{{ 'LOGIN.CORPORATE_EMAIL' | translate }}</label>
     <div class="login-form__control" [class.login-form__control--invalid]="fieldInvalid()('email')">
       <input
         id="email"
         type="email"
         formControlName="email"
-        placeholder="E-mail corporativo"
+        [placeholder]="'PLACEHOLDER.CORPORATE_EMAIL' | translate"
         autocomplete="email"
         aria-describedby="email-error"
       />
       <img src="assets/icons/mail.svg" alt="" aria-hidden="true" />
     </div>
     @if (fieldInvalid()('email')) {
-      <p class="login-form__error" id="email-error">Informe um e-mail valido.</p>
+      <p class="login-form__error" id="email-error">{{ 'VALIDATION.EMAIL_INVALID' | translate }}</p>
     }
   </div>
 
   <div class="login-form__field">
-    <label for="password">Senha</label>
+    <label for="password">{{ 'LOGIN.PASSWORD' | translate }}</label>
     <div class="login-form__control" [class.login-form__control--invalid]="fieldInvalid()('password')">
       <input
         id="password"
         [type]="passwordVisible() ? 'text' : 'password'"
         formControlName="password"
-        placeholder="Senha"
+        [placeholder]="'PLACEHOLDER.PASSWORD' | translate"
         autocomplete="current-password"
         aria-describedby="password-error"
       />
@@ -36,7 +36,7 @@
         class="login-form__icon-button"
         type="button"
         (click)="togglePasswordVisibility()"
-        [attr.aria-label]="passwordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
+        [attr.aria-label]="passwordVisible() ? ('LOGIN.HIDE_PASSWORD' | translate) : ('LOGIN.SHOW_PASSWORD' | translate)"
       >
         <img
           [src]="passwordVisible() ? 'assets/icons/eye-off.svg' : 'assets/icons/eye.svg'"
@@ -46,14 +46,14 @@
       </button>
     </div>
     @if (fieldInvalid()('password')) {
-      <p class="login-form__error" id="password-error">Informe sua senha.</p>
+      <p class="login-form__error" id="password-error">{{ 'VALIDATION.PASSWORD_REQUIRED' | translate }}</p>
     }
   </div>
 
-  <a class="login-form__forgot" href="#">Esqueci minha senha</a>
+  <a class="login-form__forgot" href="#">{{ 'LOGIN.FORGOT_PASSWORD' | translate }}</a>
 
   <button class="login-form__submit" type="submit" [disabled]="form().invalid || isLoading()">
-    <span>{{ isLoading() ? 'Entrando...' : 'Entrar no Sistema' }}</span>
+    <span>{{ isLoading() ? ('BUTTON.LOGGING_IN' | translate) : ('BUTTON.LOGIN' | translate) }}</span>
     <img src="assets/icons/arrow-right.svg" alt="" aria-hidden="true" />
   </button>
 </form>

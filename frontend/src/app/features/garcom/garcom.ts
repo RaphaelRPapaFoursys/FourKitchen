@@ -30,6 +30,7 @@ import {
 import { Badge, BadgeVariant } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { LanguageSelector } from '../../shared/components/language-selector/language-selector';
 import { UserMenu } from '../../shared/components/user-menu/user-menu';
 
 type FiltroMesa = 'todas' | 'chamadas' | 'problemas';
@@ -46,7 +47,7 @@ const INTERVALO_ATUALIZACAO_MS = 10_000;
 @Component({
   selector: 'app-garcom',
   standalone: true,
-  imports: [Badge, Icon, KpiCard, UserMenu],
+  imports: [Badge, Icon, KpiCard, LanguageSelector, UserMenu],
   templateUrl: './garcom.html',
   styleUrl: './garcom.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

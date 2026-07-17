@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth';
 import { MesaChamadaService } from '../../core/services/mesa-chamada';
 import { OrderService } from '../../core/services/order.service';
 import { Icon } from '../../shared/components/icon/icon';
+import { LanguageSelector } from '../../shared/components/language-selector/language-selector';
 
 interface MesaResumo {
   id: number;
@@ -41,7 +42,7 @@ const pedidosAtivos: PedidoMesaAtivo[] = [
 
 @Component({
   selector: 'app-mesa',
-  imports: [Icon],
+  imports: [Icon, LanguageSelector],
   templateUrl: './mesa.html',
   styleUrl: './mesa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

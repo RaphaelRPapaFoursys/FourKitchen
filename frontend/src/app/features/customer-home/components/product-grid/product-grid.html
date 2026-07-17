@@ -1,5 +1,5 @@
 @if (products().length === 0) {
-  <p class="state-message state-message--light">Nenhum item disponivel no momento.</p>
+  <p class="state-message state-message--light">{{ 'CUSTOMER.NO_ITEMS' | translate }}</p>
 } @else {
   <div class="products-grid">
     @for (product of products(); track trackProduct()($index, product)) {
@@ -25,7 +25,7 @@
             <button
               type="button"
               (click)="quickAddProduct(product, $event)"
-              aria-label="Adicionar item"
+              [attr.aria-label]="'CUSTOMER.ADD_ITEM' | translate"
               [disabled]="!canAddToCart()"
             >
               <img src="assets/icons/plus.svg" alt="" aria-hidden="true" />

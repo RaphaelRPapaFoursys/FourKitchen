@@ -8,7 +8,7 @@
     <p>{{ item().description }}</p>
     @if (observationEditable()) {
       <label class="cart-item__observation">
-        <span>Observação</span>
+        <span>{{ 'CUSTOMER.OBSERVATION' | translate }}</span>
         <input
           type="text"
           [value]="item().observation ?? ''"
@@ -22,15 +22,15 @@
     }
   </div>
 
-  <div class="cart-item__quantity" aria-label="Quantidade">
-    <button type="button" aria-label="Diminuir quantidade" (click)="decreaseQuantity()">-</button>
+  <div class="cart-item__quantity" [attr.aria-label]="'CUSTOMER.QUANTITY' | translate">
+    <button type="button" [attr.aria-label]="'CUSTOMER.DECREASE_QUANTITY' | translate" (click)="decreaseQuantity()">-</button>
     <span>{{ item().quantity }}</span>
-    <button type="button" aria-label="Aumentar quantidade" (click)="increaseQuantity()">+</button>
+    <button type="button" [attr.aria-label]="'CUSTOMER.INCREASE_QUANTITY' | translate" (click)="increaseQuantity()">+</button>
   </div>
 
   <strong>{{ formatPrice()(item().unitPrice * item().quantity) }}</strong>
 
-  <button class="cart-item__remove" type="button" aria-label="Remover item" (click)="removeItem()">
+  <button class="cart-item__remove" type="button" [attr.aria-label]="'CUSTOMER.REMOVE_ITEM' | translate" (click)="removeItem()">
     x
   </button>
 </article>

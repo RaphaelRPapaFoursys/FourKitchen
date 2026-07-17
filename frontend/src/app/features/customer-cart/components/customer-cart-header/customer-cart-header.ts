@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { LanguageSelector } from '../../../../shared/components/language-selector/language-selector';
 
 export type CustomerMenuActiveLink = 'menu' | 'orders' | 'cart' | null;
 
@@ -7,6 +8,7 @@ export type CustomerMenuActiveLink = 'menu' | 'orders' | 'cart' | null;
   templateUrl: './customer-cart-header.html',
   styleUrl: './customer-cart-header.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [LanguageSelector],
 })
 export class CustomerCartHeaderComponent {
   readonly homeRoute = input.required<string>();

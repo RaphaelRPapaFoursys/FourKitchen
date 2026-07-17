@@ -1,8 +1,8 @@
 <header class="mesa-card__header">
-  <h3>Mesa {{ mesa().numero.toString().padStart(2, '0') }}</h3>
+  <h3>{{ 'COMMON.TABLE' | translate:{ number: mesa().numero.toString().padStart(2, '0') } }}</h3>
 
   @if (mesa().status === 'LIVRE') {
-    <fk-badge variant="livre">Livre</fk-badge>
+    <fk-badge variant="livre">{{ 'TABLE.FREE' | translate }}</fk-badge>
   } @else if (urgenciaBadgeLabel(); as badge) {
     <fk-badge [variant]="criticidade() === 'critico' ? 'critico' : 'atencao'">
       <fk-icon name="siren" size="0.85rem" />
@@ -20,14 +20,14 @@
 
 @if (mesa().status === 'OCUPADA') {
   <p class="mesa-card__garcom">
-    Garçom: {{ mesa().garcom }}
+    {{ 'TABLE.WAITER' | translate:{ name: mesa().garcom } }}
     <button
       type="button"
       class="mesa-card__trocar-garcom"
       [disabled]="bloqueado()"
       (click)="trocar.emit()"
     >
-      Trocar
+      {{ 'BUTTON.CHANGE' | translate }}
     </button>
   </p>
 
@@ -47,9 +47,9 @@
       @if (mesa().totalEtapas) {
         <span
           class="mesa-card__etapas"
-          [title]="'Etapa ' + mesa().etapaAtual + ' de ' + mesa().totalEtapas + ': ' + nomeEtapa(mesa().etapaAtual)"
+          [title]="'TABLE.STAGE' | translate:{ current: mesa().etapaAtual, total: mesa().totalEtapas, name: nomeEtapa(mesa().etapaAtual) }"
         >
-          {{ mesa().etapaAtual }}/{{ mesa().totalEtapas }} etapas
+          {{ 'TABLE.STAGES' | translate:{ count: mesa().totalEtapas } }}
         </span>
       }
     </div>
@@ -65,20 +65,20 @@
     <div class="mesa-card__vazio">
       @if (mesa().garcomId !== null) {
         <fk-icon name="call-bell" size="2rem" />
-        <span>Aguardando pedido</span>
+        <span>{{ 'TABLE.WAITING_ORDER' | translate }}</span>
       } @else {
         <fk-icon name="picnic-table" size="2rem" />
-        <span>Mesa disponível</span>
+        <span>{{ 'TABLE.AVAILABLE' | translate }}</span>
       }
     </div>
   }
 
   @if (mesa().pedidos.length > 0) {
-    <p class="mesa-card__itens">Pedido: {{ itensResumo() }}</p>
+    <p class="mesa-card__itens">{{ 'TABLE.ORDER' | translate:{ items: itensResumo() } }}</p>
   }
 
   @if (valorConta(); as valor) {
-    <p class="mesa-card__conta">Conta: {{ valor | currency: 'BRL' }}</p>
+    <p class="mesa-card__conta">{{ 'TABLE.BILL' | translate:{ value: (valor | currency: 'BRL') } }}</p>
   }
 
   <div class="mesa-card__acoes">
@@ -90,7 +90,7 @@
       [class.mesa-card__acao--abrir]="acaoPrimaria().tipo === 'REATRIBUIR_GARCOM'"
       type="button"
       [disabled]="acaoPrimariaIndisponivel()"
-      [title]="acaoPrimaria().tipo === 'VER_PEDIDO' ? 'Em breve' : ''"
+      [title]="acaoPrimaria().tipo === 'VER_PEDIDO' ? ('TABLE.COMING_SOON' | translate) : ''"
       (click)="acao.emit()"
     >
       <span>{{ acaoPrimaria().label }}</span>
@@ -104,18 +104,18 @@
         class="mesa-card__acao mesa-card__acao--secundaria"
         type="button"
         disabled
-        title="Em breve"
+        [title]="'TABLE.COMING_SOON' | translate"
         (click)="verPedido.emit()"
       >
-        Ver pedido
+        {{ 'BUTTON.VIEW_ORDER' | translate }}
       </button>
     }
   </div>
 } @else {
-  <p class="mesa-card__garcom">Garçom: —</p>
+  <p class="mesa-card__garcom">{{ 'TABLE.NO_WAITER' | translate }}</p>
   <div class="mesa-card__vazio">
     <fk-icon name="picnic-table" size="2rem" />
-    <span>Mesa disponível</span>
+    <span>{{ 'TABLE.AVAILABLE' | translate }}</span>
   </div>
   <div class="mesa-card__acoes">
     <button

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { CategoriaMenuResponse } from '../../../../core/models/menu.models';
 
@@ -7,6 +8,7 @@ import { CategoriaMenuResponse } from '../../../../core/models/menu.models';
   templateUrl: './category-carousel.html',
   styleUrl: './category-carousel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
 })
 export class CategoryCarouselComponent {
   @ViewChild('categoriesCarousel') private readonly categoriesCarousel?: ElementRef<HTMLElement>;

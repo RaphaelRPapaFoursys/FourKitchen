@@ -2,9 +2,9 @@
   <div class="image-upload__heading">
     <div>
       <strong id="product-image-label">{{ fieldLabel() }}</strong>
-      <span>Opcional</span>
+      <span>{{ 'COMMON.OPTIONAL' | translate }}</span>
     </div>
-    <small>JPG, JPEG ou PNG • até 1 MB • proporção 4:3</small>
+    <small>{{ 'IMAGE.FORMATS' | translate }}</small>
   </div>
 
   <div class="image-upload__content">
@@ -27,12 +27,12 @@
 
       <span class="image-upload__symbol" aria-hidden="true">↑</span>
       @if (reading()) {
-        <strong>Lendo imagem...</strong>
+        <strong>{{ 'IMAGE.READING' | translate }}</strong>
       } @else {
-        <strong>Arraste a imagem aqui</strong>
-        <span>ou clique para selecionar</span>
+        <strong>{{ 'IMAGE.DROP' | translate }}</strong>
+        <span>{{ 'IMAGE.SELECT' | translate }}</span>
       }
-      <small>Máximo 1200 × 900 pixels</small>
+      <small>{{ 'IMAGE.MAX_DIMENSIONS' | translate }}</small>
     </label>
 
     <div class="image-upload__preview" [class.image-upload__preview--empty]="!previewSource()">
@@ -40,7 +40,7 @@
         <img [src]="preview" [alt]="previewAlt()" />
       } @else {
         <span aria-hidden="true">▧</span>
-        <small>Nenhuma imagem selecionada</small>
+        <small>{{ 'IMAGE.NONE_SELECTED' | translate }}</small>
       }
     </div>
   </div>
@@ -49,11 +49,11 @@
     <div class="image-upload__selection">
       <span>{{ selectedFileName() }}</span>
       <button type="button" (click)="cancelSelection()" [disabled]="disabled()">
-        Cancelar seleção
+        {{ 'BUTTON.CANCEL_SELECTION' | translate }}
       </button>
     </div>
   } @else if (currentImage()) {
-    <p class="image-upload__hint">A imagem atual será mantida se nenhuma nova imagem for selecionada.</p>
+    <p class="image-upload__hint">{{ 'IMAGE.KEEP_CURRENT' | translate }}</p>
   }
 
   @if (errorMessage()) {

@@ -1,6 +1,6 @@
 <div class="categories-carousel">
   @if (canScrollLeft()) {
-    <button class="categories-carousel__button categories-carousel__button--left" type="button" aria-label="Ver categorias anteriores" (click)="requestScroll('left')">
+    <button class="categories-carousel__button categories-carousel__button--left" type="button" [attr.aria-label]="'CUSTOMER.PREVIOUS_CATEGORIES' | translate" (click)="requestScroll('left')">
       ‹
     </button>
   }
@@ -39,7 +39,7 @@
   </div>
 
   @if (canScrollRight()) {
-    <button class="categories-carousel__button categories-carousel__button--right" type="button" aria-label="Ver proximas categorias" (click)="requestScroll('right')">
+    <button class="categories-carousel__button categories-carousel__button--right" type="button" [attr.aria-label]="'CUSTOMER.NEXT_CATEGORIES' | translate" (click)="requestScroll('right')">
       ›
     </button>
   }

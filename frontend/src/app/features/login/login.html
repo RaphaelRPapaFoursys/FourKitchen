@@ -15,8 +15,8 @@
 
     <div class="login-card">
       <header class="login-card__header">
-        <h1 id="login-title">Entrar</h1>
-        <p>Acesse sua conta para gerenciar o restaurante.</p>
+        <h1 id="login-title">{{ 'LOGIN.TITLE' | translate }}</h1>
+        <p>{{ 'LOGIN.SUBTITLE' | translate }}</p>
       </header>
 
       <app-login-form
@@ -32,8 +32,8 @@
       <div class="login-card__divider" role="separator"></div>
 
       <p class="login-card__access">
-        Ainda nao possui acesso?
-        <a href="#">Solicite sua conta</a>
+        {{ 'LOGIN.NO_ACCESS' | translate }}
+        <a href="#">{{ 'LOGIN.REQUEST_ACCOUNT' | translate }}</a>
       </p>
     </div>
   </section>

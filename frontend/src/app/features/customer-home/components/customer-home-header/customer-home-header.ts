@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { Icon } from '../../../../shared/components/icon/icon';
+import { LanguageSelector } from '../../../../shared/components/language-selector/language-selector';
 
 @Component({
   selector: 'app-customer-home-header',
-  imports: [Icon],
+  imports: [Icon, LanguageSelector],
   templateUrl: './customer-home-header.html',
   styleUrl: './customer-home-header.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

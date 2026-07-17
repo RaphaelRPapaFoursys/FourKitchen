@@ -1,29 +1,30 @@
 <main class="payment-page">
+  <fk-language-selector />
   <section class="payment-shell" aria-labelledby="payment-title">
     <header class="payment-header">
       <button type="button" class="back-button" (click)="backToCart()" [disabled]="isProcessing()">
-        <span aria-hidden="true">&#8592;</span> Voltar ao carrinho
+        <span aria-hidden="true">&#8592;</span> {{ 'CUSTOMER.BACK_TO_CART' | translate }}
       </button>
       <div>
-        <p class="eyebrow">Etapa 2 de 2</p>
-        <h1 id="payment-title">Pagamento</h1>
-        <p>Escolha como deseja pagar seu pedido.</p>
+        <p class="eyebrow">{{ 'CUSTOMER.PAYMENT' | translate }}</p>
+        <h1 id="payment-title">{{ 'CUSTOMER.PAYMENT' | translate }}</h1>
+        <p>{{ 'CUSTOMER.PAYMENT_PROMPT' | translate }}</p>
       </div>
     </header>
 
     <div class="payment-content">
       <section class="payment-methods" aria-labelledby="methods-title">
-        <h2 id="methods-title">Forma de pagamento</h2>
-        <div class="method-grid" role="radiogroup" aria-label="Forma de pagamento">
+        <h2 id="methods-title">{{ 'CUSTOMER.PAYMENT_METHOD' | translate }}</h2>
+        <div class="method-grid" role="radiogroup" [attr.aria-label]="'CUSTOMER.PAYMENT_METHOD' | translate">
           <button type="button" role="radio" [attr.aria-checked]="selectedMethod() === 'CREDITO'"
             [class.is-selected]="selectedMethod() === 'CREDITO'" (click)="selectMethod('CREDITO')" [disabled]="isProcessing()">
             <span class="method-icon" aria-hidden="true">&#128179;</span>
-            <span>Cartão de crédito</span>
+            <span>{{ 'CUSTOMER.CREDIT_CARD' | translate }}</span>
           </button>
           <button type="button" role="radio" [attr.aria-checked]="selectedMethod() === 'DEBITO'"
             [class.is-selected]="selectedMethod() === 'DEBITO'" (click)="selectMethod('DEBITO')" [disabled]="isProcessing()">
             <span class="method-icon" aria-hidden="true">&#128179;</span>
-            <span>Cartão de débito</span>
+            <span>{{ 'CUSTOMER.DEBIT_CARD' | translate }}</span>
           </button>
           <button type="button" role="radio" [attr.aria-checked]="selectedMethod() === 'PIX'"
             [class.is-selected]="selectedMethod() === 'PIX'" (click)="selectMethod('PIX')" [disabled]="isProcessing()">
@@ -35,7 +36,7 @@
 
       <aside class="order-summary" aria-labelledby="summary-title">
         <div class="summary-heading">
-          <h2 id="summary-title">Resumo do pedido</h2>
+          <h2 id="summary-title">{{ 'CUSTOMER.ORDER_SUMMARY' | translate }}</h2>
           <span>{{ totalItems() }} {{ totalItems() === 1 ? 'item' : 'itens' }}</span>
         </div>
         <ul>
@@ -47,7 +48,7 @@
           }
         </ul>
         <div class="summary-total">
-          <span>Total</span>
+          <span>{{ 'CUSTOMER.TOTAL' | translate }}</span>
           <strong>{{ formatPrice(total()) }}</strong>
         </div>
       </aside>
@@ -56,24 +57,24 @@
     <footer class="payment-actions">
       @if (errorMessage()) {
         <div class="payment-alert" role="alert" [class.payment-alert--order]="state() === 'order-error'">
-          <strong>{{ state() === 'declined' ? 'Pagamento recusado' : state() === 'order-error' ? 'Pedido não enviado' : 'Erro no pagamento' }}</strong>
+          <strong>{{ state() === 'declined' ? ('CUSTOMER.PAYMENT_DECLINED' | translate) : state() === 'order-error' ? ('CUSTOMER.ORDER_NOT_SENT' | translate) : ('CUSTOMER.PAYMENT_ERROR' | translate) }}</strong>
           <span>{{ errorMessage() }}</span>
         </div>
       }
 
       @if (state() === 'order-error') {
-        <button class="primary-button" type="button" (click)="backToCart()">Voltar ao carrinho</button>
+        <button class="primary-button" type="button" (click)="backToCart()">{{ 'CUSTOMER.BACK_TO_CART' | translate }}</button>
       } @else {
         <button class="primary-button" type="button" (click)="processPayment()" [disabled]="isProcessing()">
           @if (isProcessing()) {
-            <span class="spinner" aria-hidden="true"></span> Processando pagamento...
+            <span class="spinner" aria-hidden="true"></span> {{ 'CUSTOMER.PROCESSING_PAYMENT' | translate }}
           } @else if (canRetryPayment()) {
             Tentar novamente
           } @else {
-            Realizar pagamento
+            {{ 'CUSTOMER.MAKE_PAYMENT' | translate }}
           }
         </button>
-        <button class="secondary-button" type="button" (click)="backToCart()" [disabled]="isProcessing()">Voltar ao carrinho</button>
+        <button class="secondary-button" type="button" (click)="backToCart()" [disabled]="isProcessing()">{{ 'CUSTOMER.BACK_TO_CART' | translate }}</button>
       }
     </footer>
   </section>

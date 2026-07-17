@@ -1,18 +1,19 @@
 <header class="mesa-header">
-  <a class="mesa-header__brand" [href]="homeRoute()" (click)="selecionarMenu($event)" aria-label="FourKitchen início">
+  <fk-language-selector />
+  <a class="mesa-header__brand" [href]="homeRoute()" (click)="selecionarMenu($event)" [attr.aria-label]="'TABLE.BRAND_HOME' | translate">
     <img src="assets/images/fourkitchen-logo.png" alt="FourKitchen" />
   </a>
 
   <span class="mesa-header__table" aria-live="polite">{{ mesaLabel() }}</span>
 
-  <nav class="mesa-header__actions" aria-label="Navegação da mesa">
+  <nav class="mesa-header__actions" [attr.aria-label]="'TABLE.NAVIGATION' | translate">
     @if (showOrdersLink()) {
       <a
         class="mesa-header__orders"
         [class.mesa-header__orders--active]="isActive('orders')"
         [href]="ordersRoute()"
         (click)="selecionarPedidos($event)"
-      >Acompanhar Pedido</a>
+      >{{ 'BUTTON.TRACK_ORDER' | translate }}</a>
     }
 
     <a
@@ -20,9 +21,9 @@
       [class.mesa-header__cart--active]="isActive('cart')"
       [href]="cartRoute()"
       (click)="selecionarCarrinho($event)"
-      aria-label="Carrinho"
+      [attr.aria-label]="'BUTTON.CART' | translate"
     >
-      <span>Carrinho</span>
+      <span>{{ 'BUTTON.CART' | translate }}</span>
       @if (totalItems() > 0) {
         <strong class="mesa-header__badge">{{ totalItems() }}</strong>
       }
@@ -35,7 +36,7 @@
       [class.mesa-header__call--loading]="chamandoGarcom()"
       [attr.aria-label]="chamadaLabel()"
       [attr.aria-busy]="chamandoGarcom()"
-      [attr.title]="atendimentoAtivo() ? chamadaLabel() : 'A mesa ainda não possui atendimento iniciado.'"
+      [attr.title]="atendimentoAtivo() ? chamadaLabel() : ('ERROR.ATTENDANCE_NOT_STARTED' | translate)"
       [disabled]="chamadaDesabilitada()"
       (click)="chamarGarcom()"
     >
@@ -63,6 +64,6 @@
       size="1.25rem"
     />
     <span>{{ notification.message }}</span>
-    <button type="button" aria-label="Fechar notificação" (click)="closeToast()">×</button>
+    <button type="button" [attr.aria-label]="'COMMON.CLOSE_NOTIFICATION' | translate" (click)="closeToast()">×</button>
   </aside>
 }

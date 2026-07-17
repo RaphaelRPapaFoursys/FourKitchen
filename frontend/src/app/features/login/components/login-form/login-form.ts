@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type LoginField = 'email' | 'password';
 
 @Component({
   selector: 'app-login-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslatePipe],
   templateUrl: './login-form.html',
   styleUrl: './login-form.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

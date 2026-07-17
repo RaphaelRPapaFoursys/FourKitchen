@@ -9,7 +9,7 @@
       <button
         class="topbar__notificacao"
         type="button"
-        aria-label="Notificações"
+        [attr.aria-label]="'COMMON.NOTIFICATIONS' | translate"
         [attr.aria-expanded]="menuAberto() === 'notificacoes'"
         (click)="alternarMenu('notificacoes')"
       >
@@ -21,9 +21,9 @@
         }
       </button>
       @if (menuAberto() === 'notificacoes') {
-      <section class="topbar__notificacoes-painel" aria-label="Notificações">
-        <strong>Notificações</strong>
-        <p>Nenhuma nova notificação.</p>
+      <section class="topbar__notificacoes-painel" [attr.aria-label]="'COMMON.NOTIFICATIONS' | translate">
+        <strong>{{ 'COMMON.NOTIFICATIONS' | translate }}</strong>
+        <p>{{ 'COMMON.NO_NEW_NOTIFICATIONS' | translate }}</p>
       </section>
       }
     </div>
@@ -37,15 +37,4 @@
     />
   </div>
 
-  <button>
-    {{ 'BUTTON.SAVE' | translate }}
-  </button>
-
-  <button (click)="trocarIdioma('pt-BR')">
-    PT
-  </button>
-
-  <button (click)="trocarIdioma('en-US')">
-    EN
-  </button>
 </header>

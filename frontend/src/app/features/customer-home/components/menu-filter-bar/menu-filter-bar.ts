@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { CategoriaMenuResponse } from '../../../../core/models/menu.models';
 
@@ -7,6 +8,7 @@ import { CategoriaMenuResponse } from '../../../../core/models/menu.models';
   templateUrl: './menu-filter-bar.html',
   styleUrl: './menu-filter-bar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [TranslatePipe],
 })
 export class MenuFilterBarComponent {
   readonly categories = input.required<CategoriaMenuResponse[]>();

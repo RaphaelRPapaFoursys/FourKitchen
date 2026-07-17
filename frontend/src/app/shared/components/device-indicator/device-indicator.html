@@ -1,3 +1,3 @@
 @if (label(); as deviceLabel) {
-  <span class="device-indicator" aria-label="Dispositivo atual">{{ deviceLabel }}</span>
+  <span class="device-indicator" [attr.aria-label]="'COMMON.CURRENT_DEVICE' | translate">{{ deviceLabel }}</span>
 }
