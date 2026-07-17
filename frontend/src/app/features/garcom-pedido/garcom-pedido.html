@@ -4,133 +4,203 @@
       <fk-icon name="arrow-right" size="1rem" /> Minhas mesas
     </button>
     @if (detalhe(); as dados) {
-      <div class="mesa-context">
-        <span class="eyebrow">Mesa recebendo o pedido</span>
-        <h1>Mesa {{ dados.mesa.numero.toString().padStart(2, '0') }}</h1>
-        <fk-badge [variant]="dados.mesa.status === 'OCUPADA' ? 'atencao' : 'livre'">
-          {{ dados.mesa.status === 'OCUPADA' ? 'Em atendimento' : 'Livre' }}
-        </fk-badge>
-      </div>
+    <div class="mesa-context">
+      <span class="eyebrow">Mesa recebendo o pedido</span>
+      <h1>Mesa {{ dados.mesa.numero.toString().padStart(2, '0') }}</h1>
+      <fk-badge [variant]="dados.mesa.status === 'OCUPADA' ? 'atencao' : 'livre'">
+        {{ dados.mesa.status === 'OCUPADA' ? 'Em atendimento' : 'Livre' }}
+      </fk-badge>
+    </div>
     }
     <fk-user-menu [name]="nomeUsuario" [initial]="inicialUsuario" [showName]="false" />
   </header>
 
   @if (carregando()) {
-    <section class="loading-state" aria-busy="true">
-      <span></span><span></span><span></span>
-      <p>Carregando mesa e cardápio…</p>
-    </section>
+  <section class="loading-state" aria-busy="true">
+    <span></span><span></span><span></span>
+    <p>Carregando mesa e cardápio…</p>
+  </section>
   } @else if (erro() && !detalhe()) {
-    <section class="feedback feedback--error" role="alert">
-      <fk-icon name="warning-circle" size="1.1rem" />
-      <p>{{ erro() }}</p>
-      <button type="button" (click)="carregar()">Tentar novamente</button>
-    </section>
+  <section class="feedback feedback--error" role="alert">
+    <fk-icon name="warning-circle" size="1.1rem" />
+    <p>{{ erro() }}</p>
+    <button type="button" (click)="carregar()">Tentar novamente</button>
+  </section>
   } @else if (detalhe(); as dados) {
-    @if (erro()) {
-      <p class="feedback feedback--error" role="alert"><fk-icon name="warning-circle" size="1rem" /> {{ erro() }}</p>
-    }
-    @if (sucesso()) {
-      <p class="feedback feedback--success" role="status"><fk-icon name="check-circle" size="1rem" /> {{ sucesso() }}</p>
-    }
+  @if (erro()) {
+  <p class="feedback feedback--error" role="alert"><fk-icon name="warning-circle" size="1rem" /> {{ erro() }}</p>
+  }
+  @if (sucesso()) {
+  <p class="feedback feedback--success" role="status"><fk-icon name="check-circle" size="1rem" /> {{ sucesso() }}</p>
+  }
 
-    <section class="order-workspace">
-      <section class="menu-panel" aria-label="Cardápio">
-        <header class="panel-header">
-          <div>
-            <p class="eyebrow">Novo pedido</p>
-            <h2>Escolha os produtos</h2>
-          </div>
-          <label class="product-search" aria-label="Buscar produto">
-            <fk-icon name="magnifying-glass" size="1rem" />
-            <input type="search" placeholder="Buscar produto" [value]="busca()" (input)="atualizarBusca($event)" />
-          </label>
-        </header>
+  <section class="order-workspace">
+    <section class="menu-panel" aria-label="Cardápio">
+      <header class="panel-header">
+        <div>
+          <p class="eyebrow">Novo pedido</p>
+          <h2>Escolha os produtos</h2>
+        </div>
+        <label class="product-search" aria-label="Buscar produto">
+          <fk-icon name="magnifying-glass" size="1rem" />
+          <input type="search" placeholder="Buscar produto" [value]="busca()" (input)="atualizarBusca($event)" />
+        </label>
+      </header>
 
-        <nav class="categories" aria-label="Categorias do cardápio">
-          @for (categoria of categorias(); track categoria.categoriaId) {
-            <button type="button" [class.category--active]="categoria.categoriaId === categoriaSelecionadaId()" (click)="selecionarCategoria(categoria.categoriaId)">
-              {{ categoria.categoriaNome }}
-            </button>
-          }
-        </nav>
-
-        @if (categoriaSelecionada(); as categoria) {
-          <div class="category-heading">
-            <div><h3>{{ categoria.categoriaNome }}</h3><p>{{ categoria.categoriaDescricao || 'Produtos disponíveis para esta mesa.' }}</p></div>
-            <span>{{ produtosFiltrados().length }} produto{{ produtosFiltrados().length === 1 ? '' : 's' }}</span>
-          </div>
-          <div class="products-grid">
-            @for (produto of produtosFiltrados(); track produto.id) {
-              <article class="product-card">
-                <div class="product-card__content">
-                  <h3>{{ produto.nome }}</h3>
-                  <p>{{ produto.descricao || 'Sem descrição disponível.' }}</p>
-                </div>
-                <footer>
-                  <strong>{{ formatarMoeda(produto.preco) }}</strong>
-                  @if (quantidadeNoCarrinho(produto.id) > 0) {
-                    <span class="product-quantity">{{ quantidadeNoCarrinho(produto.id) }} no pedido</span>
-                  }
-                  <button type="button" class="add-button" (click)="adicionarProduto(produto)">
-                    <fk-icon name="plus" size="0.95rem" /> Adicionar
-                  </button>
-                </footer>
-              </article>
-            } @empty {
-              <p class="empty-state">Nenhum produto encontrado nesta categoria.</p>
-            }
-          </div>
-        } @else {
-          <p class="empty-state">Nenhuma categoria com produtos disponível.</p>
+      <nav class="categories" aria-label="Categorias do cardápio">
+        @for (categoria of categorias(); track categoria.categoriaId) {
+        <button type="button" [class.category--active]="categoria.categoriaId === categoriaSelecionadaId()"
+          (click)="selecionarCategoria(categoria.categoriaId)">
+          {{ categoria.categoriaNome }}
+        </button>
         }
-      </section>
+      </nav>
 
-      <aside class="cart-panel" aria-label="Resumo do pedido atual">
-        <header class="cart-header">
-          <div><p class="eyebrow">Mesa {{ dados.mesa.numero.toString().padStart(2, '0') }}</p><h2>Pedido atual</h2></div>
-          <fk-badge variant="tempo-real">{{ totalItens() }} item{{ totalItens() === 1 ? '' : 'ns' }}</fk-badge>
-        </header>
+      @if (categoriaSelecionada(); as categoria) {
+      <div class="category-heading">
+        <div>
+          <h3>{{ categoria.categoriaNome }}</h3>
+          <p>{{ categoria.categoriaDescricao || 'Produtos disponíveis para esta mesa.' }}</p>
+        </div>
+        <span>{{ produtosFiltrados().length }} produto{{ produtosFiltrados().length === 1 ? '' : 's' }}</span>
+      </div>
+      <div class="products-grid">
+        @for (produto of produtosFiltrados(); track produto.id) {
+        <article class="product-card" [class.product-card--selected]="quantidadeNoCarrinho(produto.id) > 0">
+          <div class="product-card__content">
+            <h3>{{ produto.nome }}</h3>
+            <p>{{ produto.descricao || 'Sem descrição disponível.' }}</p>
+          </div>
+          <footer>
+            <strong>{{ formatarMoeda(produto.preco) }}</strong>
+            @if (quantidadeNoCarrinho(produto.id) > 0) {
+            <span class="product-quantity">{{ quantidadeNoCarrinho(produto.id) }} no pedido</span>
+            }
+            <button type="button" class="add-button" (click)="adicionarProduto(produto)">
+              <fk-icon name="plus" size="0.95rem" /> Adicionar
+            </button>
+          </footer>
+        </article>
+        } @empty {
+        <p class="empty-state">Nenhum produto encontrado nesta categoria.</p>
+        }
+      </div>
+      } @else {
+      <p class="empty-state">Nenhuma categoria com produtos disponível.</p>
+      }
+    </section>
 
-        <div class="cart-items">
-          @for (item of itens(); track item.idProduto + '-' + $index) {
-            <article class="cart-item">
-              <div class="cart-item__heading"><strong>{{ item.nome }}</strong><span>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</span></div>
-              <div class="cart-item__controls">
-                <div class="quantity-control" aria-label="Quantidade">
-                  <button type="button" (click)="alterarQuantidade(item, item.quantidade - 1)" aria-label="Diminuir quantidade">−</button>
-                  <strong>{{ item.quantidade }}</strong>
-                  <button type="button" (click)="alterarQuantidade(item, item.quantidade + 1)" aria-label="Aumentar quantidade">+</button>
-                </div>
-                <span>{{ formatarMoeda(item.precoUnitario) }} cada</span>
-              </div>
-              <label class="observation-field">
-                <span>Observação</span>
-                <input type="text" [value]="item.observacao ?? ''" (change)="alterarObservacao(item, $event)" placeholder="Ex.: sem cebola" />
-              </label>
-            </article>
-          } @empty {
-            <div class="cart-empty"><fk-icon name="cart" size="1.5rem" /><p>Adicione produtos para montar o pedido.</p></div>
-          }
+    <aside class="cart-panel" aria-label="Resumo do pedido atual">
+      <header class="cart-header">
+        <div>
+          <p class="eyebrow">
+            Mesa {{ dados.mesa.numero.toString().padStart(2, '0') }}
+          </p>
+          <h2>Pedido atual</h2>
         </div>
 
-        <footer class="cart-summary">
-          <div><span>Total de itens</span><strong>{{ totalItens() }}</strong></div>
-          <div><span>Total do pedido</span><strong>{{ formatarMoeda(total()) }}</strong></div>
-          <button type="button" class="send-button" (click)="enviarPedido()" [disabled]="itens().length === 0 || enviando()">
-            {{ enviando() ? 'Enviando para a cozinha…' : 'Enviar para cozinha' }}
+        <div class="cart-header__actions">
+
+          <fk-badge variant="tempo-real">
+            {{ totalItens() }} item{{ totalItens() === 1 ? '' : 'ns' }}
+          </fk-badge>
+
+          <button type="button" class="clear-cart-button" (click)="abrirModalLimparCarrinho()"
+            [disabled]="itens().length === 0">
+            Limpar
           </button>
-        </footer>
-      </aside>
+
+        </div>
+      </header>
+
+      <div class="cart-items">
+        @for (item of itens(); track item.idProduto + '-' + $index) {
+        <article class="cart-item">
+          <div class="cart-item__heading"><strong>{{ item.nome }}</strong><span>{{ formatarMoeda(item.precoUnitario *
+              item.quantidade) }}</span></div>
+          <div class="cart-item__controls">
+            <div class="quantity-control" aria-label="Quantidade">
+              <button type="button" (click)="alterarQuantidade(item, item.quantidade - 1)"
+                aria-label="Diminuir quantidade">−</button>
+              <strong>{{ item.quantidade }}</strong>
+              <button type="button" (click)="alterarQuantidade(item, item.quantidade + 1)"
+                aria-label="Aumentar quantidade">+</button>
+            </div>
+            <span>{{ formatarMoeda(item.precoUnitario) }} cada</span>
+          </div>
+          <label class="observation-field">
+            <span>Observação</span>
+            <input type="text" [value]="item.observacao ?? ''" (change)="alterarObservacao(item, $event)"
+              placeholder="Ex.: sem cebola" />
+          </label>
+        </article>
+        } @empty {
+        <div class="cart-empty"><fk-icon name="cart" size="1.5rem" />
+          <p>Adicione produtos para montar o pedido.</p>
+        </div>
+        }
+      </div>
+
+      <footer class="cart-summary">
+        <div><span>Total de itens</span><strong>{{ totalItens() }}</strong></div>
+        <div><span>Total do pedido</span><strong>{{ formatarMoeda(total()) }}</strong></div>
+        <button type="button" class="send-button" (click)="enviarPedido()"
+          [disabled]="itens().length === 0 || enviando()">
+          {{ enviando() ? 'Enviando para a cozinha…' : 'Enviar para cozinha' }}
+        </button>
+      </footer>
+    </aside>
+  </section>
+
+  <section class="active-orders" aria-label="Pedidos ativos da mesa">
+    <header>
+      <h2>Pedidos já enviados</h2><span>{{ pedidosAtivos().length }} ativo{{ pedidosAtivos().length === 1 ? '' : 's'
+        }}</span>
+    </header>
+    <div class="active-orders__list">
+      @for (pedido of pedidosAtivos(); track pedido.id) {
+      <article><strong>#{{ pedido.codigo }}</strong><fk-badge
+          [variant]="pedido.status === 'PRONTO' ? 'livre' : 'neutral'">{{ statusPedido(pedido.status)
+          }}</fk-badge><span>{{ pedido.itens.length }} item{{ pedido.itens.length === 1 ? '' : 'ns' }}</span></article>
+      } @empty { <p class="empty-state">Nenhum pedido enviado nesta mesa.</p> }
+    </div>
+  </section>
+  @if (modalLimparCarrinhoAberto()) {
+
+  <div class="modal-backdrop" (click)="fecharModalLimparCarrinho()">
+
+    <section class="confirm-modal" (click)="$event.stopPropagation()">
+
+      <div class="confirm-modal__icon">
+        <fk-icon name="trash" size="1.8rem" />
+      </div>
+
+      <h2>Limpar pedido?</h2>
+
+      <p>
+        Todos os produtos adicionados serão removidos do pedido atual.
+      </p>
+
+      <div class="confirm-modal__actions">
+
+        <button type="button" class="button-secondary" (click)="fecharModalLimparCarrinho()">
+
+          Cancelar
+
+        </button>
+
+        <button type="button" class="button-danger" (click)="confirmarLimparCarrinho()">
+
+          Limpar pedido
+
+        </button>
+
+      </div>
+
     </section>
 
-    <section class="active-orders" aria-label="Pedidos ativos da mesa">
-      <header><h2>Pedidos já enviados</h2><span>{{ pedidosAtivos().length }} ativo{{ pedidosAtivos().length === 1 ? '' : 's' }}</span></header>
-      <div class="active-orders__list">
-        @for (pedido of pedidosAtivos(); track pedido.id) {
-          <article><strong>#{{ pedido.codigo }}</strong><fk-badge [variant]="pedido.status === 'PRONTO' ? 'livre' : 'neutral'">{{ statusPedido(pedido.status) }}</fk-badge><span>{{ pedido.itens.length }} item{{ pedido.itens.length === 1 ? '' : 'ns' }}</span></article>
-        } @empty { <p class="empty-state">Nenhum pedido enviado nesta mesa.</p> }
-      </div>
-    </section>
+  </div>
+
+  }
   }
 </main>

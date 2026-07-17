@@ -18,6 +18,7 @@ public enum StatusPagamento {
     );
 
     private final String errorCode;
+
     private final String errorMessage;
     private final HttpStatus httpStatus;
 

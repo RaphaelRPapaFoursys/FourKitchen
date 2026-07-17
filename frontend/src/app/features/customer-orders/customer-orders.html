@@ -43,9 +43,10 @@
             <strong>#{{ order.codigo || order.id }}</strong>
           </div>
 
-          <span class="orders-status" [ngClass]="getStatusClass(order.status)">
+          <!-- <span class="orders-status" [ngClass]="getStatusClass(order.status)">
             {{ getStatusLabel(order.status) }}
-          </span>
+          </span> -->
+          
         </div>
         <div class="order-progress">
           <div class="order-progress__step"

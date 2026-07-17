@@ -50,6 +50,7 @@ export class GarcomPedido {
   protected readonly categoriaSelecionadaId = signal<number | null>(null);
   protected readonly busca = signal('');
   protected readonly itens = signal<ItemCarrinhoGarcom[]>([]);
+  protected readonly modalLimparCarrinhoAberto = signal(false);
   protected readonly nomeUsuario = this.authService.getCurrentUser()?.nome ?? 'Garçom';
   protected readonly inicialUsuario = this.nomeUsuario.charAt(0).toUpperCase();
 
@@ -142,6 +143,26 @@ export class GarcomPedido {
       ? { ...item, observacao: observacao || undefined }
       : item,
     ));
+  }
+
+  protected abrirModalLimparCarrinho(): void {
+    if (this.itens().length === 0) {
+      return;
+    }
+
+    this.modalLimparCarrinhoAberto.set(true);
+  }
+
+  protected fecharModalLimparCarrinho(): void {
+    this.modalLimparCarrinhoAberto.set(false);
+  }
+
+  protected confirmarLimparCarrinho(): void {
+    this.itens.set([]);
+    this.modalLimparCarrinhoAberto.set(false);
+
+    this.erro.set('');
+    this.sucesso.set('Carrinho limpo com sucesso!');
   }
 
   protected quantidadeNoCarrinho(idProduto: number): number {

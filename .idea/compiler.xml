@@ -9,32 +9,6 @@
         <outputRelativeToContentRoot value="true" />
         <module name="db-migrations" />
       </profile>
-      <profile name="Annotation profile for ms-notificacoes" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
-        </processorPath>
-        <module name="ms-notificacoes" />
-        <module name="ms-cozinha" />
-      </profile>
-      <profile name="Annotation profile for ms-usuarios" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
-        </processorPath>
-        <module name="ms-produtos" />
-        <module name="ms-mesas" />
-        <module name="ms-notificacoes" />
-        <module name="ms-usuarios" />
-        <module name="ms-cozinha" />
-        <module name="ms-pedidos" />
-      </profile>
       <profile name="Annotation profile for bff-restaurante" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -44,6 +18,21 @@
         </processorPath>
         <module name="ms-pagamentos" />
         <module name="bff-restaurante" />
+      </profile>
+      <profile name="Annotation profile for ms-pedidos" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+        </processorPath>
+        <module name="ms-notificacoes" />
+        <module name="ms-produtos" />
+        <module name="ms-mesas" />
+        <module name="ms-pedidos" />
+        <module name="ms-usuarios" />
+        <module name="ms-cozinha" />
       </profile>
     </annotationProcessing>
   </component>
