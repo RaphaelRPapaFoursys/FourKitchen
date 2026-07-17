@@ -14,7 +14,9 @@ import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
 
-    
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Pedido p WHERE p.id = :id")
+    Optional<Pedido> findByIdForUpdate(@Param("id") Integer id);
 
     boolean existsByCodigo(Integer codigo);
 
