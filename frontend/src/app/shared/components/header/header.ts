@@ -1,18 +1,38 @@
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, inject, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { CommonModule } from '@angular/common';
+
 import { Icon } from '../icon/icon';
 import { UserMenu } from '../user-menu/user-menu';
 
 /** Topbar compartilhada das telas de gestão. */
 @Component({
   selector: 'fk-topbar',
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, Icon, UserMenu],
+  imports: [
+    FormsModule,
+    Icon,
+    UserMenu,
+    CommonModule,
+    TranslatePipe
+  ],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
+
 export class Topbar {
+  constructor(
+    private translate: TranslateService
+  ) {}
+
+  trocarIdioma(idioma: string) {
+       localStorage.setItem('lang', idioma);
+       this.translate.use(idioma);
+   }
   private readonly elementRef = inject(ElementRef);
 
   readonly busca = model('');

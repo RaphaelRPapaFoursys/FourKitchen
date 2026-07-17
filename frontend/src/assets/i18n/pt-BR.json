@@ -1,0 +1,11 @@
+{
+  "MENU": {
+    "HOME": "Início",
+    "PEDIDOS": "Pedidos",
+    "CLIENTES": "Clientes"
+  },
+  "BUTTON": {
+    "SAVE": "Salvar",
+    "CANCEL": "Cancelar"
+  }
+}
