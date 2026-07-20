@@ -1,4 +1,4 @@
-<div class="filtros-grafico">
+<div class="filtros-grafico" [class.filtros-grafico--painel-direita]="abrirPainelADireita">
   <div class="filtros-grafico__rapidos" aria-label="Filtros rápidos de período">
     <button type="button" [class.ativo]="filtros.periodo === 'HOJE'" (click)="aplicarRapido('HOJE')">Hoje</button>
     <button type="button" [class.ativo]="filtros.periodo === 'ULTIMOS_7_DIAS'" (click)="aplicarRapido('ULTIMOS_7_DIAS')">7 dias</button>
