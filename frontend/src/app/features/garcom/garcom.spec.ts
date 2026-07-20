@@ -22,11 +22,16 @@ describe('Garcom', () => {
     component = fixture.componentInstance;
 
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([criarMesaComProblema()]);
+    httpMock.expectOne(`${environment.apiUrl}/api/garcom/pedidos-totem/problemas`).flush([]);
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas/1/detalhe`).flush(criarDetalheMesa());
     fixture.detectChanges();
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.match(`${environment.apiUrl}/api/garcom/pedidos-totem/problemas`)
+      .forEach(request => request.flush([]));
+    httpMock.verify();
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -55,6 +60,37 @@ describe('Garcom', () => {
     expect(prontos.textContent).toContain('#100026');
     expect(prontos.textContent).not.toContain('#100027');
     expect(historico.textContent).toContain('#100027');
+    expect(historico.textContent).not.toContain('Sem gelo');
+  });
+
+  it('exibe a observacao do item no historico', () => {
+    const detalhe: any = criarDetalheMesa();
+    detalhe.pedidos[2].itens[0].observacao = 'Sem cobertura';
+    (component as any).detalhesPorMesa.set({ 1: detalhe });
+    fixture.detectChanges();
+
+    const elemento: HTMLElement = fixture.nativeElement;
+    abrirDetalhes(elemento, fixture);
+    (elemento.querySelector('.history-order summary') as HTMLElement).click();
+    fixture.detectChanges();
+
+    const historico = elemento.querySelector('.history-section') as HTMLElement;
+    expect(historico.textContent).toContain('Observação: Sem cobertura');
+  });
+
+  it('destaca os valores de um pedido cancelado no historico', () => {
+    const detalhe: any = criarDetalheMesa();
+    detalhe.pedidos[2] = { ...detalhe.pedidos[2], status: 'CANCELADO' };
+    (component as any).detalhesPorMesa.set({ 1: detalhe });
+    fixture.detectChanges();
+
+    const elemento: HTMLElement = fixture.nativeElement;
+    abrirDetalhes(elemento, fixture);
+
+    const pedidoCancelado = elemento.querySelector('.history-order--cancelled') as HTMLElement;
+    expect(pedidoCancelado).toBeTruthy();
+    expect(pedidoCancelado.querySelector('summary > strong')?.textContent).toContain('30,00');
+    expect(pedidoCancelado.querySelector('.history-items p > strong')?.textContent).toContain('30,00');
   });
 
   it('exibe a abertura com dia, mes, ano e horario', () => {
@@ -182,6 +218,27 @@ describe('Garcom', () => {
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([]);
   });
 
+  it('cancela diretamente um pedido enviado para a cozinha', () => {
+    const detalhe: any = criarDetalheMesa();
+    detalhe.pedidos[0] = { ...detalhe.pedidos[0], status: 'ENVIADO_COZINHA' };
+    (component as any).detalhesPorMesa.set({ 1: detalhe });
+    fixture.detectChanges();
+
+    const elemento: HTMLElement = fixture.nativeElement;
+    abrirDetalhes(elemento, fixture);
+    clicarBotao(elemento, 'Cancelar pedido');
+    fixture.detectChanges();
+
+    expect(elemento.textContent).toContain('#100025');
+    clicarBotao(elemento, 'Confirmar cancelamento');
+
+    const cancelamento = httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas/1/pedidos/25/cancelar`);
+    expect(cancelamento.request.method).toBe('PATCH');
+    expect(cancelamento.request.body).toEqual({});
+    cancelamento.flush(null, { status: 204, statusText: 'No Content' });
+    httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([]);
+  });
+
   it('fecha a conta elegivel a partir do modal de detalhes', () => {
     const mesaElegivel = {
       ...criarMesaComProblema(),
@@ -257,6 +314,7 @@ describe('Garcom', () => {
       ...criarMesaComProblema(),
       pedidosAtivos: [{ id: 26, codigo: 100026, canal: 'GARCOM', status: 'ENTREGUE', idAtendimento: 8 }],
     }]);
+    httpMock.expectOne(`${environment.apiUrl}/api/garcom/pedidos-totem/problemas`).flush([]);
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas/1/detalhe`).flush({
       ...criarDetalheMesa(),
       pedidos: [criarPedidoEntregue()],

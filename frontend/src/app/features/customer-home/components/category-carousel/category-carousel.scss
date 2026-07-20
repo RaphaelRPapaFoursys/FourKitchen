@@ -2,9 +2,50 @@
   display: block;
 }
 
+
 .categories-carousel {
   position: relative;
 
+}
+
+.categories-carousel::before,
+.categories-carousel::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    width:70px;
+
+    height:100%;
+
+    z-index:5;
+
+    pointer-events:none;
+}
+
+.categories-carousel::before{
+
+    left:0;
+
+    background:linear-gradient(
+        to right,
+        #1d1d1d,
+        transparent
+    );
+}
+
+.categories-carousel::after{
+
+    right:0;
+
+    background:linear-gradient(
+        to left,
+        #1d1d1d,
+        transparent
+    );
 }
 
 .categories__grid {
@@ -104,8 +145,7 @@
   box-sizing: border-box;
   flex: 0 0 clamp(16rem, 24vw, 18rem);
   min-height: 19rem;
-  padding: 8.25rem 1.7rem 1.8rem;
- 
+  padding: 4.5rem 1.7rem 1.8rem;
   border: 2px solid rgb(255 255 255 / 86%);
   border-radius: 0 12px 54px 12px;
   background: transparent;
@@ -123,6 +163,17 @@
     0 0 8px rgba(255,255,255,.06),
     0 0 18px rgba(255,255,255,.05),
     0 10px 20px rgba(0,0,0,.35);
+
+}
+
+.category-card__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
 }
 
 .category-card:hover,
@@ -142,18 +193,31 @@
   background: var(--white);
   color: var(--text);
   transform: translateY(-0.35rem);
+  
+}
+.category-card:hover .category-card__media{
+  transform:
+    translateX(-50%)
+      scale(1.08);
+  transition:.35s;
+  border: 2px solid rgba(255, 255, 255, .12);
+
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, .25);
 }
 
 .category-card__media {
   position: absolute;
   top: -6rem;
   left: 50%;
-  width: clamp(10.6rem, 15vw, 13rem);
+  width: clamp(8.5rem, 13vw, 10.5rem);
+  top: -5rem;
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 50%;
   background: var(--muted);
   transform: translateX(-50%);
+  
 }
 
 .category-card__media img {
@@ -165,7 +229,8 @@
 .category-card h3 {
   margin: 0 0 1rem;
   font-size: clamp(1.2rem, 1.7vw, 1.45rem);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing:.3px;
   line-height: 1.15;
 }
 
@@ -175,6 +240,7 @@
   font-family: "Inter", Arial, sans-serif;
   font-size: clamp(0.92rem, 1.25vw, 1rem);
   opacity: 0.72;
+  
 }
 
 .category-card--active p {
@@ -192,5 +258,7 @@
 
   .categories-carousel__button {
     display: none;
+    
+    
   }
 }

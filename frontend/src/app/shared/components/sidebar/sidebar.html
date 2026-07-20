@@ -13,8 +13,16 @@
       routerLinkActive="sidebar__nav-item--active"
       [routerLinkActiveOptions]="{ exact: true }"
     >
-      <fk-icon name="shirt-folded" size="1.15rem" />
-      <span class="sidebar__label">Gestão</span>
+      <fk-icon name="chart-line" size="1.15rem" />
+      <span class="sidebar__label">Dashboard</span>
+    </a>
+    <a
+      class="sidebar__nav-item"
+      routerLink="/gestor/mesas"
+      routerLinkActive="sidebar__nav-item--active"
+    >
+      <fk-icon name="picnic-table" size="1.15rem" />
+      <span class="sidebar__label">Mesas</span>
     </a>
     <a
       class="sidebar__nav-item"
@@ -44,13 +52,9 @@
 
   <img
     class="sidebar__decor"
-    src="assets/images/flor-e-listra-fourkitchen.png"
+    src="assets/images/folhas-sidebar.png"
     alt=""
     aria-hidden="true"
   />
 
-  <button class="sidebar__sair" type="button" (click)="sair.emit()">
-    <fk-icon name="sign-out" size="1.15rem" />
-    <span class="sidebar__label">Sair</span>
-  </button>
 </aside>

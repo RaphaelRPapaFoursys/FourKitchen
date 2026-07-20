@@ -26,6 +26,21 @@
         <module name="bff-restaurante" />
         <module name="ms-pedidos" />
       </profile>
+      <profile name="Annotation profile for ms-pedidos" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+        </processorPath>
+        <module name="ms-notificacoes" />
+        <module name="ms-produtos" />
+        <module name="ms-mesas" />
+        <module name="ms-pedidos" />
+        <module name="ms-usuarios" />
+        <module name="ms-cozinha" />
+      </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">

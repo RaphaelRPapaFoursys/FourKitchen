@@ -73,24 +73,14 @@
     </div>
   }
 
-  @if (mesa().pedidos.length > 0) {
-    <p class="mesa-card__itens">Pedido: {{ itensResumo() }}</p>
-  }
-
-  @if (valorConta(); as valor) {
-    <p class="mesa-card__conta">Conta: {{ valor | currency: 'BRL' }}</p>
-  }
-
   <div class="mesa-card__acoes">
     <button
       class="mesa-card__acao"
-      [class.mesa-card__acao--entrega]="acaoPrimaria().tipo === 'MARCAR_ENTREGUE'"
       [class.mesa-card__acao--conta]="acaoPrimaria().tipo === 'FECHAR_CONTA'"
       [class.mesa-card__acao--ver]="acaoPrimaria().tipo === 'VER_PEDIDO'"
       [class.mesa-card__acao--abrir]="acaoPrimaria().tipo === 'REATRIBUIR_GARCOM'"
       type="button"
       [disabled]="acaoPrimariaIndisponivel()"
-      [title]="acaoPrimaria().tipo === 'VER_PEDIDO' ? 'Em breve' : ''"
       (click)="acao.emit()"
     >
       <span>{{ acaoPrimaria().label }}</span>
@@ -103,8 +93,6 @@
       <button
         class="mesa-card__acao mesa-card__acao--secundaria"
         type="button"
-        disabled
-        title="Em breve"
         (click)="verPedido.emit()"
       >
         Ver pedido

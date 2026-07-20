@@ -1,11 +1,13 @@
 package br.com.fourkitchen.ms_pedidos.controller;
 
 import br.com.fourkitchen.ms_pedidos.dto.request.AlterarPedidoRequest;
+import br.com.fourkitchen.ms_pedidos.dto.request.AssumirProblemaTotemRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.CriarPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoProblemaTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
@@ -67,6 +69,11 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findFilaCozinha());
     }
 
+    @GetMapping("/totem/problemas")
+    public ResponseEntity<List<PedidoProblemaTotemResponse>> buscarProblemasTotem() {
+        return ResponseEntity.ok(pedidoService.findProblemasTotem());
+    }
+
     @PatchMapping("/{id}/iniciar-preparo")
     public ResponseEntity<PedidoResponse> iniciarPreparo(@PathVariable Integer id) {
         return ResponseEntity.ok(pedidoService.iniciarPreparo(id));
@@ -80,6 +87,21 @@ public class PedidoController {
     @PatchMapping("/{id}/entregar")
     public ResponseEntity<PedidoResponse> entregarPedido(@PathVariable Integer id) {
         return ResponseEntity.ok(pedidoService.entregarPedido(id));
+    }
+
+    @PatchMapping("/{id}/cancelar")
+    public ResponseEntity<Void> cancelarPedidoAntesDoPreparo(@PathVariable Integer id) {
+        pedidoService.cancelarPedidoAntesDoPreparo(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/problemas-totem/assumir")
+    public ResponseEntity<Void> assumirProblemaTotem(
+            @PathVariable Integer id,
+            @RequestBody @Valid AssumirProblemaTotemRequest request
+    ) {
+        pedidoService.assumirProblemaTotem(id, request.idGarcom());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/atendimentos/{atendimentoId}/possui-ativos")
@@ -180,5 +202,14 @@ public class PedidoController {
             return ResponseEntity
                     .badRequest().build();
         }
+    }
+
+    @PatchMapping("/problemas-totem/decisao")
+    public ResponseEntity<Void> decisaoProblemaTotem(
+            @RequestParam Integer idGarcom,
+            @RequestBody DecisaoProblemaRequest request
+    ) {
+        pedidoService.decisaoProblemaTotem(idGarcom, request);
+        return ResponseEntity.noContent().build();
     }
 }

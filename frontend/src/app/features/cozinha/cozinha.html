@@ -10,7 +10,7 @@
       </div>
     </div>
 
-    <label class="search-field search-field--header">
+  <label class="search-field search-field--header">
       <fk-icon name="magnifying-glass" size="1.15rem" />
       <span class="sr-only">Buscar por mesa, totem ou número do pedido</span>
       <input
@@ -19,8 +19,9 @@
         [value]="busca()"
         (input)="atualizarBusca($event)"
       />
-    </label>
-  </header>
+  </label>
+  <fk-user-menu name="Cozinha" initial="C" [showName]="false" />
+</header>
 
   <div class="kitchen-content">
     <div class="feedback-region" aria-live="polite">
@@ -212,7 +213,7 @@
           <div class="item-content">
             <div class="item-content__title">
               <strong>{{ nomeItem(item) }}</strong>
-              @if (acao !== 'decisao') {
+              @if (podeSinalizarProblema(pedido)) {
                 <button
                   type="button"
                   class="item-action"

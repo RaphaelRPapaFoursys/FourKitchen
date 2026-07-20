@@ -18,6 +18,7 @@ import br.com.fourkitchen.ms_pedidos.exceptions.*;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
+import br.com.fourkitchen.ms_pedidos.repository.ProblemaCozinhaRepository;
 import br.com.fourkitchen.ms_pedidos.repository.ProdutoPedidoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +52,9 @@ class PedidoServiceTest {
 
     @Mock
     private ProdutoPedidoRepository produtoPedidoRepository;
+
+    @Mock
+    private ProblemaCozinhaRepository problemaCozinhaRepository;
 
     @Mock
     private PedidoResponseMapper pedidoResponseMapper;
@@ -529,7 +533,7 @@ class PedidoServiceTest {
                 8
         );
 
-        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.findByIdForUpdate(25)).thenReturn(Optional.of(pedido));
         when(pedidoResponseMapper.map(pedido)).thenReturn(response);
 
         PedidoResponse resultado = pedidoService.iniciarPreparo(25);
@@ -538,7 +542,7 @@ class PedidoServiceTest {
         assertEquals(StatusPedido.EM_PREPARO, pedido.getStatus());
         assertNotNull(pedido.getDataInicioPreparo());
         assertEquals(null, pedido.getDataPronto());
-        verify(pedidoRepository).findById(25);
+        verify(pedidoRepository).findByIdForUpdate(25);
         verify(pedidoResponseMapper).map(pedido);
     }
 
@@ -583,14 +587,49 @@ class PedidoServiceTest {
                 .status(StatusPedido.EM_PREPARO)
                 .build();
 
-        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.findByIdForUpdate(25)).thenReturn(Optional.of(pedido));
 
         BaseException exception = assertThrows(BaseException.class, () -> pedidoService.iniciarPreparo(25));
 
         assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
         assertEquals(StatusPedido.EM_PREPARO, pedido.getStatus());
-        verify(pedidoRepository).findById(25);
+        verify(pedidoRepository).findByIdForUpdate(25);
         verify(pedidoResponseMapper, never()).map(any(Pedido.class));
+    }
+
+    @Test
+    void cancelarPedidoAntesDoPreparoDeveCancelarPedidoEnviado() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .status(StatusPedido.ENVIADO_COZINHA)
+                .build();
+
+        when(pedidoRepository.findByIdForUpdate(25)).thenReturn(Optional.of(pedido));
+
+        pedidoService.cancelarPedidoAntesDoPreparo(25);
+
+        assertEquals(StatusPedido.CANCELADO, pedido.getStatus());
+        verify(pedidoRepository).findByIdForUpdate(25);
+    }
+
+    @Test
+    void cancelarPedidoAntesDoPreparoDeveBloquearPedidoEmPreparo() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .status(StatusPedido.EM_PREPARO)
+                .dataInicioPreparo(LocalDateTime.of(2026, 7, 16, 10, 0))
+                .build();
+
+        when(pedidoRepository.findByIdForUpdate(25)).thenReturn(Optional.of(pedido));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> pedidoService.cancelarPedidoAntesDoPreparo(25)
+        );
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        assertEquals(StatusPedido.EM_PREPARO, pedido.getStatus());
+        verify(pedidoRepository).findByIdForUpdate(25);
     }
 
     @Test
@@ -697,14 +736,14 @@ class PedidoServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = StatusProdutoPedido.class, names = {"FALTA_PRODUTO", "ERRO", "INDISPONIVEL"})
+    @EnumSource(value = StatusProdutoPedido.class, names = {"ERRO", "INDISPONIVEL"})
     void sinalizarProblema_deveAlterarStatusDoPedidoEProduto_paraDiferentesTiposDeProblema(StatusProdutoPedido statusProblema) {
         // Arrange
         SinalizarProblemaRequest request = new SinalizarProblemaRequest(1, 10, statusProblema);
 
         Pedido pedido = Pedido.builder()
                 .id(1)
-                .status(StatusPedido.EM_PREPARO)
+                .status(StatusPedido.ENVIADO_COZINHA)
                 .build();
 
         ProdutoPedido produtoPedido = ProdutoPedido.builder()
@@ -713,7 +752,7 @@ class PedidoServiceTest {
                 .status(null)
                 .build();
 
-        when(pedidoRepository.findById(1)).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(pedido));
         when(produtoPedidoRepository.findByIdPedidoAndId(1, 10)).thenReturn(Optional.of(produtoPedido));
 
         // Act
@@ -729,8 +768,43 @@ class PedidoServiceTest {
         assertEquals(StatusPedido.AGUARDANDO_DECISAO, response.statusPedido());
         assertEquals(statusProblema, response.statusProdutoPedido());
 
-        verify(pedidoRepository).findById(1);
+        verify(pedidoRepository).findByIdForUpdate(1);
         verify(produtoPedidoRepository).findByIdPedidoAndId(1, 10);
+    }
+
+    @Test
+    void sinalizarProblema_deveRejeitarFaltaProdutoQueNaoExisteNaTelaDaCozinha() {
+        SinalizarProblemaRequest request = new SinalizarProblemaRequest(1, 10, StatusProdutoPedido.FALTA_PRODUTO);
+        Pedido pedido = Pedido.builder().id(1).status(StatusPedido.ENVIADO_COZINHA).build();
+        ProdutoPedido produtoPedido = ProdutoPedido.builder().id(10).idPedido(1).build();
+
+        when(pedidoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(pedido));
+        when(produtoPedidoRepository.findByIdPedidoAndId(1, 10)).thenReturn(Optional.of(produtoPedido));
+
+        BaseException exception = assertThrows(BaseException.class, () -> pedidoService.sinalizarProblema(request));
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+        verifyNoInteractions(problemaCozinhaRepository);
+    }
+
+    @Test
+    void sinalizarProblema_deveBloquearPedidoEmPreparo() {
+        SinalizarProblemaRequest request = new SinalizarProblemaRequest(1, 10, StatusProdutoPedido.ERRO);
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.EM_PREPARO)
+                .build();
+
+        when(pedidoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(pedido));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> pedidoService.sinalizarProblema(request)
+        );
+
+        assertEquals(ErrorEnum.PEDIDO_ENCERRADO, exception.getErrorEnum());
+        verify(pedidoRepository).findByIdForUpdate(1);
+        verifyNoInteractions(produtoPedidoRepository);
     }
 
     @Test
@@ -741,7 +815,7 @@ class PedidoServiceTest {
                 .status(StatusPedido.AGUARDANDO_DECISAO)
                 .build();
 
-        when(pedidoRepository.findById(25)).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.findByIdForUpdate(25)).thenReturn(Optional.of(pedido));
 
         // Act & Assert
         assertThrows(BaseException.class, () -> {
@@ -749,7 +823,7 @@ class PedidoServiceTest {
         });
 
         // Verify
-        verify(pedidoRepository).findById(25);
+        verify(pedidoRepository).findByIdForUpdate(25);
         verifyNoInteractions(pedidoResponseMapper);
     }
 
@@ -913,6 +987,35 @@ class PedidoServiceTest {
     }
 
     @Test
+    void decisaoProblemaDeveBloquearCancelamentoQuandoPreparoJaFoiIniciado() {
+        DecisaoProblemaRequest request = new DecisaoProblemaRequest(
+                1,
+                10,
+                StatusProdutoPedido.DISPONIVEL,
+                true,
+                null,
+                null
+        );
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .dataInicioPreparo(LocalDateTime.of(2026, 7, 16, 10, 0))
+                .build();
+        ProdutoPedido produtoPedido = ProdutoPedido.builder().id(10).build();
+
+        when(pedidoRepository.findById(1)).thenReturn(Optional.of(pedido));
+        when(produtoPedidoRepository.findById(10)).thenReturn(Optional.of(produtoPedido));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> pedidoService.decisaoProblema(request)
+        );
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        assertEquals(StatusPedido.AGUARDANDO_DECISAO, pedido.getStatus());
+    }
+
+    @Test
     void decisaoProblema_deveRemoverProdutoEEnviarPedidoParaCozinha() {
         DecisaoProblemaRequest request =
                 new DecisaoProblemaRequest(
@@ -1002,6 +1105,40 @@ class PedidoServiceTest {
                 StatusPedido.CANCELADO,
                 pedido.getStatus()
         );
+    }
+
+    @Test
+    void decisaoProblema_naoDeveCancelarPedidoEmPreparoAoRemoverUltimoItem() {
+        DecisaoProblemaRequest request = new DecisaoProblemaRequest(
+                1,
+                10,
+                StatusProdutoPedido.REMOVIDO,
+                false,
+                null,
+                null
+        );
+        Pedido pedido = Pedido.builder()
+                .id(1)
+                .status(StatusPedido.AGUARDANDO_DECISAO)
+                .dataInicioPreparo(LocalDateTime.of(2026, 7, 16, 10, 0))
+                .build();
+        ProdutoPedido produtoPedido = ProdutoPedido.builder()
+                .id(10)
+                .idPedido(1)
+                .status(StatusProdutoPedido.DISPONIVEL)
+                .build();
+
+        when(pedidoRepository.findById(1)).thenReturn(Optional.of(pedido));
+        when(produtoPedidoRepository.findById(10)).thenReturn(Optional.of(produtoPedido));
+        when(produtoPedidoRepository.findByIdPedidoIn(List.of(1))).thenReturn(List.of(produtoPedido));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> pedidoService.decisaoProblema(request)
+        );
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        assertEquals(StatusPedido.AGUARDANDO_DECISAO, pedido.getStatus());
     }
 
     @Test

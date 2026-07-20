@@ -21,6 +21,7 @@
   box-sizing: border-box;
 }
 
+
 .customer-cart {
   min-height: 100vh;
   overflow-x: hidden;
@@ -61,6 +62,20 @@ app-mesa-header {
   font-weight: 600;
 }
 
+.cart-panel__title{
+
+display:flex;
+flex-direction:column;
+gap:.35rem;
+
+}
+
+.cart-panel__title small{
+color:var(--muted-text);
+font-size:.95rem;
+padding-bottom: 1.5rem;
+}
+
 .cart-panel__heading span {
   color: var(--muted-text);
 }
@@ -84,6 +99,7 @@ app-mesa-header {
 .cart-panel__clear {
   min-height: 2.5rem;
   padding: 0.5rem 1rem;
+  margin: 0 0 0.8rem 0;
   border: 1px solid var(--primary);
   border-radius: 999px;
   background: transparent;
@@ -91,6 +107,7 @@ app-mesa-header {
   cursor: pointer;
   font: inherit;
   font-weight: 700;
+  
 }
 
 .cart-panel__clear:hover {
@@ -101,6 +118,8 @@ app-mesa-header {
   outline: 3px solid rgb(255 75 31 / 25%);
   outline-offset: 2px;
 }
+
+
 
 .cart-panel__clear-confirmation {
   display: grid;
@@ -211,6 +230,7 @@ app-mesa-header {
   background: var(--dark);
   color: var(--white);
 }
+
 
 @media (max-width: 1040px) {
   .cart-panel__heading {

@@ -15,8 +15,10 @@ import { GarcomPedidoService } from '../../core/services/garcom-pedido';
 import { MenuService } from '../../core/services/menu.service';
 import { RealtimeTopic } from '../../core/models/realtime.models';
 import { RealtimeService } from '../../core/services/realtime.service';
+import { AuthService } from '../../core/services/auth';
 import { Badge } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
+import { UserMenu } from '../../shared/components/user-menu/user-menu';
 
 interface ItemCarrinhoGarcom extends ItemPedidoGarcomRequest {
   nome: string;
@@ -25,7 +27,7 @@ interface ItemCarrinhoGarcom extends ItemPedidoGarcomRequest {
 @Component({
   selector: 'app-garcom-pedido',
   standalone: true,
-  imports: [Badge, Icon],
+  imports: [Badge, Icon, UserMenu],
   templateUrl: './garcom-pedido.html',
   styleUrl: './garcom-pedido.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +40,7 @@ export class GarcomPedido {
   private readonly garcomPedidoService = inject(GarcomPedidoService);
   private readonly menuService = inject(MenuService);
   private readonly realtimeService = inject(RealtimeService);
+  private readonly authService = inject(AuthService);
 
   private readonly idMesa = Number(this.route.snapshot.paramMap.get('id'));
 
@@ -50,6 +53,9 @@ export class GarcomPedido {
   protected readonly categoriaSelecionadaId = signal<number | null>(null);
   protected readonly busca = signal('');
   protected readonly itens = signal<ItemCarrinhoGarcom[]>([]);
+  protected readonly modalLimparCarrinhoAberto = signal(false);
+  protected readonly nomeUsuario = this.authService.getCurrentUser()?.nome ?? 'Garçom';
+  protected readonly inicialUsuario = this.nomeUsuario.charAt(0).toUpperCase();
 
   protected readonly categoriaSelecionada = computed(() =>
     this.categorias().find(categoria => categoria.categoriaId === this.categoriaSelecionadaId()) ?? null,
@@ -165,6 +171,26 @@ export class GarcomPedido {
       ? { ...item, observacao: observacao || undefined }
       : item,
     ));
+  }
+
+  protected abrirModalLimparCarrinho(): void {
+    if (this.itens().length === 0) {
+      return;
+    }
+
+    this.modalLimparCarrinhoAberto.set(true);
+  }
+
+  protected fecharModalLimparCarrinho(): void {
+    this.modalLimparCarrinhoAberto.set(false);
+  }
+
+  protected confirmarLimparCarrinho(): void {
+    this.itens.set([]);
+    this.modalLimparCarrinhoAberto.set(false);
+
+    this.erro.set('');
+    this.sucesso.set('Carrinho limpo com sucesso!');
   }
 
   protected quantidadeNoCarrinho(idProduto: number): number {

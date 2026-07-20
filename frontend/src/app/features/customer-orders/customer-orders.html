@@ -1,17 +1,8 @@
 <main class="customer-orders">
-  <app-mesa-header
-    [homeRoute]="homeRoute"
-    [cartRoute]="cartRoute"
-    [ordersRoute]="ordersRoute"
-    [showOrdersLink]="true"
-    activeLink="orders"
-    [totalItems]="totalItems()"
-    [atendimento]="atendimentoAtual()"
-    [atendimentoLoading]="carregandoAtendimento()"
-    (menuSelected)="goToMenu($event)"
-    (cartSelected)="goToCart($event)"
-    (ordersSelected)="goToOrders($event)"
-  />
+  <app-mesa-header [homeRoute]="homeRoute" [cartRoute]="cartRoute" [ordersRoute]="ordersRoute" [showOrdersLink]="true"
+    activeLink="orders" [totalItems]="totalItems()" [atendimento]="atendimentoAtual()"
+    [atendimentoLoading]="carregandoAtendimento()" (menuSelected)="goToMenu($event)" (cartSelected)="goToCart($event)"
+    (ordersSelected)="goToOrders($event)" />
 
   <section class="orders-panel" aria-labelledby="orders-title">
     <div class="orders-panel__heading">
@@ -27,91 +18,106 @@
     </div>
 
     @if (state().status === 'loading') {
-      <p class="orders-state" role="status">{{ state().message }}</p>
+    <p class="orders-state" role="status">{{ state().message }}</p>
     } @else if (state().status === 'error') {
-      <div class="orders-state orders-state--error" role="alert">
-        <p>{{ state().message }}</p>
-        <button type="button" (click)="retryLoadMesaOrders()">Tentar novamente</button>
-      </div>
+    <div class="orders-state orders-state--error" role="alert">
+      <p>{{ state().message }}</p>
+      <button type="button" (click)="retryLoadMesaOrders()">Tentar novamente</button>
+    </div>
     } @else if (state().status === 'empty') {
-      <div class="orders-state">
-        <p>{{ state().message }}</p>
-        <button type="button" (click)="backToMenu()">Voltar ao cardapio</button>
-      </div>
+    <div class="orders-state">
+      <p>{{ state().message }}</p>
+      <button type="button" (click)="backToMenu()">Voltar ao cardapio</button>
+    </div>
     } @else {
-      <div class="orders-list">
-        @for (order of state().orders; track trackByOrderId($index, order)) {
-          <article class="order-card">
-            <div class="order-card__top">
-              <div>
-                <span>Pedido</span>
-                <strong>#{{ order.codigo || order.id }}</strong>
-              </div>
-
-              <span class="orders-status" [ngClass]="getStatusClass(order.status)">
-                {{ getStatusLabel(order.status) }}
-              </span>
-            </div>
-
-            <dl class="order-card__meta">
-              <div>
-                <dt>Criado em</dt>
-                <dd>{{ formatDate(order.dataCriacao) }}</dd>
-              </div>
-              @if (order.idMesa) {
-                <div>
-                  <dt>Mesa</dt>
-                  <dd>{{ order.idMesa }}</dd>
-                </div>
-              }
-              @if (order.codigoAtendimento) {
-                <div>
-                  <dt>Atendimento</dt>
-                  <dd>{{ order.codigoAtendimento }}</dd>
-                </div>
-              }
-            </dl>
-
-            @if (order.itens.length) {
-              <ul class="order-card__items">
-                @for (item of order.itens; track item.idProduto) {
-                  <li>
-                    <div class="order-card__item-line">
-                      <span>{{ item.quantidade }}x {{ getItemName(item) }}</span>
-                      @if (item.precoUnitario !== null) {
-                        <strong>{{ formatPrice(item.valorTotal) }}</strong>
-                      } @else {
-                        <strong>Preco indisponivel</strong>
-                      }
-                    </div>
-                    @if (item.precoUnitario !== null && item.quantidade > 1) {
-                      <small>{{ formatPrice(item.precoUnitario) }} por unidade</small>
-                    }
-                    @if (item.observacao) {
-                      <small>{{ item.observacao }}</small>
-                    }
-                  </li>
-                }
-              </ul>
-            }
-
-            <div class="order-card__total">
-              <span>{{ order.status === 'CANCELADO' ? 'Total cobrado' : 'Total do pedido' }}</span>
-              <strong>{{ formatPrice(order.valorTotal) }}</strong>
-            </div>
-          </article>
-        }
-      </div>
-
-      @if (resumoConta(); as resumo) {
-        <aside class="orders-summary" aria-label="Resumo da conta da mesa">
+    <div class="orders-list">
+      @for (order of state().orders; track trackByOrderId($index, order)) {
+      <article class="order-card" [class.order-card--current]="
+    order.status === 'ENVIADO_COZINHA' ||
+    order.status === 'EM_PREPARO' ||
+    order.status === 'PRONTO'
+  ">
+        <div class="order-card__top">
           <div>
-            <span>Total da conta</span>
-            <small>{{ resumo.totalPedidos }} pedido(s) · {{ resumo.totalItens }} item(ns)</small>
+            <span>Pedido</span>
+            <strong>#{{ order.codigo || order.id }}</strong>
           </div>
-          <strong>{{ formatPrice(resumo.valorFinal) }}</strong>
-        </aside>
+
+          <!-- <span class="orders-status" [ngClass]="getStatusClass(order.status)">
+            {{ getStatusLabel(order.status) }}
+          </span> -->
+          
+        </div>
+        <div class="order-progress">
+          <div class="order-progress__step"
+            [class.order-progress__step--done]="isStepDone(order.status, 'ENVIADO_COZINHA')">
+            <span></span>
+            <small>Recebido</small>
+          </div>
+
+          <div class="order-progress__step" [class.order-progress__step--done]="isStepDone(order.status, 'EM_PREPARO')">
+            <span></span>
+            <small>Preparo</small>
+          </div>
+
+          <div class="order-progress__step" [class.order-progress__step--done]="isStepDone(order.status, 'PRONTO')">
+            <span></span>
+            <small>Pronto</small>
+          </div>
+
+          <div class="order-progress__step" [class.order-progress__step--done]="isStepDone(order.status, 'ENTREGUE')">
+            <span></span>
+            <small>Entregue</small>
+          </div>
+        </div>
+
+        <dl class="order-card__meta">
+          <div>
+            <dt>Criado em</dt>
+            <dd>{{ formatDate(order.dataCriacao) }}</dd>
+          </div>
+        </dl>
+
+        @if (order.itens.length) {
+        <ul class="order-card__items">
+          @for (item of order.itens; track item.idProduto) {
+          <li>
+            <div class="order-card__item-line">
+              <span>{{ item.quantidade }}x {{ getItemName(item) }}</span>
+              @if (item.precoUnitario !== null) {
+              <strong>{{ formatPrice(item.valorTotal) }}</strong>
+              } @else {
+              <strong>Preco indisponivel</strong>
+              }
+            </div>
+            @if (item.precoUnitario !== null && item.quantidade > 1) {
+            <small>{{ formatPrice(item.precoUnitario) }} por unidade</small>
+            }
+            @if (item.observacao) {
+            <small>{{ item.observacao }}</small>
+            }
+          </li>
+          }
+        </ul>
+        }
+
+        <div class="order-card__total">
+          <span>{{ order.status === 'CANCELADO' ? 'Total cobrado' : 'Total do pedido' }}</span>
+          <strong>{{ formatPrice(order.valorTotal) }}</strong>
+        </div>
+      </article>
       }
+    </div>
+
+    @if (resumoConta(); as resumo) {
+    <aside class="orders-summary" aria-label="Resumo da conta da mesa">
+      <div>
+        <span>Total da conta</span>
+        <small>{{ resumo.totalPedidos }} pedido(s) · {{ resumo.totalItens }} item(ns)</small>
+      </div>
+      <strong>{{ formatPrice(resumo.valorFinal) }}</strong>
+    </aside>
+    }
     }
   </section>
 </main>

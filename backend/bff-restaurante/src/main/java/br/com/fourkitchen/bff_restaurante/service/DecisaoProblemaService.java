@@ -24,6 +24,18 @@ public class DecisaoProblemaService {
     private final RealtimeNotifier realtimeNotifier;
 
     public void registrar(DecisaoProblemaRequest request) {
+        DecisaoProblemaPedidoRequest decisao = montarDecisao(request);
+        ProdutoDisponibilidadeResponse produtoSubstituto = buscarProdutoSubstituto(request.idNovoProduto());
+
+        try {
+            pedidoClient.decisaoProblema(decisao);
+        } catch (FeignException e) {
+            tratarErroDecisao(e);
+        }
+    }
+
+    public void registrarProblemaTotem(DecisaoProblemaRequest request, Integer idGarcom) {
+        DecisaoProblemaPedidoRequest decisao = montarDecisao(request);
         ProdutoDisponibilidadeResponse produtoSubstituto = buscarProdutoSubstituto(request.idNovoProduto());
 
         try {
@@ -50,13 +62,34 @@ public class DecisaoProblemaService {
             if (e.status() == 400) {
                 throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
             }
-
-            if (e.status() == 404) {
-                throw new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO);
-            }
-
-            throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+            pedidoClient.decisaoProblemaTotem(idGarcom, decisao);
         }
+    }
+
+    private DecisaoProblemaPedidoRequest montarDecisao(DecisaoProblemaRequest request) {
+        ProdutoDisponibilidadeResponse produtoSubstituto = buscarProdutoSubstituto(request.idNovoProduto());
+        return new DecisaoProblemaPedidoRequest(
+                request.idPedido(),
+                request.idProdutoPedido(),
+                request.novoStatusProdutoPedido(),
+                request.pedidoCancelado(),
+                produtoSubstituto == null ? null : produtoSubstituto.produtoId(),
+                produtoSubstituto == null ? null : produtoSubstituto.nome(),
+                produtoSubstituto == null ? null : produtoSubstituto.preco(),
+                request.observacaoNovoProduto()
+        );
+    }
+
+    private void tratarErroDecisao(FeignException e) {
+        if (e.status() == 400) {
+            throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
+        }
+
+        if (e.status() == 404) {
+            throw new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO);
+        }
+
+        throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
     }
 
     private ProdutoDisponibilidadeResponse buscarProdutoSubstituto(Integer idProduto) {

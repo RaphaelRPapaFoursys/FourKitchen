@@ -162,9 +162,18 @@ export const protectedRoutes: Routes = [
   
   protectedRoute(
     {
-      path: 'gestor',
+      path: 'gestor/mesas',
       loadComponent: () =>
         import('../../features/gestor/gestor').then(m => m.Gestor),
+    },
+    ['ADMIN', 'GESTOR'],
+  ),
+
+  protectedRoute(
+    {
+      path: 'gestor',
+      loadComponent: () =>
+        import('../../features/gestor-dashboard/gestor-dashboard').then(m => m.GestorDashboard),
     },
     ['ADMIN', 'GESTOR'],
   ),

@@ -3,18 +3,22 @@ package br.com.fourkitchen.ms_pedidos.service;
 import br.com.fourkitchen.ms_pedidos.dto.request.*;
 import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoProblemaTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
+import br.com.fourkitchen.ms_pedidos.entities.ProblemaCozinha;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
+import br.com.fourkitchen.ms_pedidos.enums.CanaisPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.exceptions.*;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
+import br.com.fourkitchen.ms_pedidos.repository.ProblemaCozinhaRepository;
 import br.com.fourkitchen.ms_pedidos.repository.ProdutoPedidoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,11 +63,19 @@ public class PedidoService {
             StatusPedido.AGUARDANDO_DECISAO
     );
 
+    private static final Collection<StatusPedido> STATUS_PROBLEMA = List.of(
+            StatusPedido.AGUARDANDO_DECISAO,
+            StatusPedido.PROBLEMA_COZINHA
+    );
+
     @Autowired
     private PedidoRepository pedidoRepository;
 
     @Autowired
     private ProdutoPedidoRepository produtoPedidoRepository;
+
+    @Autowired
+    private ProblemaCozinhaRepository problemaCozinhaRepository;
 
     @Autowired
     private PedidoResponseMapper pedidoResponseMapper;
@@ -107,6 +119,7 @@ public class PedidoService {
         return pedidoResponseMapper.map(pedido);
     }
 
+
     public PedidoResponse findById(Integer id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
@@ -148,6 +161,35 @@ public class PedidoService {
 
         return pedidos.stream()
                 .map(pedido -> mapearPedidoCozinha(pedido, itensPorPedido.getOrDefault(pedido.getId(), List.of())))
+                .toList();
+    }
+
+    public List<PedidoProblemaTotemResponse> findProblemasTotem() {
+        List<Pedido> pedidos = pedidoRepository.findByCanalAndStatusInOrderByDataCriacaoAscIdAsc(
+                CanaisPedido.TOTEM,
+                STATUS_PROBLEMA
+        );
+
+        if (pedidos.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> idsPedidos = pedidos.stream().map(Pedido::getId).toList();
+        Map<Integer, List<ProdutoPedido>> itensPorPedido = produtoPedidoRepository.findByIdPedidoIn(idsPedidos)
+                .stream()
+                .collect(Collectors.groupingBy(ProdutoPedido::getIdPedido));
+
+        return pedidos.stream()
+                .map(pedido -> new PedidoProblemaTotemResponse(
+                        pedido.getId(),
+                        pedido.getCodigo(),
+                        pedido.getStatus(),
+                        pedido.getDataCriacao(),
+                        pedido.getIdGarcomResponsavelProblema(),
+                        itensPorPedido.getOrDefault(pedido.getId(), List.of()).stream()
+                                .map(this::mapearItemCozinha)
+                                .toList()
+                ))
                 .toList();
     }
 
@@ -264,7 +306,7 @@ public class PedidoService {
 
     @Transactional
     public PedidoResponse iniciarPreparo(Integer id) {
-        Pedido pedido = buscarPedido(id);
+        Pedido pedido = buscarPedidoParaAtualizacao(id);
 
         validarPedidoNaoAguardandoDecisao(pedido);
 
@@ -331,9 +373,14 @@ public class PedidoService {
 
     @Transactional
     public void softDelete(Integer id) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
+        cancelarPedidoAntesDoPreparo(id);
+    }
 
+    @Transactional
+    public void cancelarPedidoAntesDoPreparo(Integer id) {
+        Pedido pedido = buscarPedidoParaAtualizacao(id);
+
+        validarPedidoPodeSerCanceladoAntesDoPreparo(pedido);
         pedido.setStatus(StatusPedido.CANCELADO);
     }
 
@@ -410,8 +457,14 @@ public class PedidoService {
     @Transactional
     public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
 
-        Pedido pedido = pedidoRepository.findById(request.idPedido())
+        Pedido pedido = pedidoRepository.findByIdForUpdate(request.idPedido())
                 .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
+
+        StatusPedido status = pedido.getStatus();
+
+        if (status != StatusPedido.ENVIADO_COZINHA) {
+            throw new BaseException(ErrorEnum.PEDIDO_ENCERRADO);
+        }
 
         ProdutoPedido produtoPedido = produtoPedidoRepository
                 .findByIdPedidoAndId(
@@ -419,15 +472,17 @@ public class PedidoService {
                         request.idProdutoPedido()
                 ).orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
 
-        StatusPedido status = pedido.getStatus();
-
-        if (status != StatusPedido.ENVIADO_COZINHA
-                && status != StatusPedido.EM_PREPARO) {
-            throw new BaseException(ErrorEnum.PEDIDO_ENCERRADO);
+        if (!motivoProblemaValido(request.statusProdutoPedido())) {
+            throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
         }
 
         pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
         produtoPedido.setStatus(request.statusProdutoPedido());
+        problemaCozinhaRepository.save(ProblemaCozinha.builder()
+                .idPedido(pedido.getId())
+                .idProdutoPedido(produtoPedido.getId())
+                .motivo(request.statusProdutoPedido())
+                .build());
 
         return new SinalizarProblemaResponse(
                 pedido.getId(),
@@ -451,7 +506,10 @@ public class PedidoService {
             throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
         }
 
+        resolverProblemaCozinha(decisaoProblemaRequest.idPedido(), decisaoProblemaRequest.idProdutoPedido());
+
         if (decisaoProblemaRequest.pedidoCancelado()) {
+            validarPedidoPodeSerCanceladoAntesDoPreparo(pedido);
             pedido.setStatus(StatusPedido.CANCELADO);
             pedidoRepository.save(pedido);
             return pedidoResponseMapper.map(pedido);
@@ -466,6 +524,7 @@ public class PedidoService {
                     .anyMatch(this::itemAtivo);
 
             if (!possuiItensAtivos) {
+                validarPedidoPodeSerCanceladoAntesDoPreparo(pedido);
                 pedido.setStatus(StatusPedido.CANCELADO);
                 pedidoRepository.save(pedido);
                 produtoPedidoRepository.save(produtoPedido);
@@ -491,9 +550,72 @@ public class PedidoService {
         return pedidoResponseMapper.map(pedido);
     }
 
+    @Transactional
+    public void assumirProblemaTotem(Integer idPedido, Integer idGarcom) {
+        Pedido pedido = buscarPedidoParaAtualizacao(idPedido);
+        validarPedidoProblemaTotem(pedido);
+
+        Integer responsavelAtual = pedido.getIdGarcomResponsavelProblema();
+        if (responsavelAtual == null) {
+            pedido.setIdGarcomResponsavelProblema(idGarcom);
+            return;
+        }
+
+        if (!responsavelAtual.equals(idGarcom)) {
+            throw new BaseException(ErrorEnum.PROBLEMA_TOTEM_NAO_DISPONIVEL);
+        }
+    }
+
+    @Transactional
+    public void decisaoProblemaTotem(Integer idGarcom, DecisaoProblemaRequest request) {
+        Pedido pedido = buscarPedidoParaAtualizacao(request.idPedido());
+        validarPedidoProblemaTotem(pedido);
+
+        if (!idGarcom.equals(pedido.getIdGarcomResponsavelProblema())) {
+            throw new BaseException(ErrorEnum.PROBLEMA_TOTEM_NAO_DISPONIVEL);
+        }
+
+        decisaoProblema(request);
+        pedido.setIdGarcomResponsavelProblema(null);
+    }
+
     private boolean pedidoPermiteDecisao(Pedido pedido) {
         return pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO
                 || pedido.getStatus() == StatusPedido.PROBLEMA_COZINHA;
+    }
+
+    private boolean motivoProblemaValido(StatusProdutoPedido motivo) {
+        return motivo == StatusProdutoPedido.ERRO
+                || motivo == StatusProdutoPedido.INDISPONIVEL;
+    }
+
+    private void resolverProblemaCozinha(Integer idPedido, Integer idProdutoPedido) {
+        problemaCozinhaRepository
+                .findFirstByIdPedidoAndIdProdutoPedidoAndDataResolucaoIsNullOrderByDataCriacaoDescIdDesc(
+                        idPedido,
+                        idProdutoPedido
+                )
+                .ifPresent(problema -> problema.setDataResolucao(LocalDateTime.now()));
+    }
+
+    private void validarPedidoProblemaTotem(Pedido pedido) {
+        if (pedido.getCanal() != CanaisPedido.TOTEM || !pedidoPermiteDecisao(pedido)) {
+            throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
+        }
+    }
+
+    private Pedido buscarPedidoParaAtualizacao(Integer id) {
+        return pedidoRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
+    }
+
+    private void validarPedidoPodeSerCanceladoAntesDoPreparo(Pedido pedido) {
+        boolean pedidoEnviadoOuAguardandoDecisao = pedido.getStatus() == StatusPedido.ENVIADO_COZINHA
+                || pedidoPermiteDecisao(pedido);
+
+        if (!pedidoEnviadoOuAguardandoDecisao || pedido.getDataInicioPreparo() != null) {
+            throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+        }
     }
 
     private String normalizarObservacao(String observacao) {

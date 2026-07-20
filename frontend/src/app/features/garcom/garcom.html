@@ -10,10 +10,6 @@
         <span>Minhas mesas</span>
       </a>
     </nav>
-    <button type="button" class="logout" (click)="sair()">
-      <fk-icon name="sign-out" size="1.2rem" />
-      <span>Sair</span>
-    </button>
   </aside>
 
   <section class="dashboard">
@@ -29,7 +25,7 @@
       </label>
       <div class="user">
         <div class="user__copy"><span>Garçom</span><strong>{{ nomeUsuario() }}</strong></div>
-        <fk-avatar [initial]="inicialUsuario()" color="var(--fk-navy)" />
+        <fk-user-menu [name]="nomeUsuario()" [initial]="inicialUsuario()" [showName]="false" />
       </div>
     </header>
 
@@ -56,6 +52,37 @@
           <fk-icon icon name="call-bell" size="1.35rem" />
         </fk-kpi-card>
       </section>
+
+      @if (problemasTotemDisponiveis().length > 0 || problemasTotemAssumidosPorMim().length > 0) {
+        <section class="totem-problems feedback feedback--error sync-status" aria-labelledby="totem-problems-title">
+          <header>
+            <div>
+              <span class="totem-problems__signal" aria-hidden="true"></span>
+              <h2 id="totem-problems-title">Atenção: problema em pedido TOTEM</h2>
+            </div>
+            <strong>{{ problemasTotemDisponiveis().length }} disponível{{ problemasTotemDisponiveis().length === 1 ? '' : 'is' }}</strong>
+          </header>
+          <p>Assuma o atendimento para consultar o cliente e registrar a decisão da cozinha.</p>
+          <div class="totem-problems__list">
+            @for (problema of problemasTotem(); track problema.id) {
+              <article [class.totem-problem--assigned]="problema.idGarcomResponsavelProblema !== null">
+                <div>
+                  <strong>Pedido #{{ problema.codigo }}</strong>
+                  <span>{{ problema.idGarcomResponsavelProblema === null ? 'Aguardando garçom' : problema.idGarcomResponsavelProblema === idGarcomAtual() ? 'Assumido por você' : 'Em atendimento por outro garçom' }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="warning-button"
+                  (click)="assumirProblemaTotem(problema)"
+                  [disabled]="problemaTotemEmAssuncao() !== null || (problema.idGarcomResponsavelProblema !== null && problema.idGarcomResponsavelProblema !== idGarcomAtual())"
+                >
+                  {{ problemaTotemEmAssuncao() === problema.id ? 'Assumindo…' : problema.idGarcomResponsavelProblema === idGarcomAtual() ? 'Resolver problema' : problema.idGarcomResponsavelProblema === null ? 'Assumir atendimento' : 'Em atendimento' }}
+                </button>
+              </article>
+            }
+          </div>
+        </section>
+      }
 
       <section class="tables-section" aria-labelledby="tables-title">
         <div class="tables-toolbar">
@@ -217,6 +244,17 @@
                   @if (pedidoAguardaDecisao(pedido)) {
                     <button type="button" class="warning-button" (click)="abrirSolicitacao(mesa)">Ver solicitação da cozinha</button>
                   }
+                  @if (podeCancelarPedidoDiretamente(pedido)) {
+                    <button
+                      type="button"
+                      class="delivery-button delivery-button--danger"
+                      (click)="solicitarCancelamentoPedido(mesa, pedido)"
+                      [disabled]="confirmandoCancelamento() || salvandoDecisao()"
+                    >
+                      <fk-icon name="warning-circle" size="0.95rem" />
+                      Cancelar pedido
+                    </button>
+                  }
                 </footer>
               </article>
             } @empty {
@@ -269,7 +307,7 @@
           </div>
           <div class="history-list">
             @for (pedido of pedidosHistoricoDetalhe(detalhe); track pedido.id) {
-              <details class="history-order">
+              <details class="history-order" [class.history-order--cancelled]="pedidoCancelado(pedido)">
                 <summary>
                   <span><strong>Pedido #{{ pedido.codigo }}</strong><small>{{ statusPedidoLabel(pedido.status) }}</small></span>
                   <strong>{{ formatarMoeda(valorPedido(pedido)) }}</strong>
@@ -283,6 +321,7 @@
                       </span>
                       <strong>{{ formatarMoeda(item.precoUnitario * item.quantidade) }}</strong>
                     </p>
+                    @if (item.observacao) { <small class="history-item-observation">Observação: {{ item.observacao }}</small> }
                   }
                 </div>
               </details>
@@ -310,7 +349,7 @@
   <div class="modal-backdrop modal-backdrop--front" (click)="fecharSolicitacao()">
     <section class="decision-modal" role="dialog" aria-modal="true" aria-labelledby="decision-title" (click)="$event.stopPropagation()">
       <header class="decision-modal__header">
-        <div><span>Mesa {{ mesa.numero.toString().padStart(2, '0') }}</span><h2 id="decision-title">Decisão solicitada pela cozinha</h2></div>
+        <div><span>{{ problemaTotemEmDecisao() ? 'Pedido TOTEM' : 'Mesa ' + mesa.numero.toString().padStart(2, '0') }}</span><h2 id="decision-title">Decisão solicitada pela cozinha</h2></div>
         <button type="button" aria-label="Fechar" (click)="fecharSolicitacao()" [disabled]="salvandoDecisao()">×</button>
       </header>
 
@@ -357,13 +396,13 @@
   </div>
 }
 
-@if (confirmandoCancelamento() && mesaEmDetalhe(); as mesa) {
+@if (confirmandoCancelamento() && mesaDoCancelamento(); as mesa) {
   <div class="modal-backdrop modal-backdrop--top">
     <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="cancel-title">
       <span class="confirm-modal__icon confirm-modal__icon--danger"><fk-icon name="warning-circle" size="1.5rem" /></span>
       <h2 id="cancel-title">Cancelar pedido</h2>
-      @if (problemaSelecionado(); as problema) {
-        <dl class="confirm-summary"><div><dt>Pedido</dt><dd>#{{ pedidoCodigo(problema) }}</dd></div><div><dt>Mesa</dt><dd>{{ mesa.numero.toString().padStart(2, '0') }}</dd></div></dl>
+      @if (pedidoDoCancelamento(); as pedido) {
+        <dl class="confirm-summary"><div><dt>Pedido</dt><dd>#{{ pedido.codigo }}</dd></div><div><dt>{{ problemaTotemEmDecisao() ? 'Canal' : 'Mesa' }}</dt><dd>{{ problemaTotemEmDecisao() ? 'TOTEM' : mesa.numero.toString().padStart(2, '0') }}</dd></div></dl>
       }
       <p>Esta ação não poderá ser desfeita. Confirme somente após alinhar a decisão com o cliente.</p>
       @if (erroCancelamento()) { <p class="modal-inline-error" role="alert">{{ erroCancelamento() }}</p> }

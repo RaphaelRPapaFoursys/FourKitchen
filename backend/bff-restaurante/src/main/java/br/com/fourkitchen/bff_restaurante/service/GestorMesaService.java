@@ -13,8 +13,10 @@ import br.com.fourkitchen.bff_restaurante.dto.request.AtribuirGarcomRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.CargaGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ItemPedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
@@ -95,6 +97,63 @@ public class GestorMesaService {
                 .toList();
     }
 
+    public List<PedidoDetalheGarcomResponse> listarPedidosDetalhados(Integer idMesa) {
+        MesaClientResponse mesa = buscarMesas().stream()
+                .filter(item -> Objects.equals(item.id(), idMesa))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(ErrorEnum.MESA_NAO_ENCONTRADA));
+
+        if (mesa.idAtendimento() == null) {
+            throw new BaseException(ErrorEnum.ATENDIMENTO_NAO_ABERTO);
+        }
+
+        try {
+            return pedidoClient.listarPedidosDetalhadosPorAtendimento(mesa.idAtendimento())
+                    .stream()
+                    .map(this::mapearPedidoDetalhe)
+                    .toList();
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
+    }
+
+    public List<PedidoDetalheGarcomResponse> listarPedidosDetalhadosPorAtendimento(Integer idAtendimento) {
+        try {
+            return pedidoClient.listarPedidosDetalhadosPorAtendimento(idAtendimento)
+                    .stream()
+                    .map(this::mapearPedidoDetalhe)
+                    .toList();
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
+    }
+
+    private PedidoDetalheGarcomResponse mapearPedidoDetalhe(PedidoCozinhaResponse pedido) {
+        List<ItemPedidoCozinhaResponse> itens = pedido.itens() == null ? List.of() : pedido.itens();
+        return new PedidoDetalheGarcomResponse(
+                pedido.id(),
+                pedido.codigo(),
+                pedido.canal(),
+                pedido.status(),
+                pedido.dataCriacao(),
+                pedido.dataInicioPreparo(),
+                pedido.dataPronto(),
+                itens.stream().map(this::mapearItemDetalhe).toList()
+        );
+    }
+
+    private ItemPedidoDetalheGarcomResponse mapearItemDetalhe(ItemPedidoCozinhaResponse item) {
+        return new ItemPedidoDetalheGarcomResponse(
+                item.id(),
+                item.idProduto(),
+                item.nomeProduto(),
+                item.quantidade(),
+                item.precoUnitario(),
+                item.observacao(),
+                item.status()
+        );
+    }
+
     // RESPOSTA MESA GESTOR
     public MesaGestorPaginadaResponse listarMesasPaginadas(
             String authorization,
@@ -142,6 +201,10 @@ public class GestorMesaService {
         int mesasLivres = (int) mesas.stream()
                 .filter(mesa -> STATUS_MESA_DISPONIVEL.equals(mesa.mesa().status()))
                 .count();
+        int mesasSemGarcom = (int) mesas.stream()
+                .filter(mesa -> STATUS_MESA_OCUPADA.equals(mesa.mesa().status()))
+                .filter(mesa -> mesa.mesa().garcomId() == null)
+                .count();
         int emPreparo = (int) mesas.stream()
                 .filter(mesa -> STATUS_PAINEL_EM_PREPARO.equals(mesa.statusPedido()))
                 .count();
@@ -175,7 +238,7 @@ public class GestorMesaService {
                 ))
                 .toList();
 
-        return new ResumoPainelResponse(mesasLivres, emPreparo, prontos, problemas, ticketMedio, cargaGarcons);
+        return new ResumoPainelResponse(mesasLivres, mesasSemGarcom, emPreparo, prontos, problemas, ticketMedio, cargaGarcons);
     }
 
     public List<GarcomResumoResponse> listarGarcons(String authorization) {
@@ -192,6 +255,15 @@ public class GestorMesaService {
         Map<Integer, String> nomesGarconsPorId = buscarNomesGarconsPorIdQuandoNecessario(authorization, historicos);
 
         return historicos.stream()
+                .sorted(Comparator
+                        .comparing(
+                                HistoricoAtendimentoClientResponse::dataFechamento,
+                                Comparator.nullsLast(Comparator.reverseOrder())
+                        )
+                        .thenComparing(
+                                HistoricoAtendimentoClientResponse::id,
+                                Comparator.nullsLast(Comparator.reverseOrder())
+                        ))
                 .map(historico -> mapearHistoricoAtendimento(historico, nomesGarconsPorId))
                 .toList();
     }
@@ -522,7 +594,7 @@ public class GestorMesaService {
             List<HistoricoAtendimentoClientResponse> historicos
     ) {
         boolean precisaBuscarGarcom = historicos.stream()
-                .anyMatch(historico -> historico.idGarcom() != null && nomeEmBranco(historico.nomeGarcom()));
+                .anyMatch(historico -> historico.idGarcom() != null);
 
         if (!precisaBuscarGarcom) {
             return Map.of();
@@ -750,9 +822,8 @@ public class GestorMesaService {
             HistoricoAtendimentoClientResponse historico,
             Map<Integer, String> nomesGarconsPorId
     ) {
-        String nomeGarcom = nomeEmBranco(historico.nomeGarcom())
-                ? nomesGarconsPorId.get(historico.idGarcom())
-                : historico.nomeGarcom();
+        String nomeAtual = nomesGarconsPorId.get(historico.idGarcom());
+        String nomeGarcom = nomeEmBranco(nomeAtual) ? historico.nomeGarcom() : nomeAtual;
 
         return new HistoricoAtendimentoResponse(
                 historico.id(),

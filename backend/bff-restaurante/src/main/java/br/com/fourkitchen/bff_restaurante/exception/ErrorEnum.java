@@ -191,6 +191,18 @@ public enum ErrorEnum {
             HttpStatus.BAD_REQUEST
     ),
 
+    PROBLEMA_TOTEM_NAO_DISPONIVEL(
+            "028",
+            "Este problema do TOTEM ja foi assumido ou resolvido por outro garcom.",
+            HttpStatus.CONFLICT
+    ),
+
+    DADOS_DASHBOARD_INDISPONIVEIS(
+            "029",
+            "Dados deste gráfico temporariamente indisponíveis",
+            HttpStatus.SERVICE_UNAVAILABLE
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

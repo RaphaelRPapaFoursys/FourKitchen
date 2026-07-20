@@ -53,4 +53,12 @@ class PedidoControllerTest {
         assertSame(pedido, response.getBody().getFirst());
         verify(pedidoService).findPedidosAtivosDetalhadosPorAtendimentos(List.of(8));
     }
+
+    @Test
+    void cancelarPedidoAntesDoPreparoDeveRetornarSemConteudo() {
+        ResponseEntity<Void> response = pedidoController.cancelarPedidoAntesDoPreparo(25);
+
+        assertEquals(204, response.getStatusCode().value());
+        verify(pedidoService).cancelarPedidoAntesDoPreparo(25);
+    }
 }

@@ -154,6 +154,30 @@ public class GarcomMesaController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{idMesa}/pedidos/{idPedido}/cancelar")
+    @Operation(
+            summary = "Cancela pedido antes do inicio do preparo",
+            description = "Valida se a mesa pertence ao garcom autenticado, se o pedido pertence ao atendimento atual e se ainda esta ENVIADO_COZINHA antes de cancelar."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Pedido cancelado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Pedido ja iniciou o preparo ou dados invalidos", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "403", description = "Mesa nao atribuida ao garcom", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Pedido nao encontrado no atendimento", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Servico de mesas ou pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<Void> cancelarPedidoAntesDoPreparo(
+            @Parameter(description = "Identificador da mesa atribuida ao garcom", required = true)
+            @PathVariable Integer idMesa,
+            @Parameter(description = "Identificador do pedido a cancelar", required = true)
+            @PathVariable Integer idPedido,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        garcomMesaService.cancelarPedidoAntesDoPreparo(idMesa, idPedido, authentication);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}/problemas/decisao")
     @Operation(
             summary = "Registra a decisao do cliente sobre um problema",

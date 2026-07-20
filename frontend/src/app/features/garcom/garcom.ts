@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { TimeoutError, debounceTime, finalize, timeout } from 'rxjs';
+import { TimeoutError, finalize, timeout } from 'rxjs';
 
 import {
   ChamadaPendenteMesaResponse,
@@ -11,6 +11,7 @@ import {
   MesaGarcomResponse,
   MesaProblemasGarcomResponse,
   PedidoDetalheGarcomResponse,
+  PedidoProblemaTotemGarcomResponse,
   ProblemaPedidoGarcomResponse,
 } from '../../core/models/garcom.models';
 import { PedidoStatus } from '../../core/models/order.models';
@@ -18,6 +19,7 @@ import { CategoriaCardapioResponse, ProdutoCardapioResponse } from '../../core/m
 import { AuthService } from '../../core/services/auth';
 import { GarcomChamadaService } from '../../core/services/garcom-chamada';
 import { GarcomMesaService } from '../../core/services/garcom-mesa';
+import { GarcomTotemProblemaService } from '../../core/services/garcom-totem-problema';
 import { MenuService } from '../../core/services/menu.service';
 import { RealtimeTopic } from '../../core/models/realtime.models';
 import { RealtimeService } from '../../core/services/realtime.service';
@@ -27,27 +29,33 @@ import {
   numeroContemBusca,
   numeroBuscaOperacional,
 } from '../../core/utils/operational-search';
-import { Avatar } from '../../shared/components/avatar/avatar';
 import { Badge, BadgeVariant } from '../../shared/components/badge/badge';
 import { Icon } from '../../shared/components/icon/icon';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
+import { UserMenu } from '../../shared/components/user-menu/user-menu';
 
 type FiltroMesa = 'todas' | 'chamadas' | 'problemas';
 type AcaoDecisao = 'REMOVER_ITEM' | 'SUBSTITUIR_ITEM' | 'CANCELAR_PEDIDO';
 type ModoDivisaoConta = 'UNICA' | 'DIVIDIDA';
+type CancelamentoDireto = {
+  mesa: MesaGarcomResponse;
+  pedido: PedidoDetalheGarcomResponse;
+};
 
 const STATUS_PROBLEMA = new Set(['AGUARDANDO_DECISAO', 'PROBLEMA_COZINHA']);
+const INTERVALO_ATUALIZACAO_MS = 10_000;
 
 @Component({
   selector: 'app-garcom',
   standalone: true,
-  imports: [Avatar, Badge, Icon, KpiCard],
+  imports: [Badge, Icon, KpiCard, UserMenu],
   templateUrl: './garcom.html',
   styleUrl: './garcom.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Garcom {
   private readonly garcomMesaService = inject(GarcomMesaService);
+  private readonly garcomTotemProblemaService = inject(GarcomTotemProblemaService);
   private readonly garcomChamadaService = inject(GarcomChamadaService);
   private readonly menuService = inject(MenuService);
   private readonly authService = inject(AuthService);
@@ -59,6 +67,9 @@ export class Garcom {
   private atualizacaoPendente: { silencioso: boolean; forcarDetalhes: boolean } | null = null;
 
   protected readonly mesas = signal<MesaGarcomResponse[]>([]);
+  protected readonly problemasTotem = signal<PedidoProblemaTotemGarcomResponse[]>([]);
+  protected readonly problemaTotemEmDecisao = signal<PedidoProblemaTotemGarcomResponse | null>(null);
+  protected readonly problemaTotemEmAssuncao = signal<number | null>(null);
   protected readonly busca = signal('');
   protected readonly filtro = signal<FiltroMesa>('todas');
   protected readonly carregando = signal(false);
@@ -85,6 +96,7 @@ export class Garcom {
   protected readonly salvandoDecisao = signal(false);
   protected readonly confirmandoCancelamento = signal(false);
   protected readonly erroCancelamento = signal('');
+  protected readonly cancelamentoDireto = signal<CancelamentoDireto | null>(null);
   protected readonly acaoDecisao = signal<AcaoDecisao>('REMOVER_ITEM');
 
   protected readonly categorias = signal<CategoriaCardapioResponse[]>([]);
@@ -97,12 +109,31 @@ export class Garcom {
   protected readonly nomeUsuario = computed(() =>
     this.authService.getCurrentUser()?.nome ?? 'Garcom'
   );
+  protected readonly idGarcomAtual = computed(() => this.authService.getCurrentUser()?.id ?? null);
 
   protected readonly inicialUsuario = computed(() => this.nomeUsuario().trim().charAt(0).toUpperCase() || 'G');
 
   protected readonly produtosDaCategoria = computed<ProdutoCardapioResponse[]>(() => {
     const categoriaId = this.categoriaSelecionadaId();
     return this.categorias().find(categoria => categoria.categoriaId === categoriaId)?.produtos ?? [];
+  });
+
+  protected readonly mesaDoCancelamento = computed(() =>
+    this.cancelamentoDireto()?.mesa ?? this.mesaEmDetalhe()
+  );
+
+  protected readonly pedidoDoCancelamento = computed(() => {
+    const cancelamentoDireto = this.cancelamentoDireto();
+    if (cancelamentoDireto) {
+      return cancelamentoDireto.pedido;
+    }
+
+    const problema = this.problemaSelecionado();
+    if (!problema) {
+      return null;
+    }
+
+    return this.detalheSelecionado()?.pedidos.find(pedido => pedido.id === problema.idPedido) ?? null;
   });
 
   protected readonly mesasFiltradas = computed(() => {
@@ -159,6 +190,13 @@ export class Garcom {
   protected readonly totalChamadas = computed(() =>
     this.mesas().reduce((total, mesa) => total + mesa.chamadasPendentes.length, 0)
   );
+  protected readonly problemasTotemDisponiveis = computed(() =>
+    this.problemasTotem().filter(problema => problema.idGarcomResponsavelProblema === null)
+  );
+  protected readonly problemasTotemAssumidosPorMim = computed(() => {
+    const idGarcom = this.authService.getCurrentUser()?.id;
+    return this.problemasTotem().filter(problema => problema.idGarcomResponsavelProblema === idGarcom);
+  });
 
   constructor() {
     this.carregarDashboard();
@@ -199,8 +237,10 @@ export class Garcom {
       this.atualizandoSilencioso.set(true);
     }
 
-    this.garcomMesaService
-      .listarMesas()
+    forkJoin({
+      mesas: this.garcomMesaService.listarMesas(),
+      problemasTotem: this.garcomTotemProblemaService.listarProblemas(),
+    })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => {
@@ -219,8 +259,9 @@ export class Garcom {
         })
       )
       .subscribe({
-        next: mesas => {
+        next: ({ mesas, problemasTotem }) => {
           this.mesas.set(mesas);
+          this.problemasTotem.set(problemasTotem);
           const mesaAberta = this.mesaDetalhesAberta();
           if (mesaAberta) {
             this.mesaDetalhesAberta.set(mesas.find(mesa => mesa.idMesa === mesaAberta.idMesa) ?? null);
@@ -268,6 +309,7 @@ export class Garcom {
   }
 
   protected abrirSolicitacao(mesa: MesaGarcomResponse): void {
+    this.problemaTotemEmDecisao.set(null);
     this.mesaEmDetalhe.set(mesa);
     this.acaoDecisao.set('REMOVER_ITEM');
     this.categoriaSelecionadaId.set(null);
@@ -276,6 +318,99 @@ export class Garcom {
     this.erro.set('');
     this.erroCancelamento.set('');
     this.carregarSolicitacao(mesa);
+  }
+
+  protected assumirProblemaTotem(problemaTotem: PedidoProblemaTotemGarcomResponse): void {
+    if (this.problemaTotemEmAssuncao() !== null) {
+      return;
+    }
+
+    const idGarcom = this.authService.getCurrentUser()?.id;
+    if (problemaTotem.idGarcomResponsavelProblema !== null
+      && problemaTotem.idGarcomResponsavelProblema !== idGarcom) {
+      return;
+    }
+
+    this.problemaTotemEmAssuncao.set(problemaTotem.id);
+    this.erro.set('');
+    this.sucesso.set('');
+    this.garcomTotemProblemaService
+      .assumir(problemaTotem.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.problemaTotemEmAssuncao.set(null)),
+      )
+      .subscribe({
+        next: () => this.abrirSolicitacaoTotem(problemaTotem),
+        error: error => {
+          this.erro.set(this.getErrorMessage(
+            error,
+            'Este problema ja foi assumido ou resolvido por outro garcom.',
+          ));
+          this.carregarDashboard(true, true);
+        },
+      });
+  }
+
+  private abrirSolicitacaoTotem(pedido: PedidoProblemaTotemGarcomResponse): void {
+    const itemComProblema = pedido.itens.find(item =>
+      ['FALTA_PRODUTO', 'ERRO', 'INDISPONIVEL'].includes(item.status),
+    );
+    if (!itemComProblema) {
+      this.erro.set('O pedido TOTEM nao possui um item pendente de decisao.');
+      this.carregarDashboard(true, true);
+      return;
+    }
+
+    const problema: ProblemaPedidoGarcomResponse = {
+      idPedido: pedido.id,
+      idProdutoPedido: itemComProblema.id,
+      tipo: itemComProblema.status,
+      mensagem: 'A cozinha sinalizou um problema neste item do pedido TOTEM.',
+    };
+    const mesaVirtual: MesaGarcomResponse = {
+      idMesa: -pedido.id,
+      numero: 0,
+      status: 'OCUPADA',
+      idAtendimento: null,
+      codigoSessao: null,
+      idGarcom: null,
+      dataAbertura: pedido.dataCriacao,
+      pedidosAtivos: [],
+      chamadasPendentes: [],
+      possuiChamadaPendente: false,
+    };
+
+    this.problemaTotemEmDecisao.set(pedido);
+    this.mesaEmDetalhe.set(mesaVirtual);
+    this.detalheSelecionado.set({
+      mesa: {
+        idMesa: mesaVirtual.idMesa,
+        numero: 0,
+        status: 'OCUPADA',
+        idAtendimento: 0,
+        codigoSessao: 0,
+        dataAbertura: pedido.dataCriacao,
+      },
+      pedidos: [{
+        id: pedido.id,
+        codigo: pedido.codigo,
+        canal: 'TOTEM',
+        status: pedido.status,
+        dataCriacao: pedido.dataCriacao,
+        dataInicioPreparo: null,
+        dataPronto: null,
+        itens: pedido.itens,
+      }],
+      problemas: [problema],
+    });
+    this.problemaSelecionado.set(problema);
+    this.acaoDecisao.set('REMOVER_ITEM');
+    this.categoriaSelecionadaId.set(null);
+    this.produtoSelecionadoId.set(null);
+    this.observacaoNovoProduto.set('');
+    this.erroDetalhe.set('');
+    this.erroCancelamento.set('');
   }
 
   protected tentarCarregarSolicitacao(): void {
@@ -296,6 +431,8 @@ export class Garcom {
     this.detalheSelecionado.set(null);
     this.problemaSelecionado.set(null);
     this.observacaoNovoProduto.set('');
+    this.cancelamentoDireto.set(null);
+    this.problemaTotemEmDecisao.set(null);
   }
 
   protected selecionarProblema(problema: ProblemaPedidoGarcomResponse): void {
@@ -350,6 +487,7 @@ export class Garcom {
 
     if (this.acaoDecisao() === 'CANCELAR_PEDIDO') {
       this.erroCancelamento.set('');
+      this.cancelamentoDireto.set(null);
       this.confirmandoCancelamento.set(true);
       return;
     }
@@ -361,10 +499,17 @@ export class Garcom {
     if (!this.salvandoDecisao()) {
       this.confirmandoCancelamento.set(false);
       this.erroCancelamento.set('');
+      this.cancelamentoDireto.set(null);
     }
   }
 
   protected confirmarCancelamentoPedido(): void {
+    const cancelamentoDireto = this.cancelamentoDireto();
+    if (cancelamentoDireto) {
+      this.enviarCancelamentoDireto(cancelamentoDireto);
+      return;
+    }
+
     const mesa = this.mesaEmDetalhe();
     const problema = this.problemaSelecionado();
     if (!mesa || !problema || this.salvandoDecisao()) {
@@ -372,6 +517,16 @@ export class Garcom {
     }
 
     this.enviarDecisao(mesa, problema, true);
+  }
+
+  protected solicitarCancelamentoPedido(mesa: MesaGarcomResponse, pedido: PedidoDetalheGarcomResponse): void {
+    if (!this.podeCancelarPedidoDiretamente(pedido) || this.salvandoDecisao() || this.confirmandoCancelamento()) {
+      return;
+    }
+
+    this.erroCancelamento.set('');
+    this.cancelamentoDireto.set({ mesa, pedido });
+    this.confirmandoCancelamento.set(true);
   }
 
   private enviarDecisao(
@@ -386,8 +541,12 @@ export class Garcom {
     this.erroCancelamento.set('');
     this.sucesso.set('');
 
-    this.garcomMesaService
-      .registrarDecisao(mesa.idMesa, request)
+    const problemaTotem = this.problemaTotemEmDecisao();
+    const registrarDecisao = problemaTotem && problemaTotem.id === problema.idPedido
+      ? this.garcomTotemProblemaService.registrarDecisao(problema.idPedido, request)
+      : this.garcomMesaService.registrarDecisao(mesa.idMesa, request);
+
+    registrarDecisao
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.salvandoDecisao.set(false))
@@ -395,12 +554,16 @@ export class Garcom {
       .subscribe({
         next: () => {
           this.confirmandoCancelamento.set(false);
+          this.cancelamentoDireto.set(null);
           this.mesaEmDetalhe.set(null);
           this.detalheSelecionado.set(null);
           this.problemaSelecionado.set(null);
+          this.problemaTotemEmDecisao.set(null);
           this.sucesso.set(cancelamento
             ? `Pedido #${codigoPedido} cancelado com sucesso.`
-            : `Decisao da mesa ${mesa.numero} enviada para a cozinha.`);
+            : problemaTotem
+              ? `Decisao do pedido TOTEM #${codigoPedido} enviada para a cozinha.`
+              : `Decisao da mesa ${mesa.numero} enviada para a cozinha.`);
           this.carregarDashboard(true, true);
         },
         error: error => {
@@ -416,6 +579,32 @@ export class Garcom {
             this.erro.set(mensagem);
           }
         },
+      });
+  }
+
+  private enviarCancelamentoDireto(cancelamento: CancelamentoDireto): void {
+    this.salvandoDecisao.set(true);
+    this.erro.set('');
+    this.erroCancelamento.set('');
+    this.sucesso.set('');
+
+    this.garcomMesaService
+      .cancelarPedidoAntesDoPreparo(cancelamento.mesa.idMesa, cancelamento.pedido.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.salvandoDecisao.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.confirmandoCancelamento.set(false);
+          this.cancelamentoDireto.set(null);
+          this.sucesso.set(`Pedido #${cancelamento.pedido.codigo} cancelado com sucesso.`);
+          this.carregarDashboard(true, true);
+        },
+        error: error => this.erroCancelamento.set(this.getErrorMessage(
+          error,
+          'Nao foi possivel cancelar o pedido. O preparo pode ja ter sido iniciado.',
+        )),
       });
   }
 
@@ -475,8 +664,16 @@ export class Garcom {
     return item.status === 'REMOVIDO' || item.status === 'CANCELADO';
   }
 
+  protected pedidoCancelado(pedido: PedidoDetalheGarcomResponse): boolean {
+    return pedido.status === 'CANCELADO';
+  }
+
   protected pedidoAguardaDecisao(pedido: PedidoDetalheGarcomResponse): boolean {
     return STATUS_PROBLEMA.has(pedido.status);
+  }
+
+  protected podeCancelarPedidoDiretamente(pedido: PedidoDetalheGarcomResponse): boolean {
+    return pedido.status === 'ENVIADO_COZINHA';
   }
 
   protected podeFecharConta(mesa: MesaGarcomResponse): boolean {

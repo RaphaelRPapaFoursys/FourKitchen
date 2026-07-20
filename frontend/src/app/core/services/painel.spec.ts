@@ -59,6 +59,7 @@ const PAGINA_MESAS_API = {
 
 const RESUMO_API = {
   mesasLivres: 1,
+  mesasSemGarcom: 0,
   emPreparo: 1,
   prontos: 0,
   problemas: 0,
@@ -112,6 +113,13 @@ describe('PainelService', () => {
 
     expect(mesas.find(mesa => mesa.numero === 3)?.statusPedido).toBe('EM_PREPARO');
     expect(mesas.find(mesa => mesa.numero === 7)?.statusPedido).toBe('CONTA_ABERTA');
+  });
+
+  it('busca pedidos detalhados de um atendimento histórico', async () => {
+    const promise = service.buscarPedidosDetalhadosPorAtendimento(80);
+    httpMock.expectOne(`${BASE_URL}/atendimentos/80/pedidos`).flush([]);
+
+    expect(await promise).toEqual([]);
   });
 
   describe('cargaGarcons', () => {
@@ -171,15 +179,6 @@ describe('PainelService', () => {
       const promise = service.fecharConta(1);
 
       httpMock.expectOne(`${BASE_URL}/mesas/1/fechar`).flush({});
-      await esperarMicrotarefas();
-      flushPainel();
-      await promise;
-    });
-
-    it('marcarEntregue chama o PATCH de marcar-entregue e recarrega as mesas', async () => {
-      const promise = service.marcarEntregue(1);
-
-      httpMock.expectOne(`${BASE_URL}/mesas/1/marcar-entregue`).flush({});
       await esperarMicrotarefas();
       flushPainel();
       await promise;

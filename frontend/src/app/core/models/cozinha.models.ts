@@ -51,7 +51,7 @@ export interface PedidoStatusCozinhaResponse {
 export interface SinalizarProblemaRequest {
   idPedido: number;
   idProdutoPedido: number;
-  statusProdutoPedido: Extract<StatusProdutoPedido, 'FALTA_PRODUTO' | 'ERRO' | 'INDISPONIVEL'>;
+  statusProdutoPedido: Extract<StatusProdutoPedido, 'ERRO' | 'INDISPONIVEL'>;
 }
 
 export interface SinalizarProblemaResponse {
