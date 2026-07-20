@@ -25,6 +25,7 @@ export interface MesaFiltroGrafico {
 export class DashboardChartFilter {
   @Input({ required: true }) filtros!: FiltrosDashboard;
   @Input() mesas: readonly MesaFiltroGrafico[] = [];
+  @Input() abrirPainelADireita = false;
   @Output() filtrosChange = new EventEmitter<FiltrosDashboard>();
 
   protected readonly aberto = signal(false);

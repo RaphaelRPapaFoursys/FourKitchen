@@ -1,5 +1,5 @@
 <section class="chart-card" aria-labelledby="problemas-chart-title">
-  <header><div><span>Qualidade operacional</span><h2 id="problemas-chart-title">Problemas da cozinha por motivo</h2></div><fk-dashboard-chart-filter [filtros]="filtros" [mesas]="mesas" (filtrosChange)="filtrosChange.emit($event)" /></header>
+  <header><div><span>Qualidade operacional</span><h2 id="problemas-chart-title">Problemas da cozinha por motivo</h2></div><fk-dashboard-chart-filter [filtros]="filtros" [mesas]="mesas" [abrirPainelADireita]="true" (filtrosChange)="filtrosChange.emit($event)" /></header>
   @if (estado.status === 'carregando') {
     <div class="estado" role="status"><i></i><span>Carregando gráfico...</span></div>
   } @else if (estado.status === 'erro') {
