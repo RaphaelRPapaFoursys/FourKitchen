@@ -49,7 +49,10 @@ describe('GestorDashboard', () => {
       prontos: 0,
       problemas: 1,
       ticketMedio: 50,
-      cargaGarcons: [{ id: 7, nome: 'Carlos', mesasAtivas: 1 }],
+      cargaGarcons: [
+        { id: 7, nome: 'Carlos', mesasAtivas: 1 },
+        { id: 8, nome: 'Joana Nova', mesasAtivas: 0 },
+      ],
     });
     httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush([
       {
@@ -172,6 +175,19 @@ describe('GestorDashboard', () => {
     expect(registros.length).toBe(1);
     expect(registros[0].textContent).toContain('Mesa 04');
     expect(registros[0].textContent).not.toContain('Mesa 14');
+  });
+
+  it('atualiza o dropdown com garçons ativos mesmo sem histórico finalizado', () => {
+    const abrirHistorico: HTMLButtonElement = fixture.nativeElement.querySelector('.atividade__rodape button');
+    abrirHistorico.click();
+    fixture.detectChanges();
+    const abrirFiltros: HTMLButtonElement = fixture.nativeElement.querySelector('.historico-filtros__botao');
+    abrirFiltros.click();
+    fixture.detectChanges();
+
+    const seletor: HTMLSelectElement = fixture.nativeElement.querySelector('.historico-filtros select');
+    const opcoes = [...seletor.options].map(opcao => opcao.textContent?.trim());
+    expect(opcoes).toContain('Joana Nova');
   });
 
   it('filtra o histórico por intervalo personalizado de datas', async () => {

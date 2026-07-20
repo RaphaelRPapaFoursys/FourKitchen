@@ -99,10 +99,16 @@ export class GestorDashboard {
   protected readonly historicoRecente = computed(() => this.historicoOrdenado().slice(0, 5));
   protected readonly garconsDoHistorico = computed(() => {
     const garcons = new Map<number, string>();
+    // Mantém garçons antigos para permitir filtrar registros históricos, inclusive após desativação.
     for (const atendimento of this.historicoOrdenado()) {
       if (atendimento.idGarcom !== null) {
         garcons.set(atendimento.idGarcom, atendimento.nomeGarcom ?? `Garçom ${atendimento.idGarcom}`);
       }
+    }
+    // A carga vem da lista atual de usuários ativos; sobrescreve nomes históricos após renomeações
+    // e inclui garçons que ainda não possuem nenhum atendimento finalizado.
+    for (const garcom of this.cargaGarcons()) {
+      garcons.set(garcom.id, garcom.nome);
     }
     return [...garcons.entries()]
       .map(([id, nome]) => ({ id, nome }))
