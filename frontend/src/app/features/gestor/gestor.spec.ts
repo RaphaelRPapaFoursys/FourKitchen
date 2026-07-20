@@ -57,6 +57,7 @@ const PAGINA_MESAS_API = {
 
 const RESUMO_API = {
   mesasLivres: 1,
+  mesasSemGarcom: 0,
   emPreparo: 0,
   prontos: 0,
   problemas: 0,
@@ -177,9 +178,9 @@ describe('Gestor', () => {
   it('não chama a API de ações quando o expediente está fechado', () => {
     painelService.expedienteFechado.set(true);
 
-    void painelService.marcarEntregue(1);
+    void painelService.fecharConta(1);
 
-    httpMock.expectNone(`${BASE_URL}/mesas/1/marcar-entregue`);
+    httpMock.expectNone(`${BASE_URL}/mesas/1/fechar`);
   });
 
   it('deriva os garçons disponíveis da carga real', () => {
@@ -187,5 +188,71 @@ describe('Gestor', () => {
     const disponiveis = painelService.cargaGarcons().filter(garcom => garcom.mesasAtivas <= 2).length;
 
     expect(resumo.garconsDisponiveis).toBe(disponiveis);
+  });
+
+  it('abre os detalhes do pedido com itens, observações, progresso e valor', async () => {
+    fixture.detectChanges();
+    const elemento = fixture.nativeElement as HTMLElement;
+    const botoes = Array.from(elemento.querySelectorAll<HTMLButtonElement>('.mesa-card__acao'));
+    const verPedido = botoes.find(botao => botao.textContent?.includes('Ver pedido'));
+
+    expect(verPedido).toBeTruthy();
+    verPedido?.click();
+    fixture.detectChanges();
+
+    httpMock.expectOne(`${BASE_URL}/mesas/1/pedidos`).flush([
+      {
+        id: 10,
+        codigo: 100010,
+        canal: 'MESA',
+        status: 'ENTREGUE',
+        dataCriacao: '2026-07-03T10:15:00',
+        dataInicioPreparo: '2026-07-03T10:20:00',
+        dataPronto: '2026-07-03T10:35:00',
+        itens: [{
+          id: 1,
+          idProduto: 20,
+          nomeProduto: 'Risoto de cogumelos',
+          quantidade: 2,
+          precoUnitario: 45,
+          observacao: 'Sem queijo',
+          status: 'DISPONIVEL',
+        }],
+      },
+      {
+        id: 11,
+        codigo: 100011,
+        canal: 'MESA',
+        status: 'EM_PREPARO',
+        dataCriacao: '2026-07-03T10:45:00',
+        dataInicioPreparo: '2026-07-03T10:48:00',
+        dataPronto: null,
+        itens: [{
+          id: 2,
+          idProduto: 21,
+          nomeProduto: 'Suco de laranja',
+          quantidade: 1,
+          precoUnitario: 10,
+          observacao: null,
+          status: 'DISPONIVEL',
+        }],
+      },
+    ]);
+    await esperarMicrotarefas();
+    fixture.detectChanges();
+
+    const modal: HTMLElement | null = fixture.nativeElement.querySelector('.modal--detalhes');
+    expect(modal).toBeTruthy();
+    expect(modal?.textContent).toContain('Risoto de cogumelos');
+    expect(modal?.textContent).toContain('Sem queijo');
+    expect(modal?.textContent).toContain('Recebido');
+    expect(modal?.textContent).toContain('Entregue');
+    expect(modal?.textContent).toContain('Valor total da conta');
+    expect(modal?.textContent).toContain('R$100.00');
+
+    const pedidos = Array.from(modal?.querySelectorAll<HTMLElement>('.detalhe-pedido') ?? []);
+    expect(pedidos[0].textContent).toContain('#100011');
+    expect(pedidos[1].textContent).toContain('#100010');
+    expect(modal?.querySelector('.detalhes-totais')).toBeTruthy();
   });
 });

@@ -18,6 +18,7 @@ import br.com.fourkitchen.ms_pedidos.exceptions.*;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
+import br.com.fourkitchen.ms_pedidos.repository.ProblemaCozinhaRepository;
 import br.com.fourkitchen.ms_pedidos.repository.ProdutoPedidoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +52,9 @@ class PedidoServiceTest {
 
     @Mock
     private ProdutoPedidoRepository produtoPedidoRepository;
+
+    @Mock
+    private ProblemaCozinhaRepository problemaCozinhaRepository;
 
     @Mock
     private PedidoResponseMapper pedidoResponseMapper;
@@ -732,7 +736,7 @@ class PedidoServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = StatusProdutoPedido.class, names = {"FALTA_PRODUTO", "ERRO", "INDISPONIVEL"})
+    @EnumSource(value = StatusProdutoPedido.class, names = {"ERRO", "INDISPONIVEL"})
     void sinalizarProblema_deveAlterarStatusDoPedidoEProduto_paraDiferentesTiposDeProblema(StatusProdutoPedido statusProblema) {
         // Arrange
         SinalizarProblemaRequest request = new SinalizarProblemaRequest(1, 10, statusProblema);
@@ -766,6 +770,21 @@ class PedidoServiceTest {
 
         verify(pedidoRepository).findByIdForUpdate(1);
         verify(produtoPedidoRepository).findByIdPedidoAndId(1, 10);
+    }
+
+    @Test
+    void sinalizarProblema_deveRejeitarFaltaProdutoQueNaoExisteNaTelaDaCozinha() {
+        SinalizarProblemaRequest request = new SinalizarProblemaRequest(1, 10, StatusProdutoPedido.FALTA_PRODUTO);
+        Pedido pedido = Pedido.builder().id(1).status(StatusPedido.ENVIADO_COZINHA).build();
+        ProdutoPedido produtoPedido = ProdutoPedido.builder().id(10).idPedido(1).build();
+
+        when(pedidoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(pedido));
+        when(produtoPedidoRepository.findByIdPedidoAndId(1, 10)).thenReturn(Optional.of(produtoPedido));
+
+        BaseException exception = assertThrows(BaseException.class, () -> pedidoService.sinalizarProblema(request));
+
+        assertEquals(ErrorEnum.DADOS_INVALIDOS, exception.getErrorEnum());
+        verifyNoInteractions(problemaCozinhaRepository);
     }
 
     @Test

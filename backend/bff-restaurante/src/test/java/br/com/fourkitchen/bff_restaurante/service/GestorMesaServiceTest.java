@@ -13,6 +13,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
@@ -68,6 +69,37 @@ class GestorMesaServiceTest {
 
     @InjectMocks
     private GestorMesaService gestorMesaService;
+
+    @Test
+    void listarPedidosDetalhadosDeveRetornarProdutosDoAtendimentoAtual() {
+        MesaClientResponse mesa = criarMesaComAtendimento(1, 10, 7, 50);
+        PedidoCozinhaResponse pedido = criarPedido(20, 50, "EM_PREPARO", 2, new BigDecimal("29.90"));
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(mesa));
+        when(pedidoClient.listarPedidosDetalhadosPorAtendimento(50)).thenReturn(List.of(pedido));
+
+        List<PedidoDetalheGarcomResponse> resultado = gestorMesaService.listarPedidosDetalhados(1);
+
+        assertEquals(1, resultado.size());
+        assertEquals(20, resultado.getFirst().id());
+        assertEquals("EM_PREPARO", resultado.getFirst().status());
+        assertEquals(2, resultado.getFirst().itens().getFirst().quantidade());
+        assertEquals(new BigDecimal("29.90"), resultado.getFirst().itens().getFirst().precoUnitario());
+        verify(pedidoClient).listarPedidosDetalhadosPorAtendimento(50);
+    }
+
+    @Test
+    void listarPedidosDetalhadosPorAtendimentoDevePermitirAtendimentoFinalizado() {
+        PedidoCozinhaResponse pedido = criarPedido(20, 80, "ENTREGUE", 2, new BigDecimal("29.90"));
+        when(pedidoClient.listarPedidosDetalhadosPorAtendimento(80)).thenReturn(List.of(pedido));
+
+        List<PedidoDetalheGarcomResponse> resultado = gestorMesaService.listarPedidosDetalhadosPorAtendimento(80);
+
+        assertEquals(1, resultado.size());
+        assertEquals("ENTREGUE", resultado.getFirst().status());
+        verify(pedidoClient).listarPedidosDetalhadosPorAtendimento(80);
+        verifyNoInteractions(mesaClient);
+    }
 
     @Test
     void listarMesasDeveBuscarMesasEGarconsEMapearComNomeDoGarcom() {
@@ -157,11 +189,36 @@ class GestorMesaServiceTest {
         ResumoPainelResponse resultado = gestorMesaService.buscarResumoPainel(AUTHORIZATION);
 
         assertEquals(0, resultado.mesasLivres());
+        assertEquals(0, resultado.mesasSemGarcom());
         assertEquals(0, resultado.emPreparo());
         assertEquals(1, resultado.prontos());
         assertEquals(0, resultado.problemas());
         assertEquals(new BigDecimal("20.00"), resultado.ticketMedio());
         assertEquals(1, resultado.cargaGarcons().getFirst().mesasAtivas());
+    }
+
+    @Test
+    void buscarResumoPainelDeveContarGlobalmenteSomenteMesasOcupadasSemGarcom() {
+        MesaClientResponse ocupadaSemGarcom = criarMesaComAtendimento(1, 10, null, 100);
+        MesaClientResponse livreSemGarcom = new MesaClientResponse(
+                2,
+                11,
+                "DISPONIVEL",
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(ocupadaSemGarcom, livreSemGarcom));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of());
+        when(pedidoClient.listarPedidosAtivosDetalhadosPorAtendimentos(List.of(100))).thenReturn(List.of());
+
+        ResumoPainelResponse resultado = gestorMesaService.buscarResumoPainel(AUTHORIZATION);
+
+        assertEquals(1, resultado.mesasSemGarcom());
+        assertEquals(1, resultado.mesasLivres());
     }
 
     @Test
@@ -235,7 +292,7 @@ class GestorMesaServiceTest {
                 1,
                 10,
                 7,
-                null,
+                "Nome Antigo",
                 new BigDecimal("149.70"),
                 3,
                 7,

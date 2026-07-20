@@ -1,0 +1,288 @@
+@if (carregando()) {
+  <div class="dashboard__carregando">Carregando dashboard...</div>
+} @else {
+  <div class="dashboard">
+    <fk-sidebar />
+    <div class="dashboard__main">
+      <img class="dashboard__onda" src="assets/images/listra-fourkitchen.png" alt="" aria-hidden="true" />
+      <fk-topbar
+        [mostrarBusca]="false"
+        [usuarioNome]="usuario()?.nome ?? 'Usuário'"
+        [usuarioInicial]="iniciais(usuario()?.nome)"
+      />
+
+      <main class="dashboard__content">
+        <header class="dashboard__cabecalho">
+          <div>
+            <span>Visão geral da operação</span>
+            <h1>Dashboard</h1>
+            <p>Acompanhe os principais indicadores do restaurante em tempo real.</p>
+          </div>
+          <button type="button" [disabled]="carregandoMesas()" (click)="atualizarDados()">
+            <fk-icon name="arrows-counter-clockwise" size="1rem" />
+            Atualizar dados
+          </button>
+        </header>
+
+        <section class="kpis" aria-label="Indicadores operacionais">
+          <div class="kpi kpi--verde">
+            <div><span>Mesas livres</span><fk-icon name="picnic-table" size="1.2rem" /></div><strong>{{ resumo().mesasLivres }}</strong><small>Disponíveis agora</small>
+          </div>
+          <div class="kpi kpi--azul">
+            <div><span>Mesas ocupadas</span><fk-icon name="user-circle" size="1.2rem" /></div><strong>{{ mesasOcupadas() }}</strong><small>{{ taxaOcupacao() }}% da capacidade</small>
+          </div>
+          <div class="kpi">
+            <div><span>Total de mesas</span><fk-icon name="picnic-table" size="1.2rem" /></div><strong>{{ totalMesas() }}</strong><small>Capacidade cadastrada</small>
+          </div>
+          <div class="kpi kpi--laranja">
+            <div><span>Em preparo</span><fk-icon name="cooking-pot" size="1.2rem" /></div><strong>{{ resumo().emPreparo }}</strong><small>Pedidos na cozinha</small>
+          </div>
+          <div class="kpi kpi--verde">
+            <div><span>Pedidos prontos</span><fk-icon name="check-circle" size="1.2rem" /></div><strong>{{ resumo().prontos }}</strong><small>Aguardando coleta</small>
+          </div>
+          <a class="kpi kpi--vermelho kpi--clicavel" routerLink="/gestor/mesas" [queryParams]="{ filtro: 'PROBLEMAS' }" [class.kpi--com-problemas]="resumo().problemas > 0">
+            <div><span>Problemas</span><fk-icon name="warning-circle" size="1.2rem" /></div><strong>{{ resumo().problemas }}</strong><small>Ação necessária</small>
+          </a>
+        </section>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-grid__principal">
+            <div class="graficos">
+              <fk-ocupacao-chart [ocupadas]="mesasOcupadas()" [livres]="resumo().mesasLivres" [percentual]="taxaOcupacao()" />
+              <fk-status-pedidos-chart [ativos]="mesasOcupadas()" [preparo]="resumo().emPreparo" [prontos]="resumo().prontos" [problemas]="resumo().problemas" />
+            </div>
+
+            <div class="graficos-analiticos">
+              <fk-volume-pedidos-chart [estado]="volumeGrafico()" [filtros]="filtrosVolume()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosVolume())" (filtrosChange)="atualizarFiltrosVolume($event)" (tentarNovamente)="graficosService.repetirVolume()" />
+              <fk-problemas-cozinha-chart [estado]="problemasGrafico()" [filtros]="filtrosProblemas()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosProblemas())" (filtrosChange)="atualizarFiltrosProblemas($event)" (tentarNovamente)="graficosService.repetirProblemas()" />
+              <fk-pedidos-canal-chart [estado]="canaisGrafico()" [filtros]="filtrosCanais()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosCanais())" (filtrosChange)="atualizarFiltrosCanais($event)" (tentarNovamente)="graficosService.repetirCanais()" />
+            </div>
+
+            <section class="card preview">
+              <div class="card__titulo preview__titulo">
+                <div><span>Acompanhamento ao vivo</span><h2>Preview operacional das mesas</h2></div>
+                <a routerLink="/gestor/mesas">Ver todas as mesas <fk-icon name="arrow-right" size=".9rem" /></a>
+              </div>
+              <div class="tabela-wrapper">
+                <table>
+                  <thead><tr><th>Mesa</th><th>Status</th><th>Garçom</th><th>Aberta há</th><th>Valor atual</th><th></th></tr></thead>
+                  <tbody>
+                    @for (mesa of mesasPreview(); track mesa.id) {
+                      <tr>
+                        <td><strong>#{{ mesa.numero.toString().padStart(2, '0') }}</strong></td>
+                        <td><span class="status" [class]="'status status--' + statusClasse(mesa)">{{ statusMesa(mesa) }}</span></td>
+                        <td>{{ mesa.garcom ?? 'Não atribuído' }}</td>
+                        <td>{{ tempoMesaAberta(mesa) }}</td>
+                        <td>{{ valorMesa(mesa) | currency: 'BRL' }}</td>
+                        <td><a routerLink="/gestor/mesas" [queryParams]="{ mesa: mesa.id, abrirDetalhes: true }">Gerenciar</a></td>
+                      </tr>
+                    } @empty {
+                      <tr><td colspan="6" class="tabela-vazia">Nenhuma mesa disponível para exibição.</td></tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+          </div>
+
+          <aside class="insights">
+            <section class="card alertas" [class.alertas--notificacao]="alertasAnimando()">
+              <div class="card__titulo">
+                <div><span>Atenção necessária</span><h2>Alertas operacionais</h2></div>
+                <i class="alertas__notificacao" aria-hidden="true"><fk-icon name="bell-ringing" size="1rem" /></i>
+              </div>
+              <ul>
+                <li [class.alertas__item--ativo]="resumo().problemas > 0"><a routerLink="/gestor/mesas" [queryParams]="{ filtro: 'PROBLEMAS' }"><i><fk-icon name="warning-circle" size="1rem" /></i><div><strong>{{ resumo().problemas }} problemas identificados</strong><span>Confira as mesas com maior criticidade.</span></div></a></li>
+                <li [class.alertas__item--ativo]="mesasSemGarcom() > 0"><a routerLink="/gestor/mesas" [queryParams]="{ filtro: 'SEM_GARCOM' }"><i><fk-icon name="user-circle" size="1rem" /></i><div><strong>{{ mesasSemGarcom() }} mesas ocupadas sem garçom</strong><span>Atribua um responsável aos atendimentos já abertos.</span></div></a></li>
+                <li [class.alertas__item--ativo]="resumo().prontos > 0"><a routerLink="/gestor/mesas" [queryParams]="{ filtro: 'PRONTOS' }"><i><fk-icon name="check-circle" size="1rem" /></i><div><strong>{{ resumo().prontos }} pedidos prontos</strong><span>Aguardando retirada pela equipe.</span></div></a></li>
+              </ul>
+              <a routerLink="/gestor/mesas">Ir para gestão de mesas</a>
+            </section>
+
+            <section class="card carga">
+              <div class="card__titulo"><div><span>Distribuição da equipe</span><h2>Carga dos garçons</h2></div></div>
+              <ul>
+                @for (garcom of cargaGarcons().slice(0, 4); track garcom.id) {
+                  <li><a routerLink="/gestor/mesas" [queryParams]="{ garcomId: garcom.id }"><fk-waiter-load-item [name]="garcom.nome" [initial]="iniciais(garcom.nome)" [color]="garcom.cor" [count]="garcom.mesasAtivas" [barWidth]="larguraCarga(garcom.mesasAtivas)" [level]="nivelCarga(garcom.mesasAtivas)" /></a></li>
+                } @empty { <li class="lista-vazia">Nenhum garçom disponível.</li> }
+              </ul>
+            </section>
+
+            <section class="card ranking-produtos">
+              <div class="card__titulo ranking-produtos__titulo">
+                <div><span>Preferência dos clientes</span><h2>Produtos mais pedidos</h2></div>
+                <select aria-label="Período do ranking de produtos" [ngModel]="periodoRanking()" (ngModelChange)="atualizarPeriodoRanking($event)">
+                  <option value="HOJE">Hoje</option>
+                  <option value="ULTIMOS_7_DIAS">7 dias</option>
+                  <option value="ULTIMOS_30_DIAS">30 dias</option>
+                </select>
+              </div>
+              @if (rankingProdutos(); as ranking) {
+                @if (ranking.status === 'carregando') {
+                  <div class="ranking-produtos__estado" role="status">Atualizando ranking...</div>
+                } @else if (ranking.status === 'erro') {
+                  <div class="ranking-produtos__estado ranking-produtos__estado--erro" role="alert">
+                    <span>{{ ranking.mensagem }}</span>
+                    <button type="button" (click)="graficosService.repetirRanking()">Tentar novamente</button>
+                  </div>
+                } @else {
+                  <ol>
+                    @for (produto of ranking.dados.dados; track produto.idProduto; let posicao = $index) {
+                      <li>
+                        <strong>{{ posicao + 1 }}º</strong>
+                        <span title="{{ produto.nomeProduto }}">{{ produto.nomeProduto }}</span>
+                        <b>{{ produto.quantidade }}</b>
+                      </li>
+                    } @empty {
+                      <li class="lista-vazia">Nenhum produto pedido neste período.</li>
+                    }
+                  </ol>
+                }
+              }
+            </section>
+
+            <section class="card atividade atividade--principal atividade--lateral">
+              <div class="card__titulo">
+                <div><span>Histórico recente</span><h2>Atendimentos realizados</h2></div>
+              </div>
+              <ul>
+                @for (atendimento of historicoRecente(); track atendimento.id) {
+                  <li>
+                    <button type="button" (click)="abrirDetalhesAtendimento(atendimento)">
+                      <i></i>
+                      <div><strong>Mesa {{ atendimento.numeroMesa.toString().padStart(2, '0') }} finalizada</strong><span>{{ atendimento.valorFinal | currency: 'BRL' }} · {{ atendimento.nomeGarcom ?? 'Sem garçom' }}</span></div>
+                      <time>{{ atendimento.dataFechamento | date: 'dd/MM, HH:mm' }}</time>
+                      <fk-icon name="arrow-right" size=".8rem" />
+                    </button>
+                  </li>
+                } @empty { <li class="lista-vazia">Nenhum atendimento finalizado encontrado.</li> }
+              </ul>
+              <footer class="atividade__rodape">
+                <button type="button" (click)="abrirHistoricoCompleto()">Ver histórico completo <fk-icon name="arrow-right" size=".9rem" /></button>
+              </footer>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  @if (historicoCompletoAberto()) {
+    <div class="overlay" (click)="historicoCompletoAberto.set(false)">
+      <section class="modal modal--historico" role="dialog" aria-modal="true" aria-labelledby="titulo-historico" (click)="$event.stopPropagation()">
+        <header class="modal__cabecalho">
+          <div><span>Atendimentos realizados</span><h2 id="titulo-historico">Histórico completo</h2></div>
+          <button type="button" aria-label="Fechar histórico" (click)="historicoCompletoAberto.set(false)"><span aria-hidden="true">×</span></button>
+        </header>
+
+        <div class="historico-barra">
+          <label class="historico-filtros__busca"><fk-icon name="magnifying-glass" size="1rem" /><input type="search" placeholder="Buscar mesa, garçom ou código" [ngModel]="buscaHistorico()" (ngModelChange)="atualizarBuscaHistorico($event)" /></label>
+          <button type="button" class="historico-filtros__botao" [class.ativo]="filtrosHistoricoAbertos()" (click)="filtrosHistoricoAbertos.update(aberto => !aberto)">
+            <fk-icon name="funnel" size="1rem" /> Filtros
+            @if (quantidadeFiltrosHistorico() > 0) { <span>{{ quantidadeFiltrosHistorico() }}</span> }
+          </button>
+        </div>
+
+        @if (filtrosHistoricoAbertos()) {
+          <div class="historico-filtros">
+            <label><span>Garçom</span><select [ngModel]="garcomHistorico()" (ngModelChange)="atualizarGarcomHistorico($event)"><option [ngValue]="null">Todos os garçons</option>@for (garcom of garconsDoHistorico(); track garcom.id) { <option [ngValue]="garcom.id">{{ garcom.nome }}</option> }</select></label>
+            <label><span>Período rápido</span><select [ngModel]="periodoHistorico()" (ngModelChange)="atualizarPeriodoHistorico($event)"><option value="TODOS">Todo o período</option><option value="HOJE">Hoje</option><option value="7_DIAS">Últimos 7 dias</option><option value="30_DIAS">Últimos 30 dias</option></select></label>
+            <label><span>Data inicial</span><input type="date" [ngModel]="dataInicialHistorico()" (ngModelChange)="atualizarDataInicialHistorico($event)" /></label>
+            <label><span>Data final</span><input type="date" [ngModel]="dataFinalHistorico()" (ngModelChange)="atualizarDataFinalHistorico($event)" /></label>
+            <button type="button" class="historico-filtros__limpar" [disabled]="quantidadeFiltrosHistorico() === 0" (click)="limparFiltrosHistorico()">Limpar filtros</button>
+          </div>
+        }
+
+        <div class="historico-lista">
+          @for (atendimento of historicoPagina(); track atendimento.id) {
+            <button type="button" class="historico-registro" (click)="abrirDetalhesAtendimento(atendimento)">
+              <strong>Mesa {{ atendimento.numeroMesa.toString().padStart(2, '0') }}</strong>
+              <span>{{ atendimento.nomeGarcom ?? 'Sem garçom' }}</span>
+              <span>{{ atendimento.dataFechamento | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <span>{{ atendimento.totalPedidos }} pedidos · {{ atendimento.totalItens }} itens</span>
+              <b>{{ atendimento.valorFinal | currency: 'BRL' }}</b>
+              <fk-icon name="arrow-right" size=".85rem" />
+            </button>
+          } @empty { <div class="historico-vazio">Nenhum atendimento corresponde aos filtros selecionados.</div> }
+        </div>
+
+        <footer class="historico-paginacao">
+          <span>{{ historicoFiltrado().length }} registros</span>
+          <div><button type="button" [disabled]="paginaHistorico() === 1" (click)="paginaAnteriorHistorico()">Anterior</button><strong>{{ paginaHistorico() }} de {{ totalPaginasHistorico() }}</strong><button type="button" [disabled]="paginaHistorico() >= totalPaginasHistorico()" (click)="proximaPaginaHistorico()">Próxima</button></div>
+        </footer>
+      </section>
+    </div>
+  }
+
+  @if (atendimentoSelecionado(); as atendimento) {
+    <div class="overlay overlay--detalhe" (click)="atendimentoSelecionado.set(null)">
+      <section class="modal modal--detalhe" role="dialog" aria-modal="true" aria-labelledby="titulo-atendimento" (click)="$event.stopPropagation()">
+        <header class="modal__cabecalho">
+          <div><span>Atendimento #{{ atendimento.idAtendimento }}</span><h2 id="titulo-atendimento">Mesa {{ atendimento.numeroMesa.toString().padStart(2, '0') }}</h2></div>
+          <button type="button" aria-label="Fechar detalhes" (click)="atendimentoSelecionado.set(null)"><span aria-hidden="true">×</span></button>
+        </header>
+        <div class="detalhe-destaque"><div><span>Valor final</span><strong>{{ atendimento.valorFinal | currency: 'BRL' }}</strong></div><div><span>Duração</span><strong>{{ tempoLabel(atendimento.duracaoMinutos) }}</strong></div></div>
+        <dl class="detalhe-grid">
+          <div><dt>Garçom responsável</dt><dd>{{ atendimento.nomeGarcom ?? 'Não atribuído' }}</dd></div>
+          <div><dt>Código do atendimento</dt><dd>{{ atendimento.codigoSessao }}</dd></div>
+          <div><dt>Abertura</dt><dd>{{ atendimento.dataAbertura | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+          <div><dt>Fechamento</dt><dd>{{ atendimento.dataFechamento | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+          <div><dt>Total de pedidos</dt><dd>{{ atendimento.totalPedidos }}</dd></div>
+          <div><dt>Total de itens</dt><dd>{{ atendimento.totalItens }}</dd></div>
+        </dl>
+        <button type="button" class="modal__resumo-pedido" (click)="abrirResumoPedidos(atendimento)"><fk-icon name="call-bell" size="1rem" /> Resumo do pedido</button>
+        <button type="button" class="modal__fechar" (click)="atendimentoSelecionado.set(null)">Fechar detalhes</button>
+      </section>
+    </div>
+  }
+
+  @if (atendimentoResumoPedidos(); as atendimento) {
+    <div class="overlay overlay--pedidos" (click)="fecharResumoPedidos()">
+      <section class="modal modal--resumo-pedidos" role="dialog" aria-modal="true" aria-labelledby="titulo-resumo-pedidos" (click)="$event.stopPropagation()">
+        <header class="modal__cabecalho">
+          <div><span>Ordem de serviço #{{ atendimento.idAtendimento }}</span><h2 id="titulo-resumo-pedidos">Resumo dos pedidos · Mesa {{ atendimento.numeroMesa.toString().padStart(2, '0') }}</h2></div>
+          <button type="button" aria-label="Fechar resumo dos pedidos" (click)="fecharResumoPedidos()"><span aria-hidden="true">×</span></button>
+        </header>
+
+        @if (carregandoResumoPedidos()) {
+          <div class="pedidos-estado" role="status"><span class="spinner-resumo"></span><strong>Carregando pedidos...</strong></div>
+        } @else if (erroResumoPedidos(); as erro) {
+          <div class="pedidos-estado pedidos-estado--erro" role="alert"><fk-icon name="warning-circle" size="1.5rem" /><strong>{{ erro }}</strong><button type="button" (click)="recarregarResumoPedidos()">Tentar novamente</button></div>
+        } @else if (pedidosResumo().length > 0) {
+          <div class="resumo-pedidos-lista">
+            @for (pedido of pedidosResumo(); track pedido.id) {
+              <article class="resumo-pedido" [class.resumo-pedido--cancelado]="pedido.status === 'CANCELADO'">
+                <div class="resumo-pedido__cabecalho">
+                  <div><span>Pedido</span><strong>#{{ pedido.codigo || pedido.id }}</strong><small>{{ pedido.dataCriacao | date: 'dd/MM/yyyy HH:mm' }}</small></div>
+                  <span class="resumo-pedido__status" [class]="'resumo-pedido__status resumo-pedido__status--' + statusPedidoClasse(pedido.status)">{{ statusPedidoDetalhe(pedido.status) }}</span>
+                </div>
+
+                <div class="resumo-progresso" aria-label="Progresso do pedido">
+                  @for (etapa of etapasPedido; track etapa.status) {
+                    <div class="resumo-progresso__etapa" [class.resumo-progresso__etapa--concluida]="etapaConcluida(pedido.status, etapa.status)"><span><fk-icon name="check" size=".65rem" /></span><small>{{ etapa.label }}</small></div>
+                  }
+                </div>
+
+                <ul class="resumo-itens">
+                  @for (item of pedido.itens; track item.id) {
+                    <li [class.resumo-itens__item--removido]="item.status === 'REMOVIDO'">
+                      <div class="resumo-itens__linha"><div><strong>{{ item.quantidade }}× {{ item.nomeProduto || ('Produto #' + item.idProduto) }}</strong>@if (item.status === 'REMOVIDO') { <span>Removido</span> }</div><strong>{{ item.precoUnitario * item.quantidade | currency: 'BRL' }}</strong></div>
+                      <small>{{ item.precoUnitario | currency: 'BRL' }} por unidade</small>
+                      @if (item.observacao) { <p><fk-icon name="mail" size=".8rem" /> {{ item.observacao }}</p> }
+                    </li>
+                  } @empty { <li class="resumo-itens__vazio">Nenhum item retornado para este pedido.</li> }
+                </ul>
+
+                <div class="resumo-pedido__total"><span>{{ pedido.status === 'CANCELADO' ? 'Total cobrado' : 'Total do pedido' }}</span><strong>{{ valorPedidoDetalhado(pedido) | currency: 'BRL' }}</strong></div>
+              </article>
+            }
+          </div>
+          <div class="resumo-pedidos-totais"><div><span>Total de itens</span><strong>{{ totalItensResumoPedidos() }}</strong></div><div><span>Valor total da conta</span><strong>{{ valorTotalResumoPedidos() | currency: 'BRL' }}</strong></div></div>
+        } @else {
+          <div class="pedidos-estado"><fk-icon name="call-bell" size="1.6rem" /><strong>Nenhum pedido registrado neste atendimento.</strong></div>
+        }
+      </section>
+    </div>
+  }
+}

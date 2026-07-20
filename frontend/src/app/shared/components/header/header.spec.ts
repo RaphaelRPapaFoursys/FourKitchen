@@ -30,6 +30,14 @@ describe('Topbar', () => {
     expect(count?.textContent?.trim()).toBe('3');
   });
 
+  it('oculta somente a busca quando configurado para uma tela sem pesquisa', () => {
+    fixture.componentRef.setInput('mostrarBusca', false);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.topbar__search')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.topbar__acoes')).not.toBeNull();
+  });
+
   it('keeps only one popover open at a time', () => {
     const notifications: HTMLButtonElement = fixture.nativeElement.querySelector('.topbar__notificacao');
     const avatar: HTMLButtonElement = fixture.nativeElement.querySelector('.user-menu__trigger');

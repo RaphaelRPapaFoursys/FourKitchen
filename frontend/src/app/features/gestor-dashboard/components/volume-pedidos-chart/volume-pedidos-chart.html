@@ -1,0 +1,15 @@
+<section class="chart-card" aria-labelledby="volume-chart-title">
+  <header><div><span>Demanda no período</span><h2 id="volume-chart-title">Volume de pedidos por horário</h2></div><fk-dashboard-chart-filter [filtros]="filtros" [mesas]="mesas" (filtrosChange)="filtrosChange.emit($event)" /></header>
+  @if (estado.status === 'carregando') {
+    <div class="estado" role="status"><i></i><span>Carregando gráfico...</span></div>
+  } @else if (estado.status === 'erro') {
+    <div class="estado estado--erro" role="alert"><span>{{ estado.mensagem }}</span><button type="button" (click)="tentarNovamente.emit()">Tentar novamente</button></div>
+  } @else if (estado.dados.totalPedidos === 0) {
+    <div class="estado"><span>{{ filtrosAtivos ? 'Nenhum pedido corresponde aos filtros aplicados. Ajuste ou limpe os filtros para ampliar a busca.' : 'Ainda não há pedidos registrados hoje.' }}</span></div>
+  } @else {
+    @if (histograma(estado.dados); as resumoHistograma) {
+      <div class="resumo"><div><span>Total no período</span><strong>{{ estado.dados.totalPedidos }}</strong></div><p>Maior volume às {{ resumoHistograma.horarioPico }}: <strong>{{ resumoHistograma.quantidadePico }} pedidos</strong></p></div>
+      <div class="grafico"><fk-dashboard-chart [config]="config(estado.dados)" /></div>
+    }
+  }
+</section>

@@ -1,0 +1,15 @@
+<section class="chart-card" aria-labelledby="canais-chart-title">
+  <header><div><span>Origem da demanda</span><h2 id="canais-chart-title">Pedidos por canal</h2></div><fk-dashboard-chart-filter [filtros]="filtros" [mesas]="mesas" (filtrosChange)="filtrosChange.emit($event)" /></header>
+  @if (estado.status === 'carregando') {
+    <div class="estado" role="status"><i></i><span>Carregando gráfico...</span></div>
+  } @else if (estado.status === 'erro') {
+    <div class="estado estado--erro" role="alert"><span>{{ estado.mensagem }}</span><button type="button" (click)="tentarNovamente.emit()">Tentar novamente</button></div>
+  } @else if (estado.dados.totalPedidos === 0) {
+    <div class="estado"><span>{{ filtrosAtivos ? 'Nenhum pedido corresponde aos filtros aplicados. Ajuste ou limpe os filtros para ampliar a busca.' : 'Ainda não há pedidos registrados hoje.' }}</span></div>
+  } @else {
+    <div class="corpo">
+      <div class="rosca"><fk-dashboard-chart [config]="config(estado.dados)" /><div><strong>{{ estado.dados.totalPedidos }}</strong><span>pedidos</span></div></div>
+      <ul>@for (item of estado.dados.dados; track item.canal) { <li [class]="'canal canal--' + item.canal.toLowerCase()"><i></i><span>{{ item.descricao }}</span><strong>{{ item.quantidade }}</strong><small>{{ item.percentual.toFixed(2) }}%</small></li> }</ul>
+    </div>
+  }
+</section>

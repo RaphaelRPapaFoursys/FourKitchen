@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.GestorMesaService;
@@ -66,6 +67,38 @@ public class GestorMesaController {
         return ResponseEntity.ok(gestorMesaService.listarMesas(authorization));
     }
 
+    @GetMapping("/mesas/{id}/pedidos")
+    @Operation(
+            summary = "Lista os pedidos detalhados de uma mesa",
+            description = "Retorna código, status, progresso e itens dos pedidos do atendimento atual para o modal do gestor."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedidos detalhados retornados com sucesso", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PedidoDetalheGarcomResponse.class)))),
+            @ApiResponse(responseCode = "400", description = "Mesa sem atendimento aberto", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "404", description = "Mesa não encontrada", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
+            @ApiResponse(responseCode = "502", description = "Serviço de mesas ou pedidos indisponível", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<List<PedidoDetalheGarcomResponse>> listarPedidosDetalhados(
+            @PathVariable Integer id
+    ) {
+        return ResponseEntity.ok(gestorMesaService.listarPedidosDetalhados(id));
+    }
+
+    @GetMapping("/atendimentos/{idAtendimento}/pedidos")
+    @Operation(
+            summary = "Lista os pedidos detalhados de um atendimento",
+            description = "Retorna os pedidos e itens de um atendimento ativo ou finalizado para o resumo historico do gestor."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedidos detalhados retornados com sucesso", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PedidoDetalheGarcomResponse.class)))),
+            @ApiResponse(responseCode = "502", description = "Servico de pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<List<PedidoDetalheGarcomResponse>> listarPedidosDetalhadosPorAtendimento(
+            @PathVariable Integer idAtendimento
+    ) {
+        return ResponseEntity.ok(gestorMesaService.listarPedidosDetalhadosPorAtendimento(idAtendimento));
+    }
+
     @GetMapping("/mesas/paginadas")
     @Operation(
             summary = "Lista mesas paginadas para o painel do gestor",
@@ -121,7 +154,7 @@ public class GestorMesaController {
                     description = "Resumo retornado com sucesso",
                     content = @Content(
                             schema = @Schema(implementation = ResumoPainelResponse.class),
-                            examples = @ExampleObject(value = "{\"mesasLivres\":12,\"emPreparo\":5,\"prontos\":3,\"problemas\":2,\"ticketMedio\":82.50,\"cargaGarcons\":[{\"id\":7,\"nome\":\"Amanda Souza\",\"mesasAtivas\":3}]}")
+                            examples = @ExampleObject(value = "{\"mesasLivres\":12,\"mesasSemGarcom\":2,\"emPreparo\":5,\"prontos\":3,\"problemas\":2,\"ticketMedio\":82.50,\"cargaGarcons\":[{\"id\":7,\"nome\":\"Amanda Souza\",\"mesasAtivas\":3}]}")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),

@@ -1,0 +1,10 @@
+<section class="card-grafico">
+  <header><div><span>Ocupação atual</span><h2>Taxa de ocupação</h2></div><small>Tempo real</small></header>
+  <div class="corpo">
+    <div class="rosca"><fk-dashboard-chart [config]="config" /><div><strong>{{ percentual }}%</strong><span>ocupado</span></div></div>
+    <ul>
+      <li><i class="ocupadas"></i><span>Ocupadas</span><strong>{{ ocupadas }}</strong></li>
+      <li><i class="livres"></i><span>Disponíveis</span><strong>{{ livres }}</strong></li>
+    </ul>
+  </div>
+</section>

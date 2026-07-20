@@ -1428,7 +1428,8 @@ button:disabled {
   font-size: 0.82rem;
 }
 
-.modal-order-card .warning-button {
+.modal-order-card .warning-button,
+.modal-order-card .delivery-button {
   width: auto;
   min-height: 2.15rem;
   margin: 0;
@@ -1450,15 +1451,10 @@ button:disabled {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  width: auto;
-  min-height: 2.15rem;
-  margin: 0;
-  padding: 0.4rem 0.65rem;
   border: 1px solid var(--fk-green);
   border-radius: var(--fk-radius-control);
   background: var(--fk-green-soft);
   color: var(--fk-green-strong);
-  font-size: 0.73rem;
   font-weight: 800;
 }
 
@@ -1949,10 +1945,7 @@ button:disabled {
     flex-direction: column;
   }
 
-  .modal-order-card .warning-button {
-    width: 100%;
-  }
-
+  .modal-order-card .warning-button,
   .modal-order-card .delivery-button {
     width: 100%;
   }

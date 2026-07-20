@@ -1,8 +1,10 @@
-<header class="topbar">
-  <div class="topbar__search">
-    <fk-icon name="magnifying-glass" size="1.15rem" />
-    <input type="search" [placeholder]="buscaPlaceholder()" [ngModel]="busca()" (ngModelChange)="busca.set($event)" />
-  </div>
+<header class="topbar" [class.topbar--sem-busca]="!mostrarBusca()">
+  @if (mostrarBusca()) {
+    <div class="topbar__search">
+      <fk-icon name="magnifying-glass" size="1.15rem" />
+      <input type="search" [placeholder]="buscaPlaceholder()" [ngModel]="busca()" (ngModelChange)="busca.set($event)" />
+    </div>
+  }
 
   <div class="topbar__acoes">
     <div class="topbar__notificacoes">

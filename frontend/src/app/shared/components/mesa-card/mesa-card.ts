@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { Criticidade } from '../../../core/constants/urgencia.constants';
@@ -22,7 +21,7 @@ const NOMES_ETAPAS: Record<number, string> = {
 @Component({
   selector: 'fk-mesa-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, Badge, Icon, ProgressBar],
+  imports: [Badge, Icon, ProgressBar],
   host: {
     class: 'mesa-card',
     '[id]': "'mesa-card-' + mesa().numero",
@@ -53,26 +52,13 @@ export class MesaCard {
   protected readonly temAcaoSecundaria = computed(
     () =>
       this.mesa().status === 'OCUPADA' &&
-      this.acaoPrimaria().tipo !== 'VER_PEDIDO' &&
-      (this.criticidade() === 'critico' || this.criticidade() === 'atencao'),
+      this.mesa().pedidos.length > 0 &&
+      this.acaoPrimaria().tipo !== 'VER_PEDIDO',
   );
 
   protected readonly acaoPrimariaIndisponivel = computed(
-    () => this.bloqueado() || this.acaoPrimaria().tipo === 'VER_PEDIDO',
+    () => this.acaoPrimaria().tipo !== 'VER_PEDIDO' && this.bloqueado(),
   );
-
-  protected readonly valorConta = computed<number | null>(() => {
-    const pedidos = this.mesa().pedidos;
-    if (pedidos.length === 0) return null;
-    return pedidos.reduce((total, pedido) => total + pedido.valor, 0);
-  });
-
-  protected readonly itensResumo = computed<string>(() => {
-    const pedidos = this.mesa().pedidos;
-    if (pedidos.length === 0) return '';
-    const totalItens = pedidos.reduce((total, pedido) => total + pedido.totalItens, 0);
-    return `${totalItens} itens`;
-  });
 
   protected statusPedidoLabel(): string {
     switch (this.mesa().statusPedido) {
