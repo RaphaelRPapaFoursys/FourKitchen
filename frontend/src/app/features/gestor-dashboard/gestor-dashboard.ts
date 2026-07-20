@@ -4,7 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { HistoricoAtendimento, MesaPainel } from '../../core/models/painel.models';
+import { HistoricoAtendimento, MesaPainel, PedidoDetalheGestor } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { PainelService } from '../../core/services/painel';
 import { Topbar } from '../../shared/components/header/header';
@@ -28,17 +28,31 @@ export class GestorDashboard {
   private alertaAnimacaoTimer: ReturnType<typeof setTimeout> | null = null;
   private alertaReinicioTimer: ReturnType<typeof setTimeout> | null = null;
   private ultimoResumoAlertas: { problemas: number; semGarcom: number; prontos: number } | null = null;
+  private sequenciaResumoPedidos = 0;
 
   protected readonly usuario = toSignal(this.authService.usuario$, {
     initialValue: this.authService.getCurrentUser(),
   });
   protected readonly alertasAnimando = signal(false);
   protected readonly atendimentoSelecionado = signal<HistoricoAtendimento | null>(null);
+  protected readonly atendimentoResumoPedidos = signal<HistoricoAtendimento | null>(null);
+  protected readonly pedidosResumo = signal<PedidoDetalheGestor[]>([]);
+  protected readonly carregandoResumoPedidos = signal(false);
+  protected readonly erroResumoPedidos = signal<string | null>(null);
   protected readonly historicoCompletoAberto = signal(false);
+  protected readonly filtrosHistoricoAbertos = signal(false);
   protected readonly buscaHistorico = signal('');
   protected readonly garcomHistorico = signal<number | null>(null);
   protected readonly periodoHistorico = signal<'TODOS' | 'HOJE' | '7_DIAS' | '30_DIAS'>('TODOS');
+  protected readonly dataInicialHistorico = signal('');
+  protected readonly dataFinalHistorico = signal('');
   protected readonly paginaHistorico = signal(1);
+  protected readonly etapasPedido = [
+    { status: 'ENVIADO_COZINHA', label: 'Recebido' },
+    { status: 'EM_PREPARO', label: 'Preparo' },
+    { status: 'PRONTO', label: 'Pronto' },
+    { status: 'ENTREGUE', label: 'Entregue' },
+  ] as const;
   protected readonly resumo = this.painel.resumo;
   protected readonly mesas = this.painel.mesas;
   protected readonly cargaGarcons = this.painel.cargaGarcons;
@@ -62,9 +76,10 @@ export class GestorDashboard {
   ));
   protected readonly mesasPreview = computed(() => this.mesas().slice(0, 5));
   protected readonly mesasSemGarcom = computed(() => this.resumo().mesasSemGarcom);
-  protected readonly historicoOrdenado = computed(() => [...this.historicoAtendimentos()].sort(
-    (a, b) => new Date(b.dataFechamento).getTime() - new Date(a.dataFechamento).getTime(),
-  ));
+  protected readonly historicoOrdenado = computed(() => [...this.historicoAtendimentos()].sort((a, b) => {
+    const diferencaData = this.timestampHistorico(b.dataFechamento) - this.timestampHistorico(a.dataFechamento);
+    return diferencaData || b.id - a.id;
+  }));
   protected readonly historicoRecente = computed(() => this.historicoOrdenado().slice(0, 5));
   protected readonly garconsDoHistorico = computed(() => {
     const garcons = new Map<number, string>();
@@ -81,6 +96,8 @@ export class GestorDashboard {
     const busca = this.normalizarTexto(this.buscaHistorico());
     const garcomId = this.garcomHistorico();
     const periodo = this.periodoHistorico();
+    const dataInicial = this.dataInicialHistorico();
+    const dataFinal = this.dataFinalHistorico();
     const agora = new Date();
     const inicioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).getTime();
     const limitePeriodo = periodo === '7_DIAS'
@@ -89,16 +106,23 @@ export class GestorDashboard {
 
     return this.historicoOrdenado().filter(atendimento => {
       const fechamento = new Date(atendimento.dataFechamento).getTime();
-      const correspondePeriodo = periodo === 'HOJE'
+      const inicioPersonalizado = dataInicial ? new Date(`${dataInicial}T00:00:00`).getTime() : null;
+      const fimPersonalizado = dataFinal ? new Date(`${dataFinal}T23:59:59.999`).getTime() : null;
+      const correspondePeriodoRapido = periodo === 'HOJE'
         ? fechamento >= inicioHoje
         : limitePeriodo === null || fechamento >= limitePeriodo;
+      const correspondePeriodo = correspondePeriodoRapido
+        && (inicioPersonalizado === null || fechamento >= inicioPersonalizado)
+        && (fimPersonalizado === null || fechamento <= fimPersonalizado);
       const correspondeGarcom = garcomId === null || atendimento.idGarcom === garcomId;
-      const texto = this.normalizarTexto(
-        `${atendimento.numeroMesa} ${atendimento.nomeGarcom ?? ''} ${atendimento.codigoSessao}`,
-      );
-      return correspondePeriodo && correspondeGarcom && (busca === '' || texto.includes(busca));
+      return correspondePeriodo && correspondeGarcom && this.correspondeBuscaHistorico(atendimento, busca);
     });
   });
+  protected readonly quantidadeFiltrosHistorico = computed(() =>
+    (this.garcomHistorico() === null ? 0 : 1)
+    + (this.periodoHistorico() === 'TODOS' ? 0 : 1)
+    + (this.dataInicialHistorico() || this.dataFinalHistorico() ? 1 : 0),
+  );
   protected readonly totalPaginasHistorico = computed(() => Math.max(
     1,
     Math.ceil(this.historicoFiltrado().length / GestorDashboard.ITENS_HISTORICO_POR_PAGINA),
@@ -213,6 +237,30 @@ export class GestorDashboard {
 
   protected atualizarPeriodoHistorico(valor: 'TODOS' | 'HOJE' | '7_DIAS' | '30_DIAS'): void {
     this.periodoHistorico.set(valor);
+    if (valor !== 'TODOS') {
+      this.dataInicialHistorico.set('');
+      this.dataFinalHistorico.set('');
+    }
+    this.paginaHistorico.set(1);
+  }
+
+  protected atualizarDataInicialHistorico(valor: string): void {
+    this.dataInicialHistorico.set(valor);
+    if (valor) this.periodoHistorico.set('TODOS');
+    this.paginaHistorico.set(1);
+  }
+
+  protected atualizarDataFinalHistorico(valor: string): void {
+    this.dataFinalHistorico.set(valor);
+    if (valor) this.periodoHistorico.set('TODOS');
+    this.paginaHistorico.set(1);
+  }
+
+  protected limparFiltrosHistorico(): void {
+    this.garcomHistorico.set(null);
+    this.periodoHistorico.set('TODOS');
+    this.dataInicialHistorico.set('');
+    this.dataFinalHistorico.set('');
     this.paginaHistorico.set(1);
   }
 
@@ -222,6 +270,113 @@ export class GestorDashboard {
 
   protected proximaPaginaHistorico(): void {
     this.paginaHistorico.update(pagina => Math.min(this.totalPaginasHistorico(), pagina + 1));
+  }
+
+  protected abrirResumoPedidos(atendimento: HistoricoAtendimento): void {
+    this.atendimentoResumoPedidos.set(atendimento);
+    void this.carregarResumoPedidos(atendimento);
+  }
+
+  protected fecharResumoPedidos(): void {
+    this.sequenciaResumoPedidos++;
+    this.atendimentoResumoPedidos.set(null);
+    this.pedidosResumo.set([]);
+    this.erroResumoPedidos.set(null);
+  }
+
+  protected recarregarResumoPedidos(): void {
+    const atendimento = this.atendimentoResumoPedidos();
+    if (atendimento) void this.carregarResumoPedidos(atendimento);
+  }
+
+  protected totalItensResumoPedidos(): number {
+    return this.pedidosResumo().flatMap(pedido => pedido.itens)
+      .filter(item => item.status !== 'REMOVIDO')
+      .reduce((total, item) => total + item.quantidade, 0);
+  }
+
+  protected valorTotalResumoPedidos(): number {
+    return this.pedidosResumo().reduce((total, pedido) => total + this.valorPedidoDetalhado(pedido), 0);
+  }
+
+  protected valorPedidoDetalhado(pedido: PedidoDetalheGestor): number {
+    if (pedido.status === 'CANCELADO') return 0;
+    return pedido.itens
+      .filter(item => item.status !== 'REMOVIDO')
+      .reduce((total, item) => total + item.precoUnitario * item.quantidade, 0);
+  }
+
+  protected etapaConcluida(statusAtual: string, statusEtapa: string): boolean {
+    const ordem: Record<string, number> = {
+      ENVIADO_COZINHA: 0,
+      EM_PREPARO: 1,
+      AGUARDANDO_DECISAO: 1,
+      PROBLEMA_COZINHA: 1,
+      PRONTO: 2,
+      ENTREGUE: 3,
+      FINALIZADO: 3,
+    };
+    return (ordem[statusAtual] ?? -1) >= (ordem[statusEtapa] ?? 0);
+  }
+
+  protected statusPedidoClasse(status: string): string {
+    return status.toLocaleLowerCase('pt-BR').replaceAll('_', '-');
+  }
+
+  protected statusPedidoDetalhe(status: string): string {
+    switch (status) {
+      case 'ENVIADO_COZINHA': return 'Enviado à cozinha';
+      case 'EM_PREPARO': return 'Em preparo';
+      case 'AGUARDANDO_DECISAO': return 'Aguardando decisão';
+      case 'PROBLEMA_COZINHA': return 'Problema na cozinha';
+      case 'PRONTO': return 'Pronto';
+      case 'ENTREGUE': return 'Entregue';
+      case 'FINALIZADO': return 'Finalizado';
+      case 'CANCELADO': return 'Cancelado';
+      default: return status.replaceAll('_', ' ').toLocaleLowerCase('pt-BR');
+    }
+  }
+
+  private async carregarResumoPedidos(atendimento: HistoricoAtendimento): Promise<void> {
+    const sequencia = ++this.sequenciaResumoPedidos;
+    this.carregandoResumoPedidos.set(true);
+    this.erroResumoPedidos.set(null);
+    this.pedidosResumo.set([]);
+
+    try {
+      const pedidos = await this.painel.buscarPedidosDetalhadosPorAtendimento(atendimento.idAtendimento);
+      if (sequencia !== this.sequenciaResumoPedidos) return;
+      this.pedidosResumo.set([...pedidos].sort((a, b) => {
+        const diferencaData = this.timestampHistorico(b.dataCriacao) - this.timestampHistorico(a.dataCriacao);
+        return diferencaData || b.id - a.id;
+      }));
+    } catch {
+      if (sequencia !== this.sequenciaResumoPedidos) return;
+      this.erroResumoPedidos.set('Não foi possível carregar os pedidos deste atendimento.');
+    } finally {
+      if (sequencia === this.sequenciaResumoPedidos) this.carregandoResumoPedidos.set(false);
+    }
+  }
+
+  private correspondeBuscaHistorico(atendimento: HistoricoAtendimento, buscaNormalizada: string): boolean {
+    if (buscaNormalizada === '') return true;
+
+    const buscaMesa = buscaNormalizada.match(/^(?:mesa\s*#?|#)?0*(\d{1,3})$/);
+    if (buscaMesa) {
+      return atendimento.numeroMesa === Number(buscaMesa[1]);
+    }
+
+    if (/^\d+$/.test(buscaNormalizada)) {
+      return String(atendimento.codigoSessao) === buscaNormalizada
+        || String(atendimento.idAtendimento) === buscaNormalizada;
+    }
+
+    return this.normalizarTexto(atendimento.nomeGarcom ?? '').includes(buscaNormalizada);
+  }
+
+  private timestampHistorico(valor: string): number {
+    const timestamp = new Date(valor).getTime();
+    return Number.isNaN(timestamp) ? 0 : timestamp;
   }
 
   private normalizarTexto(valor: string): string {

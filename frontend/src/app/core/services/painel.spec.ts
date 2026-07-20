@@ -115,6 +115,13 @@ describe('PainelService', () => {
     expect(mesas.find(mesa => mesa.numero === 7)?.statusPedido).toBe('CONTA_ABERTA');
   });
 
+  it('busca pedidos detalhados de um atendimento histórico', async () => {
+    const promise = service.buscarPedidosDetalhadosPorAtendimento(80);
+    httpMock.expectOne(`${BASE_URL}/atendimentos/80/pedidos`).flush([]);
+
+    expect(await promise).toEqual([]);
+  });
+
   describe('cargaGarcons', () => {
     it('reflete a contagem de mesas ocupadas por garçom a partir da lista de garçons e mesas reais', () => {
       const carga = service.cargaGarcons();

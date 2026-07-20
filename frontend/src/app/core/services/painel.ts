@@ -319,6 +319,12 @@ export class PainelService {
     );
   }
 
+  buscarPedidosDetalhadosPorAtendimento(idAtendimento: number): Promise<PedidoDetalheGestor[]> {
+    return firstValueFrom(
+      this.http.get<PedidoDetalheGestor[]>(`${this.baseUrl}/atendimentos/${idAtendimento}/pedidos`),
+    );
+  }
+
   /** Últimos atendimentos fechados no expediente atual (mais recentes primeiro, já ordenados pelo backend). */
   readonly ultimosPedidos = computed<PedidoRecente[]>(() =>
     this.historicoExpedienteAtual()

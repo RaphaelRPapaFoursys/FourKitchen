@@ -60,6 +60,18 @@ class GestorMesaControllerTest {
     }
 
     @Test
+    void listarPedidosDetalhadosPorAtendimentoDeveRetornarOk() {
+        when(gestorMesaService.listarPedidosDetalhadosPorAtendimento(80)).thenReturn(List.of());
+
+        ResponseEntity<List<PedidoDetalheGarcomResponse>> response =
+                gestorMesaController.listarPedidosDetalhadosPorAtendimento(80);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(List.of(), response.getBody());
+        verify(gestorMesaService).listarPedidosDetalhadosPorAtendimento(80);
+    }
+
+    @Test
     void listarMesasPaginadasDeveRetornarOk() {
         MesaGestorResponse mesa = criarMesa();
         MesaGestorPaginadaResponse pagina = new MesaGestorPaginadaResponse(

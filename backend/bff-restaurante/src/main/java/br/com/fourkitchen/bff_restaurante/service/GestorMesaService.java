@@ -111,6 +111,17 @@ public class GestorMesaService {
         }
     }
 
+    public List<PedidoDetalheGarcomResponse> listarPedidosDetalhadosPorAtendimento(Integer idAtendimento) {
+        try {
+            return pedidoClient.listarPedidosDetalhadosPorAtendimento(idAtendimento)
+                    .stream()
+                    .map(this::mapearPedidoDetalhe)
+                    .toList();
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_PEDIDOS_INDISPONIVEL);
+        }
+    }
+
     private PedidoDetalheGarcomResponse mapearPedidoDetalhe(PedidoCozinhaResponse pedido) {
         List<ItemPedidoCozinhaResponse> itens = pedido.itens() == null ? List.of() : pedido.itens();
         return new PedidoDetalheGarcomResponse(
@@ -238,6 +249,15 @@ public class GestorMesaService {
         Map<Integer, String> nomesGarconsPorId = buscarNomesGarconsPorIdQuandoNecessario(authorization, historicos);
 
         return historicos.stream()
+                .sorted(Comparator
+                        .comparing(
+                                HistoricoAtendimentoClientResponse::dataFechamento,
+                                Comparator.nullsLast(Comparator.reverseOrder())
+                        )
+                        .thenComparing(
+                                HistoricoAtendimentoClientResponse::id,
+                                Comparator.nullsLast(Comparator.reverseOrder())
+                        ))
                 .map(historico -> mapearHistoricoAtendimento(historico, nomesGarconsPorId))
                 .toList();
     }
@@ -534,7 +554,7 @@ public class GestorMesaService {
             List<HistoricoAtendimentoClientResponse> historicos
     ) {
         boolean precisaBuscarGarcom = historicos.stream()
-                .anyMatch(historico -> historico.idGarcom() != null && nomeEmBranco(historico.nomeGarcom()));
+                .anyMatch(historico -> historico.idGarcom() != null);
 
         if (!precisaBuscarGarcom) {
             return Map.of();
@@ -762,9 +782,8 @@ public class GestorMesaService {
             HistoricoAtendimentoClientResponse historico,
             Map<Integer, String> nomesGarconsPorId
     ) {
-        String nomeGarcom = nomeEmBranco(historico.nomeGarcom())
-                ? nomesGarconsPorId.get(historico.idGarcom())
-                : historico.nomeGarcom();
+        String nomeAtual = nomesGarconsPorId.get(historico.idGarcom());
+        String nomeGarcom = nomeEmBranco(nomeAtual) ? historico.nomeGarcom() : nomeAtual;
 
         return new HistoricoAtendimentoResponse(
                 historico.id(),

@@ -84,6 +84,21 @@ public class GestorMesaController {
         return ResponseEntity.ok(gestorMesaService.listarPedidosDetalhados(id));
     }
 
+    @GetMapping("/atendimentos/{idAtendimento}/pedidos")
+    @Operation(
+            summary = "Lista os pedidos detalhados de um atendimento",
+            description = "Retorna os pedidos e itens de um atendimento ativo ou finalizado para o resumo historico do gestor."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedidos detalhados retornados com sucesso", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PedidoDetalheGarcomResponse.class)))),
+            @ApiResponse(responseCode = "502", description = "Servico de pedidos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
+    })
+    public ResponseEntity<List<PedidoDetalheGarcomResponse>> listarPedidosDetalhadosPorAtendimento(
+            @PathVariable Integer idAtendimento
+    ) {
+        return ResponseEntity.ok(gestorMesaService.listarPedidosDetalhadosPorAtendimento(idAtendimento));
+    }
+
     @GetMapping("/mesas/paginadas")
     @Operation(
             summary = "Lista mesas paginadas para o painel do gestor",

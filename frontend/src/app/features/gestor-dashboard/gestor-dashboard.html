@@ -158,16 +158,23 @@
           <button type="button" aria-label="Fechar histórico" (click)="historicoCompletoAberto.set(false)"><span aria-hidden="true">×</span></button>
         </header>
 
-        <div class="historico-filtros">
+        <div class="historico-barra">
           <label class="historico-filtros__busca"><fk-icon name="magnifying-glass" size="1rem" /><input type="search" placeholder="Buscar mesa, garçom ou código" [ngModel]="buscaHistorico()" (ngModelChange)="atualizarBuscaHistorico($event)" /></label>
-          <select aria-label="Filtrar por garçom" [ngModel]="garcomHistorico()" (ngModelChange)="atualizarGarcomHistorico($event)">
-            <option [ngValue]="null">Todos os garçons</option>
-            @for (garcom of garconsDoHistorico(); track garcom.id) { <option [ngValue]="garcom.id">{{ garcom.nome }}</option> }
-          </select>
-          <select aria-label="Filtrar por período" [ngModel]="periodoHistorico()" (ngModelChange)="atualizarPeriodoHistorico($event)">
-            <option value="TODOS">Todo o período</option><option value="HOJE">Hoje</option><option value="7_DIAS">Últimos 7 dias</option><option value="30_DIAS">Últimos 30 dias</option>
-          </select>
+          <button type="button" class="historico-filtros__botao" [class.ativo]="filtrosHistoricoAbertos()" (click)="filtrosHistoricoAbertos.update(aberto => !aberto)">
+            <fk-icon name="funnel" size="1rem" /> Filtros
+            @if (quantidadeFiltrosHistorico() > 0) { <span>{{ quantidadeFiltrosHistorico() }}</span> }
+          </button>
         </div>
+
+        @if (filtrosHistoricoAbertos()) {
+          <div class="historico-filtros">
+            <label><span>Garçom</span><select [ngModel]="garcomHistorico()" (ngModelChange)="atualizarGarcomHistorico($event)"><option [ngValue]="null">Todos os garçons</option>@for (garcom of garconsDoHistorico(); track garcom.id) { <option [ngValue]="garcom.id">{{ garcom.nome }}</option> }</select></label>
+            <label><span>Período rápido</span><select [ngModel]="periodoHistorico()" (ngModelChange)="atualizarPeriodoHistorico($event)"><option value="TODOS">Todo o período</option><option value="HOJE">Hoje</option><option value="7_DIAS">Últimos 7 dias</option><option value="30_DIAS">Últimos 30 dias</option></select></label>
+            <label><span>Data inicial</span><input type="date" [ngModel]="dataInicialHistorico()" (ngModelChange)="atualizarDataInicialHistorico($event)" /></label>
+            <label><span>Data final</span><input type="date" [ngModel]="dataFinalHistorico()" (ngModelChange)="atualizarDataFinalHistorico($event)" /></label>
+            <button type="button" class="historico-filtros__limpar" [disabled]="quantidadeFiltrosHistorico() === 0" (click)="limparFiltrosHistorico()">Limpar filtros</button>
+          </div>
+        }
 
         <div class="historico-lista">
           @for (atendimento of historicoPagina(); track atendimento.id) {
@@ -206,7 +213,57 @@
           <div><dt>Total de pedidos</dt><dd>{{ atendimento.totalPedidos }}</dd></div>
           <div><dt>Total de itens</dt><dd>{{ atendimento.totalItens }}</dd></div>
         </dl>
+        <button type="button" class="modal__resumo-pedido" (click)="abrirResumoPedidos(atendimento)"><fk-icon name="call-bell" size="1rem" /> Resumo do pedido</button>
         <button type="button" class="modal__fechar" (click)="atendimentoSelecionado.set(null)">Fechar detalhes</button>
+      </section>
+    </div>
+  }
+
+  @if (atendimentoResumoPedidos(); as atendimento) {
+    <div class="overlay overlay--pedidos" (click)="fecharResumoPedidos()">
+      <section class="modal modal--resumo-pedidos" role="dialog" aria-modal="true" aria-labelledby="titulo-resumo-pedidos" (click)="$event.stopPropagation()">
+        <header class="modal__cabecalho">
+          <div><span>Ordem de serviço #{{ atendimento.idAtendimento }}</span><h2 id="titulo-resumo-pedidos">Resumo dos pedidos · Mesa {{ atendimento.numeroMesa.toString().padStart(2, '0') }}</h2></div>
+          <button type="button" aria-label="Fechar resumo dos pedidos" (click)="fecharResumoPedidos()"><span aria-hidden="true">×</span></button>
+        </header>
+
+        @if (carregandoResumoPedidos()) {
+          <div class="pedidos-estado" role="status"><span class="spinner-resumo"></span><strong>Carregando pedidos...</strong></div>
+        } @else if (erroResumoPedidos(); as erro) {
+          <div class="pedidos-estado pedidos-estado--erro" role="alert"><fk-icon name="warning-circle" size="1.5rem" /><strong>{{ erro }}</strong><button type="button" (click)="recarregarResumoPedidos()">Tentar novamente</button></div>
+        } @else if (pedidosResumo().length > 0) {
+          <div class="resumo-pedidos-lista">
+            @for (pedido of pedidosResumo(); track pedido.id) {
+              <article class="resumo-pedido" [class.resumo-pedido--cancelado]="pedido.status === 'CANCELADO'">
+                <div class="resumo-pedido__cabecalho">
+                  <div><span>Pedido</span><strong>#{{ pedido.codigo || pedido.id }}</strong><small>{{ pedido.dataCriacao | date: 'dd/MM/yyyy HH:mm' }}</small></div>
+                  <span class="resumo-pedido__status" [class]="'resumo-pedido__status resumo-pedido__status--' + statusPedidoClasse(pedido.status)">{{ statusPedidoDetalhe(pedido.status) }}</span>
+                </div>
+
+                <div class="resumo-progresso" aria-label="Progresso do pedido">
+                  @for (etapa of etapasPedido; track etapa.status) {
+                    <div class="resumo-progresso__etapa" [class.resumo-progresso__etapa--concluida]="etapaConcluida(pedido.status, etapa.status)"><span><fk-icon name="check" size=".65rem" /></span><small>{{ etapa.label }}</small></div>
+                  }
+                </div>
+
+                <ul class="resumo-itens">
+                  @for (item of pedido.itens; track item.id) {
+                    <li [class.resumo-itens__item--removido]="item.status === 'REMOVIDO'">
+                      <div class="resumo-itens__linha"><div><strong>{{ item.quantidade }}× {{ item.nomeProduto || ('Produto #' + item.idProduto) }}</strong>@if (item.status === 'REMOVIDO') { <span>Removido</span> }</div><strong>{{ item.precoUnitario * item.quantidade | currency: 'BRL' }}</strong></div>
+                      <small>{{ item.precoUnitario | currency: 'BRL' }} por unidade</small>
+                      @if (item.observacao) { <p><fk-icon name="mail" size=".8rem" /> {{ item.observacao }}</p> }
+                    </li>
+                  } @empty { <li class="resumo-itens__vazio">Nenhum item retornado para este pedido.</li> }
+                </ul>
+
+                <div class="resumo-pedido__total"><span>{{ pedido.status === 'CANCELADO' ? 'Total cobrado' : 'Total do pedido' }}</span><strong>{{ valorPedidoDetalhado(pedido) | currency: 'BRL' }}</strong></div>
+              </article>
+            }
+          </div>
+          <div class="resumo-pedidos-totais"><div><span>Total de itens</span><strong>{{ totalItensResumoPedidos() }}</strong></div><div><span>Valor total da conta</span><strong>{{ valorTotalResumoPedidos() | currency: 'BRL' }}</strong></div></div>
+        } @else {
+          <div class="pedidos-estado"><fk-icon name="call-bell" size="1.6rem" /><strong>Nenhum pedido registrado neste atendimento.</strong></div>
+        }
       </section>
     </div>
   }

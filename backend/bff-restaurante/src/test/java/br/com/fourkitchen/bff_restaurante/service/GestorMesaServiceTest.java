@@ -89,6 +89,19 @@ class GestorMesaServiceTest {
     }
 
     @Test
+    void listarPedidosDetalhadosPorAtendimentoDevePermitirAtendimentoFinalizado() {
+        PedidoCozinhaResponse pedido = criarPedido(20, 80, "ENTREGUE", 2, new BigDecimal("29.90"));
+        when(pedidoClient.listarPedidosDetalhadosPorAtendimento(80)).thenReturn(List.of(pedido));
+
+        List<PedidoDetalheGarcomResponse> resultado = gestorMesaService.listarPedidosDetalhadosPorAtendimento(80);
+
+        assertEquals(1, resultado.size());
+        assertEquals("ENTREGUE", resultado.getFirst().status());
+        verify(pedidoClient).listarPedidosDetalhadosPorAtendimento(80);
+        verifyNoInteractions(mesaClient);
+    }
+
+    @Test
     void listarMesasDeveBuscarMesasEGarconsEMapearComNomeDoGarcom() {
         MesaClientResponse mesa = criarMesa(1, 10, 7);
         UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
@@ -279,7 +292,7 @@ class GestorMesaServiceTest {
                 1,
                 10,
                 7,
-                null,
+                "Nome Antigo",
                 new BigDecimal("149.70"),
                 3,
                 7,
