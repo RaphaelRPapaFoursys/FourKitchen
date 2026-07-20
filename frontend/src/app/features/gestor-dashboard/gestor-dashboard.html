@@ -48,32 +48,14 @@
         <div class="dashboard-grid">
           <div class="dashboard-grid__principal">
             <div class="graficos">
-              <section class="card grafico-ocupacao">
-                <div class="card__titulo"><div><span>Ocupação atual</span><h2>Taxa de ocupação</h2></div><small>Tempo real</small></div>
-                <div class="grafico-ocupacao__corpo">
-                  <div class="donut">
-                    <svg viewBox="0 0 120 120" aria-hidden="true">
-                      <circle class="donut__trilho" cx="60" cy="60" r="56" />
-                      <circle class="donut__valor" cx="60" cy="60" r="56" [attr.stroke-dasharray]="arcoOcupacao()" />
-                    </svg>
-                    <div><strong>{{ taxaOcupacao() }}%</strong><span>ocupado</span></div>
-                  </div>
-                  <ul>
-                    <li><i class="azul"></i><span>Ocupadas</span><strong>{{ mesasOcupadas() }}</strong></li>
-                    <li><i class="verde"></i><span>Disponíveis</span><strong>{{ resumo().mesasLivres }}</strong></li>
-                  </ul>
-                </div>
-              </section>
+              <fk-ocupacao-chart [ocupadas]="mesasOcupadas()" [livres]="resumo().mesasLivres" [percentual]="taxaOcupacao()" />
+              <fk-status-pedidos-chart [ativos]="mesasOcupadas()" [preparo]="resumo().emPreparo" [prontos]="resumo().prontos" [problemas]="resumo().problemas" />
+            </div>
 
-              <section class="card grafico-status">
-                <div class="card__titulo"><div><span>Fluxo da cozinha</span><h2>Status dos pedidos</h2></div><small>Agora</small></div>
-                <div class="barras">
-                  <div><span class="barra"><i class="barra--cinza" [style.height.%]="percentualStatus(mesasOcupadas())"></i></span><strong>{{ mesasOcupadas() }}</strong><small>Ativos</small></div>
-                  <div><span class="barra"><i class="barra--laranja" [style.height.%]="percentualStatus(resumo().emPreparo)"></i></span><strong>{{ resumo().emPreparo }}</strong><small>Preparo</small></div>
-                  <div><span class="barra"><i class="barra--verde" [style.height.%]="percentualStatus(resumo().prontos)"></i></span><strong>{{ resumo().prontos }}</strong><small>Prontos</small></div>
-                  <div><span class="barra"><i class="barra--vermelha" [style.height.%]="percentualStatus(resumo().problemas)"></i></span><strong>{{ resumo().problemas }}</strong><small>Problemas</small></div>
-                </div>
-              </section>
+            <div class="graficos-analiticos">
+              <fk-volume-pedidos-chart [estado]="volumeGrafico()" [filtros]="filtrosVolume()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosVolume())" (filtrosChange)="atualizarFiltrosVolume($event)" (tentarNovamente)="graficosService.repetirVolume()" />
+              <fk-problemas-cozinha-chart [estado]="problemasGrafico()" [filtros]="filtrosProblemas()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosProblemas())" (filtrosChange)="atualizarFiltrosProblemas($event)" (tentarNovamente)="graficosService.repetirProblemas()" />
+              <fk-pedidos-canal-chart [estado]="canaisGrafico()" [filtros]="filtrosCanais()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosCanais())" (filtrosChange)="atualizarFiltrosCanais($event)" (tentarNovamente)="graficosService.repetirCanais()" />
             </div>
 
             <section class="card preview">
@@ -102,24 +84,6 @@
               </div>
             </section>
 
-            <section class="card atividade atividade--principal">
-              <div class="card__titulo atividade__cabecalho">
-                <div><span>Histórico recente</span><h2>Atendimentos realizados</h2></div>
-                <button type="button" (click)="abrirHistoricoCompleto()">Ver histórico completo <fk-icon name="arrow-right" size=".9rem" /></button>
-              </div>
-              <ul>
-                @for (atendimento of historicoRecente(); track atendimento.id) {
-                  <li>
-                    <button type="button" (click)="abrirDetalhesAtendimento(atendimento)">
-                      <i></i>
-                      <div><strong>Mesa {{ atendimento.numeroMesa.toString().padStart(2, '0') }} finalizada</strong><span>{{ atendimento.valorFinal | currency: 'BRL' }} · {{ atendimento.nomeGarcom ?? 'Sem garçom' }}</span></div>
-                      <time>{{ atendimento.dataFechamento | date: 'dd/MM, HH:mm' }}</time>
-                      <fk-icon name="arrow-right" size=".8rem" />
-                    </button>
-                  </li>
-                } @empty { <li class="lista-vazia">Nenhum atendimento finalizado encontrado.</li> }
-              </ul>
-            </section>
           </div>
 
           <aside class="insights">
@@ -143,6 +107,60 @@
                   <li><a routerLink="/gestor/mesas" [queryParams]="{ garcomId: garcom.id }"><fk-waiter-load-item [name]="garcom.nome" [initial]="iniciais(garcom.nome)" [color]="garcom.cor" [count]="garcom.mesasAtivas" [barWidth]="larguraCarga(garcom.mesasAtivas)" [level]="nivelCarga(garcom.mesasAtivas)" /></a></li>
                 } @empty { <li class="lista-vazia">Nenhum garçom disponível.</li> }
               </ul>
+            </section>
+
+            <section class="card ranking-produtos">
+              <div class="card__titulo ranking-produtos__titulo">
+                <div><span>Preferência dos clientes</span><h2>Produtos mais pedidos</h2></div>
+                <select aria-label="Período do ranking de produtos" [ngModel]="periodoRanking()" (ngModelChange)="atualizarPeriodoRanking($event)">
+                  <option value="HOJE">Hoje</option>
+                  <option value="ULTIMOS_7_DIAS">7 dias</option>
+                  <option value="ULTIMOS_30_DIAS">30 dias</option>
+                </select>
+              </div>
+              @if (rankingProdutos(); as ranking) {
+                @if (ranking.status === 'carregando') {
+                  <div class="ranking-produtos__estado" role="status">Atualizando ranking...</div>
+                } @else if (ranking.status === 'erro') {
+                  <div class="ranking-produtos__estado ranking-produtos__estado--erro" role="alert">
+                    <span>{{ ranking.mensagem }}</span>
+                    <button type="button" (click)="graficosService.repetirRanking()">Tentar novamente</button>
+                  </div>
+                } @else {
+                  <ol>
+                    @for (produto of ranking.dados.dados; track produto.idProduto; let posicao = $index) {
+                      <li>
+                        <strong>{{ posicao + 1 }}º</strong>
+                        <span title="{{ produto.nomeProduto }}">{{ produto.nomeProduto }}</span>
+                        <b>{{ produto.quantidade }}</b>
+                      </li>
+                    } @empty {
+                      <li class="lista-vazia">Nenhum produto pedido neste período.</li>
+                    }
+                  </ol>
+                }
+              }
+            </section>
+
+            <section class="card atividade atividade--principal atividade--lateral">
+              <div class="card__titulo">
+                <div><span>Histórico recente</span><h2>Atendimentos realizados</h2></div>
+              </div>
+              <ul>
+                @for (atendimento of historicoRecente(); track atendimento.id) {
+                  <li>
+                    <button type="button" (click)="abrirDetalhesAtendimento(atendimento)">
+                      <i></i>
+                      <div><strong>Mesa {{ atendimento.numeroMesa.toString().padStart(2, '0') }} finalizada</strong><span>{{ atendimento.valorFinal | currency: 'BRL' }} · {{ atendimento.nomeGarcom ?? 'Sem garçom' }}</span></div>
+                      <time>{{ atendimento.dataFechamento | date: 'dd/MM, HH:mm' }}</time>
+                      <fk-icon name="arrow-right" size=".8rem" />
+                    </button>
+                  </li>
+                } @empty { <li class="lista-vazia">Nenhum atendimento finalizado encontrado.</li> }
+              </ul>
+              <footer class="atividade__rodape">
+                <button type="button" (click)="abrirHistoricoCompleto()">Ver histórico completo <fk-icon name="arrow-right" size=".9rem" /></button>
+              </footer>
             </section>
           </aside>
         </div>

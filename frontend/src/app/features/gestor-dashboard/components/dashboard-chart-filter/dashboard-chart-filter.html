@@ -1,0 +1,26 @@
+<div class="filtros-grafico">
+  <div class="filtros-grafico__rapidos" aria-label="Filtros rápidos de período">
+    <button type="button" [class.ativo]="filtros.periodo === 'HOJE'" (click)="aplicarRapido('HOJE')">Hoje</button>
+    <button type="button" [class.ativo]="filtros.periodo === 'ULTIMOS_7_DIAS'" (click)="aplicarRapido('ULTIMOS_7_DIAS')">7 dias</button>
+    <button type="button" [class.ativo]="filtros.periodo === 'ULTIMOS_30_DIAS'" (click)="aplicarRapido('ULTIMOS_30_DIAS')">30 dias</button>
+  </div>
+  <button type="button" class="filtros-grafico__funil" [class.ativo]="aberto() || quantidadeAvancados() > 0" aria-label="Filtros avançados" aria-haspopup="true" [attr.aria-expanded]="aberto()" (click)="alternarAvancados()">
+    <fk-icon name="funnel" size=".9rem" />
+    @if (quantidadeAvancados() > 0) { <span>{{ quantidadeAvancados() }}</span> }
+  </button>
+
+  @if (aberto()) {
+    <div class="filtros-grafico__painel">
+      <label><span>Período</span><select [ngModel]="rascunho().periodo" (ngModelChange)="atualizarPeriodo($event)"><option value="ULTIMA_HORA">Última hora</option><option value="TURNO_ATUAL">Turno atual</option><option value="HOJE">Hoje</option><option value="ONTEM">Ontem</option><option value="ULTIMOS_7_DIAS">Últimos 7 dias</option><option value="ULTIMOS_30_DIAS">Últimos 30 dias</option><option value="PERSONALIZADO">Personalizado</option></select></label>
+      @if (rascunho().periodo === 'PERSONALIZADO') {
+        <label><span>Data inicial</span><input type="date" [ngModel]="rascunho().dataInicial" (ngModelChange)="atualizarData('dataInicial', $event)" /></label>
+        <label><span>Data final</span><input type="date" [ngModel]="rascunho().dataFinal" (ngModelChange)="atualizarData('dataFinal', $event)" /></label>
+      }
+      <label><span>Canal</span><select [ngModel]="rascunho().canal ?? ''" (ngModelChange)="atualizarCanal($event)"><option value="">Todos</option><option value="TOTEM">Totem</option><option value="MESA">Mesa</option><option value="GARCOM">Garçom</option></select></label>
+      <label><span>Mesa</span><select [ngModel]="rascunho().idMesa" (ngModelChange)="atualizarMesa($event)"><option [ngValue]="null">Todas</option>@for (mesa of mesas; track mesa.id) { <option [ngValue]="mesa.id">Mesa {{ mesa.numero }}</option> }</select></label>
+      <label><span>Status</span><select [ngModel]="rascunho().status ?? ''" (ngModelChange)="atualizarStatus($event)"><option value="">Todos</option><option value="ENVIADO_COZINHA">Enviado à cozinha</option><option value="EM_PREPARO">Em preparo</option><option value="AGUARDANDO_DECISAO">Aguardando decisão</option><option value="PRONTO">Pronto</option><option value="ENTREGUE">Entregue</option><option value="FINALIZADO">Finalizado</option><option value="CANCELADO">Cancelado</option></select></label>
+      @if (erro()) { <p role="alert">{{ erro() }}</p> }
+      <div class="filtros-grafico__acoes"><button type="button" (click)="limpar()">Limpar</button><button type="button" class="primario" (click)="aplicarAvancados()">Aplicar</button></div>
+    </div>
+  }
+</div>

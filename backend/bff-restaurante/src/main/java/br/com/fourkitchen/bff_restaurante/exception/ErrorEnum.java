@@ -197,6 +197,12 @@ public enum ErrorEnum {
             HttpStatus.CONFLICT
     ),
 
+    DADOS_DASHBOARD_INDISPONIVEIS(
+            "029",
+            "Dados deste gráfico temporariamente indisponíveis",
+            HttpStatus.SERVICE_UNAVAILABLE
+    ),
+
     ERRO_INTERNO(
             "500",
             "Erro interno do servidor",

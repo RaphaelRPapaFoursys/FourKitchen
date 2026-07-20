@@ -1,0 +1,13 @@
+:host { display: block; }
+.card-grafico { padding: 1rem; border: 1px solid var(--fk-border); border-radius: var(--fk-radius-card); background: var(--fk-card); box-shadow: var(--fk-shadow-card); }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+header span { color: var(--fk-orange-strong); font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+h2 { margin: .15rem 0 0; font-size: .95rem; } header small { color: var(--fk-muted); font-size: .65rem; }
+.corpo { display: flex; min-height: 12.5rem; align-items: center; justify-content: center; gap: 1.5rem; }
+.rosca { position: relative; width: 9rem; height: 9rem; }
+.rosca > div { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+.rosca strong { font-size: 1.25rem; } .rosca span { color: var(--fk-muted); font-size: .68rem; }
+ul { display: grid; min-width: 7.5rem; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .4rem; color: var(--fk-muted); font-size: .75rem; }
+li i { width: .5rem; height: .5rem; border-radius: 50%; } li i.ocupadas { background: var(--fk-orange); } li i.livres { background: var(--fk-green); } li strong { color: var(--fk-text); }
+@media (max-width: 620px) { .corpo { flex-direction: column; } }

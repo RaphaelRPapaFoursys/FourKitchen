@@ -11,20 +11,28 @@ import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { WaiterLoadItem } from '../../shared/components/waiter-load-item/waiter-load-item';
+import { OcupacaoChart } from './components/ocupacao-chart/ocupacao-chart';
+import { PedidosCanalChart } from './components/pedidos-canal-chart/pedidos-canal-chart';
+import { ProblemasCozinhaChart } from './components/problemas-cozinha-chart/problemas-cozinha-chart';
+import { StatusPedidosChart } from './components/status-pedidos-chart/status-pedidos-chart';
+import { VolumePedidosChart } from './components/volume-pedidos-chart/volume-pedidos-chart';
+import { EstadoGrafico, FILTROS_DASHBOARD_INICIAIS, FiltrosDashboard, PedidosCanalResponse, PeriodoRankingProdutos, ProblemasCozinhaMotivoResponse, RankingProdutosResponse, VolumePedidosHorarioResponse } from './models/dashboard-graficos.models';
+import { DashboardGraficosService } from './services/dashboard-graficos.service';
 
 @Component({
   selector: 'app-gestor-dashboard',
-  imports: [CurrencyPipe, DatePipe, FormsModule, RouterLink, Sidebar, Topbar, Icon, WaiterLoadItem],
+  imports: [CurrencyPipe, DatePipe, FormsModule, RouterLink, Sidebar, Topbar, Icon, WaiterLoadItem, OcupacaoChart, StatusPedidosChart, VolumePedidosChart, ProblemasCozinhaChart, PedidosCanalChart],
   templateUrl: './gestor-dashboard.html',
   styleUrl: './gestor-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [PainelService],
+  providers: [PainelService, DashboardGraficosService],
 })
 export class GestorDashboard {
   private static readonly ITENS_HISTORICO_POR_PAGINA = 8;
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly painel = inject(PainelService);
+  protected readonly graficosService = inject(DashboardGraficosService);
   private alertaAnimacaoTimer: ReturnType<typeof setTimeout> | null = null;
   private alertaReinicioTimer: ReturnType<typeof setTimeout> | null = null;
   private ultimoResumoAlertas: { problemas: number; semGarcom: number; prontos: number } | null = null;
@@ -47,6 +55,22 @@ export class GestorDashboard {
   protected readonly dataInicialHistorico = signal('');
   protected readonly dataFinalHistorico = signal('');
   protected readonly paginaHistorico = signal(1);
+  protected readonly filtrosVolume = signal<FiltrosDashboard>({ ...FILTROS_DASHBOARD_INICIAIS });
+  protected readonly filtrosProblemas = signal<FiltrosDashboard>({ ...FILTROS_DASHBOARD_INICIAIS });
+  protected readonly filtrosCanais = signal<FiltrosDashboard>({ ...FILTROS_DASHBOARD_INICIAIS });
+  protected readonly volumeGrafico = toSignal(this.graficosService.volume$, {
+    initialValue: { status: 'carregando', dados: null } as EstadoGrafico<VolumePedidosHorarioResponse>,
+  });
+  protected readonly problemasGrafico = toSignal(this.graficosService.problemas$, {
+    initialValue: { status: 'carregando', dados: null } as EstadoGrafico<ProblemasCozinhaMotivoResponse>,
+  });
+  protected readonly canaisGrafico = toSignal(this.graficosService.canais$, {
+    initialValue: { status: 'carregando', dados: null } as EstadoGrafico<PedidosCanalResponse>,
+  });
+  protected readonly periodoRanking = signal<PeriodoRankingProdutos>('ULTIMOS_30_DIAS');
+  protected readonly rankingProdutos = toSignal(this.graficosService.rankingProdutos$, {
+    initialValue: { status: 'carregando', dados: null } as EstadoGrafico<RankingProdutosResponse>,
+  });
   protected readonly etapasPedido = [
     { status: 'ENVIADO_COZINHA', label: 'Recebido' },
     { status: 'EM_PREPARO', label: 'Preparo' },
@@ -66,14 +90,6 @@ export class GestorDashboard {
     const total = this.totalMesas();
     return total === 0 ? 0 : Math.round((this.mesasOcupadas() / total) * 100);
   });
-  protected readonly arcoOcupacao = computed(() => `${this.taxaOcupacao() * 3.52} 352`);
-  protected readonly maiorStatus = computed(() => Math.max(
-    this.mesasOcupadas(),
-    this.resumo().emPreparo,
-    this.resumo().prontos,
-    this.resumo().problemas,
-    1,
-  ));
   protected readonly mesasPreview = computed(() => this.mesas().slice(0, 5));
   protected readonly mesasSemGarcom = computed(() => this.resumo().mesasSemGarcom);
   protected readonly historicoOrdenado = computed(() => [...this.historicoAtendimentos()].sort((a, b) => {
@@ -132,7 +148,12 @@ export class GestorDashboard {
     const inicio = (pagina - 1) * GestorDashboard.ITENS_HISTORICO_POR_PAGINA;
     return this.historicoFiltrado().slice(inicio, inicio + GestorDashboard.ITENS_HISTORICO_POR_PAGINA);
   });
-
+  protected readonly mesasFiltroDashboard = computed(() => {
+    const opcoes = new Map<number, number>();
+    for (const mesa of this.mesas()) opcoes.set(mesa.id, mesa.numero);
+    for (const atendimento of this.historicoOrdenado()) opcoes.set(atendimento.idMesa, atendimento.numeroMesa);
+    return [...opcoes.entries()].map(([id, numero]) => ({ id, numero })).sort((a, b) => a.numero - b.numero);
+  });
   constructor() {
     effect(() => {
       const atual = {
@@ -156,10 +177,6 @@ export class GestorDashboard {
       if (this.alertaAnimacaoTimer) clearTimeout(this.alertaAnimacaoTimer);
       if (this.alertaReinicioTimer) clearTimeout(this.alertaReinicioTimer);
     });
-  }
-
-  protected percentualStatus(valor: number): number {
-    return Math.max(valor > 0 ? 8 : 0, (valor / this.maiorStatus()) * 100);
   }
 
   protected valorMesa(mesa: MesaPainel): number {
@@ -214,6 +231,34 @@ export class GestorDashboard {
 
   protected atualizarDados(): void {
     void this.painel.recarregarPainel();
+    this.graficosService.repetirVolume();
+    this.graficosService.repetirProblemas();
+    this.graficosService.repetirCanais();
+    this.graficosService.repetirRanking();
+  }
+
+  protected atualizarPeriodoRanking(periodo: PeriodoRankingProdutos): void {
+    this.periodoRanking.set(periodo);
+    this.graficosService.atualizarPeriodoRanking(periodo);
+  }
+
+  protected atualizarFiltrosVolume(filtros: FiltrosDashboard): void {
+    this.filtrosVolume.set(filtros);
+    this.graficosService.atualizarFiltrosVolume(filtros);
+  }
+
+  protected atualizarFiltrosProblemas(filtros: FiltrosDashboard): void {
+    this.filtrosProblemas.set(filtros);
+    this.graficosService.atualizarFiltrosProblemas(filtros);
+  }
+
+  protected atualizarFiltrosCanais(filtros: FiltrosDashboard): void {
+    this.filtrosCanais.set(filtros);
+    this.graficosService.atualizarFiltrosCanais(filtros);
+  }
+
+  protected temFiltros(filtros: FiltrosDashboard): boolean {
+    return filtros.periodo !== 'HOJE' || filtros.canal !== null || filtros.idMesa !== null || filtros.status !== null;
   }
 
   protected abrirDetalhesAtendimento(atendimento: HistoricoAtendimento): void {

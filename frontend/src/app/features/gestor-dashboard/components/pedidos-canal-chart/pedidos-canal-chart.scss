@@ -1,0 +1,10 @@
+:host { display: block; }
+.chart-card { min-height: 21rem; padding: 1rem; border: 1px solid var(--fk-border); border-radius: var(--fk-radius-card); background: var(--fk-card); box-shadow: var(--fk-shadow-card); }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+header span { color: var(--fk-orange-strong); font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; } h2 { margin: .15rem 0 0; font-size: 1rem; }
+.corpo { display: flex; min-height: 17rem; align-items: center; justify-content: center; gap: 1rem; }
+.rosca { position: relative; width: 9.5rem; height: 9.5rem; flex: 0 0 auto; } .rosca > div { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; } .rosca strong { font-size: 1.25rem; } .rosca span { color: var(--fk-muted); font-size: .66rem; }
+ul { display: grid; gap: .55rem; margin: 0; padding: 0; list-style: none; } li { display: grid; grid-template-columns: auto minmax(5rem, 1fr) auto auto; align-items: center; gap: .35rem; font-size: .7rem; } li i { width: .5rem; height: .5rem; border-radius: 50%; } li span, li small { color: var(--fk-muted); } .canal--totem i { background: var(--fk-orange); } .canal--mesa i { background: var(--fk-blue); } .canal--garcom i { background: var(--fk-green); }
+.estado { display: flex; min-height: 16rem; flex-direction: column; align-items: center; justify-content: center; gap: .7rem; color: var(--fk-muted); font-size: .78rem; text-align: center; } .estado i { width: 1.5rem; height: 1.5rem; border: 3px solid var(--fk-border-strong); border-top-color: var(--fk-orange); border-radius: 50%; animation: giro .8s linear infinite; } .estado--erro { color: var(--fk-red-strong); } button { padding: .55rem .75rem; border: 1px solid var(--fk-red); border-radius: var(--fk-radius-control); background: var(--fk-card); color: var(--fk-red-strong); font-weight: 800; cursor: pointer; }
+@keyframes giro { to { transform: rotate(360deg); } }
+@media (max-width: 620px) { .corpo { flex-direction: column; } }

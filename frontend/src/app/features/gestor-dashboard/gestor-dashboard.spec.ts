@@ -7,6 +7,8 @@ import { environment } from '../../../environments/environment';
 import { GestorDashboard } from './gestor-dashboard';
 
 const BASE_URL = `${environment.apiUrl}/api/gestor`;
+const HOJE = dataLocal(new Date());
+const ONTEM = dataLocal(new Date(Date.now() - 86_400_000));
 
 describe('GestorDashboard', () => {
   let fixture: ComponentFixture<GestorDashboard>;
@@ -61,8 +63,8 @@ describe('GestorDashboard', () => {
         valorFinal: 80,
         totalPedidos: 1,
         totalItens: 2,
-        dataAbertura: '2026-07-10T09:00:00',
-        dataFechamento: '2026-07-10T10:00:00',
+        dataAbertura: `${ONTEM}T09:00:00`,
+        dataFechamento: `${ONTEM}T10:00:00`,
         duracaoMinutos: 60,
       },
       {
@@ -76,13 +78,36 @@ describe('GestorDashboard', () => {
         valorFinal: 125,
         totalPedidos: 3,
         totalItens: 6,
-        dataAbertura: '2026-07-17T09:00:00',
-        dataFechamento: '2026-07-17T10:30:00',
+        dataAbertura: `${HOJE}T00:30:00`,
+        dataFechamento: `${HOJE}T01:30:00`,
         duracaoMinutos: 90,
       },
     ]);
-
     await fixture.whenStable();
+    fixture.detectChanges();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    httpMock.expectOne(request => request.url === `${BASE_URL}/dashboard/pedidos-por-horario`).flush({
+      periodo: 'HOJE', totalPedidos: 0, horarioPico: null, quantidadeNoPico: 0, dados: [],
+    });
+    httpMock.expectOne(request => request.url === `${BASE_URL}/dashboard/problemas-por-motivo`).flush({
+      periodo: 'HOJE', totalProblemas: 0, motivoMaisFrequente: null, dados: [],
+    });
+    httpMock.expectOne(request => request.url === `${BASE_URL}/dashboard/pedidos-por-canal`).flush({
+      periodo: 'HOJE', totalPedidos: 0, dados: [
+        { canal: 'TOTEM', descricao: 'Totem', quantidade: 0, percentual: 0 },
+        { canal: 'MESA', descricao: 'Tablet da mesa', quantidade: 0, percentual: 0 },
+        { canal: 'GARCOM', descricao: 'Garçom', quantidade: 0, percentual: 0 },
+      ],
+    });
+    httpMock.expectOne(request => request.url === `${BASE_URL}/dashboard/ranking-produtos` && request.params.get('periodo') === 'ULTIMOS_30_DIAS').flush({
+      periodo: 'ULTIMOS_30_DIAS',
+      dados: [
+        { idProduto: 10, nomeProduto: 'Risoto', quantidade: 14 },
+        { idProduto: 11, nomeProduto: 'Limonada', quantidade: 9 },
+      ],
+    });
+
     fixture.detectChanges();
   });
 
@@ -98,6 +123,15 @@ describe('GestorDashboard', () => {
   it('direciona a carga do garçom para o filtro correspondente', () => {
     const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.carga li a');
     expect(link.getAttribute('href')).toContain('garcomId=7');
+  });
+
+  it('exibe o ranking de produtos abaixo da carga dos garçons', () => {
+    const ranking: HTMLElement = fixture.nativeElement.querySelector('.ranking-produtos');
+    expect(ranking.textContent).toContain('Produtos mais pedidos');
+    expect(ranking.textContent).toContain('1º');
+    expect(ranking.textContent).toContain('Risoto');
+    expect(ranking.textContent).toContain('14');
+    expect(ranking.nextElementSibling?.classList).toContain('atividade--lateral');
   });
 
   it('exibe a contagem global de mesas ocupadas sem garçom retornada pelo resumo', () => {
@@ -124,7 +158,7 @@ describe('GestorDashboard', () => {
   });
 
   it('busca o número da mesa de forma exata', async () => {
-    const abrirHistorico: HTMLButtonElement = fixture.nativeElement.querySelector('.atividade__cabecalho button');
+    const abrirHistorico: HTMLButtonElement = fixture.nativeElement.querySelector('.atividade__rodape button');
     abrirHistorico.click();
     fixture.detectChanges();
 
@@ -141,7 +175,7 @@ describe('GestorDashboard', () => {
   });
 
   it('filtra o histórico por intervalo personalizado de datas', async () => {
-    const abrirHistorico: HTMLButtonElement = fixture.nativeElement.querySelector('.atividade__cabecalho button');
+    const abrirHistorico: HTMLButtonElement = fixture.nativeElement.querySelector('.atividade__rodape button');
     abrirHistorico.click();
     fixture.detectChanges();
     const abrirFiltros: HTMLButtonElement = fixture.nativeElement.querySelector('.historico-filtros__botao');
@@ -150,7 +184,7 @@ describe('GestorDashboard', () => {
 
     const datas: NodeListOf<HTMLInputElement> = fixture.nativeElement.querySelectorAll('.historico-filtros input[type="date"]');
     for (const input of datas) {
-      input.value = '2026-07-17';
+      input.value = HOJE;
       input.dispatchEvent(new Event('input'));
     }
     await fixture.whenStable();
@@ -186,3 +220,10 @@ describe('GestorDashboard', () => {
     expect(modal.textContent).toContain('2');
   });
 });
+
+function dataLocal(data: Date): string {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const dia = String(data.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+}

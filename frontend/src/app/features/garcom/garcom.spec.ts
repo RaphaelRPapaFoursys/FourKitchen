@@ -22,11 +22,16 @@ describe('Garcom', () => {
     component = fixture.componentInstance;
 
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas`).flush([criarMesaComProblema()]);
+    httpMock.expectOne(`${environment.apiUrl}/api/garcom/pedidos-totem/problemas`).flush([]);
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas/1/detalhe`).flush(criarDetalheMesa());
     fixture.detectChanges();
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.match(`${environment.apiUrl}/api/garcom/pedidos-totem/problemas`)
+      .forEach(request => request.flush([]));
+    httpMock.verify();
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -309,6 +314,7 @@ describe('Garcom', () => {
       ...criarMesaComProblema(),
       pedidosAtivos: [{ id: 26, codigo: 100026, canal: 'GARCOM', status: 'ENTREGUE', idAtendimento: 8 }],
     }]);
+    httpMock.expectOne(`${environment.apiUrl}/api/garcom/pedidos-totem/problemas`).flush([]);
     httpMock.expectOne(`${environment.apiUrl}/api/garcom/mesas/1/detalhe`).flush({
       ...criarDetalheMesa(),
       pedidos: [criarPedidoEntregue()],

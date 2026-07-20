@@ -1,0 +1,6 @@
+:host { display: block; }
+.card-grafico { padding: 1rem; border: 1px solid var(--fk-border); border-radius: var(--fk-radius-card); background: var(--fk-card); box-shadow: var(--fk-shadow-card); }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+header span { color: var(--fk-orange-strong); font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+h2 { margin: .15rem 0 0; font-size: .95rem; } header small { color: var(--fk-muted); font-size: .65rem; }
+.grafico { height: 12.5rem; padding-top: .7rem; }

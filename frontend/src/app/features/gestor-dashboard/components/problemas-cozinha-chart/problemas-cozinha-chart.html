@@ -1,0 +1,13 @@
+<section class="chart-card" aria-labelledby="problemas-chart-title">
+  <header><div><span>Qualidade operacional</span><h2 id="problemas-chart-title">Problemas da cozinha por motivo</h2></div><fk-dashboard-chart-filter [filtros]="filtros" [mesas]="mesas" (filtrosChange)="filtrosChange.emit($event)" /></header>
+  @if (estado.status === 'carregando') {
+    <div class="estado" role="status"><i></i><span>Carregando gráfico...</span></div>
+  } @else if (estado.status === 'erro') {
+    <div class="estado estado--erro" role="alert"><span>{{ estado.mensagem }}</span><button type="button" (click)="tentarNovamente.emit()">Tentar novamente</button></div>
+  } @else if (estado.dados.totalProblemas === 0) {
+    <div class="estado" [class.estado--positivo]="!filtrosAtivos"><span>{{ filtrosAtivos ? 'Nenhum problema corresponde aos filtros aplicados. Ajuste ou limpe os filtros para ampliar a busca.' : '✓ Nenhum problema foi registrado hoje.' }}</span></div>
+  } @else {
+    <div class="resumo"><strong>{{ estado.dados.totalProblemas }}</strong><span>problemas no período</span></div>
+    <div class="grafico"><fk-dashboard-chart [config]="config(estado.dados)" /></div>
+  }
+</section>
