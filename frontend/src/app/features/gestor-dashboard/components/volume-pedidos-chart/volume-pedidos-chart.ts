@@ -20,22 +20,22 @@ export class VolumePedidosChart {
   @Output() filtrosChange = new EventEmitter<FiltrosDashboard>();
   @Output() tentarNovamente = new EventEmitter<void>();
 
-  config(dados: VolumePedidosHorarioResponse): ChartConfiguration<'line'> {
+  config(dados: VolumePedidosHorarioResponse): ChartConfiguration<'bar'> {
     const laranja = chartColor('--fk-orange', 'rgb(234 88 12)');
+    const histograma = this.histograma(dados);
     return {
-      type: 'line',
+      type: 'bar',
       data: {
-        labels: dados.dados.map(item => item.horario),
+        labels: histograma.labels,
         datasets: [{
           label: 'Pedidos',
-          data: dados.dados.map(item => item.quantidade),
-          borderColor: laranja,
-          backgroundColor: chartColor('--fk-orange-soft', 'rgb(255 237 213)'),
-          pointBackgroundColor: laranja,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          fill: true,
-          tension: .3,
+          data: histograma.quantidades,
+          backgroundColor: laranja,
+          borderRadius: 4,
+          borderSkipped: false,
+          maxBarThickness: 30,
+          categoryPercentage: .86,
+          barPercentage: .92,
         }],
       },
       options: {
@@ -43,8 +43,34 @@ export class VolumePedidosChart {
         maintainAspectRatio: false,
         interaction: { intersect: false, mode: 'index' },
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: item => `${item.parsed.y} pedidos` } } },
-        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { autoSkip: true, maxRotation: 0, maxTicksLimit: 12 } },
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+        },
       },
+    };
+  }
+
+  histograma(dados: VolumePedidosHorarioResponse): {
+    labels: string[];
+    quantidades: number[];
+    horarioPico: string | null;
+    quantidadePico: number;
+  } {
+    const porHorario = new Map<string, number>();
+    for (const item of dados.dados) {
+      porHorario.set(item.horario, (porHorario.get(item.horario) ?? 0) + item.quantidade);
+    }
+    const itens = [...porHorario.entries()].sort(([horarioA], [horarioB]) => horarioA.localeCompare(horarioB));
+    const pico = itens.reduce<[string, number] | null>(
+      (maior, atual) => maior === null || atual[1] > maior[1] ? atual : maior,
+      null,
+    );
+    return {
+      labels: itens.map(([horario]) => horario),
+      quantidades: itens.map(([, quantidade]) => quantidade),
+      horarioPico: pico?.[0] ?? null,
+      quantidadePico: pico?.[1] ?? 0,
     };
   }
 }

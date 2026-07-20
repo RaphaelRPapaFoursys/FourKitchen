@@ -19,10 +19,10 @@ export class OcupacaoChart {
     return {
       type: 'doughnut',
       data: {
-        labels: ['Ocupadas', 'Disponíveis'],
+        labels: ['Disponíveis', 'Ocupadas'],
         datasets: [{
-          data: [this.ocupadas, this.livres],
-          backgroundColor: [chartColor('--fk-orange', 'rgb(234 88 12)'), chartColor('--fk-green', 'rgb(34 197 94)')],
+          data: [this.livres, this.ocupadas],
+          backgroundColor: [chartColor('--fk-green', 'rgb(34 197 94)'), chartColor('--fk-orange', 'rgb(234 88 12)')],
           borderWidth: 0,
         }],
       },

@@ -7,7 +7,9 @@
   } @else if (estado.dados.totalPedidos === 0) {
     <div class="estado"><span>{{ filtrosAtivos ? 'Nenhum pedido corresponde aos filtros aplicados. Ajuste ou limpe os filtros para ampliar a busca.' : 'Ainda não há pedidos registrados hoje.' }}</span></div>
   } @else {
-    <div class="resumo"><div><span>Total no período</span><strong>{{ estado.dados.totalPedidos }}</strong></div><p>Maior volume às {{ estado.dados.horarioPico }}: <strong>{{ estado.dados.quantidadeNoPico }} pedidos</strong></p></div>
-    <div class="grafico"><fk-dashboard-chart [config]="config(estado.dados)" /></div>
+    @if (histograma(estado.dados); as resumoHistograma) {
+      <div class="resumo"><div><span>Total no período</span><strong>{{ estado.dados.totalPedidos }}</strong></div><p>Maior volume às {{ resumoHistograma.horarioPico }}: <strong>{{ resumoHistograma.quantidadePico }} pedidos</strong></p></div>
+      <div class="grafico"><fk-dashboard-chart [config]="config(estado.dados)" /></div>
+    }
   }
 </section>

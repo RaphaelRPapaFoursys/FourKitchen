@@ -7,19 +7,22 @@ import { VolumePedidosChart } from './volume-pedidos-chart/volume-pedidos-chart'
 import { FILTROS_DASHBOARD_INICIAIS } from '../models/dashboard-graficos.models';
 
 describe('gráficos analíticos do dashboard', () => {
-  it('renderiza volume, pico e dados da linha', async () => {
+  it('renderiza histograma e consolida o volume pela hora do dia', async () => {
     const fixture = await criar(VolumePedidosChart);
     fixture.componentRef.setInput('estado', {
       status: 'sucesso',
       dados: {
-        periodo: 'HOJE', totalPedidos: 7, horarioPico: '13:00', quantidadeNoPico: 5,
-        dados: [{ horario: '12:00', quantidade: 2 }, { horario: '13:00', quantidade: 5 }],
+        periodo: 'ULTIMOS_7_DIAS', totalPedidos: 10, horarioPico: '13:00', quantidadeNoPico: 5,
+        dados: [{ horario: '12:00', quantidade: 2 }, { horario: '13:00', quantidade: 5 }, { horario: '12:00', quantidade: 3 }],
       },
     });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Maior volume às 13:00');
-    expect(fixture.componentInstance.config(fixture.componentInstance.estado.dados!).data.labels).toEqual(['12:00', '13:00']);
+    expect(fixture.nativeElement.textContent).toContain('Maior volume às 12:00');
+    const config = fixture.componentInstance.config(fixture.componentInstance.estado.dados!);
+    expect(config.type).toBe('bar');
+    expect(config.data.labels).toEqual(['12:00', '13:00']);
+    expect(config.data.datasets[0].data).toEqual([5, 5]);
   });
 
   it('diferencia vazio e erro e permite tentar novamente', async () => {
