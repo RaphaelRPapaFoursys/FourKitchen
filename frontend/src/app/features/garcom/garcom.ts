@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { TimeoutError, finalize, timeout } from 'rxjs';
+import { TimeoutError, debounceTime, finalize, forkJoin, timeout } from 'rxjs';
 
 import {
   ChamadaPendenteMesaResponse,
