@@ -3,7 +3,7 @@
 button { font: inherit; }
 .dashboard { display: flex; min-height: 100vh; background: var(--fk-bg); }
 fk-sidebar { position: sticky; top: 0; z-index: 10; height: 100vh; flex: 0 0 auto; }
-.dashboard__main { position: relative; min-width: 0; flex: 1; overflow: hidden; }
+.dashboard__main { position: relative; min-width: 0; flex: 1; overflow: visible; }
 .dashboard__onda { position: absolute; top: 0; right: 0; width: min(44rem, 58%); opacity: .28; pointer-events: none; }
 fk-topbar { position: relative; z-index: 2; }
 .dashboard__content { position: relative; z-index: 1; padding: .5rem 1.5rem 2rem; }
