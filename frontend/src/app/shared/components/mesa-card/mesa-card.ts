@@ -4,14 +4,6 @@ import { Criticidade } from '../../../core/constants/urgencia.constants';
 import { AcaoMesaPainel, MesaPainel } from '../../../core/models/painel.models';
 import { Badge } from '../badge/badge';
 import { Icon } from '../icon/icon';
-import { ProgressBar } from '../progress-bar/progress-bar';
-
-const NOMES_ETAPAS: Record<number, string> = {
-  1: 'Pedido enviado à cozinha',
-  2: 'Em preparo',
-  3: 'Finalização',
-  4: 'Pronto para entrega',
-};
 
 /**
  * Card de mesa do painel do gestor. Apresentacional: recebe a mesa e as derivações
@@ -21,7 +13,7 @@ const NOMES_ETAPAS: Record<number, string> = {
 @Component({
   selector: 'fk-mesa-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Badge, Icon, ProgressBar],
+  imports: [Badge, Icon],
   host: {
     class: 'mesa-card',
     '[id]': "'mesa-card-' + mesa().numero",
@@ -71,11 +63,6 @@ export class MesaCard {
       default:
         return '';
     }
-  }
-
-  protected nomeEtapa(etapa: number | null): string {
-    if (etapa === null) return '';
-    return NOMES_ETAPAS[etapa] ?? '';
   }
 
   protected tempoAtrasLabel(minutos: number): string {

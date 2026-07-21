@@ -36,45 +36,70 @@
         <div class="gestao-layout">
           <section class="gestao-mesas" aria-labelledby="titulo-lista-mesas">
             <div class="filtros">
-              <div class="filtros__status" aria-label="Filtrar mesas por status">
-                <span>Status:</span>
-                <button type="button" [class.ativo]="filtroEstado() === null" (click)="filtroEstado.set(null)">Todos</button>
-                <button type="button" [class.ativo]="filtroEstado() === 'LIVRE'" (click)="alternarFiltroEstado('LIVRE')">Disponíveis</button>
-                <button type="button" [class.ativo]="filtroEstado() === 'EM_PREPARO'" (click)="alternarFiltroEstado('EM_PREPARO')">Em preparo</button>
-                <button type="button" [class.ativo]="filtroEstado() === 'PRONTOS'" (click)="alternarFiltroEstado('PRONTOS')">Prontos</button>
-                <button type="button" [class.ativo]="filtroEstado() === 'PROBLEMAS'" (click)="alternarFiltroEstado('PROBLEMAS')">Atenção</button>
-              </div>
+              <div class="filtros__principal">
+                <div class="filtros__status" aria-label="Filtrar mesas por status">
+                  <button type="button" [class.ativo]="filtroEstado() === null" (click)="filtroEstado.set(null)">Todas</button>
+                  <button type="button" [class.ativo]="filtroEstado() === 'LIVRE'" (click)="alternarFiltroEstado('LIVRE')">Disponíveis</button>
+                  <button type="button" [class.ativo]="filtroEstado() === 'EM_PREPARO'" (click)="alternarFiltroEstado('EM_PREPARO')">Em preparo</button>
+                  <button type="button" [class.ativo]="filtroEstado() === 'PRONTOS'" (click)="alternarFiltroEstado('PRONTOS')">Prontos</button>
+                  <button type="button" [class.ativo]="filtroEstado() === 'ATENCAO'" (click)="alternarFiltroEstado('ATENCAO')">Atenção</button>
+                </div>
 
-              <div class="filtros__controles">
-                <label>
-                  <span class="sr-only">Filtrar por garçom</span>
-                  <select [ngModel]="filtroGarcom()" (ngModelChange)="filtroGarcom.set($event)">
-                    <option [ngValue]="null">Todos os garçons</option>
-                    @for (garcom of cargaGarcons(); track garcom.id) {
-                      <option [ngValue]="garcom.id">{{ garcom.nome }}</option>
+                <div class="filtros__acoes">
+                  @if (temFiltrosAtivos()) {
+                    <button class="filtros__limpar" type="button" (click)="limparFiltros()">Limpar</button>
+                  }
+                  <button
+                    class="filtros__avancados-botao"
+                    type="button"
+                    [class.ativo]="filtrosAvancadosAbertos()"
+                    [attr.aria-expanded]="filtrosAvancadosAbertos()"
+                    aria-controls="filtros-avancados-mesas"
+                    (click)="alternarFiltrosAvancados()"
+                  >
+                    <fk-icon name="funnel" size="0.9rem" />
+                    Filtros
+                    @if (quantidadeFiltrosAtivos() > 0) {
+                      <span>{{ quantidadeFiltrosAtivos() }}</span>
                     }
-                  </select>
-                </label>
-                <label>
-                  <span class="sr-only">Ordenar mesas</span>
-                  <select [ngModel]="ordenacao()" (ngModelChange)="ordenacao.set($event)">
-                    <option value="CRITICO">Ordenar: criticidade</option>
-                    <option value="NUMERO">Ordenar: número</option>
-                    <option value="MAIOR_VALOR">Ordenar: maior valor</option>
-                    <option value="MENOR_VALOR">Ordenar: menor valor</option>
-                  </select>
-                </label>
-                <button class="filtros__limpar" type="button" [disabled]="!temFiltrosAtivos()" (click)="limparFiltros()">
-                  Limpar filtros
-                </button>
+                  </button>
+                </div>
               </div>
 
-              <div class="filtros__atalhos" aria-label="Filtros rápidos">
-                <button type="button" [class.ativo]="filtroEstado() === 'SEM_GARCOM'" (click)="alternarFiltroEstado('SEM_GARCOM')">Sem garçom</button>
-                <button type="button" [class.ativo]="filtroEstado() === 'CONTA_ABERTA'" (click)="alternarFiltroEstado('CONTA_ABERTA')">Conta aberta</button>
-                <button type="button" [class.ativo]="filtroEstado() === 'ATRASADAS'" (click)="alternarFiltroEstado('ATRASADAS')">Atrasadas</button>
-                <button type="button" [class.ativo]="filtroEstado() === 'AGUARDANDO_PEDIDO'" (click)="alternarFiltroEstado('AGUARDANDO_PEDIDO')">Aguardando pedido</button>
-              </div>
+              @if (filtrosAvancadosAbertos()) {
+                <div class="filtros__avancados" id="filtros-avancados-mesas">
+                  <div class="filtros__controles">
+                    <label>
+                      <span>Garçom</span>
+                      <select [ngModel]="filtroGarcom()" (ngModelChange)="filtroGarcom.set($event)">
+                        <option [ngValue]="null">Todos os garçons</option>
+                        @for (garcom of cargaGarcons(); track garcom.id) {
+                          <option [ngValue]="garcom.id">{{ garcom.nome }}</option>
+                        }
+                      </select>
+                    </label>
+                    <label>
+                      <span>Ordenação</span>
+                      <select [ngModel]="ordenacao()" (ngModelChange)="ordenacao.set($event)">
+                        <option value="CRITICO">Criticidade</option>
+                        <option value="NUMERO">Número da mesa</option>
+                        <option value="MAIOR_VALOR">Maior valor</option>
+                        <option value="MENOR_VALOR">Menor valor</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="filtros__atalhos" aria-label="Filtros operacionais">
+                    <span>Condições operacionais</span>
+                    <div>
+                      <button type="button" [class.ativo]="filtroEstado() === 'SEM_GARCOM'" (click)="alternarFiltroEstado('SEM_GARCOM')">Sem garçom</button>
+                      <button type="button" [class.ativo]="filtroEstado() === 'CONTA_ABERTA'" (click)="alternarFiltroEstado('CONTA_ABERTA')">Conta aberta</button>
+                      <button type="button" [class.ativo]="filtroEstado() === 'ATRASADAS'" (click)="alternarFiltroEstado('ATRASADAS')">Atrasadas</button>
+                      <button type="button" [class.ativo]="filtroEstado() === 'AGUARDANDO_PEDIDO'" (click)="alternarFiltroEstado('AGUARDANDO_PEDIDO')">Aguardando pedido</button>
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
 
             <div class="lista-cabecalho">
@@ -140,14 +165,23 @@
             <ul class="equipe__lista">
               @for (garcom of cargaGarcons(); track garcom.id) {
                 <li>
-                  <fk-waiter-load-item
-                    [name]="garcom.nome"
-                    [initial]="iniciais(garcom.nome)"
-                    [color]="garcom.cor"
-                    [count]="garcom.mesasAtivas"
-                    [barWidth]="larguraBarraCarga(garcom.mesasAtivas)"
-                    [level]="nivelCarga(garcom.mesasAtivas)"
-                  />
+                  <button
+                    class="equipe__garcom"
+                    type="button"
+                    [class.equipe__garcom--ativo]="filtroGarcom() === garcom.id"
+                    [attr.aria-pressed]="filtroGarcom() === garcom.id"
+                    [attr.aria-label]="'Filtrar mesas de ' + garcom.nome"
+                    (click)="filtrarPorGarcom(garcom.id)"
+                  >
+                    <fk-waiter-load-item
+                      [name]="garcom.nome"
+                      [initial]="iniciais(garcom.nome)"
+                      [color]="garcom.cor"
+                      [count]="garcom.mesasAtivas"
+                      [barWidth]="larguraBarraCarga(garcom.mesasAtivas)"
+                      [level]="nivelCarga(garcom.mesasAtivas)"
+                    />
+                  </button>
                 </li>
               } @empty {
                 <li class="equipe__vazio">Nenhum garçom disponível.</li>

@@ -1,26 +1,34 @@
 <header class="mesa-card__header">
-  <h3>Mesa {{ mesa().numero.toString().padStart(2, '0') }}</h3>
+  <div>
+    <span class="mesa-card__identificador">Mesa</span>
+    <h3>{{ mesa().numero.toString().padStart(2, '0') }}</h3>
+  </div>
 
-  @if (mesa().status === 'LIVRE') {
-    <fk-badge variant="livre">Livre</fk-badge>
-  } @else if (urgenciaBadgeLabel(); as badge) {
-    <fk-badge [variant]="criticidade() === 'critico' ? 'critico' : 'atencao'">
-      <fk-icon name="siren" size="0.85rem" />
-      {{ badge }}
-    </fk-badge>
-  }
+  <div class="mesa-card__estado">
+    @if (mesa().status === 'LIVRE') {
+      <fk-badge variant="livre" [dot]="true">Livre</fk-badge>
+    } @else if (urgenciaBadgeLabel(); as badge) {
+      <fk-badge [variant]="criticidade() === 'critico' ? 'critico' : 'atencao'">
+        <fk-icon name="siren" size="0.8rem" />
+        {{ badge }}
+      </fk-badge>
+    }
 
-  @if (mesa().tempoLabel) {
-    <span class="mesa-card__tempo">
-      {{ mesa().tempoLabel }}
-      <strong>{{ tempoAtrasLabel(mesa().tempoMinutos ?? 0) }}</strong>
-    </span>
-  }
+    @if (mesa().tempoLabel) {
+      <span class="mesa-card__tempo">
+        {{ mesa().tempoLabel }}
+        <strong>{{ tempoAtrasLabel(mesa().tempoMinutos ?? 0) }}</strong>
+      </span>
+    }
+  </div>
 </header>
 
 @if (mesa().status === 'OCUPADA') {
-  <p class="mesa-card__garcom">
-    Garçom: {{ mesa().garcom }}
+  <div class="mesa-card__garcom">
+    <div>
+      <fk-icon name="user-circle" size="1rem" />
+      <span>{{ mesa().garcom ?? 'Não atribuído' }}</span>
+    </div>
     <button
       type="button"
       class="mesa-card__trocar-garcom"
@@ -29,49 +37,24 @@
     >
       Trocar
     </button>
-  </p>
+  </div>
 
-  @if (mesa().statusPedido) {
-    <div class="mesa-card__andamento">
-      <span class="mesa-card__andamento-label">
-        @if (mesa().statusPedido === 'PRONTO_ENTREGA') {
-          <fk-icon name="check-circle" size="1rem" />
-        } @else if (mesa().statusPedido === 'CONTA_ABERTA') {
-          <fk-icon name="cash-register" size="1rem" />
-        } @else {
-          <fk-icon name="cooking-pot" size="1rem" />
-        }
-        {{ statusPedidoLabel() }}
-      </span>
-
-      @if (mesa().totalEtapas) {
-        <span
-          class="mesa-card__etapas"
-          [title]="'Etapa ' + mesa().etapaAtual + ' de ' + mesa().totalEtapas + ': ' + nomeEtapa(mesa().etapaAtual)"
-        >
-          {{ mesa().etapaAtual }}/{{ mesa().totalEtapas }} etapas
-        </span>
-      }
-    </div>
-
-    @if (mesa().totalEtapas) {
-      <fk-progress-bar
-        thickness="sm"
-        [variant]="mesa().statusPedido === 'PRONTO_ENTREGA' || criticidade() === 'critico' ? 'load-high' : 'orange'"
-        [value]="((mesa().etapaAtual ?? 0) / (mesa().totalEtapas ?? 1)) * 100"
-      />
+  <div
+    class="mesa-card__andamento"
+    [class.mesa-card__andamento--pronto]="mesa().statusPedido === 'PRONTO_ENTREGA'"
+    [class.mesa-card__andamento--conta]="mesa().statusPedido === 'CONTA_ABERTA'"
+  >
+    @if (mesa().statusPedido === 'PRONTO_ENTREGA') {
+      <fk-icon name="check-circle" size="1rem" />
+    } @else if (mesa().statusPedido === 'CONTA_ABERTA') {
+      <fk-icon name="cash-register" size="1rem" />
+    } @else if (mesa().statusPedido === 'EM_PREPARO') {
+      <fk-icon name="cooking-pot" size="1rem" />
+    } @else {
+      <fk-icon name="call-bell" size="1rem" />
     }
-  } @else {
-    <div class="mesa-card__vazio">
-      @if (mesa().garcomId !== null) {
-        <fk-icon name="call-bell" size="2rem" />
-        <span>Aguardando pedido</span>
-      } @else {
-        <fk-icon name="picnic-table" size="2rem" />
-        <span>Mesa disponível</span>
-      }
-    </div>
-  }
+    <span>{{ mesa().statusPedido ? statusPedidoLabel() : 'Aguardando pedido' }}</span>
+  </div>
 
   <div class="mesa-card__acoes">
     <button
@@ -83,10 +66,7 @@
       [disabled]="acaoPrimariaIndisponivel()"
       (click)="acao.emit()"
     >
-      <span>{{ acaoPrimaria().label }}</span>
-      <svg class="mesa-card__acao-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path d="m9 6 6 6-6 6" />
-      </svg>
+      {{ acaoPrimaria().label }}
     </button>
 
     @if (temAcaoSecundaria()) {
@@ -100,22 +80,14 @@
     }
   </div>
 } @else {
-  <p class="mesa-card__garcom">Garçom: —</p>
-  <div class="mesa-card__vazio">
-    <fk-icon name="picnic-table" size="2rem" />
-    <span>Mesa disponível</span>
-  </div>
-  <div class="mesa-card__acoes">
+  <div class="mesa-card__acoes mesa-card__acoes--livre">
     <button
       class="mesa-card__acao mesa-card__acao--abrir"
       type="button"
       [disabled]="bloqueado()"
       (click)="acao.emit()"
     >
-      <span>{{ acaoPrimaria().label }}</span>
-      <svg class="mesa-card__acao-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path d="m9 6 6 6-6 6" />
-      </svg>
+      {{ acaoPrimaria().label }}
     </button>
   </div>
 }

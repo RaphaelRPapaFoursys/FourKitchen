@@ -190,6 +190,46 @@ describe('Gestor', () => {
     expect(resumo.garconsDisponiveis).toBe(disponiveis);
   });
 
+  it('filtra as mesas ao clicar em um garçom da carga da equipe', async () => {
+    fixture.detectChanges();
+    const botoes = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.equipe__garcom'),
+    );
+    const carlos = botoes.find(botao => botao.textContent?.includes('Carlos'));
+
+    expect(carlos).toBeTruthy();
+    carlos?.click();
+    fixture.detectChanges();
+    await esperarMicrotarefas();
+
+    const requisicao = httpMock.expectOne(request =>
+      request.url === `${BASE_URL}/mesas/paginadas` && request.params.get('garcomId') === '7',
+    );
+    requisicao.flush(PAGINA_MESAS_API);
+    await esperarMicrotarefas();
+    fixture.detectChanges();
+
+    expect(carlos?.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('envia o filtro ATENCAO ao clicar no status Atenção', async () => {
+    fixture.detectChanges();
+    const botoes = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.filtros__status button'),
+    );
+    const atencao = botoes.find(botao => botao.textContent?.trim() === 'Atenção');
+
+    expect(atencao).toBeTruthy();
+    atencao?.click();
+    fixture.detectChanges();
+    await esperarMicrotarefas();
+
+    const requisicao = httpMock.expectOne(request =>
+      request.url === `${BASE_URL}/mesas/paginadas` && request.params.get('filtroEstado') === 'ATENCAO',
+    );
+    requisicao.flush(PAGINA_MESAS_API);
+  });
+
   it('abre os detalhes do pedido com itens, observações, progresso e valor', async () => {
     fixture.detectChanges();
     const elemento = fixture.nativeElement as HTMLElement;

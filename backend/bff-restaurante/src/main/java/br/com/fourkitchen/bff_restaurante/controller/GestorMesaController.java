@@ -124,7 +124,10 @@ public class GestorMesaController {
             @RequestParam(defaultValue = "10") Integer size,
             @Parameter(description = "Ordenacao: numero,asc; numero,desc; criticidade; valor,desc; valor,asc", example = "numero,asc")
             @RequestParam(defaultValue = "numero,asc") String sort,
-            @Parameter(description = "Filtro de estado das mesas", example = "PRONTOS")
+            @Parameter(
+                    description = "Filtro de estado: ATENCAO, PROBLEMAS, ATRASADAS, PRONTOS, EM_PREPARO, LIVRE, SEM_GARCOM, CONTA_ABERTA ou AGUARDANDO_PEDIDO",
+                    example = "ATENCAO"
+            )
             @RequestParam(required = false) String filtroEstado,
             @Parameter(description = "Identificador do garcom atribuido", example = "7")
             @RequestParam(required = false) Integer garcomId,

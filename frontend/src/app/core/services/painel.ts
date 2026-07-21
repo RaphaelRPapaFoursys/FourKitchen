@@ -70,6 +70,7 @@ interface ResumoPainelApiResponse {
 }
 
 export type FiltroEstadoPainel =
+  | 'ATENCAO'
   | 'PROBLEMAS'
   | 'PRONTOS'
   | 'EM_PREPARO'

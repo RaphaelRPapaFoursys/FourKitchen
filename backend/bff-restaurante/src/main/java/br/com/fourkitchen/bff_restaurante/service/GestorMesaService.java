@@ -55,6 +55,7 @@ public class GestorMesaService {
     private static final String STATUS_PAINEL_EM_PREPARO = "EM_PREPARO";
     private static final String STATUS_PAINEL_PRONTO_ENTREGA = "PRONTO_ENTREGA";
     private static final String STATUS_PAINEL_CONTA_ABERTA = "CONTA_ABERTA";
+    private static final String CRITICIDADE_ATENCAO = "atencao";
     private static final String CRITICIDADE_CRITICO = "critico";
     private static final List<String> STATUS_PEDIDO_EM_PREPARO = List.of(
             "ENVIADO_COZINHA",
@@ -605,6 +606,7 @@ public class GestorMesaService {
         }
 
         return switch (filtroEstado.trim().toUpperCase(Locale.ROOT)) {
+            case "ATENCAO" -> CRITICIDADE_ATENCAO.equals(mesa.criticidade());
             case "PROBLEMAS", "ATRASADAS" -> CRITICIDADE_CRITICO.equals(mesa.criticidade());
             case "PRONTOS" -> STATUS_PAINEL_PRONTO_ENTREGA.equals(mesa.statusPedido());
             case "EM_PREPARO" -> STATUS_PAINEL_EM_PREPARO.equals(mesa.statusPedido());
