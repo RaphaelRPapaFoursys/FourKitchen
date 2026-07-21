@@ -1,0 +1,52 @@
+<main class="pickup-board">
+  <header class="pickup-board__header">
+    <div>
+      <span>FourKitchen</span>
+      <h1>Acompanhe seu pedido</h1>
+    </div>
+    <p>Retire no balcao quando seu numero aparecer em <strong>Pronto</strong>.</p>
+  </header>
+
+  @if (indisponivel() && pedidos().length === 0) {
+    <section class="board-state" role="alert">
+      <h2>Painel temporariamente indisponivel</h2>
+      <p>Estamos tentando restabelecer a conexao.</p>
+      <button type="button" (click)="atualizar()">Tentar novamente</button>
+    </section>
+  } @else {
+    <section class="pickup-board__columns" [attr.aria-busy]="carregando()">
+      <article class="pickup-column pickup-column--preparing">
+        <header>
+          <h2>Em preparo</h2>
+          <span>{{ emPreparo().length }}</span>
+        </header>
+        <div class="pickup-column__orders">
+          @for (pedido of emPreparo(); track pedido.codigo) {
+            <strong>#{{ pedido.codigo }}</strong>
+          } @empty {
+            <p>Nenhum pedido em preparo.</p>
+          }
+        </div>
+      </article>
+
+      <article class="pickup-column pickup-column--ready" aria-live="polite">
+        <header>
+          <h2>Pronto</h2>
+          <span>{{ prontos().length }}</span>
+        </header>
+        <div class="pickup-column__orders">
+          @for (pedido of prontos(); track pedido.codigo) {
+            <strong>#{{ pedido.codigo }}</strong>
+          } @empty {
+            <p>Nenhum pedido pronto para retirada.</p>
+          }
+        </div>
+      </article>
+    </section>
+  }
+
+  <footer>
+    <span class="online-indicator" aria-hidden="true"></span>
+    Atualizacao automatica · Ultima sincronizacao: {{ horarioAtualizacao() }}
+  </footer>
+</main>

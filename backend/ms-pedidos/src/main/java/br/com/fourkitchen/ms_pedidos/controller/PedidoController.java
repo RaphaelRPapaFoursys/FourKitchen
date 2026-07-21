@@ -7,6 +7,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.DecisaoProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoRetiradaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoProblemaTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
@@ -74,6 +75,11 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findProblemasTotem());
     }
 
+    @GetMapping("/totem/fila-retirada")
+    public ResponseEntity<List<PedidoRetiradaResponse>> buscarFilaRetiradaTotem() {
+        return ResponseEntity.ok(pedidoService.findFilaRetiradaTotem());
+    }
+
     @PatchMapping("/{id}/iniciar-preparo")
     public ResponseEntity<PedidoResponse> iniciarPreparo(@PathVariable Integer id) {
         return ResponseEntity.ok(pedidoService.iniciarPreparo(id));
@@ -87,6 +93,11 @@ public class PedidoController {
     @PatchMapping("/{id}/entregar")
     public ResponseEntity<PedidoResponse> entregarPedido(@PathVariable Integer id) {
         return ResponseEntity.ok(pedidoService.entregarPedido(id));
+    }
+
+    @PatchMapping("/totem/{id}/entregar")
+    public ResponseEntity<PedidoResponse> entregarPedidoTotem(@PathVariable Integer id) {
+        return ResponseEntity.ok(pedidoService.entregarPedidoTotem(id));
     }
 
     @PatchMapping("/{id}/cancelar")

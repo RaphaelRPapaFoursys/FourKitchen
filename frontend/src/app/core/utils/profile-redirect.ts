@@ -5,6 +5,7 @@ export const profileRoutes: Record<string, string> = {
   GARCOM: '/garcom',
   MESA: '/mesa',
   TOTEM: '/totem',
+  BALCAO: '/balcao',
 };
 
 export function normalizePerfil(perfil: string): string {

@@ -5,6 +5,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoProblemaTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoRetiradaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
@@ -66,6 +67,14 @@ public class PedidoService {
     private static final Collection<StatusPedido> STATUS_PROBLEMA = List.of(
             StatusPedido.AGUARDANDO_DECISAO,
             StatusPedido.PROBLEMA_COZINHA
+    );
+
+    private static final Collection<StatusPedido> STATUS_FILA_RETIRADA = List.of(
+            StatusPedido.ENVIADO_COZINHA,
+            StatusPedido.EM_PREPARO,
+            StatusPedido.PRONTO,
+            StatusPedido.PROBLEMA_COZINHA,
+            StatusPedido.AGUARDANDO_DECISAO
     );
 
     @Autowired
@@ -189,6 +198,22 @@ public class PedidoService {
                         itensPorPedido.getOrDefault(pedido.getId(), List.of()).stream()
                                 .map(this::mapearItemCozinha)
                                 .toList()
+                ))
+                .toList();
+    }
+
+    public List<PedidoRetiradaResponse> findFilaRetiradaTotem() {
+        return pedidoRepository.findByCanalAndStatusInOrderByDataCriacaoAscIdAsc(
+                        CanaisPedido.TOTEM,
+                        STATUS_FILA_RETIRADA
+                ).stream()
+                .map(pedido -> new PedidoRetiradaResponse(
+                        pedido.getId(),
+                        pedido.getCodigo(),
+                        pedido.getStatus(),
+                        pedido.getDataCriacao(),
+                        pedido.getDataInicioPreparo(),
+                        pedido.getDataPronto()
                 ))
                 .toList();
     }
@@ -336,6 +361,20 @@ public class PedidoService {
     @Transactional
     public PedidoResponse entregarPedido(Integer id) {
         Pedido pedido = buscarPedido(id);
+
+        validarStatusAtual(pedido, StatusPedido.PRONTO);
+        pedido.setStatus(StatusPedido.ENTREGUE);
+
+        return pedidoResponseMapper.map(pedido);
+    }
+
+    @Transactional
+    public PedidoResponse entregarPedidoTotem(Integer id) {
+        Pedido pedido = buscarPedidoParaAtualizacao(id);
+
+        if (pedido.getCanal() != CanaisPedido.TOTEM) {
+            throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+        }
 
         validarStatusAtual(pedido, StatusPedido.PRONTO);
         pedido.setStatus(StatusPedido.ENTREGUE);

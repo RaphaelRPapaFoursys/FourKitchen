@@ -6,6 +6,7 @@ import br.com.fourkitchen.ms_pedidos.dto.request.ProdutoPedidoRequest;
 import br.com.fourkitchen.ms_pedidos.dto.request.SinalizarProblemaRequest;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoRetiradaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
@@ -1227,5 +1228,70 @@ class PedidoServiceTest {
 
         assertEquals("Sem sal", produtoPedido.getObservacao());
         assertEquals(99, produtoPedido.getIdProduto());
+    }
+
+    @Test
+    void findFilaRetiradaTotemDeveRetornarSomenteDadosOperacionais() {
+        LocalDateTime criadoEm = LocalDateTime.of(2026, 7, 21, 10, 0);
+        LocalDateTime prontoEm = LocalDateTime.of(2026, 7, 21, 10, 10);
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .codigo(100025)
+                .canal(CanaisPedido.TOTEM)
+                .status(StatusPedido.PRONTO)
+                .dataCriacao(criadoEm)
+                .dataPronto(prontoEm)
+                .build();
+        when(pedidoRepository.findByCanalAndStatusInOrderByDataCriacaoAscIdAsc(
+                eq(CanaisPedido.TOTEM),
+                any(Collection.class)
+        )).thenReturn(List.of(pedido));
+
+        List<PedidoRetiradaResponse> resultado = pedidoService.findFilaRetiradaTotem();
+
+        assertEquals(1, resultado.size());
+        assertEquals(25, resultado.getFirst().id());
+        assertEquals(100025, resultado.getFirst().codigo());
+        assertEquals(StatusPedido.PRONTO, resultado.getFirst().status());
+        assertEquals(prontoEm, resultado.getFirst().dataPronto());
+        verifyNoInteractions(produtoPedidoRepository);
+    }
+
+    @Test
+    void entregarPedidoTotemDeveAlterarProntoParaEntregue() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .canal(CanaisPedido.TOTEM)
+                .status(StatusPedido.PRONTO)
+                .build();
+        PedidoResponse response = new PedidoResponse(
+                25, 100025, CanaisPedido.TOTEM, StatusPedido.ENTREGUE, null, 7, null
+        );
+        when(pedidoRepository.findByIdForUpdate(25)).thenReturn(Optional.of(pedido));
+        when(pedidoResponseMapper.map(pedido)).thenReturn(response);
+
+        PedidoResponse resultado = pedidoService.entregarPedidoTotem(25);
+
+        assertSame(response, resultado);
+        assertEquals(StatusPedido.ENTREGUE, pedido.getStatus());
+    }
+
+    @Test
+    void entregarPedidoTotemDeveRejeitarPedidoDeOutroCanal() {
+        Pedido pedido = Pedido.builder()
+                .id(25)
+                .canal(CanaisPedido.MESA)
+                .status(StatusPedido.PRONTO)
+                .build();
+        when(pedidoRepository.findByIdForUpdate(25)).thenReturn(Optional.of(pedido));
+
+        BaseException exception = assertThrows(
+                BaseException.class,
+                () -> pedidoService.entregarPedidoTotem(25)
+        );
+
+        assertEquals(ErrorEnum.TRANSICAO_STATUS_INVALIDA, exception.getErrorEnum());
+        assertEquals(StatusPedido.PRONTO, pedido.getStatus());
+        verify(pedidoResponseMapper, never()).map(any());
     }
 }

@@ -1,4 +1,4 @@
-export type PerfilUsuario = 'ADMIN' | 'GESTOR' | 'GARCOM' | 'COZINHA' | 'MESA' | 'TOTEM';
+export type PerfilUsuario = 'ADMIN' | 'GESTOR' | 'GARCOM' | 'COZINHA' | 'MESA' | 'TOTEM' | 'BALCAO';
 
 export interface UsuarioGestorResponse {
   id: number;
