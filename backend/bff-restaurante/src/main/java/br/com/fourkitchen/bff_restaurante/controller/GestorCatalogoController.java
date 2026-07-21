@@ -68,9 +68,10 @@ public class GestorCatalogoController {
     public ResponseEntity<ProdutoGestorPaginadoResponse> listarProdutos(
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size,
-            @RequestParam(name = "busca", required = false) String busca
+            @RequestParam(name = "busca", required = false) String busca,
+            @RequestParam(name = "categoriaId", required = false) Integer categoriaId
     ) {
-        return ResponseEntity.ok(gestorCatalogoService.listarProdutos(page, size, busca));
+        return ResponseEntity.ok(gestorCatalogoService.listarProdutos(page, size, busca, categoriaId));
     }
 
     @PostMapping("/produtos")
@@ -175,9 +176,10 @@ public class GestorCatalogoController {
     public ResponseEntity<CategoriaGestorPaginadaResponse> listarCategorias(
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size,
-            @RequestParam(name = "busca", required = false) String busca
+            @RequestParam(name = "busca", required = false) String busca,
+            @RequestParam(name = "ativo", required = false) Boolean ativo
     ) {
-        return ResponseEntity.ok(gestorCatalogoService.listarCategorias(page, size, busca));
+        return ResponseEntity.ok(gestorCatalogoService.listarCategorias(page, size, busca, ativo));
     }
 
     @GetMapping("/categorias/opcoes")

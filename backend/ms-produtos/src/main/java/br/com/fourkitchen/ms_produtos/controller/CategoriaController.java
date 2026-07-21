@@ -39,11 +39,12 @@ public class CategoriaController {
     public ResponseEntity<CategoriaGestorPaginadaResponse> listarCategorias(
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size,
-            @RequestParam(name = "busca", required = false) String busca
+            @RequestParam(name = "busca", required = false) String busca,
+            @RequestParam(name = "ativo", required = false) Boolean ativo
     ) {
         int pagina = page == null ? 0 : Math.max(0, page);
         int tamanho = size == null ? 10 : Math.min(Math.max(1, size), 50);
-        return ResponseEntity.ok(categoriaService.listarCategorias(busca, PageRequest.of(pagina, tamanho)));
+        return ResponseEntity.ok(categoriaService.listarCategorias(busca, ativo, PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/opcoes")

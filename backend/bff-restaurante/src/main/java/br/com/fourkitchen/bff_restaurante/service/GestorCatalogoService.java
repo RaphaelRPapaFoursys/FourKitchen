@@ -28,11 +28,16 @@ public class GestorCatalogoService {
 
     private final ProdutoClient produtoClient;
 
-    public ProdutoGestorPaginadoResponse listarProdutos(Integer page, Integer size, String busca) {
+    public ProdutoGestorPaginadoResponse listarProdutos(Integer page, Integer size, String busca, Integer categoriaId) {
         try {
             int pagina = normalizarPagina(page);
             int tamanho = normalizarTamanho(size);
-            var resposta = produtoClient.listarProdutos(pagina, tamanho, normalizarBusca(busca));
+            var resposta = produtoClient.listarProdutos(
+                    pagina,
+                    tamanho,
+                    normalizarBusca(busca),
+                    normalizarCategoria(categoriaId)
+            );
             return new ProdutoGestorPaginadoResponse(
                     resposta.content().stream().map(this::mapearProduto).toList(),
                     resposta.page(),
@@ -79,11 +84,11 @@ public class GestorCatalogoService {
         }
     }
 
-    public CategoriaGestorPaginadaResponse listarCategorias(Integer page, Integer size, String busca) {
+    public CategoriaGestorPaginadaResponse listarCategorias(Integer page, Integer size, String busca, Boolean ativo) {
         try {
             int pagina = normalizarPagina(page);
             int tamanho = normalizarTamanho(size);
-            var resposta = produtoClient.listarCategorias(pagina, tamanho, normalizarBusca(busca));
+            var resposta = produtoClient.listarCategorias(pagina, tamanho, normalizarBusca(busca), ativo);
             return new CategoriaGestorPaginadaResponse(
                     resposta.content().stream().map(this::mapearCategoria).toList(),
                     resposta.page(),
@@ -214,6 +219,10 @@ public class GestorCatalogoService {
 
     private String normalizarBusca(String busca) {
         return busca == null || busca.isBlank() ? null : busca.trim();
+    }
+
+    private Integer normalizarCategoria(Integer categoriaId) {
+        return categoriaId == null || categoriaId <= 0 ? null : categoriaId;
     }
 
     private BaseException mapearErroProduto(FeignException e) {

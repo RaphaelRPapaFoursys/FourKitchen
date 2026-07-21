@@ -86,6 +86,11 @@ describe('GestorDashboard', () => {
         duracaoMinutos: 90,
       },
     ]);
+    httpMock.expectOne(`${BASE_URL}/mesas/opcoes`).flush([
+      { id: 1, numero: 4 },
+      { id: 2, numero: 14 },
+      { id: 3, numero: 22 },
+    ]);
     await fixture.whenStable();
     fixture.detectChanges();
     await new Promise(resolve => setTimeout(resolve, 0));

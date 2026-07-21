@@ -84,6 +84,11 @@ describe('Gestor', () => {
       .flush(PAGINA_MESAS_API);
     httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
     httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush(historico);
+    httpMock.expectOne(`${BASE_URL}/mesas/opcoes`).flush([
+      { id: 1, numero: 1 },
+      { id: 2, numero: 2 },
+      { id: 3, numero: 3 },
+    ]);
   }
 
   beforeEach(async () => {

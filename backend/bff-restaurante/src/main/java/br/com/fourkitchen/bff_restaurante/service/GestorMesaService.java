@@ -16,6 +16,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoRespo
 import br.com.fourkitchen.bff_restaurante.dto.response.ItemPedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaOpcaoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
@@ -90,6 +91,17 @@ public class GestorMesaService {
                 .sorted(Comparator.comparing(MesaClientResponse::numero))
                 .map(mesa -> mapearMesa(mesa, garconsPorId, pedidosPorAtendimento))
                 .toList();
+    }
+
+    public List<MesaOpcaoResponse> listarOpcoesMesas() {
+        try {
+            return mesaClient.listarOpcoes()
+                    .stream()
+                    .map(mesa -> new MesaOpcaoResponse(mesa.id(), mesa.numero()))
+                    .toList();
+        } catch (FeignException e) {
+            throw new BaseException(ErrorEnum.MS_MESAS_INDISPONIVEL);
+        }
     }
 
     public List<PedidoDetalheGarcomResponse> listarPedidosDetalhados(Integer idMesa) {

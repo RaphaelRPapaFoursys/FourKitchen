@@ -39,11 +39,12 @@ public class ProdutoController {
     public ResponseEntity<ProdutoGestorPaginadoResponse> listarProdutos(
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size,
-            @RequestParam(name = "busca", required = false) String busca
+            @RequestParam(name = "busca", required = false) String busca,
+            @RequestParam(name = "categoriaId", required = false) Integer categoriaId
     ) {
         int pagina = page == null ? 0 : Math.max(0, page);
         int tamanho = size == null ? 10 : Math.min(Math.max(1, size), 50);
-        return ResponseEntity.ok(produtoService.listarProdutos(busca, PageRequest.of(pagina, tamanho)));
+        return ResponseEntity.ok(produtoService.listarProdutos(busca, categoriaId, PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/disponiveis")

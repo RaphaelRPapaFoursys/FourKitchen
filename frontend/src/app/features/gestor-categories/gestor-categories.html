@@ -37,6 +37,18 @@
       @if (loading()) {
         <section class="state-card">Carregando categorias...</section>
       } @else {
+        <nav class="category-filters" aria-label="Filtrar categorias por status">
+          <button type="button" [class.category-filters__button--active]="selectedStatus() === null" (click)="selectStatus(null)">
+            Todas
+          </button>
+          <button type="button" [class.category-filters__button--active]="selectedStatus() === true" (click)="selectStatus(true)">
+            Ativas
+          </button>
+          <button type="button" [class.category-filters__button--active]="selectedStatus() === false" (click)="selectStatus(false)">
+            Inativas
+          </button>
+        </nav>
+
         <section class="products-card categories-card">
           <div class="products-card__header">
             <div>

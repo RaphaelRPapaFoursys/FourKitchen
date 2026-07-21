@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,6 +24,11 @@ public interface UsuarioClient {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     );
 
+    @GetMapping("/api/usuarios/todos")
+    List<UsuarioClientResponse> listarUsuarios(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    );
+
     @PostMapping("/api/usuarios")
     UsuarioClientResponse criarUsuario(
             @RequestBody CriarUsuarioClientRequest request,
@@ -33,6 +39,12 @@ public interface UsuarioClient {
     UsuarioClientResponse atualizarUsuario(
             @PathVariable Integer id,
             @RequestBody AtualizarUsuarioClientRequest request,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    );
+
+    @PatchMapping("/api/usuarios/{id}/ativar")
+    UsuarioClientResponse ativarUsuario(
+            @PathVariable Integer id,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     );
 

@@ -52,7 +52,8 @@ public interface ProdutoClient {
     ProdutoGestorPaginadoClientResponse listarProdutos(
             @RequestParam("page") Integer page,
             @RequestParam("size") Integer size,
-            @RequestParam(value = "busca", required = false) String busca
+            @RequestParam(value = "busca", required = false) String busca,
+            @RequestParam(value = "categoriaId", required = false) Integer categoriaId
     );
 
     @PostMapping("/api/produtos")
@@ -74,7 +75,8 @@ public interface ProdutoClient {
     CategoriaGestorPaginadaClientResponse listarCategorias(
             @RequestParam("page") Integer page,
             @RequestParam("size") Integer size,
-            @RequestParam(value = "busca", required = false) String busca
+            @RequestParam(value = "busca", required = false) String busca,
+            @RequestParam(value = "ativo", required = false) Boolean ativo
     );
 
     @GetMapping("/api/categorias/opcoes")

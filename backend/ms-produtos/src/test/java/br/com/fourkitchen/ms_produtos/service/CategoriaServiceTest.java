@@ -57,15 +57,15 @@ class CategoriaServiceTest {
         CategoriaResponse response = new CategoriaResponse(1, "Lanches", null, null, true);
         PageRequest pageable = PageRequest.of(0, 10);
 
-        when(categoriaRepository.buscarCategoriasParaGestao(pageable))
+        when(categoriaRepository.buscarCategoriasParaGestao(-1, pageable))
                 .thenReturn(new PageImpl<>(List.of(categoria), pageable, 1));
         when(categoriaResponseMapper.map(categoria)).thenReturn(response);
 
-        var resultado = categoriaService.listarCategorias(null, pageable);
+        var resultado = categoriaService.listarCategorias(null, null, pageable);
 
         assertEquals(List.of(response), resultado.content());
         assertEquals(1, resultado.totalElements());
-        verify(categoriaRepository).buscarCategoriasParaGestao(pageable);
+        verify(categoriaRepository).buscarCategoriasParaGestao(-1, pageable);
         verify(categoriaResponseMapper).map(categoria);
     }
 

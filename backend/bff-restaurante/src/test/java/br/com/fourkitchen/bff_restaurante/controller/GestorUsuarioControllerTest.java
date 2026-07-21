@@ -101,6 +101,18 @@ class GestorUsuarioControllerTest {
         verify(gestorUsuarioService).inativarUsuario(1, AUTHORIZATION, authentication);
     }
 
+    @Test
+    void ativarUsuarioDeveRetornarOk() {
+        UsuarioGestorResponse usuario = criarUsuario();
+        when(gestorUsuarioService.ativarUsuario(1, AUTHORIZATION)).thenReturn(usuario);
+
+        ResponseEntity<UsuarioGestorResponse> response = gestorUsuarioController.ativarUsuario(1, AUTHORIZATION);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertSame(usuario, response.getBody());
+        verify(gestorUsuarioService).ativarUsuario(1, AUTHORIZATION);
+    }
+
     private UsuarioGestorResponse criarUsuario() {
         return new UsuarioGestorResponse(
                 1,

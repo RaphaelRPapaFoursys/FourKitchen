@@ -36,6 +36,7 @@ export class GestorCategories {
   });
   protected readonly categories = signal<CategoriaGestorResponse[]>([]);
   protected readonly searchTerm = signal('');
+  protected readonly selectedStatus = signal<boolean | null>(null);
   protected readonly currentPage = signal(0);
   protected readonly totalElements = signal(0);
   protected readonly totalPages = signal(0);
@@ -88,6 +89,16 @@ export class GestorCategories {
       this.currentPage.update(page => page + 1);
       this.loadCategories();
     }
+  }
+
+  protected selectStatus(status: boolean | null): void {
+    if (this.selectedStatus() === status || this.loading()) {
+      return;
+    }
+
+    this.selectedStatus.set(status);
+    this.currentPage.set(0);
+    this.loadCategories();
   }
 
   protected openCreateDialog(): void {
@@ -225,7 +236,7 @@ export class GestorCategories {
     this.loading.set(true);
     this.errorMessage.set('');
     this.catalogService
-      .listCategories(this.currentPage(), this.pageSize, this.searchTerm())
+      .listCategories(this.currentPage(), this.pageSize, this.searchTerm(), this.selectedStatus())
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false)),

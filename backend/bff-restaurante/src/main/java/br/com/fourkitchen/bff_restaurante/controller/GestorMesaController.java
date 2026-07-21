@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaOpcaoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
@@ -65,6 +66,12 @@ public class GestorMesaController {
             @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
         return ResponseEntity.ok(gestorMesaService.listarMesas(authorization));
+    }
+
+    @GetMapping("/mesas/opcoes")
+    @Operation(summary = "Lista opcoes de mesa", description = "Retorna somente id e numero para preencher filtros do gestor.")
+    public ResponseEntity<List<MesaOpcaoResponse>> listarOpcoesMesas() {
+        return ResponseEntity.ok(gestorMesaService.listarOpcoesMesas());
     }
 
     @GetMapping("/mesas/{id}/pedidos")

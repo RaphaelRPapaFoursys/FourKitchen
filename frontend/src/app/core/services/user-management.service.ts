@@ -34,4 +34,8 @@ export class UserManagementService {
   deactivateUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
+
+  activateUser(id: number): Observable<UsuarioGestorResponse> {
+    return this.http.patch<UsuarioGestorResponse>(`${this.baseUrl}/${id}/ativar`, {});
+  }
 }

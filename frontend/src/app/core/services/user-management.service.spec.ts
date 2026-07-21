@@ -70,4 +70,12 @@ describe('UserManagementService', () => {
     expect(request.request.method).toBe('DELETE');
     request.flush(null);
   });
+
+  it('activates a user through the BFF', () => {
+    service.activateUser(7).subscribe();
+
+    const request = httpMock.expectOne(`${baseUrl}/7/ativar`);
+    expect(request.request.method).toBe('PATCH');
+    request.flush({});
+  });
 });

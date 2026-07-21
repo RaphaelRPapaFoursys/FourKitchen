@@ -261,11 +261,16 @@ fk-topbar {
 }
 
 .row-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6rem;
+  min-height: 2.15rem;
   padding: 0.4rem 0.65rem;
-  border: 1px solid var(--fk-border);
+  border: 1px solid var(--fk-blue);
   border-radius: var(--fk-radius-control);
-  background: var(--fk-card);
-  color: var(--fk-blue);
+  background: var(--fk-blue);
+  color: #fff;
   font: inherit;
   font-size: 0.78rem;
   font-weight: 600;
@@ -274,11 +279,15 @@ fk-topbar {
 }
 
 .row-actions__status {
-  color: var(--fk-red-strong) !important;
+  border-color: var(--fk-red-strong) !important;
+  background: var(--fk-red-strong) !important;
+  color: #fff !important;
 }
 
 .row-actions__status--activate {
-  color: var(--fk-green-strong) !important;
+  border-color: var(--fk-green-strong) !important;
+  background: var(--fk-green-strong) !important;
+  color: #fff !important;
 }
 
 .row-actions button:disabled {
@@ -443,6 +452,36 @@ fk-topbar {
   gap: 0.75rem;
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--fk-border);
+}
+
+.category-filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.category-filters button {
+  flex: 0 0 auto;
+  min-height: 2.35rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--fk-border);
+  border-radius: var(--fk-radius-control);
+  background: var(--fk-card);
+  color: var(--fk-text-2);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.category-filters button:hover,
+.category-filters__button--active {
+  border-color: var(--fk-orange) !important;
+  background: var(--fk-orange-soft) !important;
+  color: var(--fk-orange) !important;
 }
 
 .catalog-pagination span {

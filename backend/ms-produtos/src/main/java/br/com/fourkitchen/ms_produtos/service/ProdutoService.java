@@ -39,11 +39,12 @@ public class ProdutoService {
 
     private final AtualizarProdutoRequestMapper atualizarProdutoRequestMapper;
 
-    public ProdutoGestorPaginadoResponse listarProdutos(String busca, Pageable pageable) {
+    public ProdutoGestorPaginadoResponse listarProdutos(String busca, Integer categoriaId, Pageable pageable) {
         String termo = normalizarBusca(busca);
+        int categoria = categoriaId == null || categoriaId <= 0 ? 0 : categoriaId;
         var pagina = termo == null
-                ? produtoRepository.buscarProdutosParaGestao(pageable)
-                : produtoRepository.buscarProdutosParaGestaoComBusca(termo, pageable);
+                ? produtoRepository.buscarProdutosParaGestao(categoria, pageable)
+                : produtoRepository.buscarProdutosParaGestaoComBusca(termo, categoria, pageable);
 
         return new ProdutoGestorPaginadoResponse(
                 pagina.getContent().stream().map(produtoResponseMapper::map).toList(),

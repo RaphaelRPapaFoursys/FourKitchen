@@ -53,6 +53,11 @@ interface MesaGestorPaginadaApiResponse {
   last: boolean;
 }
 
+export interface MesaOpcaoPainel {
+  id: number;
+  numero: number;
+}
+
 interface CargaGarcomApiResponse {
   id: number;
   nome: string;
@@ -175,6 +180,7 @@ export class PainelService {
 
   private readonly mesasSignal = signal<MesaPainel[]>([]);
   private readonly cargaGarconsSignal = signal<CargaGarcom[]>([]);
+  private readonly opcoesMesasSignal = signal<MesaOpcaoPainel[]>([]);
   private readonly resumoSignal = signal<ResumoAtendimento>(RESUMO_INICIAL);
   private readonly paginacaoSignal = signal<PaginacaoMesasPainel>(PAGINACAO_INICIAL);
   private readonly consultaSignal = signal<ConsultaMesasPainel>(CONSULTA_INICIAL);
@@ -206,6 +212,7 @@ export class PainelService {
   readonly mesas = this.mesasSignal.asReadonly();
   readonly resumo = this.resumoSignal.asReadonly();
   readonly cargaGarcons = this.cargaGarconsSignal.asReadonly();
+  readonly opcoesMesas = this.opcoesMesasSignal.asReadonly();
   readonly historicoAtendimentos = this.historicoAtendimentosSignal.asReadonly();
   readonly totalElementos = computed(() => this.paginacaoSignal().totalElements);
   readonly totalPaginas = computed(() => Math.max(1, this.paginacaoSignal().totalPages));
@@ -662,6 +669,13 @@ export class PainelService {
     this.historicoAtendimentosSignal.set(historico ?? []);
   }
 
+  private async atualizarOpcoesMesas(): Promise<void> {
+    const opcoes = await firstValueFrom(
+      this.http.get<MesaOpcaoPainel[]>(`${this.baseUrl}/mesas/opcoes`),
+    );
+    this.opcoesMesasSignal.set(opcoes ?? []);
+  }
+
   private async atualizarPainel(): Promise<void> {
     if (this.atualizacaoPainelPromise !== null) {
       return this.atualizacaoPainelPromise;
@@ -679,6 +693,7 @@ export class PainelService {
       this.atualizarMesas(),
       this.atualizarResumoPainel(),
       this.atualizarHistoricoAtendimentos(),
+      this.atualizarOpcoesMesas(),
     ]).then(() => undefined);
     this.atualizacaoPainelPromise = promessa;
 

@@ -8,6 +8,7 @@ import br.com.fourkitchen.ms_mesas.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaPaginadaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.MesaOpcaoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
 import br.com.fourkitchen.ms_mesas.enums.StatusMesa;
@@ -56,6 +57,13 @@ public class MesaService {
         return mesaRepository.findAll()
                 .stream()
                 .map(mesaResponseMapper::map)
+                .toList();
+    }
+
+    public List<MesaOpcaoResponse> listarOpcoes() {
+        return mesaRepository.buscarOpcoesOrdenadas()
+                .stream()
+                .map(mesa -> new MesaOpcaoResponse(mesa.getId(), mesa.getNumero()))
                 .toList();
     }
 

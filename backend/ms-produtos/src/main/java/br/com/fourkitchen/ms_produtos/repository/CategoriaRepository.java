@@ -23,14 +23,23 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
                         c.imagemAtualizadaEm as imagemAtualizadaEm,
                         case when c.imagem is null then false else true end as possuiImagem
                     from Categoria c
+                    where :status = -1
+                       or (:status = 1 and c.ativo = true)
+                       or (:status = 0 and c.ativo = false)
                     order by c.nome, c.id
                     """,
             countQuery = """
                     select count(c)
                     from Categoria c
+                    where :status = -1
+                       or (:status = 1 and c.ativo = true)
+                       or (:status = 0 and c.ativo = false)
                     """
     )
-    Page<CategoriaGestorProjection> buscarCategoriasParaGestao(Pageable pageable);
+    Page<CategoriaGestorProjection> buscarCategoriasParaGestao(
+            @Param("status") Integer status,
+            Pageable pageable
+    );
 
     @Query(
             value = """
@@ -42,19 +51,26 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
                         c.imagemAtualizadaEm as imagemAtualizadaEm,
                         case when c.imagem is null then false else true end as possuiImagem
                     from Categoria c
-                    where lower(c.nome) like lower(concat('%', :busca, '%'))
-                       or lower(coalesce(c.descricao, '')) like lower(concat('%', :busca, '%'))
+                    where (:status = -1
+                       or (:status = 1 and c.ativo = true)
+                       or (:status = 0 and c.ativo = false))
+                      and (lower(c.nome) like lower(concat('%', :busca, '%'))
+                       or lower(coalesce(c.descricao, '')) like lower(concat('%', :busca, '%')))
                     order by c.nome, c.id
                     """,
             countQuery = """
                     select count(c)
                     from Categoria c
-                    where lower(c.nome) like lower(concat('%', :busca, '%'))
-                       or lower(coalesce(c.descricao, '')) like lower(concat('%', :busca, '%'))
+                    where (:status = -1
+                       or (:status = 1 and c.ativo = true)
+                       or (:status = 0 and c.ativo = false))
+                      and (lower(c.nome) like lower(concat('%', :busca, '%'))
+                       or lower(coalesce(c.descricao, '')) like lower(concat('%', :busca, '%')))
                     """
     )
     Page<CategoriaGestorProjection> buscarCategoriasParaGestaoComBusca(
             @Param("busca") String busca,
+            @Param("status") Integer status,
             Pageable pageable
     );
 

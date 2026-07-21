@@ -42,6 +42,29 @@
       @if (loading()) {
         <section class="state-card">Carregando usuários...</section>
       } @else {
+        <nav class="category-filters" aria-label="Filtrar usuários por perfil">
+          <button type="button" [class.category-filters__button--active]="profileFilter() === null" (click)="selectProfileFilter(null)">
+            Todos os perfis
+          </button>
+          @for (profile of profileOptions; track profile.value) {
+            <button type="button" [class.category-filters__button--active]="profileFilter() === profile.value" (click)="selectProfileFilter(profile.value)">
+              {{ profile.label }}
+            </button>
+          }
+        </nav>
+
+        <nav class="category-filters user-status-filters" aria-label="Filtrar usuários por status">
+          <button type="button" [class.category-filters__button--active]="statusFilter() === null" (click)="selectStatusFilter(null)">
+            Todos os status
+          </button>
+          <button type="button" [class.category-filters__button--active]="statusFilter() === true" (click)="selectStatusFilter(true)">
+            Ativos
+          </button>
+          <button type="button" [class.category-filters__button--active]="statusFilter() === false" (click)="selectStatusFilter(false)">
+            Inativos
+          </button>
+        </nav>
+
         <section class="products-card users-card">
           <div class="products-card__header">
             <div>
@@ -64,7 +87,6 @@
                   <tr>
                     <th>Usuário</th>
                     <th>Perfil</th>
-                    <th>Mesa</th>
                     <th>Status</th>
                     <th><span class="sr-only">Ações</span></th>
                   </tr>
@@ -87,7 +109,6 @@
                         </div>
                       </td>
                       <td><span class="profile-pill">{{ profileLabel(user.perfilUsuario) }}</span></td>
-                      <td>{{ user.idMesa ? 'Mesa ' + user.idMesa : '—' }}</td>
                       <td>
                         <span class="status-pill" [class.status-pill--inactive]="!user.ativo">
                           {{ user.ativo ? 'Ativo' : 'Inativo' }}
@@ -99,11 +120,12 @@
                           <button
                             type="button"
                             class="row-actions__status"
+                            [class.row-actions__status--activate]="!user.ativo"
                             [disabled]="actionUserId() !== null || isCurrentUser(user)"
-                            [title]="isCurrentUser(user) ? 'Você não pode inativar o próprio usuário' : 'Inativar usuário'"
-                            (click)="deactivateUser(user)"
+                            [title]="isCurrentUser(user) ? 'Você não pode inativar o próprio usuário' : user.ativo ? 'Inativar usuário' : 'Ativar usuário'"
+                            (click)="toggleUserStatus(user)"
                           >
-                            {{ actionUserId() === user.id ? 'Aguarde...' : 'Inativar' }}
+                            {{ actionUserId() === user.id ? 'Aguarde...' : user.ativo ? 'Inativar' : 'Ativar' }}
                           </button>
                         </div>
                       </td>
@@ -185,7 +207,16 @@
               autocomplete="new-password"
               [placeholder]="editingUser() ? 'Deixe vazio para manter a senha' : 'Mínimo de 8 caracteres'"
             />
-            <small>Use pelo menos 8 caracteres, com letra maiúscula, minúscula e número.</small>
+            @if (!editingUser() || passwordValue()) {
+              <ul class="password-requirements" aria-label="Requisitos da senha">
+                @for (requirement of passwordRequirements(); track requirement.label) {
+                  <li [class.password-requirements__item--met]="requirement.met">
+                    <span><fk-icon name="check" size="0.7rem" /></span>
+                    {{ requirement.label }}
+                  </li>
+                }
+              </ul>
+            }
             @if (userForm.controls.senha.touched && userForm.controls.senha.invalid) {
               <small class="form-field__error">A senha não atende aos requisitos.</small>
             }

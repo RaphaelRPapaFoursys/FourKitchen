@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged, finalize, forkJoin } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, finalize, forkJoin, fromEvent } from 'rxjs';
 
 import {
   CategoriaOpcaoResponse,
@@ -39,6 +39,7 @@ export class GestorProducts {
   protected readonly products = signal<ProdutoGestorResponse[]>([]);
   protected readonly categories = signal<CategoriaOpcaoResponse[]>([]);
   protected readonly searchTerm = signal('');
+  protected readonly selectedCategoryId = signal<number | null>(null);
   protected readonly currentPage = signal(0);
   protected readonly totalElements = signal(0);
   protected readonly totalPages = signal(0);
@@ -74,6 +75,9 @@ export class GestorProducts {
     const currentCategoryId = this.editingProduct()?.categoriaId;
     return this.categories().filter(category => category.ativo || category.id === currentCategoryId);
   });
+  protected readonly activeCategoryFilters = computed(() =>
+    this.categories().filter(category => category.ativo),
+  );
   protected readonly hasActiveCategory = computed(() => this.categories().some(category => category.ativo));
 
   constructor() {
@@ -83,6 +87,11 @@ export class GestorProducts {
         this.currentPage.set(0);
         this.loadProducts();
       });
+
+    fromEvent(window, 'focus')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadCategoryOptions());
+
     this.loadCatalog();
   }
 
@@ -103,6 +112,16 @@ export class GestorProducts {
       this.currentPage.update(page => page + 1);
       this.loadProducts();
     }
+  }
+
+  protected selectCategory(categoryId: number | null): void {
+    if (this.selectedCategoryId() === categoryId || this.loading()) {
+      return;
+    }
+
+    this.selectedCategoryId.set(categoryId);
+    this.currentPage.set(0);
+    this.loadProducts();
   }
 
   protected openCreateDialog(): void {
@@ -248,7 +267,12 @@ export class GestorProducts {
     this.errorMessage.set('');
 
     forkJoin({
-      products: this.catalogService.listProducts(this.currentPage(), this.pageSize, this.searchTerm()),
+      products: this.catalogService.listProducts(
+        this.currentPage(),
+        this.pageSize,
+        this.searchTerm(),
+        this.selectedCategoryId(),
+      ),
       categories: this.catalogService.listCategoryOptions(),
     })
       .pipe(
@@ -268,7 +292,7 @@ export class GestorProducts {
     this.loading.set(true);
     this.errorMessage.set('');
     this.catalogService
-      .listProducts(this.currentPage(), this.pageSize, this.searchTerm())
+      .listProducts(this.currentPage(), this.pageSize, this.searchTerm(), this.selectedCategoryId())
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false)),
@@ -276,6 +300,23 @@ export class GestorProducts {
       .subscribe({
         next: page => this.applyProductPage(page),
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
+      });
+  }
+
+  private loadCategoryOptions(): void {
+    this.catalogService
+      .listCategoryOptions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: categories => {
+          this.categories.set(categories);
+          const selectedId = this.selectedCategoryId();
+          if (selectedId !== null && !categories.some(category => category.id === selectedId && category.ativo)) {
+            this.selectedCategoryId.set(null);
+            this.currentPage.set(0);
+            this.loadProducts();
+          }
+        },
       });
   }
 

@@ -42,6 +42,8 @@ export class GestorUsers {
   });
   protected readonly users = signal<UsuarioGestorResponse[]>([]);
   protected readonly searchTerm = signal('');
+  protected readonly profileFilter = signal<PerfilUsuario | null>(null);
+  protected readonly statusFilter = signal<boolean | null>(null);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly actionUserId = signal<number | null>(null);
@@ -82,18 +84,31 @@ export class GestorUsers {
   protected readonly selectedProfile = toSignal(this.userForm.controls.perfilUsuario.valueChanges, {
     initialValue: this.userForm.controls.perfilUsuario.value,
   });
+  protected readonly passwordValue = toSignal(this.userForm.controls.senha.valueChanges, {
+    initialValue: this.userForm.controls.senha.value,
+  });
   protected readonly isMesaProfile = computed(() => this.selectedProfile() === 'MESA');
+  protected readonly passwordRequirements = computed(() => {
+    const password = this.passwordValue();
+    return [
+      { label: 'Pelo menos 8 caracteres', met: password.length >= 8 },
+      { label: 'Uma letra maiúscula', met: /[A-Z]/.test(password) },
+      { label: 'Uma letra minúscula', met: /[a-z]/.test(password) },
+      { label: 'Um número', met: /\d/.test(password) },
+    ];
+  });
   protected readonly filteredUsers = computed(() => {
     const term = this.normalizeText(this.searchTerm());
-    if (!term) {
-      return this.users();
-    }
-
-    return this.users().filter(user =>
-      this.normalizeText(
-        `${user.nome} ${user.email} ${this.profileLabel(user.perfilUsuario)} ${user.idMesa ?? ''}`,
-      ).includes(term),
-    );
+    const profile = this.profileFilter();
+    const status = this.statusFilter();
+    return this.users().filter(user => {
+      const matchesProfile = profile === null || user.perfilUsuario === profile;
+      const matchesStatus = status === null || user.ativo === status;
+      const matchesTerm = !term || this.normalizeText(
+        `${user.nome} ${user.email} ${this.profileLabel(user.perfilUsuario)}`,
+      ).includes(term);
+      return matchesProfile && matchesStatus && matchesTerm;
+    });
   });
 
   constructor() {
@@ -133,6 +148,14 @@ export class GestorUsers {
     this.dialogOpen.set(true);
   }
 
+  protected selectProfileFilter(profile: PerfilUsuario | null): void {
+    this.profileFilter.set(profile);
+  }
+
+  protected selectStatusFilter(status: boolean | null): void {
+    this.statusFilter.set(status);
+  }
+
   protected closeDialog(): void {
     if (this.saving()) {
       return;
@@ -162,7 +185,7 @@ export class GestorUsers {
 
     const currentUser = this.editingUser();
     const commonRequest = {
-      nome: formValue.nome.trim(),
+      nome: this.normalizeName(formValue.nome),
       email: formValue.email.trim().toLowerCase(),
       perfilUsuario: formValue.perfilUsuario,
       idMesa: formValue.perfilUsuario === 'MESA' ? formValue.idMesa : null,
@@ -220,7 +243,9 @@ export class GestorUsers {
       )
       .subscribe({
         next: () => {
-          this.users.update(users => users.filter(item => item.id !== user.id));
+          this.users.update(users =>
+            users.map(item => item.id === user.id ? { ...item, ativo: false } : item),
+          );
           this.successMessage.set('Usuário inativado com sucesso.');
         },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
@@ -296,6 +321,42 @@ export class GestorUsers {
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .trim();
+  }
+
+  protected activateUser(user: UsuarioGestorResponse): void {
+    if (this.actionUserId() !== null || user.ativo) {
+      return;
+    }
+
+    this.clearMessages();
+    this.actionUserId.set(user.id);
+    this.userManagementService
+      .activateUser(user.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.actionUserId.set(null)),
+      )
+      .subscribe({
+        next: activatedUser => {
+          this.upsertUser(activatedUser);
+          this.successMessage.set('Usuário ativado com sucesso.');
+        },
+        error: error => this.errorMessage.set(this.getErrorMessage(error)),
+      });
+  }
+
+  protected toggleUserStatus(user: UsuarioGestorResponse): void {
+    if (user.ativo) {
+      this.deactivateUser(user);
+      return;
+    }
+
+    this.activateUser(user);
+  }
+
+  private normalizeName(value: string): string {
+    const normalized = value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+    return normalized.charAt(0).toLocaleUpperCase('pt-BR') + normalized.slice(1);
   }
 
   private getErrorMessage(error: unknown): string {

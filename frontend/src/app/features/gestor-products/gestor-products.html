@@ -57,6 +57,27 @@
       }
 
       @if (!loading()) {
+        <nav class="category-filters" aria-label="Filtrar produtos por categoria">
+          <button
+            type="button"
+            [class.category-filters__button--active]="selectedCategoryId() === null"
+            [attr.aria-pressed]="selectedCategoryId() === null"
+            (click)="selectCategory(null)"
+          >
+            Todas
+          </button>
+          @for (category of activeCategoryFilters(); track category.id) {
+            <button
+              type="button"
+              [class.category-filters__button--active]="selectedCategoryId() === category.id"
+              [attr.aria-pressed]="selectedCategoryId() === category.id"
+              (click)="selectCategory(category.id)"
+            >
+              {{ category.nome }}
+            </button>
+          }
+        </nav>
+
         <section class="products-card">
           <div class="products-card__header">
             <div>

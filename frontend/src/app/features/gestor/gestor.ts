@@ -168,6 +168,13 @@ export class Gestor {
     });
 
     effect(() => {
+      const garcomId = this.filtroGarcom();
+      if (!this.carregando() && garcomId !== null && !this.cargaGarcons().some(garcom => garcom.id === garcomId)) {
+        this.filtroGarcom.set(null);
+      }
+    });
+
+    effect(() => {
       const mesa = deveAbrirDetalhes && Number.isInteger(mesaIdRota) && mesaIdRota > 0
         ? this.mesasPagina().find(item => item.id === mesaIdRota)
         : null;

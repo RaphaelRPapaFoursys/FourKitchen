@@ -30,14 +30,20 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                         case when p.imagem is null then false else true end as possuiImagem
                     from Produto p
                     join p.categoria c
+                    where :categoriaId = 0 or c.id = :categoriaId
                     order by p.nome, p.id
                     """,
             countQuery = """
                     select count(p)
                     from Produto p
+                    join p.categoria c
+                    where :categoriaId = 0 or c.id = :categoriaId
                     """
     )
-    Page<ProdutoGestorProjection> buscarProdutosParaGestao(Pageable pageable);
+    Page<ProdutoGestorProjection> buscarProdutosParaGestao(
+            @Param("categoriaId") Integer categoriaId,
+            Pageable pageable
+    );
 
     @Query(
             value = """
@@ -53,22 +59,25 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
                         case when p.imagem is null then false else true end as possuiImagem
                     from Produto p
                     join p.categoria c
-                    where lower(p.nome) like lower(concat('%', :busca, '%'))
+                    where (:categoriaId = 0 or c.id = :categoriaId)
+                      and (lower(p.nome) like lower(concat('%', :busca, '%'))
                        or lower(coalesce(p.descricao, '')) like lower(concat('%', :busca, '%'))
-                       or lower(c.nome) like lower(concat('%', :busca, '%'))
+                       or lower(c.nome) like lower(concat('%', :busca, '%')))
                     order by p.nome, p.id
                     """,
             countQuery = """
                     select count(p)
                     from Produto p
                     join p.categoria c
-                    where lower(p.nome) like lower(concat('%', :busca, '%'))
+                    where (:categoriaId = 0 or c.id = :categoriaId)
+                      and (lower(p.nome) like lower(concat('%', :busca, '%'))
                        or lower(coalesce(p.descricao, '')) like lower(concat('%', :busca, '%'))
-                       or lower(c.nome) like lower(concat('%', :busca, '%'))
+                       or lower(c.nome) like lower(concat('%', :busca, '%')))
                     """
     )
     Page<ProdutoGestorProjection> buscarProdutosParaGestaoComBusca(
             @Param("busca") String busca,
+            @Param("categoriaId") Integer categoriaId,
             Pageable pageable
     );
 

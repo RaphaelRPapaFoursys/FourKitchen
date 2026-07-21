@@ -31,11 +31,12 @@ public class CategoriaService {
 
     private final AtualizarCategoriaRequestMapper atualizarCategoriaRequestMapper;
 
-    public CategoriaGestorPaginadaResponse listarCategorias(String busca, Pageable pageable) {
+    public CategoriaGestorPaginadaResponse listarCategorias(String busca, Boolean ativo, Pageable pageable) {
         String termo = normalizarBusca(busca);
+        int status = ativo == null ? -1 : ativo ? 1 : 0;
         var pagina = termo == null
-                ? categoriaRepository.buscarCategoriasParaGestao(pageable)
-                : categoriaRepository.buscarCategoriasParaGestaoComBusca(termo, pageable);
+                ? categoriaRepository.buscarCategoriasParaGestao(status, pageable)
+                : categoriaRepository.buscarCategoriasParaGestaoComBusca(termo, status, pageable);
 
         return new CategoriaGestorPaginadaResponse(
                 pagina.getContent().stream().map(categoriaResponseMapper::map).toList(),

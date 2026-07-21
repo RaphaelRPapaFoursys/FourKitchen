@@ -69,15 +69,15 @@ class ProdutoServiceTest {
                 new BigDecimal("29.90"), 1, "Lanches", true);
         PageRequest pageable = PageRequest.of(0, 10);
 
-        when(produtoRepository.buscarProdutosParaGestao(pageable))
+        when(produtoRepository.buscarProdutosParaGestao(0, pageable))
                 .thenReturn(new PageImpl<>(List.of(produto), pageable, 1));
         when(produtoResponseMapper.map(produto)).thenReturn(response);
 
-        var resultado = produtoService.listarProdutos(null, pageable);
+        var resultado = produtoService.listarProdutos(null, null, pageable);
 
         assertEquals(List.of(response), resultado.content());
         assertEquals(1, resultado.totalElements());
-        verify(produtoRepository).buscarProdutosParaGestao(pageable);
+        verify(produtoRepository).buscarProdutosParaGestao(0, pageable);
         verify(produtoResponseMapper).map(produto);
     }
 
