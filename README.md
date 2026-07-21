@@ -115,13 +115,13 @@ Frontend (Angular)
 
 BFF Restaurante
 
-├── MS Usuários
-├── MS Produtos
-├── MS Pedidos
-├── MS Cozinha
-├── MS Mesa
-├── MS Notificações
-└── MS Pagamentos
+├── ms-cozinha
+├── ms-mesas
+├── ms-notificacoes
+├── ms-pagamentos
+├── ms-pedidos
+├── ms-produtos
+└── ms-usuarios
 ```
 
 ### Microsserviço de Pagamentos
@@ -256,19 +256,6 @@ Inicia apenas os microsserviços e o BFF, sem migrations e sem frontend.
 ```powershell
 .\start-all.ps1 -SkipMigrations -NoFrontend
 ```
-
----
-
-## O que o script faz?
-
-Ao ser executado, o script realiza automaticamente as seguintes etapas:
-
-- ✅ Executa as migrations do banco de dados (quando habilitadas);
-- ✅ Carrega automaticamente o arquivo `.env` de cada serviço;
-- ✅ Inicializa o BFF;
-- ✅ Inicializa todos os microsserviços;
-- ✅ Inicializa o frontend (quando habilitado);
-- ✅ Abre cada serviço em uma janela separada do PowerShell, facilitando o acompanhamento dos logs.
 
 ---
 
