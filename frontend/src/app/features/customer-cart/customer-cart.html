@@ -76,7 +76,7 @@
           @for (item of items(); track trackByCartItemId($index, item)) {
             <app-cart-item-card
               [item]="item"
-              [observationEditable]="getCurrentContext() === 'mesa'"
+              [observationEditable]="true"
               [productImage]="getProductImage.bind(this)"
               [formatPrice]="formatPrice.bind(this)"
               (quantityIncreased)="increaseQuantity($event)"

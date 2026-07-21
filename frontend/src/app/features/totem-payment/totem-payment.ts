@@ -106,7 +106,11 @@ export class TotemPayment {
   }
 
   private handleCreatedOrder(order: PedidoTotemResponse): void {
-    if (order.status !== 'ENVIADO_COZINHA') {
+    if (
+      order.status !== 'ENVIADO_COZINHA'
+      || !Number.isInteger(order.codigo)
+      || order.codigo <= 0
+    ) {
       this.showOrderError();
       return;
     }

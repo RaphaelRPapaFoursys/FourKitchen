@@ -20,6 +20,9 @@ export class OrderSuccess {
   private readonly cartService = inject(CartService);
   private readonly customerContextService = inject(CustomerContextService);
   private readonly router = inject(Router);
+  private readonly confirmedOrder = this.readConfirmedOrder();
+
+  protected readonly orderCode = this.confirmedOrder?.codigo ?? null;
 
   protected readonly homeRoute = computed(() =>
     this.customerContextService.getHomeRoute(this.getCurrentContext()),
@@ -36,7 +39,7 @@ export class OrderSuccess {
   );
 
   constructor() {
-    if (!this.hasConfirmedOrder()) {
+    if (!this.confirmedOrder) {
       this.router.navigate([this.customerContextService.getHomeRoute(this.getCurrentContext())]);
     }
   }
@@ -44,7 +47,10 @@ export class OrderSuccess {
   protected startNewOrder(): void {
     const context = this.getCurrentContext();
 
-    this.router.navigate([this.customerContextService.getHomeRoute(context)]);
+    this.router.navigate(
+      [this.customerContextService.getHomeRoute(context)],
+      context === 'totem' ? { replaceUrl: true } : undefined,
+    );
   }
 
   protected followOrder(): void {
@@ -76,9 +82,21 @@ export class OrderSuccess {
     return this.customerContextService.getCurrentContext(this.router.url);
   }
 
-  private hasConfirmedOrder(): boolean {
-    const state = window.history.state as { order?: { status?: unknown } };
+  private readConfirmedOrder(): { codigo: number; status: string } | null {
+    const state = window.history.state as {
+      order?: { codigo?: unknown; status?: unknown };
+    };
+    const order = state.order;
 
-    return state.order?.status === 'ENVIADO_COZINHA';
+    if (
+      order?.status !== 'ENVIADO_COZINHA'
+      || typeof order.codigo !== 'number'
+      || !Number.isInteger(order.codigo)
+      || order.codigo <= 0
+    ) {
+      return null;
+    }
+
+    return { codigo: order.codigo, status: order.status };
   }
 }
