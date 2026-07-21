@@ -54,6 +54,7 @@ export class GestorUsers {
     { value: 'GESTOR', label: 'Gestor' },
     { value: 'GARCOM', label: 'Garçom' },
     { value: 'COZINHA', label: 'Cozinha' },
+    { value: 'BALCAO', label: 'Balcao' },
     { value: 'MESA', label: 'Mesa' },
     { value: 'TOTEM', label: 'Totem' },
     { value: 'ADMIN', label: 'Administrador' },

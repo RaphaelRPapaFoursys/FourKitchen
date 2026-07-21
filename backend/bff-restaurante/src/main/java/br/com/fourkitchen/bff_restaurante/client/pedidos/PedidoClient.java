@@ -24,6 +24,9 @@ public interface PedidoClient {
     @GetMapping("/api/pedidos/totem/problemas")
     List<PedidoProblemaTotemResponse> listarProblemasTotem();
 
+    @GetMapping("/api/pedidos/totem/fila-retirada")
+    List<PedidoRetiradaResponse> listarFilaRetiradaTotem();
+
     @PatchMapping("/api/pedidos/{id}/iniciar-preparo")
     PedidoResponse iniciarPreparo(@PathVariable Integer id);
 
@@ -88,6 +91,9 @@ public interface PedidoClient {
 
     @PatchMapping("/api/pedidos/{id}/entregar")
     PedidoResponse entregarPedido(@PathVariable Integer id);
+
+    @PatchMapping("/api/pedidos/totem/{id}/entregar")
+    PedidoResponse entregarPedidoTotem(@PathVariable Integer id);
 
     @PatchMapping("/api/pedidos/{id}/cancelar")
     Void cancelarPedidoAntesDoPreparo(@PathVariable Integer id);

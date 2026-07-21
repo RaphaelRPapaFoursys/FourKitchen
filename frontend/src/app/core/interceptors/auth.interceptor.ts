@@ -9,7 +9,8 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const isLoginRequest = request.url.includes('/api/auth/login');
-  const token = isLoginRequest ? null : authService.getToken();
+  const isPublicRequest = request.url.includes('/api/painel-retirada/');
+  const token = isLoginRequest || isPublicRequest ? null : authService.getToken();
   const authRequest = token
     ? request.clone({
         setHeaders: {
@@ -20,7 +21,12 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(authRequest).pipe(
     catchError(error => {
-      if (error instanceof HttpErrorResponse && error.status === 401 && !isLoginRequest) {
+      if (
+        error instanceof HttpErrorResponse
+        && error.status === 401
+        && !isLoginRequest
+        && !isPublicRequest
+      ) {
         authService.logout();
         void router.navigateByUrl('/login');
       }

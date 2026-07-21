@@ -2,7 +2,7 @@ import { Route, Routes } from '@angular/router';
 
 import { authChildGuard, authGuard } from '../guards/auth.guard';
 
-export type AppProfile = 'ADMIN' | 'GESTOR' | 'COZINHA' | 'GARCOM' | 'MESA' | 'TOTEM';
+export type AppProfile = 'ADMIN' | 'GESTOR' | 'COZINHA' | 'GARCOM' | 'MESA' | 'TOTEM' | 'BALCAO';
 
 function protectedRoute(route: Route, allowedProfiles?: AppProfile[]): Route {
   return {
@@ -19,6 +19,14 @@ function protectedRoute(route: Route, allowedProfiles?: AppProfile[]): Route {
 }
 
 export const protectedRoutes: Routes = [
+  protectedRoute(
+    {
+      path: 'balcao',
+      loadComponent: () =>
+        import('../../features/balcao/balcao').then(m => m.Balcao),
+    },
+    ['ADMIN', 'BALCAO'],
+  ),
   protectedRoute({
     path: 'home',
     loadComponent: () =>
