@@ -22,9 +22,11 @@ describe('GestorProducts', () => {
     fixture = TestBed.createComponent(GestorProducts);
     fixture.detectChanges();
 
-    httpMock.expectOne(`${baseUrl}/produtos`).flush([]);
-    httpMock.expectOne(`${baseUrl}/categorias`).flush([
-      { id: 1, nome: 'Pratos', descricao: null, imagem: null, ativo: true },
+    httpMock.expectOne(req => req.url === `${baseUrl}/produtos`).flush({
+      content: [], page: 0, size: 10, totalElements: 0, totalPages: 0, first: true, last: true,
+    });
+    httpMock.expectOne(`${baseUrl}/categorias/opcoes`).flush([
+      { id: 1, nome: 'Pratos', ativo: true },
     ]);
     await fixture.whenStable();
     fixture.detectChanges();

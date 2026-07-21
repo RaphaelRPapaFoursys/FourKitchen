@@ -5,6 +5,7 @@ import br.com.fourkitchen.ms_produtos.dto.request.CriarProdutoRequest;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoImagemResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.ProdutoGestorPaginadoResponse;
 import br.com.fourkitchen.ms_produtos.service.ProdutoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -33,8 +36,14 @@ public class ProdutoController {
     private final ProdutoService produtoService;
 
     @GetMapping
-    public ResponseEntity<List<ProdutoResponse>> listarProdutos() {
-        return ResponseEntity.ok(produtoService.listarProdutos());
+    public ResponseEntity<ProdutoGestorPaginadoResponse> listarProdutos(
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size,
+            @RequestParam(name = "busca", required = false) String busca
+    ) {
+        int pagina = page == null ? 0 : Math.max(0, page);
+        int tamanho = size == null ? 10 : Math.min(Math.max(1, size), 50);
+        return ResponseEntity.ok(produtoService.listarProdutos(busca, PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/disponiveis")

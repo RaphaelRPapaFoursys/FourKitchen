@@ -3,16 +3,13 @@ package br.com.fourkitchen.ms_produtos.mapper;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoResponse;
 import br.com.fourkitchen.ms_produtos.model.Categoria;
 import br.com.fourkitchen.ms_produtos.model.Produto;
+import br.com.fourkitchen.ms_produtos.repository.ProdutoGestorProjection;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 @Component
 public class ProdutoResponseMapper implements Mapper<Produto, ProdutoResponse> {
-
-    private final ImagemBase64Mapper imagemBase64Mapper;
-
-    public ProdutoResponseMapper(ImagemBase64Mapper imagemBase64Mapper) {
-        this.imagemBase64Mapper = imagemBase64Mapper;
-    }
 
     @Override
     public ProdutoResponse map(Produto source) {
@@ -22,11 +19,37 @@ public class ProdutoResponseMapper implements Mapper<Produto, ProdutoResponse> {
                 source.getId(),
                 source.getNome(),
                 source.getDescricao(),
-                imagemBase64Mapper.paraBase64(source.getImagem()),
+                criarImagemUrl(source.getId(), source.getImagem(), source.getImagemAtualizadaEm()),
                 source.getPreco(),
                 categoria != null ? categoria.getId() : null,
                 categoria != null ? categoria.getNome() : null,
                 source.getDisponivel()
         );
+    }
+
+    public ProdutoResponse map(ProdutoGestorProjection source) {
+        return new ProdutoResponse(
+                source.getId(),
+                source.getNome(),
+                source.getDescricao(),
+                criarImagemUrl(source.getId(), source.getPossuiImagem(), source.getImagemAtualizadaEm()),
+                source.getPreco(),
+                source.getCategoriaId(),
+                source.getCategoria(),
+                source.getDisponivel()
+        );
+    }
+
+    private String criarImagemUrl(Integer id, byte[] imagem, Instant atualizadaEm) {
+        return criarImagemUrl(id, imagem != null && imagem.length > 0, atualizadaEm);
+    }
+
+    private String criarImagemUrl(Integer id, Boolean possuiImagem, Instant atualizadaEm) {
+        if (!Boolean.TRUE.equals(possuiImagem)) {
+            return null;
+        }
+
+        long versao = atualizadaEm == null ? 0 : atualizadaEm.toEpochMilli();
+        return "/api/produtos/" + id + "/imagem?v=" + versao;
     }
 }

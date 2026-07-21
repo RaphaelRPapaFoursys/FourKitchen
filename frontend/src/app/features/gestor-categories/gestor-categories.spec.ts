@@ -22,15 +22,16 @@ describe('GestorCategories', () => {
     fixture = TestBed.createComponent(GestorCategories);
     fixture.detectChanges();
 
-    httpMock.expectOne(baseUrl).flush([
-      {
+    httpMock.expectOne(req => req.url === baseUrl).flush({
+      content: [{
         id: 1,
         nome: 'Pratos principais',
         descricao: 'Refeições completas',
-        imagem: null,
+        imagemUrl: null,
         ativo: true,
-      },
-    ]);
+      }],
+      page: 0, size: 10, totalElements: 1, totalPages: 1, first: true, last: true,
+    });
     await fixture.whenStable();
     fixture.detectChanges();
   });
@@ -67,8 +68,11 @@ describe('GestorCategories', () => {
       id: 1,
       nome: 'Pratos principais',
       descricao: 'Refeições completas',
-      imagem: null,
+      imagemUrl: null,
       ativo: false,
+    });
+    httpMock.expectOne(req => req.url === baseUrl).flush({
+      content: [], page: 0, size: 10, totalElements: 0, totalPages: 0, first: true, last: true,
     });
     fixture.detectChanges();
 

@@ -4,6 +4,8 @@ import br.com.fourkitchen.ms_produtos.dto.request.AtualizarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.request.CriarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaImagemResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.CategoriaGestorPaginadaResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.CategoriaOpcaoResponse;
 import br.com.fourkitchen.ms_produtos.service.CategoriaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -32,8 +36,19 @@ public class CategoriaController {
     private final CategoriaService categoriaService;
 
     @GetMapping
-    public ResponseEntity<List<CategoriaResponse>> listarCategorias() {
-        return ResponseEntity.ok(categoriaService.listarCategorias());
+    public ResponseEntity<CategoriaGestorPaginadaResponse> listarCategorias(
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size,
+            @RequestParam(name = "busca", required = false) String busca
+    ) {
+        int pagina = page == null ? 0 : Math.max(0, page);
+        int tamanho = size == null ? 10 : Math.min(Math.max(1, size), 50);
+        return ResponseEntity.ok(categoriaService.listarCategorias(busca, PageRequest.of(pagina, tamanho)));
+    }
+
+    @GetMapping("/opcoes")
+    public ResponseEntity<List<CategoriaOpcaoResponse>> listarOpcoes() {
+        return ResponseEntity.ok(categoriaService.listarOpcoes());
     }
 
     @GetMapping("/{id}/imagem")

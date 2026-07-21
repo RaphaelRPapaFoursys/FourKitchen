@@ -4,10 +4,10 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, finalize, forkJoin } from 'rxjs';
 
 import {
-  CategoriaGestorResponse,
+  CategoriaOpcaoResponse,
   ProdutoGestorRequest,
   ProdutoGestorResponse,
 } from '../../core/models/catalog.models';
@@ -18,6 +18,7 @@ import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
 import { ProductImageUpload } from '../../shared/components/product-image-upload/product-image-upload';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-gestor-products',
@@ -36,8 +37,12 @@ export class GestorProducts {
     initialValue: this.authService.getCurrentUser(),
   });
   protected readonly products = signal<ProdutoGestorResponse[]>([]);
-  protected readonly categories = signal<CategoriaGestorResponse[]>([]);
+  protected readonly categories = signal<CategoriaOpcaoResponse[]>([]);
   protected readonly searchTerm = signal('');
+  protected readonly currentPage = signal(0);
+  protected readonly totalElements = signal(0);
+  protected readonly totalPages = signal(0);
+  protected readonly pageSize = 10;
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly actionProductId = signal<number | null>(null);
@@ -46,6 +51,7 @@ export class GestorProducts {
   protected readonly dialogOpen = signal(false);
   protected readonly editingProduct = signal<ProdutoGestorResponse | null>(null);
   protected readonly pendingImage = signal<string | null>(null);
+  private readonly searchChanges = new Subject<string>();
 
   protected readonly productForm = new FormGroup({
     nome: new FormControl('', {
@@ -64,16 +70,6 @@ export class GestorProducts {
     }),
   });
 
-  protected readonly filteredProducts = computed(() => {
-    const term = this.normalizeText(this.searchTerm());
-    if (!term) {
-      return this.products();
-    }
-
-    return this.products().filter(product =>
-      this.normalizeText(`${product.nome} ${product.descricao ?? ''} ${product.categoria}`).includes(term),
-    );
-  });
   protected readonly categoryOptions = computed(() => {
     const currentCategoryId = this.editingProduct()?.categoriaId;
     return this.categories().filter(category => category.ativo || category.id === currentCategoryId);
@@ -81,7 +77,32 @@ export class GestorProducts {
   protected readonly hasActiveCategory = computed(() => this.categories().some(category => category.ativo));
 
   constructor() {
+    this.searchChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.currentPage.set(0);
+        this.loadProducts();
+      });
     this.loadCatalog();
+  }
+
+  protected onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.searchChanges.next(value.trim());
+  }
+
+  protected previousPage(): void {
+    if (this.currentPage() > 0 && !this.loading()) {
+      this.currentPage.update(page => page - 1);
+      this.loadProducts();
+    }
+  }
+
+  protected nextPage(): void {
+    if (this.currentPage() + 1 < this.totalPages() && !this.loading()) {
+      this.currentPage.update(page => page + 1);
+      this.loadProducts();
+    }
   }
 
   protected openCreateDialog(): void {
@@ -163,12 +184,12 @@ export class GestorProducts {
         finalize(() => this.saving.set(false)),
       )
       .subscribe({
-        next: product => {
-          this.upsertProduct(product);
+        next: () => {
           this.dialogOpen.set(false);
           this.editingProduct.set(null);
           this.pendingImage.set(null);
           this.successMessage.set(currentProduct ? 'Produto atualizado com sucesso.' : 'Produto cadastrado com sucesso.');
+          this.loadProducts();
         },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
       });
@@ -192,17 +213,21 @@ export class GestorProducts {
       )
       .subscribe({
         next: updatedProduct => {
-          this.upsertProduct(updatedProduct);
           this.successMessage.set(
             updatedProduct.disponivel ? 'Produto ativado com sucesso.' : 'Produto desativado com sucesso.',
           );
+          this.loadProducts();
         },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
       });
   }
 
-  protected imageSource(image: string | null): string {
-    return getBase64ImageSource(image) ?? 'assets/images/product-placeholder.svg';
+  protected imageSource(imageUrl: string | null): string {
+    return getBase64ImageSource(imageUrl, environment.apiUrl) ?? 'assets/images/product-placeholder.svg';
+  }
+
+  protected currentImageSource(imageUrl: string | null | undefined): string | null {
+    return getBase64ImageSource(imageUrl, environment.apiUrl);
   }
 
   protected trackProduct(_index: number, product: ProdutoGestorResponse): number {
@@ -223,8 +248,8 @@ export class GestorProducts {
     this.errorMessage.set('');
 
     forkJoin({
-      products: this.catalogService.listProducts(),
-      categories: this.catalogService.listCategories(),
+      products: this.catalogService.listProducts(this.currentPage(), this.pageSize, this.searchTerm()),
+      categories: this.catalogService.listCategoryOptions(),
     })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
@@ -232,34 +257,38 @@ export class GestorProducts {
       )
       .subscribe({
         next: ({ products, categories }) => {
-          this.products.set(this.sortProducts(products));
+          this.applyProductPage(products);
           this.categories.set(categories);
         },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
       });
   }
 
-  private upsertProduct(product: ProdutoGestorResponse): void {
-    this.products.update(products =>
-      this.sortProducts([...products.filter(item => item.id !== product.id), product]),
-    );
+  private loadProducts(): void {
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.catalogService
+      .listProducts(this.currentPage(), this.pageSize, this.searchTerm())
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loading.set(false)),
+      )
+      .subscribe({
+        next: page => this.applyProductPage(page),
+        error: error => this.errorMessage.set(this.getErrorMessage(error)),
+      });
   }
 
-  private sortProducts(products: ProdutoGestorResponse[]): ProdutoGestorResponse[] {
-    return products.sort((left, right) => left.nome.localeCompare(right.nome, 'pt-BR'));
+  private applyProductPage(page: { content: ProdutoGestorResponse[]; page: number; totalElements: number; totalPages: number }): void {
+    this.products.set(page.content);
+    this.currentPage.set(page.page);
+    this.totalElements.set(page.totalElements);
+    this.totalPages.set(page.totalPages);
   }
 
   private clearMessages(): void {
     this.errorMessage.set('');
     this.successMessage.set('');
-  }
-
-  private normalizeText(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
   }
 
   private getErrorMessage(error: unknown): string {

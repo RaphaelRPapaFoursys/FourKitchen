@@ -15,8 +15,8 @@ public record ProdutoGestorResponse(
         @Schema(description = "Descricao do produto", example = "Arroz arboreo com mix de cogumelos e parmesao", nullable = true)
         String descricao,
 
-        @Schema(description = "Imagem do produto em Base64", example = "iVBORw0KGgoAAAANSUhEUgAA...", nullable = true)
-        String imagem,
+        @Schema(description = "URL versionada da imagem do produto", example = "/api/produtos/10/imagem?v=1784635200000", nullable = true)
+        String imagemUrl,
 
         @Schema(description = "Preco atual do produto", example = "58.90")
         BigDecimal preco,

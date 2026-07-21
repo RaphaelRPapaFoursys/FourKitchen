@@ -29,7 +29,7 @@ export function validateProductImageDimensions(width: number, height: number): s
   return null;
 }
 
-export function getBase64ImageSource(image: string | null | undefined): string | null {
+export function getBase64ImageSource(image: string | null | undefined, apiUrl = ''): string | null {
   if (!image?.trim()) {
     return null;
   }
@@ -40,6 +40,17 @@ export function getBase64ImageSource(image: string | null | undefined): string |
     return normalized;
   }
 
-  const mimeType = normalized.startsWith('/9j/') ? 'image/jpeg' : 'image/png';
-  return `data:${mimeType};base64,${normalized}`;
+  if (normalized.startsWith('/9j/')) {
+    return `data:image/jpeg;base64,${normalized}`;
+  }
+
+  if (/^https?:\/\//i.test(normalized) || normalized.startsWith('assets/')) {
+    return normalized;
+  }
+
+  if (normalized.startsWith('/')) {
+    return `${apiUrl.replace(/\/$/, '')}${normalized}`;
+  }
+
+  return `data:image/png;base64,${normalized}`;
 }

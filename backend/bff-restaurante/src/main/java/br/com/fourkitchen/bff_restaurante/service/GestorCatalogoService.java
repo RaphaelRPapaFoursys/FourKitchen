@@ -11,13 +11,15 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarCategoriaGestorReques
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarProdutoGestorRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ProdutoGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ProdutoGestorPaginadoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaGestorPaginadaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaOpcaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -26,13 +28,20 @@ public class GestorCatalogoService {
 
     private final ProdutoClient produtoClient;
 
-    public List<ProdutoGestorResponse> listarProdutos() {
+    public ProdutoGestorPaginadoResponse listarProdutos(Integer page, Integer size, String busca) {
         try {
-            return produtoClient.listarProdutos()
-                    .stream()
-                    .sorted(Comparator.comparing(ProdutoGestorClientResponse::nome))
-                    .map(this::mapearProduto)
-                    .toList();
+            int pagina = normalizarPagina(page);
+            int tamanho = normalizarTamanho(size);
+            var resposta = produtoClient.listarProdutos(pagina, tamanho, normalizarBusca(busca));
+            return new ProdutoGestorPaginadoResponse(
+                    resposta.content().stream().map(this::mapearProduto).toList(),
+                    resposta.page(),
+                    resposta.size(),
+                    resposta.totalElements(),
+                    resposta.totalPages(),
+                    resposta.first(),
+                    resposta.last()
+            );
         } catch (FeignException e) {
             throw mapearErroProduto(e);
         }
@@ -70,12 +79,34 @@ public class GestorCatalogoService {
         }
     }
 
-    public List<CategoriaGestorResponse> listarCategorias() {
+    public CategoriaGestorPaginadaResponse listarCategorias(Integer page, Integer size, String busca) {
         try {
-            return produtoClient.listarCategorias()
+            int pagina = normalizarPagina(page);
+            int tamanho = normalizarTamanho(size);
+            var resposta = produtoClient.listarCategorias(pagina, tamanho, normalizarBusca(busca));
+            return new CategoriaGestorPaginadaResponse(
+                    resposta.content().stream().map(this::mapearCategoria).toList(),
+                    resposta.page(),
+                    resposta.size(),
+                    resposta.totalElements(),
+                    resposta.totalPages(),
+                    resposta.first(),
+                    resposta.last()
+            );
+        } catch (FeignException e) {
+            throw mapearErroCategoria(e);
+        }
+    }
+
+    public List<CategoriaOpcaoResponse> listarOpcoesCategorias() {
+        try {
+            return produtoClient.listarOpcoesCategorias()
                     .stream()
-                    .sorted(Comparator.comparing(CategoriaGestorClientResponse::nome))
-                    .map(this::mapearCategoria)
+                    .map(categoria -> new CategoriaOpcaoResponse(
+                            categoria.id(),
+                            categoria.nome(),
+                            categoria.ativo()
+                    ))
                     .toList();
         } catch (FeignException e) {
             throw mapearErroCategoria(e);
@@ -155,7 +186,7 @@ public class GestorCatalogoService {
                 produto.id(),
                 produto.nome(),
                 produto.descricao(),
-                produto.imagem(),
+                produto.imagemUrl(),
                 produto.preco(),
                 produto.categoriaId(),
                 produto.categoria(),
@@ -168,9 +199,21 @@ public class GestorCatalogoService {
                 categoria.id(),
                 categoria.nome(),
                 categoria.descricao(),
-                categoria.imagem(),
+                categoria.imagemUrl(),
                 categoria.ativo()
         );
+    }
+
+    private int normalizarPagina(Integer page) {
+        return page == null ? 0 : Math.max(0, page);
+    }
+
+    private int normalizarTamanho(Integer size) {
+        return size == null ? 10 : Math.min(Math.max(1, size), 50);
+    }
+
+    private String normalizarBusca(String busca) {
+        return busca == null || busca.isBlank() ? null : busca.trim();
     }
 
     private BaseException mapearErroProduto(FeignException e) {

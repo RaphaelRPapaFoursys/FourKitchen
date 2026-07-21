@@ -6,7 +6,7 @@
 
     <fk-topbar
       [busca]="searchTerm()"
-      (buscaChange)="searchTerm.set($event)"
+      (buscaChange)="onSearchChange($event)"
       buscaPlaceholder="Pesquisar categoria ou descrição"
       [usuarioNome]="usuario()?.nome ?? 'Usuário'"
       [usuarioInicial]="initials(usuario()?.nome)"
@@ -40,13 +40,13 @@
         <section class="products-card categories-card">
           <div class="products-card__header">
             <div>
-              <strong>{{ filteredCategories().length }}</strong>
-              <span>{{ filteredCategories().length === 1 ? 'categoria encontrada' : 'categorias encontradas' }}</span>
+              <strong>{{ totalElements() }}</strong>
+              <span>{{ totalElements() === 1 ? 'categoria encontrada' : 'categorias encontradas' }}</span>
             </div>
             <small>Imagens: JPG, JPEG ou PNG • máximo 1 MB</small>
           </div>
 
-          @if (filteredCategories().length === 0) {
+          @if (categories().length === 0) {
             <div class="empty-state">
               <fk-icon name="fork-knife" size="2rem" />
               <strong>Nenhuma categoria encontrada</strong>
@@ -63,11 +63,16 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (category of filteredCategories(); track trackCategory($index, category)) {
+                  @for (category of categories(); track trackCategory($index, category)) {
                     <tr>
                       <td>
                         <div class="product-cell category-cell">
-                          <img [src]="imageSource(category.imagem)" [alt]="'Imagem de ' + category.nome" />
+                          <img
+                            [src]="imageSource(category.imagemUrl)"
+                            [alt]="'Imagem de ' + category.nome"
+                            loading="lazy"
+                            decoding="async"
+                          />
                           <div>
                             <strong>{{ category.nome }}</strong>
                             <span>{{ category.descricao || 'Sem descrição' }}</span>
@@ -102,6 +107,21 @@
                 </tbody>
               </table>
             </div>
+            @if (totalPages() > 1) {
+              <nav class="catalog-pagination" aria-label="Paginação de categorias">
+                <button type="button" (click)="previousPage()" [disabled]="currentPage() === 0 || loading()">
+                  Anterior
+                </button>
+                <span>Página {{ currentPage() + 1 }} de {{ totalPages() }}</span>
+                <button
+                  type="button"
+                  (click)="nextPage()"
+                  [disabled]="currentPage() + 1 >= totalPages() || loading()"
+                >
+                  Próxima
+                </button>
+              </nav>
+            }
           }
         </section>
       }
@@ -151,7 +171,7 @@
         <fk-product-image-upload
           fieldLabel="Imagem da categoria"
           previewAlt="Pré-visualização da imagem da categoria"
-          [currentImage]="editingCategory()?.imagem ?? null"
+          [currentImage]="currentImageSource(editingCategory()?.imagemUrl)"
           [disabled]="saving()"
           (imageChanged)="onImageChanged($event)"
         />

@@ -11,7 +11,7 @@
 
     <fk-topbar
       [busca]="searchTerm()"
-      (buscaChange)="searchTerm.set($event)"
+      (buscaChange)="onSearchChange($event)"
       buscaPlaceholder="Pesquisar produto ou categoria"
       [usuarioNome]="usuario()?.nome ?? 'Usuário'"
       [usuarioInicial]="initials(usuario()?.nome)"
@@ -60,13 +60,13 @@
         <section class="products-card">
           <div class="products-card__header">
             <div>
-              <strong>{{ filteredProducts().length }}</strong>
-              <span>{{ filteredProducts().length === 1 ? 'produto encontrado' : 'produtos encontrados' }}</span>
+              <strong>{{ totalElements() }}</strong>
+              <span>{{ totalElements() === 1 ? 'produto encontrado' : 'produtos encontrados' }}</span>
             </div>
             <small>Imagens: JPG, JPEG ou PNG • máximo 1 MB</small>
           </div>
 
-          @if (filteredProducts().length === 0) {
+          @if (products().length === 0) {
             <div class="empty-state">
               <fk-icon name="fork-knife" size="2rem" />
               <strong>Nenhum produto encontrado</strong>
@@ -85,11 +85,16 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (product of filteredProducts(); track trackProduct($index, product)) {
+                  @for (product of products(); track trackProduct($index, product)) {
                     <tr>
                       <td>
                         <div class="product-cell">
-                          <img [src]="imageSource(product.imagem)" [alt]="'Imagem de ' + product.nome" />
+                          <img
+                            [src]="imageSource(product.imagemUrl)"
+                            [alt]="'Imagem de ' + product.nome"
+                            loading="lazy"
+                            decoding="async"
+                          />
                           <div>
                             <strong>{{ product.nome }}</strong>
                             <span>{{ product.descricao || 'Sem descrição' }}</span>
@@ -126,6 +131,21 @@
                 </tbody>
               </table>
             </div>
+            @if (totalPages() > 1) {
+              <nav class="catalog-pagination" aria-label="Paginação de produtos">
+                <button type="button" (click)="previousPage()" [disabled]="currentPage() === 0 || loading()">
+                  Anterior
+                </button>
+                <span>Página {{ currentPage() + 1 }} de {{ totalPages() }}</span>
+                <button
+                  type="button"
+                  (click)="nextPage()"
+                  [disabled]="currentPage() + 1 >= totalPages() || loading()"
+                >
+                  Próxima
+                </button>
+              </nav>
+            }
           }
         </section>
       }
@@ -189,7 +209,7 @@
         </div>
 
         <fk-product-image-upload
-          [currentImage]="editingProduct()?.imagem ?? null"
+          [currentImage]="currentImageSource(editingProduct()?.imagemUrl)"
           [disabled]="saving()"
           (imageChanged)="onImageChanged($event)"
         />

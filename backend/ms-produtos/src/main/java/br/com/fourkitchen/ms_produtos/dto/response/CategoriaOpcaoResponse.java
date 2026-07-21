@@ -1,10 +1,8 @@
 package br.com.fourkitchen.ms_produtos.dto.response;
 
-public record CategoriaResponse(
+public record CategoriaOpcaoResponse(
         Integer id,
         String nome,
-        String descricao,
-        String imagemUrl,
         Boolean ativo
 ) {
 }
