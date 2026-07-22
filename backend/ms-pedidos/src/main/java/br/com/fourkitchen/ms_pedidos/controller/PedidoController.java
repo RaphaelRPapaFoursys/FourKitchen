@@ -11,6 +11,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.PedidoRetiradaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoProblemaTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.exceptions.BaseException;
 import br.com.fourkitchen.ms_pedidos.service.PedidoService;
@@ -78,6 +79,11 @@ public class PedidoController {
     @GetMapping("/totem/fila-retirada")
     public ResponseEntity<List<PedidoRetiradaResponse>> buscarFilaRetiradaTotem() {
         return ResponseEntity.ok(pedidoService.findFilaRetiradaTotem());
+    }
+
+    @GetMapping("/totem/resumo-gestor")
+    public ResponseEntity<List<ResumoTotemResponse>> buscarResumoTotens() {
+        return ResponseEntity.ok(pedidoService.resumirTotens());
     }
 
     @PatchMapping("/{id}/iniciar-preparo")
