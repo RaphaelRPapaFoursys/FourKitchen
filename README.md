@@ -278,12 +278,6 @@ start-all.ps1
 
 ---
 
-# 📚 Objetivo
-
-Este projeto foi desenvolvido para fins de estudo durante o **FourCamp**, simulando um ambiente de desenvolvimento real utilizando arquitetura de microsserviços, integração entre serviços e práticas modernas de desenvolvimento de software.
-
----
-
 # 👥 Equipe
 
 | Nome               | GitHub                |
