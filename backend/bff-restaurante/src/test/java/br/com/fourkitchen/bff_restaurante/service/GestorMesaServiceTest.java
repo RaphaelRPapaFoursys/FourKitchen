@@ -175,6 +175,35 @@ class GestorMesaServiceTest {
     }
 
     @Test
+    void listarMesasPaginadasDeveFiltrarMesasEmAtencaoSeparadamenteDosProblemasCriticos() {
+        MesaClientResponse mesaAtencao = criarMesaComAtendimento(1, 10, 7, 100);
+        MesaClientResponse mesaNormal = criarMesaComAtendimento(2, 11, 7, 200);
+        UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
+        GarcomResumoResponse garcom = criarGarcom(7, "Amanda Souza");
+        MesaGestorResponse mesaResponse = criarMesaResponse(1, "Amanda Souza");
+        PedidoCozinhaResponse pedidoAtencao = criarPedidoComIdade(
+                1, 100, "EM_PREPARO", 1, BigDecimal.TEN, 16
+        );
+        PedidoCozinhaResponse pedidoNormal = criarPedidoComIdade(
+                2, 200, "EM_PREPARO", 1, BigDecimal.TEN, 3
+        );
+
+        when(mesaClient.listarMesas()).thenReturn(List.of(mesaAtencao, mesaNormal));
+        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of(usuario));
+        when(garcomResumoResponseMapper.map(usuario)).thenReturn(garcom);
+        when(pedidoClient.listarPedidosAtivosDetalhadosPorAtendimentos(List.of(100, 200)))
+                .thenReturn(List.of(pedidoAtencao, pedidoNormal));
+        when(mesaGestorResponseMapper.map(any(MesaGestorMapperSource.class))).thenReturn(mesaResponse);
+
+        MesaGestorPaginadaResponse resultado = gestorMesaService.listarMesasPaginadas(
+                AUTHORIZATION, 0, 10, "criticidade", "ATENCAO", null, null
+        );
+
+        assertEquals(1L, resultado.totalElements());
+        assertEquals(1, resultado.content().size());
+    }
+
+    @Test
     void buscarResumoPainelDeveCalcularKpisECargaDosGarcons() {
         MesaClientResponse mesa = criarMesaComAtendimento(1, 10, 7, 100);
         UsuarioClientResponse usuario = criarUsuario(7, "Amanda Souza", "GARCOM", true);
@@ -452,6 +481,17 @@ class GestorMesaServiceTest {
             Integer quantidade,
             BigDecimal precoUnitario
     ) {
+        return criarPedidoComIdade(id, idAtendimento, status, quantidade, precoUnitario, 3);
+    }
+
+    private PedidoCozinhaResponse criarPedidoComIdade(
+            Integer id,
+            Integer idAtendimento,
+            String status,
+            Integer quantidade,
+            BigDecimal precoUnitario,
+            long minutosDesdeCriacao
+    ) {
         return new PedidoCozinhaResponse(
                 id,
                 10,
@@ -460,7 +500,7 @@ class GestorMesaServiceTest {
                 1,
                 10,
                 idAtendimento,
-                LocalDateTime.now().minusMinutes(3),
+                LocalDateTime.now().minusMinutes(minutosDesdeCriacao),
                 null,
                 null,
                 List.of(new ItemPedidoCozinhaResponse(1, 1, null, quantidade, precoUnitario, null, "DISPONIVEL"))

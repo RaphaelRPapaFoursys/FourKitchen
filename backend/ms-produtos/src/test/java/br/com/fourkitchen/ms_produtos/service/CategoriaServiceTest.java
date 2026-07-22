@@ -10,6 +10,9 @@ import br.com.fourkitchen.ms_produtos.mapper.CategoriaResponseMapper;
 import br.com.fourkitchen.ms_produtos.mapper.CriarCategoriaRequestMapper;
 import br.com.fourkitchen.ms_produtos.model.Categoria;
 import br.com.fourkitchen.ms_produtos.repository.CategoriaRepository;
+import br.com.fourkitchen.ms_produtos.repository.CategoriaGestorProjection;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -28,6 +31,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class CategoriaServiceTest {
@@ -49,16 +53,19 @@ class CategoriaServiceTest {
 
     @Test
     void listarCategoriasDeveRetornarCategoriasMapeadas() {
-        Categoria categoria = criarCategoria(1, "Lanches", true);
-        CategoriaResponse response = criarResponse(categoria);
+        CategoriaGestorProjection categoria = mock(CategoriaGestorProjection.class);
+        CategoriaResponse response = new CategoriaResponse(1, "Lanches", null, null, true);
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        when(categoriaRepository.findAll()).thenReturn(List.of(categoria));
+        when(categoriaRepository.buscarCategoriasParaGestao(-1, pageable))
+                .thenReturn(new PageImpl<>(List.of(categoria), pageable, 1));
         when(categoriaResponseMapper.map(categoria)).thenReturn(response);
 
-        List<CategoriaResponse> resultado = categoriaService.listarCategorias();
+        var resultado = categoriaService.listarCategorias(null, null, pageable);
 
-        assertEquals(List.of(response), resultado);
-        verify(categoriaRepository).findAll();
+        assertEquals(List.of(response), resultado.content());
+        assertEquals(1, resultado.totalElements());
+        verify(categoriaRepository).buscarCategoriasParaGestao(-1, pageable);
         verify(categoriaResponseMapper).map(categoria);
     }
 

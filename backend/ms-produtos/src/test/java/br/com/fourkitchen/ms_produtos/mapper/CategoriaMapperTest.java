@@ -22,8 +22,7 @@ class CategoriaMapperTest {
     private final AtualizarCategoriaRequestMapper atualizarCategoriaRequestMapper =
             new AtualizarCategoriaRequestMapper(imagemBase64Mapper);
 
-    private final CategoriaResponseMapper categoriaResponseMapper =
-            new CategoriaResponseMapper(imagemBase64Mapper);
+    private final CategoriaResponseMapper categoriaResponseMapper = new CategoriaResponseMapper();
 
     @Test
     void criarCategoriaRequestMapperDeveMapearImagemBase64() {
@@ -74,18 +73,19 @@ class CategoriaMapperTest {
     }
 
     @Test
-    void categoriaResponseMapperDeveRetornarImagemEmBase64() {
+    void categoriaResponseMapperDeveRetornarUrlVersionadaDaImagem() {
         byte[] imagem = criarPng(800, 600);
         Categoria categoria = Categoria.builder()
                 .id(1)
                 .nome("Lanches")
                 .descricao("Sanduiches")
                 .imagem(imagem)
+                .imagemAtualizadaEm(java.time.Instant.ofEpochMilli(1234))
                 .ativo(true)
                 .build();
 
         CategoriaResponse response = categoriaResponseMapper.map(categoria);
 
-        assertEquals(paraBase64(imagem), response.imagem());
+        assertEquals("/api/categorias/1/imagem?v=1234", response.imagemUrl());
     }
 }

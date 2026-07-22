@@ -4,6 +4,8 @@ import br.com.fourkitchen.ms_produtos.dto.request.AtualizarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.request.CriarCategoriaRequest;
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.CategoriaImagemResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.CategoriaGestorPaginadaResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.CategoriaOpcaoResponse;
 import br.com.fourkitchen.ms_produtos.exception.BaseException;
 import br.com.fourkitchen.ms_produtos.exception.ErrorEnum;
 import br.com.fourkitchen.ms_produtos.mapper.AtualizarCategoriaRequestMapper;
@@ -13,6 +15,7 @@ import br.com.fourkitchen.ms_produtos.model.Categoria;
 import br.com.fourkitchen.ms_produtos.repository.CategoriaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -28,10 +31,32 @@ public class CategoriaService {
 
     private final AtualizarCategoriaRequestMapper atualizarCategoriaRequestMapper;
 
-    public List<CategoriaResponse> listarCategorias() {
-        return categoriaRepository.findAll()
+    public CategoriaGestorPaginadaResponse listarCategorias(String busca, Boolean ativo, Pageable pageable) {
+        String termo = normalizarBusca(busca);
+        int status = ativo == null ? -1 : ativo ? 1 : 0;
+        var pagina = termo == null
+                ? categoriaRepository.buscarCategoriasParaGestao(status, pageable)
+                : categoriaRepository.buscarCategoriasParaGestaoComBusca(termo, status, pageable);
+
+        return new CategoriaGestorPaginadaResponse(
+                pagina.getContent().stream().map(categoriaResponseMapper::map).toList(),
+                pagina.getNumber(),
+                pagina.getSize(),
+                pagina.getTotalElements(),
+                pagina.getTotalPages(),
+                pagina.isFirst(),
+                pagina.isLast()
+        );
+    }
+
+    public List<CategoriaOpcaoResponse> listarOpcoes() {
+        return categoriaRepository.buscarOpcoesParaGestao()
                 .stream()
-                .map(categoriaResponseMapper::map)
+                .map(categoria -> new CategoriaOpcaoResponse(
+                        categoria.getId(),
+                        categoria.getNome(),
+                        categoria.getAtivo()
+                ))
                 .toList();
     }
 
@@ -95,6 +120,13 @@ public class CategoriaService {
         if (categoriaRepository.existsByNomeIgnoreCase(nome.trim())) {
             throw new BaseException(ErrorEnum.CATEGORIA_NOME_DUPLICADO);
         }
+    }
+
+    private String normalizarBusca(String busca) {
+        if (busca == null || busca.isBlank()) {
+            return null;
+        }
+        return busca.trim();
     }
 
     private void validarNomeDisponivelParaAtualizacao(String nome, Integer id) {

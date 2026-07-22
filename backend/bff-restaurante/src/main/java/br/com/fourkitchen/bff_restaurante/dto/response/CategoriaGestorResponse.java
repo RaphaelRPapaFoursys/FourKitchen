@@ -13,8 +13,8 @@ public record CategoriaGestorResponse(
         @Schema(description = "Descricao da categoria", example = "Refeicoes principais servidas no restaurante", nullable = true)
         String descricao,
 
-        @Schema(description = "Imagem da categoria em Base64", example = "iVBORw0KGgoAAAANSUhEUgAA...", nullable = true)
-        String imagem,
+        @Schema(description = "URL versionada da imagem da categoria", example = "/api/categorias/1/imagem?v=1784635200000", nullable = true)
+        String imagemUrl,
 
         @Schema(description = "Indica se a categoria esta ativa", example = "true")
         Boolean ativo

@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.GarcomResumoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorPaginadaResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.MesaGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.MesaOpcaoResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.PedidoDetalheGarcomResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ResumoPainelResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
@@ -67,6 +68,12 @@ public class GestorMesaController {
         return ResponseEntity.ok(gestorMesaService.listarMesas(authorization));
     }
 
+    @GetMapping("/mesas/opcoes")
+    @Operation(summary = "Lista opcoes de mesa", description = "Retorna somente id e numero para preencher filtros do gestor.")
+    public ResponseEntity<List<MesaOpcaoResponse>> listarOpcoesMesas() {
+        return ResponseEntity.ok(gestorMesaService.listarOpcoesMesas());
+    }
+
     @GetMapping("/mesas/{id}/pedidos")
     @Operation(
             summary = "Lista os pedidos detalhados de uma mesa",
@@ -124,7 +131,10 @@ public class GestorMesaController {
             @RequestParam(defaultValue = "10") Integer size,
             @Parameter(description = "Ordenacao: numero,asc; numero,desc; criticidade; valor,desc; valor,asc", example = "numero,asc")
             @RequestParam(defaultValue = "numero,asc") String sort,
-            @Parameter(description = "Filtro de estado das mesas", example = "PRONTOS")
+            @Parameter(
+                    description = "Filtro de estado: ATENCAO, PROBLEMAS, ATRASADAS, PRONTOS, EM_PREPARO, LIVRE, SEM_GARCOM, CONTA_ABERTA ou AGUARDANDO_PEDIDO",
+                    example = "ATENCAO"
+            )
             @RequestParam(required = false) String filtroEstado,
             @Parameter(description = "Identificador do garcom atribuido", example = "7")
             @RequestParam(required = false) Integer garcomId,

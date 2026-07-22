@@ -28,7 +28,7 @@ public class GestorUsuarioService {
         validarAuthorization(authorization);
 
         try {
-            return usuarioClient.listarUsuariosAtivos(authorization)
+            return usuarioClient.listarUsuarios(authorization)
                     .stream()
                     .sorted(Comparator.comparing(UsuarioClientResponse::nome))
                     .map(this::mapearUsuario)
@@ -89,6 +89,16 @@ public class GestorUsuarioService {
 
         try {
             usuarioClient.inativarUsuario(id, authorization);
+        } catch (FeignException e) {
+            throw mapearErroMsUsuarios(e);
+        }
+    }
+
+    public UsuarioGestorResponse ativarUsuario(Integer id, String authorization) {
+        validarAuthorization(authorization);
+
+        try {
+            return mapearUsuario(usuarioClient.ativarUsuario(id, authorization));
         } catch (FeignException e) {
             throw mapearErroMsUsuarios(e);
         }

@@ -22,8 +22,31 @@ describe('CatalogService', () => {
   afterEach(() => httpMock.verify());
 
   it('lists products through the BFF', () => {
-    service.listProducts().subscribe(products => expect(products).toEqual([]));
-    httpMock.expectOne(`${baseUrl}/produtos`).flush([]);
+    const page = { content: [], page: 0, size: 10, totalElements: 0, totalPages: 0, first: true, last: true };
+    service.listProducts().subscribe(products => expect(products).toEqual(page));
+    const request = httpMock.expectOne(req => req.url === `${baseUrl}/produtos`);
+    expect(request.request.params.get('page')).toBe('0');
+    expect(request.request.params.get('size')).toBe('10');
+    request.flush(page);
+  });
+
+  it('lists lightweight category options', () => {
+    service.listCategoryOptions().subscribe(categories => expect(categories[0].nome).toBe('Pratos'));
+    httpMock.expectOne(`${baseUrl}/categorias/opcoes`).flush([{ id: 1, nome: 'Pratos', ativo: true }]);
+  });
+
+  it('sends the category when filtering products', () => {
+    service.listProducts(0, 10, '', 3).subscribe();
+    const request = httpMock.expectOne(req => req.url === `${baseUrl}/produtos`);
+    expect(request.request.params.get('categoriaId')).toBe('3');
+    request.flush({ content: [], page: 0, size: 10, totalElements: 0, totalPages: 0, first: true, last: true });
+  });
+
+  it('sends the status when filtering categories', () => {
+    service.listCategories(0, 10, '', false).subscribe();
+    const request = httpMock.expectOne(req => req.url === `${baseUrl}/categorias`);
+    expect(request.request.params.get('ativo')).toBe('false');
+    request.flush({ content: [], page: 0, size: 10, totalElements: 0, totalPages: 0, first: true, last: true });
   });
 
   it('sends the Base64 image when creating a product', () => {

@@ -4,7 +4,7 @@ public record CategoriaResponse(
         Integer id,
         String nome,
         String descricao,
-        String imagem,
+        String imagemUrl,
         Boolean ativo
 ) {
 }

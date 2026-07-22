@@ -6,6 +6,7 @@ import br.com.fourkitchen.ms_mesas.dto.response.HistoricoAtendimentoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaGarcomResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaPaginadaResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.MesaResponse;
+import br.com.fourkitchen.ms_mesas.dto.response.MesaOpcaoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.ms_mesas.dto.response.SessaoMesaResponse;
 import br.com.fourkitchen.ms_mesas.service.MesaService;
@@ -44,6 +45,11 @@ public class MesaController {
     @GetMapping
     public ResponseEntity<List<MesaResponse>> listarMesas() {
         return ResponseEntity.ok(mesaService.listarMesas());
+    }
+
+    @GetMapping("/opcoes")
+    public ResponseEntity<List<MesaOpcaoResponse>> listarOpcoes() {
+        return ResponseEntity.ok(mesaService.listarOpcoes());
     }
     //devolve page
     @GetMapping("/paginadas")

@@ -79,6 +79,7 @@ export class GestorDashboard {
   ] as const;
   protected readonly resumo = this.painel.resumo;
   protected readonly mesas = this.painel.mesas;
+  protected readonly opcoesMesas = this.painel.opcoesMesas;
   protected readonly cargaGarcons = this.painel.cargaGarcons;
   protected readonly historicoAtendimentos = this.painel.historicoAtendimentos;
   protected readonly totalMesas = this.painel.totalElementos;
@@ -156,7 +157,7 @@ export class GestorDashboard {
   });
   protected readonly mesasFiltroDashboard = computed(() => {
     const opcoes = new Map<number, number>();
-    for (const mesa of this.mesas()) opcoes.set(mesa.id, mesa.numero);
+    for (const mesa of this.opcoesMesas()) opcoes.set(mesa.id, mesa.numero);
     for (const atendimento of this.historicoOrdenado()) opcoes.set(atendimento.idMesa, atendimento.numeroMesa);
     return [...opcoes.entries()].map(([id, numero]) => ({ id, numero })).sort((a, b) => a.numero - b.numero);
   });

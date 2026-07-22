@@ -8,6 +8,9 @@ import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CategoriaGestorReq
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoDisponibilidadeResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoGestorClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoGestorRequest;
+import br.com.fourkitchen.bff_restaurante.client.produtos.dto.ProdutoGestorPaginadoClientResponse;
+import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CategoriaGestorPaginadaClientResponse;
+import br.com.fourkitchen.bff_restaurante.client.produtos.dto.CategoriaOpcaoClientResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +49,12 @@ public interface ProdutoClient {
     ResponseEntity<byte[]> buscarImagemCategoria(@PathVariable Integer id);
 
     @GetMapping("/api/produtos")
-    List<ProdutoGestorClientResponse> listarProdutos();
+    ProdutoGestorPaginadoClientResponse listarProdutos(
+            @RequestParam("page") Integer page,
+            @RequestParam("size") Integer size,
+            @RequestParam(value = "busca", required = false) String busca,
+            @RequestParam(value = "categoriaId", required = false) Integer categoriaId
+    );
 
     @PostMapping("/api/produtos")
     ProdutoGestorClientResponse criarProduto(@RequestBody ProdutoGestorRequest request);
@@ -64,7 +72,15 @@ public interface ProdutoClient {
     ProdutoGestorClientResponse desativarProduto(@PathVariable Integer id);
 
     @GetMapping("/api/categorias")
-    List<CategoriaGestorClientResponse> listarCategorias();
+    CategoriaGestorPaginadaClientResponse listarCategorias(
+            @RequestParam("page") Integer page,
+            @RequestParam("size") Integer size,
+            @RequestParam(value = "busca", required = false) String busca,
+            @RequestParam(value = "ativo", required = false) Boolean ativo
+    );
+
+    @GetMapping("/api/categorias/opcoes")
+    List<CategoriaOpcaoClientResponse> listarOpcoesCategorias();
 
     @PostMapping("/api/categorias")
     CategoriaGestorClientResponse criarCategoria(@RequestBody CategoriaGestorRequest request);

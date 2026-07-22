@@ -70,17 +70,34 @@ class UsuarioServiceTest {
     }
 
     @Test
+    void buscarUsuariosDeveIncluirAtivosEInativos() {
+        Usuario ativo = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha", true);
+        Usuario inativo = criarUsuario(2, "Bruno", "bruno@email.com", PerfilUsuario.GARCOM, "senha", false);
+        UsuarioResponse respostaAtivo = new UsuarioResponse(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, null, true);
+        UsuarioResponse respostaInativo = new UsuarioResponse(2, "Bruno", "bruno@email.com", PerfilUsuario.GARCOM, null, false);
+
+        when(usuarioRepository.findAll()).thenReturn(List.of(ativo, inativo));
+        when(usuarioResponseMapper.map(ativo)).thenReturn(respostaAtivo);
+        when(usuarioResponseMapper.map(inativo)).thenReturn(respostaInativo);
+
+        List<UsuarioResponse> resultado = usuarioService.buscarUsuarios();
+
+        assertEquals(List.of(respostaAtivo, respostaInativo), resultado);
+        verify(usuarioRepository).findAll();
+    }
+
+    @Test
     void criarUsuarioDeveSalvarUsuarioComSenhaCriptografadaEAtivo() {
         CriarUsuarioRequest request = new CriarUsuarioRequest(
-                "Lucas",
+                "LUCAS DA SILVA",
                 "lucas@email.com",
                 "Senha123",
                 PerfilUsuario.ADMIN,
                 null
         );
-        Usuario usuarioMapeado = criarUsuario(null, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "Senha123", null);
-        Usuario usuarioSalvo = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha-criptografada", true);
-        UsuarioResponse response = new UsuarioResponse(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, null, true);
+        Usuario usuarioMapeado = criarUsuario(null, "LUCAS DA SILVA", "lucas@email.com", PerfilUsuario.ADMIN, "Senha123", null);
+        Usuario usuarioSalvo = criarUsuario(1, "Lucas da silva", "lucas@email.com", PerfilUsuario.ADMIN, "senha-criptografada", true);
+        UsuarioResponse response = new UsuarioResponse(1, "Lucas da silva", "lucas@email.com", PerfilUsuario.ADMIN, null, true);
 
         when(usuarioRepository.existsByEmailIgnoreCase(request.email())).thenReturn(false);
         when(criarUsuarioRequestMapper.map(request)).thenReturn(usuarioMapeado);
@@ -96,6 +113,7 @@ class UsuarioServiceTest {
         verify(usuarioRepository).save(usuarioCaptor.capture());
 
         Usuario usuarioEnviadoParaSalvar = usuarioCaptor.getValue();
+        assertEquals("Lucas da silva", usuarioEnviadoParaSalvar.getNome());
         assertEquals("senha-criptografada", usuarioEnviadoParaSalvar.getSenha());
         assertEquals(true, usuarioEnviadoParaSalvar.getAtivo());
         verify(usuarioRepository).existsByEmailIgnoreCase(request.email());
@@ -192,7 +210,7 @@ class UsuarioServiceTest {
         UsuarioResponse resultado = usuarioService.atualizarUsuario(1, request);
 
         assertSame(response, resultado);
-        assertEquals("Lucas Atualizado", usuario.getNome());
+        assertEquals("Lucas atualizado", usuario.getNome());
         assertEquals("lucas.atualizado@email.com", usuario.getEmail());
         assertEquals(PerfilUsuario.GESTOR, usuario.getPerfilUsuario());
         assertEquals("senha-antiga", usuario.getSenha());
@@ -295,6 +313,22 @@ class UsuarioServiceTest {
 
         assertEquals(ErrorEnum.USUARIO_JA_INATIVO, exception.getErrorEnum());
         verify(usuarioRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void ativarUsuarioDeveAlterarAtivoParaTrueERetornarUsuario() {
+        Usuario usuario = criarUsuario(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, "senha", false);
+        UsuarioResponse response = new UsuarioResponse(1, "Lucas", "lucas@email.com", PerfilUsuario.ADMIN, null, true);
+
+        when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.save(usuario)).thenReturn(usuario);
+        when(usuarioResponseMapper.map(usuario)).thenReturn(response);
+
+        UsuarioResponse resultado = usuarioService.ativarUsuario(1);
+
+        assertSame(response, resultado);
+        assertEquals(true, usuario.getAtivo());
+        verify(usuarioRepository).save(usuario);
     }
 
     private Usuario criarUsuario(

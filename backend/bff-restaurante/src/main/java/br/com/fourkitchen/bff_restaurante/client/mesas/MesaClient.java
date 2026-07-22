@@ -5,6 +5,7 @@ import br.com.fourkitchen.bff_restaurante.client.mesas.dto.HistoricoAtendimentoC
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaGarcomClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaPaginadaClientResponse;
+import br.com.fourkitchen.bff_restaurante.client.mesas.dto.MesaOpcaoClientResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.ResumoMesasOperacaoResponse;
 import br.com.fourkitchen.bff_restaurante.client.mesas.dto.SessaoMesaResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -21,6 +22,9 @@ public interface MesaClient {
 
     @GetMapping("/api/mesas")
     List<MesaClientResponse> listarMesas();
+
+    @GetMapping("/api/mesas/opcoes")
+    List<MesaOpcaoClientResponse> listarOpcoes();
 
     @GetMapping("/api/mesas/paginadas")
     MesaPaginadaClientResponse listarMesasPaginadas(

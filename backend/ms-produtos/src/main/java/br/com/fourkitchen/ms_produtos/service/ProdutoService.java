@@ -3,6 +3,7 @@ package br.com.fourkitchen.ms_produtos.service;
 import br.com.fourkitchen.ms_produtos.dto.request.AtualizarProdutoRequest;
 import br.com.fourkitchen.ms_produtos.dto.request.CriarProdutoRequest;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoDisponibilidadeResponse;
+import br.com.fourkitchen.ms_produtos.dto.response.ProdutoGestorPaginadoResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoImagemResponse;
 import br.com.fourkitchen.ms_produtos.dto.response.ProdutoResponse;
 import br.com.fourkitchen.ms_produtos.exception.BaseException;
@@ -17,6 +18,7 @@ import br.com.fourkitchen.ms_produtos.repository.CategoriaRepository;
 import br.com.fourkitchen.ms_produtos.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,11 +39,22 @@ public class ProdutoService {
 
     private final AtualizarProdutoRequestMapper atualizarProdutoRequestMapper;
 
-    public List<ProdutoResponse> listarProdutos() {
-        return produtoRepository.findAll()
-                .stream()
-                .map(produtoResponseMapper::map)
-                .toList();
+    public ProdutoGestorPaginadoResponse listarProdutos(String busca, Integer categoriaId, Pageable pageable) {
+        String termo = normalizarBusca(busca);
+        int categoria = categoriaId == null || categoriaId <= 0 ? 0 : categoriaId;
+        var pagina = termo == null
+                ? produtoRepository.buscarProdutosParaGestao(categoria, pageable)
+                : produtoRepository.buscarProdutosParaGestaoComBusca(termo, categoria, pageable);
+
+        return new ProdutoGestorPaginadoResponse(
+                pagina.getContent().stream().map(produtoResponseMapper::map).toList(),
+                pagina.getNumber(),
+                pagina.getSize(),
+                pagina.getTotalElements(),
+                pagina.getTotalPages(),
+                pagina.isFirst(),
+                pagina.isLast()
+        );
     }
 
     public List<ProdutoResponse> listarProdutosDisponiveis() {
@@ -137,6 +150,13 @@ public class ProdutoService {
         if (preco == null || preco.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BaseException(ErrorEnum.PRECO_INVALIDO);
         }
+    }
+
+    private String normalizarBusca(String busca) {
+        if (busca == null || busca.isBlank()) {
+            return null;
+        }
+        return busca.trim();
     }
 
     private String detectarContentType(byte[] imagem) {

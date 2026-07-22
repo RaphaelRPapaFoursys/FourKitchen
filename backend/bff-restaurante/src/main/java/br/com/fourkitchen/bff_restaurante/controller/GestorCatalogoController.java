@@ -6,10 +6,12 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarCategoriaGestorReques
 import br.com.fourkitchen.bff_restaurante.dto.request.CriarProdutoGestorRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaGestorResponse;
 import br.com.fourkitchen.bff_restaurante.dto.response.ProdutoGestorResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.ProdutoGestorPaginadoResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaGestorPaginadaResponse;
+import br.com.fourkitchen.bff_restaurante.dto.response.CategoriaOpcaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorObject;
 import br.com.fourkitchen.bff_restaurante.service.GestorCatalogoService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -47,23 +50,28 @@ public class GestorCatalogoController {
     @GetMapping("/produtos")
     @Operation(
             summary = "Lista produtos para gestao",
-            description = "Retorna todos os produtos, incluindo indisponiveis, para gerenciamento pelo gestor/admin."
+            description = "Retorna uma pagina de produtos, incluindo indisponiveis, sem incluir os bytes das imagens no JSON."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Produtos retornados com sucesso",
                     content = @Content(
-                            array = @ArraySchema(schema = @Schema(implementation = ProdutoGestorResponse.class)),
-                            examples = @ExampleObject(value = "[{\"id\":10,\"nome\":\"Risoto de cogumelos\",\"descricao\":\"Arroz arboreo com mix de cogumelos e parmesao\",\"imagem\":\"iVBORw0KGgoAAAANSUhEUgAA...\",\"preco\":58.90,\"categoriaId\":1,\"categoria\":\"Pratos principais\",\"disponivel\":true}]")
+                            schema = @Schema(implementation = ProdutoGestorPaginadoResponse.class),
+                            examples = @ExampleObject(value = "{\"content\":[{\"id\":10,\"nome\":\"Risoto de cogumelos\",\"descricao\":\"Arroz arboreo com mix de cogumelos e parmesao\",\"imagemUrl\":\"/api/produtos/10/imagem?v=1784635200000\",\"preco\":58.90,\"categoriaId\":1,\"categoria\":\"Pratos principais\",\"disponivel\":true}],\"page\":0,\"size\":10,\"totalElements\":1,\"totalPages\":1,\"first\":true,\"last\":true}")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
             @ApiResponse(responseCode = "403", description = "Usuario sem perfil GESTOR ou ADMIN", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
             @ApiResponse(responseCode = "502", description = "Servico de produtos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
     })
-    public ResponseEntity<List<ProdutoGestorResponse>> listarProdutos() {
-        return ResponseEntity.ok(gestorCatalogoService.listarProdutos());
+    public ResponseEntity<ProdutoGestorPaginadoResponse> listarProdutos(
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size,
+            @RequestParam(name = "busca", required = false) String busca,
+            @RequestParam(name = "categoriaId", required = false) Integer categoriaId
+    ) {
+        return ResponseEntity.ok(gestorCatalogoService.listarProdutos(page, size, busca, categoriaId));
     }
 
     @PostMapping("/produtos")
@@ -150,23 +158,34 @@ public class GestorCatalogoController {
     @GetMapping("/categorias")
     @Operation(
             summary = "Lista categorias para gestao",
-            description = "Retorna todas as categorias, incluindo inativas, para gerenciamento pelo gestor/admin."
+            description = "Retorna uma pagina de categorias, incluindo inativas, sem incluir os bytes das imagens no JSON."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Categorias retornadas com sucesso",
                     content = @Content(
-                            array = @ArraySchema(schema = @Schema(implementation = CategoriaGestorResponse.class)),
-                            examples = @ExampleObject(value = "[{\"id\":1,\"nome\":\"Pratos principais\",\"descricao\":\"Refeicoes principais servidas no restaurante\",\"imagem\":\"iVBORw0KGgoAAAANSUhEUgAA...\",\"ativo\":true}]")
+                            schema = @Schema(implementation = CategoriaGestorPaginadaResponse.class),
+                            examples = @ExampleObject(value = "{\"content\":[{\"id\":1,\"nome\":\"Pratos principais\",\"descricao\":\"Refeicoes principais servidas no restaurante\",\"imagemUrl\":\"/api/categorias/1/imagem?v=1784635200000\",\"ativo\":true}],\"page\":0,\"size\":10,\"totalElements\":1,\"totalPages\":1,\"first\":true,\"last\":true}")
                     )
             ),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou expirado", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
             @ApiResponse(responseCode = "403", description = "Usuario sem perfil GESTOR ou ADMIN", content = @Content(schema = @Schema(implementation = ErrorObject.class))),
             @ApiResponse(responseCode = "502", description = "Servico de produtos indisponivel", content = @Content(schema = @Schema(implementation = ErrorObject.class)))
     })
-    public ResponseEntity<List<CategoriaGestorResponse>> listarCategorias() {
-        return ResponseEntity.ok(gestorCatalogoService.listarCategorias());
+    public ResponseEntity<CategoriaGestorPaginadaResponse> listarCategorias(
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size,
+            @RequestParam(name = "busca", required = false) String busca,
+            @RequestParam(name = "ativo", required = false) Boolean ativo
+    ) {
+        return ResponseEntity.ok(gestorCatalogoService.listarCategorias(page, size, busca, ativo));
+    }
+
+    @GetMapping("/categorias/opcoes")
+    @Operation(summary = "Lista opcoes de categoria", description = "Retorna id, nome e status das categorias sem carregar imagens.")
+    public ResponseEntity<List<CategoriaOpcaoResponse>> listarOpcoesCategorias() {
+        return ResponseEntity.ok(gestorCatalogoService.listarOpcoesCategorias());
     }
 
     @PostMapping("/categorias")

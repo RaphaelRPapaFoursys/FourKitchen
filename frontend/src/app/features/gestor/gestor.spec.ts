@@ -84,6 +84,11 @@ describe('Gestor', () => {
       .flush(PAGINA_MESAS_API);
     httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
     httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush(historico);
+    httpMock.expectOne(`${BASE_URL}/mesas/opcoes`).flush([
+      { id: 1, numero: 1 },
+      { id: 2, numero: 2 },
+      { id: 3, numero: 3 },
+    ]);
   }
 
   beforeEach(async () => {
@@ -188,6 +193,46 @@ describe('Gestor', () => {
     const disponiveis = painelService.cargaGarcons().filter(garcom => garcom.mesasAtivas <= 2).length;
 
     expect(resumo.garconsDisponiveis).toBe(disponiveis);
+  });
+
+  it('filtra as mesas ao clicar em um garçom da carga da equipe', async () => {
+    fixture.detectChanges();
+    const botoes = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.equipe__garcom'),
+    );
+    const carlos = botoes.find(botao => botao.textContent?.includes('Carlos'));
+
+    expect(carlos).toBeTruthy();
+    carlos?.click();
+    fixture.detectChanges();
+    await esperarMicrotarefas();
+
+    const requisicao = httpMock.expectOne(request =>
+      request.url === `${BASE_URL}/mesas/paginadas` && request.params.get('garcomId') === '7',
+    );
+    requisicao.flush(PAGINA_MESAS_API);
+    await esperarMicrotarefas();
+    fixture.detectChanges();
+
+    expect(carlos?.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('envia o filtro ATENCAO ao clicar no status Atenção', async () => {
+    fixture.detectChanges();
+    const botoes = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.filtros__status button'),
+    );
+    const atencao = botoes.find(botao => botao.textContent?.trim() === 'Atenção');
+
+    expect(atencao).toBeTruthy();
+    atencao?.click();
+    fixture.detectChanges();
+    await esperarMicrotarefas();
+
+    const requisicao = httpMock.expectOne(request =>
+      request.url === `${BASE_URL}/mesas/paginadas` && request.params.get('filtroEstado') === 'ATENCAO',
+    );
+    requisicao.flush(PAGINA_MESAS_API);
   });
 
   it('abre os detalhes do pedido com itens, observações, progresso e valor', async () => {

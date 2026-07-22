@@ -22,6 +22,7 @@ type ModoSelecaoGarcom = 'ABRIR' | 'REATRIBUIR';
 type AcaoCritica = Extract<AcaoMesaPainel, 'FECHAR_CONTA'>;
 
 const FILTROS_ESTADO_VALIDOS: ReadonlySet<Exclude<FiltroEstado, null>> = new Set([
+  'ATENCAO',
   'PROBLEMAS',
   'PRONTOS',
   'EM_PREPARO',
@@ -96,6 +97,7 @@ export class Gestor {
   protected readonly itensPorPagina = signal(12);
   protected readonly limiarCargaLaranja = signal(5);
   protected readonly limiarCargaVermelho = signal(10);
+  protected readonly filtrosAvancadosAbertos = signal(false);
   protected readonly configCargaAberta = signal(false);
   protected readonly fechamentoExpandido = signal(false);
   protected readonly selecaoGarcom = signal<SelecaoGarcomEstado | null>(null);
@@ -166,6 +168,13 @@ export class Gestor {
     });
 
     effect(() => {
+      const garcomId = this.filtroGarcom();
+      if (!this.carregando() && garcomId !== null && !this.cargaGarcons().some(garcom => garcom.id === garcomId)) {
+        this.filtroGarcom.set(null);
+      }
+    });
+
+    effect(() => {
       const mesa = deveAbrirDetalhes && Number.isInteger(mesaIdRota) && mesaIdRota > 0
         ? this.mesasPagina().find(item => item.id === mesaIdRota)
         : null;
@@ -182,6 +191,10 @@ export class Gestor {
       this.buscaTermo().trim() !== '' ||
       this.filtroGarcom() !== null ||
       this.filtroEstado() !== null,
+  );
+
+  protected readonly quantidadeFiltrosAtivos = computed(
+    () => Number(this.filtroGarcom() !== null) + Number(this.filtroEstado() !== null),
   );
 
   protected atualizarBusca(valor: string): void {
@@ -405,6 +418,14 @@ export class Gestor {
 
   protected alternarFiltroEstado(estado: Exclude<FiltroEstado, null>): void {
     this.filtroEstado.update(atual => (atual === estado ? null : estado));
+  }
+
+  protected alternarFiltrosAvancados(): void {
+    this.filtrosAvancadosAbertos.update(abertos => !abertos);
+  }
+
+  protected filtrarPorGarcom(id: number): void {
+    this.filtroGarcom.update(atual => (atual === id ? null : id));
   }
 
   protected paginaAnterior(): void {

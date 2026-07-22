@@ -84,6 +84,11 @@ describe('PainelService', () => {
       .flush(PAGINA_MESAS_API);
     httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
     httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush(historico);
+    httpMock.expectOne(`${BASE_URL}/mesas/opcoes`).flush([
+      { id: 1, numero: 1 },
+      { id: 2, numero: 2 },
+      { id: 3, numero: 3 },
+    ]);
   }
 
   beforeEach(() => {
@@ -331,6 +336,7 @@ describe('PainelService — cache e prefetch de páginas', () => {
     httpMock.expectOne(request => request.url === `${BASE_URL}/mesas/paginadas`).flush(paginaComTotal(0));
     httpMock.expectOne(`${BASE_URL}/mesas/resumo`).flush(RESUMO_API);
     httpMock.expectOne(`${BASE_URL}/atendimentos/historico`).flush([]);
+    httpMock.expectOne(`${BASE_URL}/mesas/opcoes`).flush([{ id: 1, numero: 1 }]);
 
     // Com 12 mesas por página (raio 2), o prefetch inicial cacheia as páginas 1 e 2.
     await estabilizar();

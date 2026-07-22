@@ -1,5 +1,5 @@
 .users-table {
-  min-width: 820px;
+  min-width: 720px;
 }
 
 .user-cell .user-avatar {
@@ -47,8 +47,52 @@
   max-width: 680px;
 }
 
+.user-status-filters {
+  margin-top: -0.75rem;
+}
+
+.password-requirements {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 0.75rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--fk-muted);
+  font-size: 0.72rem;
+}
+
+.password-requirements li > span {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  place-items: center;
+  border: 1px solid var(--fk-border);
+  border-radius: 50%;
+}
+
+.password-requirements__item--met {
+  color: var(--fk-green-strong) !important;
+}
+
+.password-requirements__item--met > span {
+  border-color: var(--fk-green-strong) !important;
+  background: var(--fk-green-strong);
+  color: #fff;
+}
+
 @media (max-width: 760px) {
   .user-dialog {
     max-width: none;
+  }
+
+  .password-requirements {
+    grid-template-columns: 1fr;
   }
 }

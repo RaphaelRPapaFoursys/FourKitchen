@@ -14,6 +14,9 @@ import br.com.fourkitchen.ms_produtos.model.Categoria;
 import br.com.fourkitchen.ms_produtos.model.Produto;
 import br.com.fourkitchen.ms_produtos.repository.CategoriaRepository;
 import br.com.fourkitchen.ms_produtos.repository.ProdutoRepository;
+import br.com.fourkitchen.ms_produtos.repository.ProdutoGestorProjection;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -33,6 +36,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoServiceTest {
@@ -60,17 +64,20 @@ class ProdutoServiceTest {
 
     @Test
     void listarProdutosDeveRetornarProdutosMapeados() {
-        Categoria categoria = criarCategoria(1, "Lanches", true);
-        Produto produto = criarProduto(1, "Hamburguer", "Artesanal", "29.90", categoria, true);
-        ProdutoResponse response = criarResponse(produto);
+        ProdutoGestorProjection produto = mock(ProdutoGestorProjection.class);
+        ProdutoResponse response = new ProdutoResponse(1, "Hamburguer", "Artesanal", null,
+                new BigDecimal("29.90"), 1, "Lanches", true);
+        PageRequest pageable = PageRequest.of(0, 10);
 
-        when(produtoRepository.findAll()).thenReturn(List.of(produto));
+        when(produtoRepository.buscarProdutosParaGestao(0, pageable))
+                .thenReturn(new PageImpl<>(List.of(produto), pageable, 1));
         when(produtoResponseMapper.map(produto)).thenReturn(response);
 
-        List<ProdutoResponse> resultado = produtoService.listarProdutos();
+        var resultado = produtoService.listarProdutos(null, null, pageable);
 
-        assertEquals(List.of(response), resultado);
-        verify(produtoRepository).findAll();
+        assertEquals(List.of(response), resultado.content());
+        assertEquals(1, resultado.totalElements());
+        verify(produtoRepository).buscarProdutosParaGestao(0, pageable);
         verify(produtoResponseMapper).map(produto);
     }
 

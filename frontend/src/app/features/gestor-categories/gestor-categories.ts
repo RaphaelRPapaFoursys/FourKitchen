@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 
 import {
   CategoriaGestorRequest,
@@ -16,6 +16,7 @@ import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
 import { ProductImageUpload } from '../../shared/components/product-image-upload/product-image-upload';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-gestor-categories',
@@ -35,6 +36,11 @@ export class GestorCategories {
   });
   protected readonly categories = signal<CategoriaGestorResponse[]>([]);
   protected readonly searchTerm = signal('');
+  protected readonly selectedStatus = signal<boolean | null>(null);
+  protected readonly currentPage = signal(0);
+  protected readonly totalElements = signal(0);
+  protected readonly totalPages = signal(0);
+  protected readonly pageSize = 10;
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly actionCategoryId = signal<number | null>(null);
@@ -43,6 +49,7 @@ export class GestorCategories {
   protected readonly dialogOpen = signal(false);
   protected readonly editingCategory = signal<CategoriaGestorResponse | null>(null);
   protected readonly pendingImage = signal<string | null>(null);
+  private readonly searchChanges = new Subject<string>();
 
   protected readonly categoryForm = new FormGroup({
     nome: new FormControl('', {
@@ -55,18 +62,42 @@ export class GestorCategories {
     }),
   });
 
-  protected readonly filteredCategories = computed(() => {
-    const term = this.normalizeText(this.searchTerm());
-    if (!term) {
-      return this.categories();
+  constructor() {
+    this.searchChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.currentPage.set(0);
+        this.loadCategories();
+      });
+    this.loadCategories();
+  }
+
+  protected onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.searchChanges.next(value.trim());
+  }
+
+  protected previousPage(): void {
+    if (this.currentPage() > 0 && !this.loading()) {
+      this.currentPage.update(page => page - 1);
+      this.loadCategories();
+    }
+  }
+
+  protected nextPage(): void {
+    if (this.currentPage() + 1 < this.totalPages() && !this.loading()) {
+      this.currentPage.update(page => page + 1);
+      this.loadCategories();
+    }
+  }
+
+  protected selectStatus(status: boolean | null): void {
+    if (this.selectedStatus() === status || this.loading()) {
+      return;
     }
 
-    return this.categories().filter(category =>
-      this.normalizeText(`${category.nome} ${category.descricao ?? ''}`).includes(term),
-    );
-  });
-
-  constructor() {
+    this.selectedStatus.set(status);
+    this.currentPage.set(0);
     this.loadCategories();
   }
 
@@ -129,14 +160,14 @@ export class GestorCategories {
         finalize(() => this.saving.set(false)),
       )
       .subscribe({
-        next: category => {
-          this.upsertCategory(category);
+        next: () => {
           this.dialogOpen.set(false);
           this.editingCategory.set(null);
           this.pendingImage.set(null);
           this.successMessage.set(
             currentCategory ? 'Categoria atualizada com sucesso.' : 'Categoria cadastrada com sucesso.',
           );
+          this.loadCategories();
         },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
       });
@@ -169,19 +200,23 @@ export class GestorCategories {
       )
       .subscribe({
         next: updatedCategory => {
-          this.upsertCategory(updatedCategory);
           this.successMessage.set(
             updatedCategory.ativo
               ? 'Categoria ativada com sucesso.'
               : 'Categoria desativada com sucesso.',
           );
+          this.loadCategories();
         },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
       });
   }
 
-  protected imageSource(image: string | null): string {
-    return getBase64ImageSource(image) ?? 'assets/images/product-placeholder.svg';
+  protected imageSource(imageUrl: string | null): string {
+    return getBase64ImageSource(imageUrl, environment.apiUrl) ?? 'assets/images/product-placeholder.svg';
+  }
+
+  protected currentImageSource(imageUrl: string | null | undefined): string | null {
+    return getBase64ImageSource(imageUrl, environment.apiUrl);
   }
 
   protected trackCategory(_index: number, category: CategoriaGestorResponse): number {
@@ -201,38 +236,25 @@ export class GestorCategories {
     this.loading.set(true);
     this.errorMessage.set('');
     this.catalogService
-      .listCategories()
+      .listCategories(this.currentPage(), this.pageSize, this.searchTerm(), this.selectedStatus())
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false)),
       )
       .subscribe({
-        next: categories => this.categories.set(this.sortCategories(categories)),
+        next: page => {
+          this.categories.set(page.content);
+          this.currentPage.set(page.page);
+          this.totalElements.set(page.totalElements);
+          this.totalPages.set(page.totalPages);
+        },
         error: error => this.errorMessage.set(this.getErrorMessage(error)),
       });
-  }
-
-  private upsertCategory(category: CategoriaGestorResponse): void {
-    this.categories.update(categories =>
-      this.sortCategories([...categories.filter(item => item.id !== category.id), category]),
-    );
-  }
-
-  private sortCategories(categories: CategoriaGestorResponse[]): CategoriaGestorResponse[] {
-    return [...categories].sort((left, right) => left.nome.localeCompare(right.nome, 'pt-BR'));
   }
 
   private clearMessages(): void {
     this.errorMessage.set('');
     this.successMessage.set('');
-  }
-
-  private normalizeText(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
   }
 
   private getErrorMessage(error: unknown): string {

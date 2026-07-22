@@ -6,6 +6,8 @@ import { environment } from '../../../environments/environment';
 import {
   CategoriaGestorRequest,
   CategoriaGestorResponse,
+  CategoriaOpcaoResponse,
+  CatalogPageResponse,
   ProdutoGestorRequest,
   ProdutoGestorResponse,
 } from '../models/catalog.models';
@@ -17,8 +19,20 @@ export class CatalogService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/api/gestor/catalogo`;
 
-  listProducts(): Observable<ProdutoGestorResponse[]> {
-    return this.http.get<ProdutoGestorResponse[]>(`${this.baseUrl}/produtos`);
+  listProducts(
+    page = 0,
+    size = 10,
+    busca = '',
+    categoriaId: number | null = null,
+  ): Observable<CatalogPageResponse<ProdutoGestorResponse>> {
+    return this.http.get<CatalogPageResponse<ProdutoGestorResponse>>(`${this.baseUrl}/produtos`, {
+      params: {
+        page,
+        size,
+        ...(busca.trim() ? { busca: busca.trim() } : {}),
+        ...(categoriaId === null ? {} : { categoriaId }),
+      },
+    });
   }
 
   createProduct(request: ProdutoGestorRequest): Observable<ProdutoGestorResponse> {
@@ -37,8 +51,24 @@ export class CatalogService {
     return this.http.patch<ProdutoGestorResponse>(`${this.baseUrl}/produtos/${id}/desativar`, {});
   }
 
-  listCategories(): Observable<CategoriaGestorResponse[]> {
-    return this.http.get<CategoriaGestorResponse[]>(`${this.baseUrl}/categorias`);
+  listCategories(
+    page = 0,
+    size = 10,
+    busca = '',
+    ativo: boolean | null = null,
+  ): Observable<CatalogPageResponse<CategoriaGestorResponse>> {
+    return this.http.get<CatalogPageResponse<CategoriaGestorResponse>>(`${this.baseUrl}/categorias`, {
+      params: {
+        page,
+        size,
+        ...(busca.trim() ? { busca: busca.trim() } : {}),
+        ...(ativo === null ? {} : { ativo }),
+      },
+    });
+  }
+
+  listCategoryOptions(): Observable<CategoriaOpcaoResponse[]> {
+    return this.http.get<CategoriaOpcaoResponse[]>(`${this.baseUrl}/categorias/opcoes`);
   }
 
   createCategory(request: CategoriaGestorRequest): Observable<CategoriaGestorResponse> {

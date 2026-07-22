@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,13 @@ public class UsuarioService {
         return usuarios.stream().map(usuarioResponseMapper::map).toList();
     }
 
+    public List<UsuarioResponse> buscarUsuarios() {
+        return usuarioRepository.findAll()
+                .stream()
+                .map(usuarioResponseMapper::map)
+                .toList();
+    }
+
     public UsuarioResponse criarUsuario(CriarUsuarioRequest request) {
 
         if (usuarioRepository.existsByEmailIgnoreCase(request.email())) {
@@ -45,6 +53,7 @@ public class UsuarioService {
 
         Usuario usuario = criarUsuarioRequestMapper.map(request);
 
+        usuario.setNome(normalizarNome(request.nome()));
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         usuario.setAtivo(true);
 
@@ -63,7 +72,7 @@ public class UsuarioService {
 
         validarVinculoMesa(request.perfilUsuario(), request.idMesa());
 
-        usuario.setNome(request.nome());
+        usuario.setNome(normalizarNome(request.nome()));
         usuario.setEmail(request.email());
         usuario.setPerfilUsuario(request.perfilUsuario());
         usuario.setIdMesa(request.idMesa());
@@ -91,6 +100,12 @@ public class UsuarioService {
 
         usuario.setAtivo(false);
         usuarioRepository.save(usuario);
+    }
+
+    public UsuarioResponse ativarUsuario(Integer id) {
+        Usuario usuario = buscarUsuarioPorId(id);
+        usuario.setAtivo(true);
+        return usuarioResponseMapper.map(usuarioRepository.save(usuario));
     }
 
     private void validarVinculoMesa(CriarUsuarioRequest request) {
@@ -124,6 +139,12 @@ public class UsuarioService {
         if (!senha.matches(UsuarioRegex.SENHA_FORTE)) {
             throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
         }
+    }
+
+    private String normalizarNome(String nome) {
+        Locale locale = Locale.forLanguageTag("pt-BR");
+        String normalizado = nome.trim().replaceAll("\\s+", " ").toLowerCase(locale);
+        return normalizado.substring(0, 1).toUpperCase(locale) + normalizado.substring(1);
     }
 
 }

@@ -6,7 +6,7 @@ public record ProdutoGestorClientResponse(
         Integer id,
         String nome,
         String descricao,
-        String imagem,
+        String imagemUrl,
         BigDecimal preco,
         Integer categoriaId,
         String categoria,

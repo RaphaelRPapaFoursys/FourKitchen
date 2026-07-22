@@ -43,6 +43,16 @@ public class UsuarioController {
 
     }
 
+    @GetMapping("/todos")
+    @Operation(
+            summary = "Lista todos os usuarios",
+            description = "Retorna usuarios ativos e inativos para a gestao de acessos.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<List<UsuarioResponse>> listarUsuarios() {
+        return ResponseEntity.ok(usuarioService.buscarUsuarios());
+    }
+
     @PostMapping()
     @Operation(
             summary = "Cria usuario",
@@ -103,6 +113,16 @@ public class UsuarioController {
             @RequestBody @Valid AtualizarUsuarioRequest request
     ) {
         return ResponseEntity.ok(usuarioService.atualizarUsuario(id, request));
+    }
+
+    @PatchMapping("/{id}/ativar")
+    @Operation(
+            summary = "Ativa usuario",
+            description = "Reativa um usuario que havia sido inativado.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<UsuarioResponse> ativarUsuario(@PathVariable Integer id) {
+        return ResponseEntity.ok(usuarioService.ativarUsuario(id));
     }
 
     @DeleteMapping("/{id}")

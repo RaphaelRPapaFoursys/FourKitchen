@@ -31,6 +31,14 @@ describe('GestorUsers', () => {
         idMesa: null,
         ativo: true,
       },
+      {
+        id: 2,
+        nome: 'Bruno Lima',
+        email: 'bruno@fourkitchen.com',
+        perfilUsuario: 'GARCOM',
+        idMesa: null,
+        ativo: false,
+      },
     ]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -42,6 +50,61 @@ describe('GestorUsers', () => {
     expect(fixture.componentInstance).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Usuários');
     expect(fixture.nativeElement.textContent).toContain('Maria Silva');
+    expect(fixture.nativeElement.textContent).toContain('Bruno Lima');
+    expect(fixture.nativeElement.querySelector('.users-table thead').textContent).not.toContain('Mesa');
+  });
+
+  it('filters users by profile', () => {
+    const buttons = [...fixture.nativeElement.querySelectorAll('.category-filters button')] as HTMLButtonElement[];
+    buttons.find(button => button.textContent?.trim() === 'Garçom')?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Bruno Lima');
+    expect(fixture.nativeElement.textContent).not.toContain('Maria Silva');
+  });
+
+  it('filters users by inactive status', () => {
+    const buttons = [...fixture.nativeElement.querySelectorAll('.user-status-filters button')] as HTMLButtonElement[];
+    buttons.find(button => button.textContent?.trim() === 'Inativos')?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Bruno Lima');
+    expect(fixture.nativeElement.textContent).not.toContain('Maria Silva');
+  });
+
+  it('reactivates an inactive user', () => {
+    const rows = [...fixture.nativeElement.querySelectorAll('.users-table tbody tr')] as HTMLTableRowElement[];
+    const inactiveRow = rows.find(row => row.textContent?.includes('Bruno Lima'));
+    const activateButton = inactiveRow?.querySelector('.row-actions__status') as HTMLButtonElement;
+    expect(activateButton.textContent?.trim()).toBe('Ativar');
+
+    activateButton.click();
+    const request = httpMock.expectOne(`${baseUrl}/2/ativar`);
+    expect(request.request.method).toBe('PATCH');
+    request.flush({
+      id: 2,
+      nome: 'Bruno Lima',
+      email: 'bruno@fourkitchen.com',
+      perfilUsuario: 'GARCOM',
+      idMesa: null,
+      ativo: true,
+    });
+    fixture.detectChanges();
+
+    expect(inactiveRow?.querySelector('.row-actions__status')?.textContent?.trim()).toBe('Inativar');
+  });
+
+  it('updates the password requirement checks while typing', () => {
+    const createButton = fixture.nativeElement.querySelector('.page-heading .primary-button') as HTMLButtonElement;
+    createButton.click();
+    fixture.detectChanges();
+
+    const passwordInput = fixture.nativeElement.querySelector('input[formControlName="senha"]') as HTMLInputElement;
+    passwordInput.value = 'Senha123';
+    passwordInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.password-requirements__item--met').length).toBe(4);
   });
 
   it('opens the form to create a user', () => {

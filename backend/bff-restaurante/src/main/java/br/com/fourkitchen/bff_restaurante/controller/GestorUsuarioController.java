@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -130,6 +131,15 @@ public class GestorUsuarioController {
             @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
     ) {
         return ResponseEntity.ok(gestorUsuarioService.atualizarUsuario(id, request, authorization));
+    }
+
+    @PatchMapping("/{id}/ativar")
+    @Operation(summary = "Ativa usuario", description = "Reativa um usuario anteriormente inativado.")
+    public ResponseEntity<UsuarioGestorResponse> ativarUsuario(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        return ResponseEntity.ok(gestorUsuarioService.ativarUsuario(id, authorization));
     }
 
     @DeleteMapping("/{id}")

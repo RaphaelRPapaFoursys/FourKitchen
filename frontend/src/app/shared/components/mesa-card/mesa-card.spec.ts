@@ -46,7 +46,7 @@ describe('MesaCard', () => {
 
   it('exibe o número da mesa com dois dígitos', () => {
     const titulo: HTMLElement = fixture.nativeElement.querySelector('.mesa-card__header h3');
-    expect(titulo.textContent).toContain('Mesa 05');
+    expect(titulo.textContent?.trim()).toBe('05');
   });
 
   it('emite acao ao clicar na ação primária', () => {
@@ -74,6 +74,36 @@ describe('MesaCard', () => {
 
     expect(texto).not.toContain('3 itens');
     expect(texto).not.toContain('R$ 50,00');
+  });
+
+  it('mantém o progresso detalhado apenas no modal do pedido', () => {
+    const elemento = fixture.nativeElement as HTMLElement;
+
+    expect(elemento.textContent).not.toContain('4/4 etapas');
+    expect(elemento.querySelector('fk-progress-bar')).toBeNull();
+  });
+
+  it('não repete garçom ou disponibilidade no conteúdo de uma mesa livre', () => {
+    fixture.componentRef.setInput('mesa', {
+      ...mesaOcupada(),
+      status: 'LIVRE',
+      garcomId: null,
+      garcom: null,
+      statusPedido: null,
+      tempoLabel: null,
+      tempoMinutos: null,
+      etapaAtual: null,
+      totalEtapas: null,
+      pedidos: [],
+    });
+    fixture.componentRef.setInput('criticidade', 'livre');
+    fixture.componentRef.setInput('acaoPrimaria', { tipo: 'ABRIR_MESA', label: 'Abrir mesa' });
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('Livre');
+    expect(texto).not.toContain('Garçom');
+    expect(texto).not.toContain('Mesa disponível');
   });
 
   it('emite verPedido ao clicar na ação secundária de detalhes', () => {

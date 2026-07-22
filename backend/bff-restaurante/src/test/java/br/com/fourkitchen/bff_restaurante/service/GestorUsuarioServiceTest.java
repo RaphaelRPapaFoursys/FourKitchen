@@ -46,17 +46,18 @@ class GestorUsuarioServiceTest {
 
     @Test
     void listarUsuariosDeveRetornarUsuariosOrdenadosPorNome() {
-        UsuarioClientResponse bruno = criarUsuario(2, "Bruno Silva", "bruno@fourkitchen.com", "GARCOM", true);
+        UsuarioClientResponse bruno = criarUsuario(2, "Bruno Silva", "bruno@fourkitchen.com", "GARCOM", false);
         UsuarioClientResponse amanda = criarUsuario(1, "Amanda Souza", "amanda@fourkitchen.com", "GESTOR", true);
 
-        when(usuarioClient.listarUsuariosAtivos(AUTHORIZATION)).thenReturn(List.of(bruno, amanda));
+        when(usuarioClient.listarUsuarios(AUTHORIZATION)).thenReturn(List.of(bruno, amanda));
 
         List<UsuarioGestorResponse> resultado = gestorUsuarioService.listarUsuarios(AUTHORIZATION);
 
         assertEquals(2, resultado.size());
         assertEquals("Amanda Souza", resultado.get(0).nome());
         assertEquals("Bruno Silva", resultado.get(1).nome());
-        verify(usuarioClient).listarUsuariosAtivos(AUTHORIZATION);
+        assertEquals(false, resultado.get(1).ativo());
+        verify(usuarioClient).listarUsuarios(AUTHORIZATION);
     }
 
     @Test
@@ -190,6 +191,23 @@ class GestorUsuarioServiceTest {
         gestorUsuarioService.inativarUsuario(1, AUTHORIZATION, authentication);
 
         verify(usuarioClient).inativarUsuario(1, AUTHORIZATION);
+    }
+
+    @Test
+    void ativarUsuarioDeveDelegarParaMsUsuarios() {
+        UsuarioClientResponse usuario = criarUsuario(
+                1,
+                "Amanda Souza",
+                "amanda@fourkitchen.com",
+                "GESTOR",
+                true
+        );
+        when(usuarioClient.ativarUsuario(1, AUTHORIZATION)).thenReturn(usuario);
+
+        UsuarioGestorResponse resultado = gestorUsuarioService.ativarUsuario(1, AUTHORIZATION);
+
+        assertEquals(true, resultado.ativo());
+        verify(usuarioClient).ativarUsuario(1, AUTHORIZATION);
     }
 
     @Test
