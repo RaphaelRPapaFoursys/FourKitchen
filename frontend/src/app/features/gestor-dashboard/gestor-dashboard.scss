@@ -7,7 +7,7 @@ fk-sidebar { position: sticky; top: 0; z-index: 10; height: 100vh; flex: 0 0 aut
 .dashboard__onda { position: absolute; top: 0; right: 0; width: min(44rem, 58%); opacity: .28; pointer-events: none; }
 fk-topbar { position: relative; z-index: 2; }
 .dashboard__content { position: relative; z-index: 1; padding: .5rem 1.5rem 2rem; }
-.dashboard__carregando { display: grid; min-height: 100vh; place-items: center; background: var(--fk-bg); color: var(--fk-muted); font-weight: 800; }
+.dashboard__carregando { display: flex; min-height: 5.5rem; align-items: center; justify-content: center; padding: 2rem; border: 1px solid var(--fk-border-soft); border-radius: var(--fk-radius-card-lg); background: var(--fk-card); color: var(--fk-muted); box-shadow: var(--fk-shadow-card); font-weight: 800; text-align: center; }
 .dashboard__cabecalho { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; }
 .dashboard__cabecalho > div > span { color: var(--fk-orange-strong); font-size: .7rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .dashboard__cabecalho h1 { margin: .1rem 0; font-size: clamp(1.7rem, 2.5vw, 2.1rem); }

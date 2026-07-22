@@ -118,7 +118,7 @@
                           />
                           <div>
                             <strong>{{ product.nome }}</strong>
-                            <span>{{ product.descricao || 'Sem descrição' }}</span>
+                            <span [attr.title]="product.descricao || null">{{ tableDescription(product.descricao) }}</span>
                           </div>
                         </div>
                       </td>

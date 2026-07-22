@@ -1,7 +1,4 @@
-@if (carregando()) {
-  <div class="dashboard__carregando">Carregando dashboard...</div>
-} @else {
-  <div class="dashboard">
+<div class="dashboard">
     <fk-sidebar />
     <div class="dashboard__main">
       <img class="dashboard__onda" src="assets/images/listra-fourkitchen.png" alt="" aria-hidden="true" />
@@ -24,6 +21,9 @@
           </button>
         </header>
 
+        @if (carregando()) {
+          <section class="dashboard__carregando" role="status">Carregando dashboard...</section>
+        } @else {
         <section class="kpis" aria-label="Indicadores operacionais">
           <div class="kpi kpi--verde">
             <div><span>Mesas livres</span><fk-icon name="picnic-table" size="1.2rem" /></div><strong>{{ resumo().mesasLivres }}</strong><small>Disponíveis agora</small>
@@ -164,6 +164,7 @@
             </section>
           </aside>
         </div>
+        }
       </main>
     </div>
   </div>
@@ -285,4 +286,3 @@
       </section>
     </div>
   }
-}

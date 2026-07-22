@@ -1,7 +1,4 @@
-@if (carregando()) {
-  <div class="painel__carregando">Carregando mesas...</div>
-} @else {
-  <div class="painel">
+<div class="painel">
     <fk-sidebar />
 
     <div class="painel__main">
@@ -33,6 +30,9 @@
           </button>
         </header>
 
+        @if (carregando()) {
+          <section class="painel__carregando" role="status">Carregando mesas...</section>
+        } @else {
         <div class="gestao-layout">
           <section class="gestao-mesas" aria-labelledby="titulo-lista-mesas">
             <div class="filtros">
@@ -195,6 +195,7 @@
             </div>
           </aside>
         </div>
+        }
       </main>
     </div>
   </div>
@@ -345,4 +346,3 @@
       </section>
     </div>
   }
-}

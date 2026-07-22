@@ -7,7 +7,7 @@ fk-sidebar { position: sticky; top: 0; z-index: 10; height: 100vh; flex: 0 0 aut
 .painel__onda { position: absolute; top: 0; right: 0; width: min(42rem, 55%); opacity: .28; pointer-events: none; }
 fk-topbar { position: relative; z-index: 2; }
 .painel__content { position: relative; z-index: 1; padding: .5rem 1.5rem 2rem; }
-.painel__carregando { display: grid; min-height: 100vh; place-items: center; background: var(--fk-bg); color: var(--fk-muted); font-weight: 700; }
+.painel__carregando { display: flex; min-height: 5.5rem; align-items: center; justify-content: center; padding: 2rem; border: 1px solid var(--fk-border-soft); border-radius: var(--fk-radius-card-lg); background: var(--fk-card); color: var(--fk-muted); box-shadow: var(--fk-shadow-card); font-weight: 700; text-align: center; }
 .aviso-expediente { margin-bottom: 1rem; padding: .8rem 1rem; border: 1px solid var(--fk-amber); border-radius: var(--fk-radius-control); background: var(--fk-amber-soft); color: var(--fk-amber-strong); font-weight: 700; }
 .pagina-cabecalho { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
 .pagina-cabecalho__eyebrow { color: var(--fk-orange-strong); font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }

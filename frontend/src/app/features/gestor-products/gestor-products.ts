@@ -253,6 +253,18 @@ export class GestorProducts {
     return product.id;
   }
 
+  protected tableDescription(description: string | null): string {
+    const text = description?.trim();
+    if (!text) {
+      return 'Sem descrição';
+    }
+
+    const maxLength = 48;
+    return text.length <= maxLength
+      ? text
+      : `${text.slice(0, maxLength - 3).trimEnd()}...`;
+  }
+
   protected initials(name: string | null | undefined): string {
     return name?.trim().charAt(0).toUpperCase() || '?';
   }
