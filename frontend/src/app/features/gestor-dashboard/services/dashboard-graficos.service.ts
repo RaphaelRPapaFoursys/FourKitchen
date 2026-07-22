@@ -63,6 +63,12 @@ export class DashboardGraficosService {
     shareReplay({ bufferSize: 1, refCount: true }),
   );
 
+  atualizarFiltrosGraficos(filtros: FiltrosDashboard): void {
+    this.atualizarFiltrosVolume(filtros);
+    this.atualizarFiltrosProblemas(filtros);
+    this.atualizarFiltrosCanais(filtros);
+  }
+
   atualizarFiltrosVolume(filtros: FiltrosDashboard): void { this.atualizar(this.filtrosVolumeSubject, filtros); }
   atualizarFiltrosProblemas(filtros: FiltrosDashboard): void { this.atualizar(this.filtrosProblemasSubject, filtros); }
   atualizarFiltrosCanais(filtros: FiltrosDashboard): void { this.atualizar(this.filtrosCanaisSubject, filtros); }

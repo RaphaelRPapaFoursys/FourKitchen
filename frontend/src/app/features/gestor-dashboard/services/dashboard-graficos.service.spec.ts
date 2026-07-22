@@ -43,7 +43,7 @@ describe('DashboardGraficosService', () => {
     await proximoCiclo();
     httpMock.expectOne(req => req.url === `${baseUrl}/pedidos-por-canal`).flush({ periodo: 'HOJE', totalPedidos: 0, dados: [] });
 
-    service.atualizarFiltrosCanais({
+    service.atualizarFiltrosGraficos({
       ...FILTROS_DASHBOARD_INICIAIS,
       periodo: 'PERSONALIZADO',
       dataInicial: '2026-07-01',
@@ -87,18 +87,24 @@ describe('DashboardGraficosService', () => {
     subscription.unsubscribe();
   });
 
-  it('mantém os filtros independentes entre os gráficos', async () => {
+  it('aplica o mesmo filtro aos três gráficos analíticos', async () => {
     const volume = service.volume$.subscribe();
+    const problemas = service.problemas$.subscribe();
     const canais = service.canais$.subscribe();
     await proximoCiclo();
     httpMock.expectOne(req => req.url === `${baseUrl}/pedidos-por-horario`).flush({ periodo: 'HOJE', totalPedidos: 0, horarioPico: null, quantidadeNoPico: 0, dados: [] });
+    httpMock.expectOne(req => req.url === `${baseUrl}/problemas-por-motivo`).flush({ periodo: 'HOJE', totalProblemas: 0, motivoMaisFrequente: null, dados: [] });
     httpMock.expectOne(req => req.url === `${baseUrl}/pedidos-por-canal`).flush({ periodo: 'HOJE', totalPedidos: 0, dados: [] });
 
-    service.atualizarFiltrosCanais({ ...FILTROS_DASHBOARD_INICIAIS, periodo: 'ULTIMOS_7_DIAS' });
+    service.atualizarFiltrosGraficos({ ...FILTROS_DASHBOARD_INICIAIS, periodo: 'ULTIMOS_7_DIAS' });
+    httpMock.expectOne(req => req.url === `${baseUrl}/pedidos-por-horario` && req.params.get('periodo') === 'ULTIMOS_7_DIAS')
+      .flush({ periodo: 'ULTIMOS_7_DIAS', totalPedidos: 0, horarioPico: null, quantidadeNoPico: 0, dados: [] });
+    httpMock.expectOne(req => req.url === `${baseUrl}/problemas-por-motivo` && req.params.get('periodo') === 'ULTIMOS_7_DIAS')
+      .flush({ periodo: 'ULTIMOS_7_DIAS', totalProblemas: 0, motivoMaisFrequente: null, dados: [] });
     httpMock.expectOne(req => req.url === `${baseUrl}/pedidos-por-canal` && req.params.get('periodo') === 'ULTIMOS_7_DIAS')
       .flush({ periodo: 'ULTIMOS_7_DIAS', totalPedidos: 0, dados: [] });
-    httpMock.expectNone(req => req.url === `${baseUrl}/pedidos-por-horario` && req.params.get('periodo') === 'ULTIMOS_7_DIAS');
     volume.unsubscribe();
+    problemas.unsubscribe();
     canais.unsubscribe();
   });
 

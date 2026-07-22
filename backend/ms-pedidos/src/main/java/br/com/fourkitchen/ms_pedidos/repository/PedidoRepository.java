@@ -43,7 +43,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
     );
 
     List<Pedido> findByIdAtendimentoOrderByDataCriacaoAscIdAsc(Integer idAtendimento);
-  
+
     List<Pedido> findByIdAtendimentoAndStatusNotOrderByDataCriacaoAscIdAsc(
             Integer idAtendimento,
             StatusPedido status
