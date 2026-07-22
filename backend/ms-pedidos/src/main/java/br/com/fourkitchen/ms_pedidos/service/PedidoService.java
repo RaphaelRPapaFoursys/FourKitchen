@@ -5,10 +5,12 @@ import br.com.fourkitchen.ms_pedidos.dto.response.ItemPedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoCozinhaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoProblemaTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.PedidoRetiradaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
+import br.com.fourkitchen.ms_pedidos.entities.ProblemaCozinha;
 import br.com.fourkitchen.ms_pedidos.entities.ProdutoPedido;
 import br.com.fourkitchen.ms_pedidos.enums.CanaisPedido;
 import br.com.fourkitchen.ms_pedidos.enums.StatusPedido;
@@ -17,6 +19,7 @@ import br.com.fourkitchen.ms_pedidos.exceptions.*;
 import br.com.fourkitchen.ms_pedidos.mapper.CriarPedidoRequestMapper;
 import br.com.fourkitchen.ms_pedidos.mapper.PedidoResponseMapper;
 import br.com.fourkitchen.ms_pedidos.repository.PedidoRepository;
+import br.com.fourkitchen.ms_pedidos.repository.ProblemaCozinhaRepository;
 import br.com.fourkitchen.ms_pedidos.repository.ProdutoPedidoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,11 +69,22 @@ public class PedidoService {
             StatusPedido.PROBLEMA_COZINHA
     );
 
+    private static final Collection<StatusPedido> STATUS_FILA_RETIRADA = List.of(
+            StatusPedido.ENVIADO_COZINHA,
+            StatusPedido.EM_PREPARO,
+            StatusPedido.PRONTO,
+            StatusPedido.PROBLEMA_COZINHA,
+            StatusPedido.AGUARDANDO_DECISAO
+    );
+
     @Autowired
     private PedidoRepository pedidoRepository;
 
     @Autowired
     private ProdutoPedidoRepository produtoPedidoRepository;
+
+    @Autowired
+    private ProblemaCozinhaRepository problemaCozinhaRepository;
 
     @Autowired
     private PedidoResponseMapper pedidoResponseMapper;
@@ -184,6 +198,22 @@ public class PedidoService {
                         itensPorPedido.getOrDefault(pedido.getId(), List.of()).stream()
                                 .map(this::mapearItemCozinha)
                                 .toList()
+                ))
+                .toList();
+    }
+
+    public List<PedidoRetiradaResponse> findFilaRetiradaTotem() {
+        return pedidoRepository.findByCanalAndStatusInOrderByDataCriacaoAscIdAsc(
+                        CanaisPedido.TOTEM,
+                        STATUS_FILA_RETIRADA
+                ).stream()
+                .map(pedido -> new PedidoRetiradaResponse(
+                        pedido.getId(),
+                        pedido.getCodigo(),
+                        pedido.getStatus(),
+                        pedido.getDataCriacao(),
+                        pedido.getDataInicioPreparo(),
+                        pedido.getDataPronto()
                 ))
                 .toList();
     }
@@ -339,6 +369,20 @@ public class PedidoService {
     }
 
     @Transactional
+    public PedidoResponse entregarPedidoTotem(Integer id) {
+        Pedido pedido = buscarPedidoParaAtualizacao(id);
+
+        if (pedido.getCanal() != CanaisPedido.TOTEM) {
+            throw new BaseException(ErrorEnum.TRANSICAO_STATUS_INVALIDA);
+        }
+
+        validarStatusAtual(pedido, StatusPedido.PRONTO);
+        pedido.setStatus(StatusPedido.ENTREGUE);
+
+        return pedidoResponseMapper.map(pedido);
+    }
+
+    @Transactional
     public void patchPedido(Integer id, AlterarPedidoRequest alterarPedidoRequest) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new BaseException(ErrorEnum.PEDIDO_NAO_ENCONTRADO));
@@ -467,8 +511,17 @@ public class PedidoService {
                         request.idProdutoPedido()
                 ).orElseThrow(() -> new BaseException(ErrorEnum.PRODUTO_PEDIDO_NAO_ENCONTRADO));
 
+        if (!motivoProblemaValido(request.statusProdutoPedido())) {
+            throw new BaseException(ErrorEnum.DADOS_INVALIDOS);
+        }
+
         pedido.setStatus(StatusPedido.AGUARDANDO_DECISAO);
         produtoPedido.setStatus(request.statusProdutoPedido());
+        problemaCozinhaRepository.save(ProblemaCozinha.builder()
+                .idPedido(pedido.getId())
+                .idProdutoPedido(produtoPedido.getId())
+                .motivo(request.statusProdutoPedido())
+                .build());
 
         return new SinalizarProblemaResponse(
                 pedido.getId(),
@@ -489,6 +542,8 @@ public class PedidoService {
         if (!pedidoPermiteDecisao(pedido)) {
             throw new BaseException(ErrorEnum.PEDIDO_NAO_PERMITE_DECISAO);
         }
+
+        resolverProblemaCozinha(decisaoProblemaRequest.idPedido(), decisaoProblemaRequest.idProdutoPedido());
 
         if (decisaoProblemaRequest.pedidoCancelado()) {
             validarPedidoPodeSerCanceladoAntesDoPreparo(pedido);
@@ -563,6 +618,20 @@ public class PedidoService {
     private boolean pedidoPermiteDecisao(Pedido pedido) {
         return pedido.getStatus() == StatusPedido.AGUARDANDO_DECISAO
                 || pedido.getStatus() == StatusPedido.PROBLEMA_COZINHA;
+    }
+
+    private boolean motivoProblemaValido(StatusProdutoPedido motivo) {
+        return motivo == StatusProdutoPedido.ERRO
+                || motivo == StatusProdutoPedido.INDISPONIVEL;
+    }
+
+    private void resolverProblemaCozinha(Integer idPedido, Integer idProdutoPedido) {
+        problemaCozinhaRepository
+                .findFirstByIdPedidoAndIdProdutoPedidoAndDataResolucaoIsNullOrderByDataCriacaoDescIdDesc(
+                        idPedido,
+                        idProdutoPedido
+                )
+                .ifPresent(problema -> problema.setDataResolucao(LocalDateTime.now()));
     }
 
     private void validarPedidoProblemaTotem(Pedido pedido) {

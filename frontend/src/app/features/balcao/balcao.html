@@ -1,0 +1,112 @@
+<main class="counter-page">
+  <header class="counter-header">
+    <div class="counter-header__identity">
+      <span class="counter-header__icon"><fk-icon name="cash-register" size="1.5rem" /></span>
+      <div>
+        <span class="eyebrow">Operacao de retirada</span>
+        <h1>Painel do balcao</h1>
+      </div>
+    </div>
+    <div class="counter-header__actions">
+      <button type="button" class="refresh-button" (click)="carregarFila()" [disabled]="atualizando()">
+        <fk-icon name="arrows-counter-clockwise" size="1rem" /> Atualizar
+      </button>
+      <fk-user-menu name="Balcao" initial="B" [showName]="false" />
+    </div>
+  </header>
+
+  <section class="counter-content">
+    <div class="feedback-region" aria-live="polite">
+      @if (erro()) {
+        <div class="feedback feedback--error" role="alert">
+          <fk-icon name="warning-circle" size="1.15rem" />
+          <span>{{ erro() }}</span>
+          <button type="button" aria-label="Fechar mensagem" (click)="limparMensagens()">×</button>
+        </div>
+      } @else if (sucesso()) {
+        <div class="feedback feedback--success" role="status">
+          <fk-icon name="check-circle" size="1.15rem" />
+          <span>{{ sucesso() }}</span>
+          <button type="button" aria-label="Fechar mensagem" (click)="limparMensagens()">×</button>
+        </div>
+      }
+    </div>
+
+    @if (carregando() && pedidos().length === 0) {
+      <section class="empty-state" aria-busy="true">
+        <span class="spinner"></span>
+        <h2>Carregando pedidos</h2>
+      </section>
+    } @else if (erro() && pedidos().length === 0) {
+      <section class="empty-state">
+        <fk-icon name="warning-circle" size="2rem" />
+        <h2>Fila temporariamente indisponivel</h2>
+        <button type="button" class="primary-button" (click)="carregarFila()">Tentar novamente</button>
+      </section>
+    } @else {
+      <section class="counter-board" [attr.aria-busy]="atualizando()">
+        <section class="lane lane--received">
+          <header><h2>Recebidos</h2><span>{{ recebidos().length }}</span></header>
+          <div class="orders">
+            @for (pedido of recebidos(); track pedido.id) {
+              <ng-container [ngTemplateOutlet]="pedidoCard" [ngTemplateOutletContext]="{ $implicit: pedido }" />
+            } @empty { <p>Nenhum pedido recebido.</p> }
+          </div>
+        </section>
+
+        <section class="lane lane--preparing">
+          <header><h2>Em preparo</h2><span>{{ emPreparo().length }}</span></header>
+          <div class="orders">
+            @for (pedido of emPreparo(); track pedido.id) {
+              <ng-container [ngTemplateOutlet]="pedidoCard" [ngTemplateOutletContext]="{ $implicit: pedido }" />
+            } @empty { <p>Nenhum pedido em preparo.</p> }
+          </div>
+        </section>
+
+        <section class="lane lane--ready">
+          <header><h2>Prontos</h2><span>{{ prontos().length }}</span></header>
+          <div class="orders">
+            @for (pedido of prontos(); track pedido.id) {
+              <ng-container [ngTemplateOutlet]="pedidoCard" [ngTemplateOutletContext]="{ $implicit: pedido }" />
+            } @empty { <p>Nenhum pedido pronto.</p> }
+          </div>
+        </section>
+
+        <section class="lane lane--attention">
+          <header><h2>Atencao</h2><span>{{ comAtencao().length }}</span></header>
+          <div class="orders">
+            @for (pedido of comAtencao(); track pedido.id) {
+              <ng-container [ngTemplateOutlet]="pedidoCard" [ngTemplateOutletContext]="{ $implicit: pedido }" />
+            } @empty { <p>Nenhum pedido com pendencia.</p> }
+          </div>
+        </section>
+      </section>
+    }
+  </section>
+
+  <footer class="counter-footer">
+    <span><i></i>Sistema online</span>
+    <span>Ultima sincronizacao: {{ sincronizadoLabel() }}</span>
+    <span>{{ pedidos().length }} pedido(s) ativo(s)</span>
+  </footer>
+</main>
+
+<ng-template #pedidoCard let-pedido>
+  <article class="order-card" [class.order-card--ready]="pedido.status === 'PRONTO'">
+    <header>
+      <div><small>Pedido</small><strong>#{{ pedido.codigo }}</strong></div>
+      <span>{{ statusLabel(pedido.status) }}</span>
+    </header>
+    <p>
+      @if (pedido.status === 'PRONTO') { Pronto ha } @else { Neste status ha }
+      <strong>{{ minutosDesde(pedido) }} min</strong>
+    </p>
+    @if (pedido.status === 'PRONTO') {
+      <button type="button" class="deliver-button" (click)="entregar(pedido)" [disabled]="pedidoEmAcao() !== null">
+        @if (pedidoEmAcao() === pedido.id) { Confirmando... } @else {
+          <fk-icon name="check-circle" size="1rem" /> Marcar como entregue
+        }
+      </button>
+    }
+  </article>
+</ng-template>

@@ -17,6 +17,7 @@ export class Topbar {
 
   readonly busca = model('');
   readonly buscaPlaceholder = input('Pesquisar mesa, pedido ou garçom');
+  readonly mostrarBusca = input(true);
   readonly usuarioNome = input('Usuário');
   readonly usuarioInicial = input('?');
   readonly notificacoes = input<number | null>(null);

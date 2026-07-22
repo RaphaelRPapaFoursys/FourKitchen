@@ -14,6 +14,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/login/login').then(m => m.Login)
   },
+  {
+    path: 'painel-retirada',
+    loadComponent: () =>
+      import('./features/painel-retirada/painel-retirada').then(m => m.PainelRetirada),
+  },
   ...protectedRoutes,
   {
     path: '**',

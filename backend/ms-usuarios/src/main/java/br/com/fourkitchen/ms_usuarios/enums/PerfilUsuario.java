@@ -9,5 +9,6 @@ public enum PerfilUsuario {
     GESTOR,
     ADMIN,
     MESA,
-    TOTEM
+    TOTEM,
+    BALCAO
 }

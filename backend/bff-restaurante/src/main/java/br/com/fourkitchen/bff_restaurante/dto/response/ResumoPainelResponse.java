@@ -10,6 +10,9 @@ public record ResumoPainelResponse(
         @Schema(description = "Quantidade de mesas livres", example = "12")
         Integer mesasLivres,
 
+        @Schema(description = "Quantidade de mesas ocupadas sem garcom atribuido", example = "2")
+        Integer mesasSemGarcom,
+
         @Schema(description = "Quantidade de mesas com pedidos em preparo", example = "5")
         Integer emPreparo,
 

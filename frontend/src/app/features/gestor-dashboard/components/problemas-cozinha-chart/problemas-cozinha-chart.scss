@@ -1,0 +1,10 @@
+:host { display: block; }
+.chart-card { min-height: 21rem; padding: 1rem; border: 1px solid var(--fk-border); border-radius: var(--fk-radius-card); background: var(--fk-card); box-shadow: var(--fk-shadow-card); }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+header span { color: var(--fk-orange-strong); font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; } h2 { margin: .15rem 0 0; font-size: 1rem; }
+.resumo { display: flex; align-items: baseline; gap: .35rem; padding-top: .8rem; } .resumo strong { font-size: 1.35rem; } .resumo span { color: var(--fk-muted); font-size: .7rem; }
+.grafico { height: 14rem; padding-top: .5rem; }
+.estado { display: flex; min-height: 16rem; flex-direction: column; align-items: center; justify-content: center; gap: .7rem; color: var(--fk-muted); font-size: .78rem; text-align: center; }
+.estado i { width: 1.5rem; height: 1.5rem; border: 3px solid var(--fk-border-strong); border-top-color: var(--fk-orange); border-radius: 50%; animation: giro .8s linear infinite; }
+.estado--erro { color: var(--fk-red-strong); } .estado--positivo { color: var(--fk-green-strong); } button { padding: .55rem .75rem; border: 1px solid var(--fk-red); border-radius: var(--fk-radius-control); background: var(--fk-card); color: var(--fk-red-strong); font-weight: 800; cursor: pointer; }
+@keyframes giro { to { transform: rotate(360deg); } }

@@ -7,8 +7,10 @@ import { nivelCargaGarcom, resolverAcaoPrimaria } from '../constants/urgencia.co
 import {
   AcaoMesaPainel,
   CargaGarcom,
+  HistoricoAtendimento,
   MesaPainel,
   Pedido,
+  PedidoDetalheGestor,
   PedidoRecente,
   ResumoAtendimento,
   StatusPedidoPainel,
@@ -59,28 +61,12 @@ interface CargaGarcomApiResponse {
 
 interface ResumoPainelApiResponse {
   mesasLivres: number;
+  mesasSemGarcom: number;
   emPreparo: number;
   prontos: number;
   problemas: number;
   ticketMedio: number | null;
   cargaGarcons: CargaGarcomApiResponse[];
-}
-
-/** Atendimento finalizado (`GET /api/gestor/atendimentos/historico`) — persistido pelo ms-mesas a cada fechamento de mesa. */
-interface HistoricoAtendimentoApiResponse {
-  id: number;
-  idAtendimento: number;
-  codigoSessao: number;
-  idMesa: number;
-  numeroMesa: number;
-  idGarcom: number | null;
-  nomeGarcom: string | null;
-  valorFinal: number;
-  totalPedidos: number;
-  totalItens: number;
-  dataAbertura: string;
-  dataFechamento: string;
-  duracaoMinutos: number;
 }
 
 export type FiltroEstadoPainel =
@@ -157,6 +143,7 @@ const CONSULTA_INICIAL: ConsultaMesasPainel = {
 
 const RESUMO_INICIAL: ResumoAtendimento = {
   mesasLivres: 0,
+  mesasSemGarcom: 0,
   emPreparo: 0,
   prontos: 0,
   problemas: 0,
@@ -197,7 +184,7 @@ export class PainelService {
   private readonly mensagemErroSignal = signal<string | null>(null);
 
   /** Atendimentos finalizados vindos do backend (mais recentes primeiro), fonte de últimos pedidos e do resumo do expediente. */
-  private readonly historicoAtendimentosSignal = signal<HistoricoAtendimentoApiResponse[]>([]);
+  private readonly historicoAtendimentosSignal = signal<HistoricoAtendimento[]>([]);
 
   /** Sequência das requisições em voo: só a mais recente pode escrever na tela (evita piscar por resposta atrasada). */
   private sequenciaMesas = 0;
@@ -218,6 +205,7 @@ export class PainelService {
   readonly mesas = this.mesasSignal.asReadonly();
   readonly resumo = this.resumoSignal.asReadonly();
   readonly cargaGarcons = this.cargaGarconsSignal.asReadonly();
+  readonly historicoAtendimentos = this.historicoAtendimentosSignal.asReadonly();
   readonly totalElementos = computed(() => this.paginacaoSignal().totalElements);
   readonly totalPaginas = computed(() => Math.max(1, this.paginacaoSignal().totalPages));
   readonly paginaEfetiva = computed(() => Math.min(this.paginacaoSignal().page + 1, this.totalPaginas()));
@@ -309,6 +297,32 @@ export class PainelService {
     } catch {
       // uma falha na recarga não deve travar a abertura do modal
     }
+  }
+
+  /** Força a atualização dos dados visíveis, usado pelo botão de atualização das telas do gestor. */
+  async recarregarPainel(): Promise<void> {
+    this.invalidarCache();
+    this.carregandoMesasSignal.set(true);
+    this.mensagemErroSignal.set(null);
+    try {
+      await this.atualizarPainelForcado();
+    } catch (erro) {
+      this.mensagemErroSignal.set(this.extrairMensagemErro(erro));
+    } finally {
+      this.carregandoMesasSignal.set(false);
+    }
+  }
+
+  buscarPedidosDetalhados(idMesa: number): Promise<PedidoDetalheGestor[]> {
+    return firstValueFrom(
+      this.http.get<PedidoDetalheGestor[]>(`${this.baseUrl}/mesas/${idMesa}/pedidos`),
+    );
+  }
+
+  buscarPedidosDetalhadosPorAtendimento(idAtendimento: number): Promise<PedidoDetalheGestor[]> {
+    return firstValueFrom(
+      this.http.get<PedidoDetalheGestor[]>(`${this.baseUrl}/atendimentos/${idAtendimento}/pedidos`),
+    );
   }
 
   /** Últimos atendimentos fechados no expediente atual (mais recentes primeiro, já ordenados pelo backend). */
@@ -416,15 +430,6 @@ export class PainelService {
     await this.executarComFeedback('Fechando conta...', async () => {
       await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/fechar`, {}));
       // O fechamento grava o atendimento no histórico do ms-mesas; recarregar o painel puxa esse registro.
-      await this.atualizarPainelForcado();
-    });
-  }
-
-  async marcarEntregue(idMesa: number): Promise<void> {
-    if (this.expedienteFechado()) return;
-
-    await this.executarComFeedback('Confirmando entrega...', async () => {
-      await firstValueFrom(this.http.patch(`${this.baseUrl}/mesas/${idMesa}/marcar-entregue`, {}));
       await this.atualizarPainelForcado();
     });
   }
@@ -635,6 +640,7 @@ export class PainelService {
     this.cargaGarconsSignal.set(cargaGarcons);
     this.resumoSignal.set({
       mesasLivres: resumo.mesasLivres,
+      mesasSemGarcom: resumo.mesasSemGarcom,
       emPreparo: resumo.emPreparo,
       prontos: resumo.prontos,
       problemas: resumo.problemas,
@@ -646,7 +652,7 @@ export class PainelService {
   private async atualizarHistoricoAtendimentos(): Promise<void> {
     const seq = ++this.sequenciaHistorico;
     const historico = await firstValueFrom(
-      this.http.get<HistoricoAtendimentoApiResponse[]>(`${this.baseUrl}/atendimentos/historico`),
+        this.http.get<HistoricoAtendimento[]>(`${this.baseUrl}/atendimentos/historico`),
     );
 
     // Resposta atrasada não pode sobrescrever um histórico mais recente.

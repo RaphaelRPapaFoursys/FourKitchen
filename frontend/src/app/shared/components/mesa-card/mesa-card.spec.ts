@@ -35,7 +35,7 @@ describe('MesaCard', () => {
     component = fixture.componentInstance;
     fixture.componentRef.setInput('mesa', mesaOcupada());
     fixture.componentRef.setInput('criticidade', 'critico');
-    fixture.componentRef.setInput('acaoPrimaria', { tipo: 'MARCAR_ENTREGUE', label: 'Marcar entregue' });
+    fixture.componentRef.setInput('acaoPrimaria', { tipo: 'FECHAR_CONTA', label: 'Fechar conta' });
     await fixture.whenStable();
     fixture.detectChanges();
   });
@@ -65,6 +65,24 @@ describe('MesaCard', () => {
 
     const botao: HTMLButtonElement = fixture.nativeElement.querySelector('.mesa-card__trocar-garcom');
     botao.click();
+
+    expect(emitido).toHaveBeenCalledOnce();
+  });
+
+  it('não exibe quantidade de itens nem valor da conta diretamente no card', () => {
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+    expect(texto).not.toContain('3 itens');
+    expect(texto).not.toContain('R$ 50,00');
+  });
+
+  it('emite verPedido ao clicar na ação secundária de detalhes', () => {
+    const emitido = vi.fn();
+    component.verPedido.subscribe(emitido);
+
+    const botoes = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.mesa-card__acao'));
+    const botaoDetalhes = botoes.find(botao => botao.textContent?.includes('Ver pedido'));
+    botaoDetalhes?.click();
 
     expect(emitido).toHaveBeenCalledOnce();
   });
