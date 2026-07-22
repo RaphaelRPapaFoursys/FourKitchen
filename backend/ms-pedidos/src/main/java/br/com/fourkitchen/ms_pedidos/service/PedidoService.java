@@ -8,6 +8,7 @@ import br.com.fourkitchen.ms_pedidos.dto.response.PedidoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.PedidoRetiradaResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoContaAtendimentoResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.ResumoPedidosOperacaoResponse;
+import br.com.fourkitchen.ms_pedidos.dto.response.ResumoTotemResponse;
 import br.com.fourkitchen.ms_pedidos.dto.response.SinalizarProblemaResponse;
 import br.com.fourkitchen.ms_pedidos.entities.Pedido;
 import br.com.fourkitchen.ms_pedidos.entities.ProblemaCozinha;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -143,6 +145,21 @@ public class PedidoService {
                 .toList();
 
         return listaPedidos;
+    }
+
+    public List<ResumoTotemResponse> resumirTotens() {
+        LocalDate hoje = LocalDate.now();
+
+        return pedidoRepository.resumirTotens(hoje.atStartOfDay(), hoje.plusDays(1).atStartOfDay())
+                .stream()
+                .map(resumo -> new ResumoTotemResponse(
+                        resumo.getIdUsuario(),
+                        resumo.getPedidosHoje(),
+                        resumo.getValorHoje(),
+                        resumo.getUltimaAtividade(),
+                        resumo.getProblemasAbertos()
+                ))
+                .toList();
     }
 
     public List<PedidoResponse> findPedidosCozinha() {

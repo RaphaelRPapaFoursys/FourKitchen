@@ -1,0 +1,39 @@
+.heading-actions { display: flex; gap: .65rem; }
+
+.totem-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.totem-kpis article {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--fk-border-soft);
+  border-radius: var(--fk-radius-card-lg);
+  background: var(--fk-card);
+  box-shadow: var(--fk-shadow-card);
+}
+
+.totem-kpis span, .totem-kpis small { color: var(--fk-muted); }
+.totem-kpis span { font-size: .8rem; font-weight: 700; }
+.totem-kpis strong { color: var(--fk-navy); font-size: 1.65rem; }
+.totem-kpis small { font-size: .72rem; }
+.totem-kpis .totem-kpi--attention { border-color: color-mix(in srgb, var(--fk-red-strong) 35%, transparent); background: var(--fk-red-soft); }
+.totem-kpis .totem-kpi--attention strong { color: var(--fk-red-strong); }
+
+.totem-filters { display: flex; gap: .5rem; margin-bottom: 1rem; }
+.totem-filters button { padding: .48rem .8rem; border: 1px solid var(--fk-border); border-radius: var(--fk-radius-pill); background: var(--fk-card); color: var(--fk-text-2); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+.totem-filters button.active { border-color: var(--fk-orange); background: var(--fk-orange-soft); color: var(--fk-orange-strong); }
+
+.totems-table { min-width: 1080px; }
+.totem-avatar { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; background: var(--fk-orange-soft); color: var(--fk-orange-strong); }
+.problem-count { display: inline-grid; min-width: 28px; min-height: 28px; place-items: center; border-radius: 999px; background: var(--fk-surface-muted); color: var(--fk-muted); font-size: .78rem; font-weight: 800; }
+.problem-count--active { background: var(--fk-red-soft); color: var(--fk-red-strong); }
+.totem-dialog { max-width: 620px; }
+
+@media (max-width: 1050px) { .totem-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .heading-actions { flex-direction: column; } .totem-kpis { grid-template-columns: 1fr; } .totem-filters { overflow-x: auto; } }

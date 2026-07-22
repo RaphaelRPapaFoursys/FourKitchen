@@ -1,0 +1,100 @@
+<div class="catalog-page">
+  <fk-sidebar />
+  <div class="catalog-page__main">
+    <img class="catalog-page__wave" src="assets/images/listra-fourkitchen.png" alt="" aria-hidden="true" />
+    <fk-topbar
+      [busca]="searchTerm()"
+      (buscaChange)="searchTerm.set($event)"
+      buscaPlaceholder="Pesquisar nome ou e-mail do totem"
+      [usuarioNome]="usuario()?.nome ?? 'Usuário'"
+      [usuarioInicial]="initials(usuario()?.nome)"
+    />
+
+    <main class="catalog-page__content">
+      <header class="page-heading">
+        <div>
+          <span class="page-heading__eyebrow">Dispositivos de autoatendimento</span>
+          <h1>Totens</h1>
+          <p>Acompanhe as vendas e gerencie os acessos dos totens da operação.</p>
+        </div>
+        <div class="heading-actions">
+          <button class="secondary-button" type="button" (click)="refresh()" [disabled]="loading()">
+            <fk-icon name="arrows-counter-clockwise" size="1rem" /> Atualizar
+          </button>
+          <button class="primary-button" type="button" (click)="openCreateDialog()">
+            <fk-icon name="plus" size="1rem" /> Novo totem
+          </button>
+        </div>
+      </header>
+
+      @if (errorMessage() && !dialogOpen()) { <div class="feedback feedback--error" role="alert">{{ errorMessage() }}</div> }
+      @if (successMessage()) { <div class="feedback feedback--success" role="status">{{ successMessage() }}</div> }
+
+      <section class="totem-kpis" aria-label="Resumo dos totens">
+        <article><span>Totens habilitados</span><strong>{{ enabledCount() }}</strong><small>Com acesso à operação</small></article>
+        <article><span>Pedidos hoje</span><strong>{{ ordersToday() }}</strong><small>Originados nos totens</small></article>
+        <article><span>Vendas hoje</span><strong>{{ salesToday() | currency: 'BRL' }}</strong><small>Pedidos não cancelados</small></article>
+        <article [class.totem-kpi--attention]="attentionCount() > 0"><span>Precisam de atenção</span><strong>{{ attentionCount() }}</strong><small>Com problemas em aberto</small></article>
+      </section>
+
+      <div class="totem-filters" aria-label="Filtros dos totens">
+        <button type="button" [class.active]="filter() === 'TODOS'" (click)="setFilter('TODOS')">Todos</button>
+        <button type="button" [class.active]="filter() === 'ATENCAO'" (click)="setFilter('ATENCAO')">Com problemas</button>
+        <button type="button" [class.active]="filter() === 'SEM_ATIVIDADE'" (click)="setFilter('SEM_ATIVIDADE')">Sem atividade</button>
+      </div>
+
+      @if (loading()) {
+        <section class="state-card">Carregando totens...</section>
+      } @else {
+        <section class="products-card">
+          <div class="products-card__header">
+            <div><strong>{{ filteredTotems().length }}</strong><span>{{ filteredTotems().length === 1 ? 'totem encontrado' : 'totens encontrados' }}</span></div>
+            <small>Atividade baseada nos pedidos registrados</small>
+          </div>
+          @if (filteredTotems().length === 0) {
+            <div class="empty-state"><fk-icon name="cash-register" size="2rem" /><strong>Nenhum totem encontrado</strong><span>Altere os filtros ou cadastre o primeiro totem.</span></div>
+          } @else {
+            <div class="products-table-wrapper">
+              <table class="products-table totems-table">
+                <thead><tr><th>Totem</th><th>Situação</th><th>Última atividade</th><th>Pedidos hoje</th><th>Vendas hoje</th><th>Problemas</th><th><span class="sr-only">Ações</span></th></tr></thead>
+                <tbody>
+                  @for (totem of filteredTotems(); track totem.id) {
+                    <tr>
+                      <td><div class="product-cell totem-cell"><span class="totem-avatar"><fk-icon name="cash-register" size="1.15rem" /></span><div><strong>{{ totem.nome }}</strong><span>{{ totem.email }}</span></div></div></td>
+                      <td><span class="status-pill">Habilitado</span></td>
+                      <td>{{ totem.ultimaAtividade ? (totem.ultimaAtividade | date: 'dd/MM/yyyy HH:mm') : 'Sem pedidos' }}</td>
+                      <td><strong>{{ totem.pedidosHoje }}</strong></td>
+                      <td class="products-table__price">{{ totem.valorHoje | currency: 'BRL' }}</td>
+                      <td><span class="problem-count" [class.problem-count--active]="totem.problemasAbertos > 0">{{ totem.problemasAbertos }}</span></td>
+                      <td><div class="row-actions"><button type="button" (click)="openEditDialog(totem)">Editar</button><button class="row-actions__status" type="button" [disabled]="actionTotemId() !== null" (click)="deactivateTotem(totem)">{{ actionTotemId() === totem.id ? 'Aguarde...' : 'Inativar' }}</button></div></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
+    </main>
+  </div>
+</div>
+
+@if (dialogOpen()) {
+  <div class="dialog-backdrop" role="presentation">
+    <section class="product-dialog totem-dialog" role="dialog" aria-modal="true" aria-labelledby="totem-dialog-title">
+      <header class="product-dialog__header">
+        <div><span>{{ editingTotem() ? 'Editar totem' : 'Novo totem' }}</span><h2 id="totem-dialog-title">{{ editingTotem()?.nome ?? 'Cadastrar dispositivo' }}</h2></div>
+        <button type="button" aria-label="Fechar formulário" (click)="closeDialog()" [disabled]="saving()">×</button>
+      </header>
+      <form [formGroup]="totemForm" (ngSubmit)="saveTotem()">
+        @if (errorMessage()) { <div class="feedback feedback--error" role="alert">{{ errorMessage() }}</div> }
+        <div class="form-grid">
+          <label class="form-field form-field--wide"><span>Identificação</span><input type="text" formControlName="nome" placeholder="Ex.: Totem Entrada" />@if (totemForm.controls.nome.touched && totemForm.controls.nome.invalid) { <small class="form-field__error">Informe um nome entre 3 e 120 caracteres.</small> }</label>
+          <label class="form-field form-field--wide"><span>E-mail de acesso</span><input type="email" formControlName="email" placeholder="totem01@fourkitchen.com" />@if (totemForm.controls.email.touched && totemForm.controls.email.invalid) { <small class="form-field__error">Informe um e-mail válido.</small> }</label>
+          <label class="form-field form-field--wide"><span>{{ editingTotem() ? 'Nova senha (opcional)' : 'Senha inicial' }}</span><input type="password" formControlName="senha" [placeholder]="editingTotem() ? 'Deixe vazio para manter a senha' : 'Mínimo de 8 caracteres'" /><small>Use letra maiúscula, minúscula e número.</small>@if (totemForm.controls.senha.touched && totemForm.controls.senha.invalid) { <small class="form-field__error">A senha não atende aos requisitos.</small> }</label>
+        </div>
+        <footer class="product-dialog__actions"><button class="secondary-button" type="button" (click)="closeDialog()" [disabled]="saving()">Cancelar</button><button class="primary-button" type="submit" [disabled]="saving()">{{ saving() ? 'Salvando...' : editingTotem() ? 'Salvar alterações' : 'Cadastrar totem' }}</button></footer>
+      </form>
+    </section>
+  </div>
+}

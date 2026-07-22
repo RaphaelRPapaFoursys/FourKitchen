@@ -27,6 +27,9 @@ public interface PedidoClient {
     @GetMapping("/api/pedidos/totem/fila-retirada")
     List<PedidoRetiradaResponse> listarFilaRetiradaTotem();
 
+    @GetMapping("/api/pedidos/totem/resumo-gestor")
+    List<ResumoTotemClientResponse> buscarResumoTotens();
+
     @PatchMapping("/api/pedidos/{id}/iniciar-preparo")
     PedidoResponse iniciarPreparo(@PathVariable Integer id);
 
