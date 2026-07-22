@@ -1,46 +1,35 @@
 <div class="categories-carousel">
   @if (canScrollLeft()) {
-    <button class="categories-carousel__button categories-carousel__button--left" type="button" aria-label="Ver categorias anteriores" (click)="requestScroll('left')">
-      ‹
-    </button>
+  <button class="categories-carousel__button categories-carousel__button--left" type="button"
+    aria-label="Ver categorias anteriores" (click)="requestScroll('left')">
+    ‹
+  </button>
   }
 
-  <div
-    class="categories__grid"
-    #categoriesCarousel
-    [class.categories__grid--dragging]="isDragging"
-    (scroll)="notifyScrolled()"
-    (pointerdown)="onPointerDown($event)"
-    (pointermove)="onPointerMove($event)"
-    (pointerup)="onPointerUp($event)"
-    (pointercancel)="onPointerCancel($event)"
-    (pointerleave)="onPointerLeave($event)"
-  >
+  <div class="categories__grid" #categoriesCarousel [class.categories__grid--dragging]="isDragging"
+    (scroll)="notifyScrolled()" (pointerdown)="onPointerDown($event)" (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)" (pointercancel)="onPointerCancel($event)" (pointerleave)="onPointerLeave($event)">
     @for (category of categories(); track trackCategory()($index, category)) {
-      <button
-        class="category-card"
-        type="button"
-        [class.category-card--active]="selectedCategoryId() === category.categoriaId"
-        (click)="onCategoryClick($event, category.categoriaId)"
-      >
-        <div class="category-card__media">
-          <img [src]="categoryImage()(category)" [alt]="category.categoriaNome" loading="eager" draggable="false" (error)="useCategoryFallback($event)" />
-        </div>
+    <button class="category-card" type="button"
+      [class.category-card--active]="selectedCategoryId() === category.categoriaId"
+      (click)="onCategoryClick($event, category.categoriaId)">
+      <div class="category-card__media">
+        <img [src]="categoryImage()(category)" [alt]="category.categoriaNome" loading="eager" draggable="false"
+          (error)="useCategoryFallback($event)" />
+      </div>
 
-        <div class="category-card__content">
-          <h3>{{ category.categoriaNome }}</h3>
+      <div class="category-card__content">
+        <h3>{{ category.categoriaNome }}</h3>
 
-        @if (category.categoriaDescricao) {
-          <p>{{ category.categoriaDescricao }}</p>
-       }
-  </div>
-      </button>
+      </div>
+    </button>
     }
   </div>
 
   @if (canScrollRight()) {
-    <button class="categories-carousel__button categories-carousel__button--right" type="button" aria-label="Ver proximas categorias" (click)="requestScroll('right')">
-      ›
-    </button>
+  <button class="categories-carousel__button categories-carousel__button--right" type="button"
+    aria-label="Ver proximas categorias" (click)="requestScroll('right')">
+    ›
+  </button>
   }
 </div>
