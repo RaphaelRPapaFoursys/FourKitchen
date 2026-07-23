@@ -102,7 +102,7 @@
         <div class="cart-header__actions">
 
           <fk-badge variant="tempo-real">
-            {{ totalItens() }} item{{ totalItens() === 1 ? '' : 'ns' }}
+            {{ totalItens() }} ite{{ totalItens() === 1 ? 'm' : 'ns' }}
           </fk-badge>
 
           <button type="button" class="clear-cart-button" (click)="abrirModalLimparCarrinho()"

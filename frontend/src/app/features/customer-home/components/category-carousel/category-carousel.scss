@@ -144,7 +144,7 @@
   position: relative;
   box-sizing: border-box;
   flex: 0 0 clamp(16rem, 24vw, 18rem);
-  min-height: 19rem;
+  min-height: 20rem;
   padding: 4.5rem 1.7rem 1.8rem;
   border: 2px solid rgb(255 255 255 / 86%);
   border-radius: 0 12px 54px 12px;
@@ -211,7 +211,7 @@
   top: -6rem;
   left: 50%;
   width: clamp(8.5rem, 13vw, 10.5rem);
-  top: -5rem;
+  top: -3rem;
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 50%;
@@ -228,7 +228,7 @@
 
 .category-card h3 {
   margin: 0 0 1rem;
-  font-size: clamp(1.2rem, 1.7vw, 1.45rem);
+  font-size: clamp(1.5rem, 1.7vw, 1.45rem);
   font-weight: 700;
   letter-spacing:.3px;
   line-height: 1.15;
