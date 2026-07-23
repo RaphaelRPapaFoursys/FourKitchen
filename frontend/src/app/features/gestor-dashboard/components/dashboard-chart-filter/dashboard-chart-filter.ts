@@ -104,4 +104,5 @@ export class DashboardChartFilter {
       + (this.filtros.idMesa === null ? 0 : 1)
       + (this.filtros.status === null ? 0 : 1);
   }
+
 }

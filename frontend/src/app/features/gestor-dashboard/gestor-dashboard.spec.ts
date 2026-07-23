@@ -128,6 +128,47 @@ describe('GestorDashboard', () => {
     expect(indicadoresClicaveis[0].classList).toContain('kpi--com-problemas');
   });
 
+  it('aplica o período compartilhado aos três gráficos analíticos', () => {
+    const filtros = fixture.nativeElement.querySelectorAll('fk-dashboard-chart-filter');
+    const barra: HTMLElement = fixture.nativeElement.querySelector('.analise-graficos__filtros');
+    expect(filtros.length).toBe(4);
+    expect(barra.querySelectorAll('fk-dashboard-chart-filter').length).toBe(1);
+    expect(barra.nextElementSibling?.classList).toContain('graficos-analiticos');
+
+    const seteDias = [...barra.querySelectorAll<HTMLButtonElement>('.filtros-grafico__rapidos button')]
+      .find(botao => botao.textContent?.includes('7 dias'));
+    seteDias?.click();
+
+    httpMock.expectOne(request => request.url === `${BASE_URL}/dashboard/pedidos-por-horario`
+      && request.params.get('periodo') === 'ULTIMOS_7_DIAS').flush({
+      periodo: 'ULTIMOS_7_DIAS', totalPedidos: 0, horarioPico: null, quantidadeNoPico: 0, dados: [],
+    });
+    httpMock.expectOne(request => request.url === `${BASE_URL}/dashboard/problemas-por-motivo`
+      && request.params.get('periodo') === 'ULTIMOS_7_DIAS').flush({
+      periodo: 'ULTIMOS_7_DIAS', totalProblemas: 0, motivoMaisFrequente: null, dados: [],
+    });
+    httpMock.expectOne(request => request.url === `${BASE_URL}/dashboard/pedidos-por-canal`
+      && request.params.get('periodo') === 'ULTIMOS_7_DIAS').flush({
+      periodo: 'ULTIMOS_7_DIAS', totalPedidos: 0, dados: [],
+    });
+  });
+
+  it('mantém a alteração individual restrita ao gráfico escolhido', () => {
+    const volume: HTMLElement = fixture.nativeElement.querySelector('fk-volume-pedidos-chart');
+    const trintaDias = [...volume.querySelectorAll<HTMLButtonElement>('.filtros-grafico__rapidos button')]
+      .find(botao => botao.textContent?.includes('30 dias'));
+    trintaDias?.click();
+
+    httpMock.expectOne(request => request.url === `${BASE_URL}/dashboard/pedidos-por-horario`
+      && request.params.get('periodo') === 'ULTIMOS_30_DIAS').flush({
+      periodo: 'ULTIMOS_30_DIAS', totalPedidos: 0, horarioPico: null, quantidadeNoPico: 0, dados: [],
+    });
+    httpMock.expectNone(request => request.url === `${BASE_URL}/dashboard/problemas-por-motivo`
+      && request.params.get('periodo') === 'ULTIMOS_30_DIAS');
+    httpMock.expectNone(request => request.url === `${BASE_URL}/dashboard/pedidos-por-canal`
+      && request.params.get('periodo') === 'ULTIMOS_30_DIAS');
+  });
+
   it('direciona a carga do garçom para o filtro correspondente', () => {
     const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.carga li a');
     expect(link.getAttribute('href')).toContain('garcomId=7');

@@ -23,6 +23,7 @@ describe('gráficos analíticos do dashboard', () => {
     expect(config.type).toBe('bar');
     expect(config.data.labels).toEqual(['12:00', '13:00']);
     expect(config.data.datasets[0].data).toEqual([5, 5]);
+    expect(fixture.nativeElement.querySelector('fk-dashboard-chart-filter')).not.toBeNull();
   });
 
   it('diferencia vazio e erro e permite tentar novamente', async () => {
@@ -45,7 +46,7 @@ describe('gráficos analíticos do dashboard', () => {
     expect(repeticoes).toBe(1);
   });
 
-  it('aplica um período rápido somente no gráfico acionado', async () => {
+  it('permite alterar individualmente o período de um gráfico', async () => {
     const fixture = await criar(VolumePedidosChart);
     fixture.componentRef.setInput('estado', {
       status: 'sucesso', dados: { periodo: 'HOJE', totalPedidos: 0, horarioPico: null, quantidadeNoPico: 0, dados: [] },

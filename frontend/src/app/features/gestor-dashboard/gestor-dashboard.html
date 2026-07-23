@@ -52,11 +52,25 @@
               <fk-status-pedidos-chart [ativos]="mesasOcupadas()" [preparo]="resumo().emPreparo" [prontos]="resumo().prontos" [problemas]="resumo().problemas" />
             </div>
 
-            <div class="graficos-analiticos">
-              <fk-volume-pedidos-chart [estado]="volumeGrafico()" [filtros]="filtrosVolume()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosVolume())" (filtrosChange)="atualizarFiltrosVolume($event)" (tentarNovamente)="graficosService.repetirVolume()" />
-              <fk-problemas-cozinha-chart [estado]="problemasGrafico()" [filtros]="filtrosProblemas()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosProblemas())" (filtrosChange)="atualizarFiltrosProblemas($event)" (tentarNovamente)="graficosService.repetirProblemas()" />
-              <fk-pedidos-canal-chart [estado]="canaisGrafico()" [filtros]="filtrosCanais()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosCanais())" (filtrosChange)="atualizarFiltrosCanais($event)" (tentarNovamente)="graficosService.repetirCanais()" />
-            </div>
+            <section class="analise-graficos" aria-labelledby="titulo-filtros-graficos">
+              <div class="analise-graficos__filtros">
+                <div>
+                  <span>Período dos gráficos</span>
+                  <small id="titulo-filtros-graficos">Aplicado aos três gráficos abaixo</small>
+                </div>
+                <fk-dashboard-chart-filter
+                  [filtros]="filtrosGraficos()"
+                  [mesas]="mesasFiltroDashboard()"
+                  (filtrosChange)="atualizarFiltrosGraficos($event)"
+                />
+              </div>
+
+              <div class="graficos-analiticos">
+                <fk-volume-pedidos-chart [estado]="volumeGrafico()" [filtros]="filtrosVolume()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosVolume())" (filtrosChange)="atualizarFiltrosVolume($event)" (tentarNovamente)="graficosService.repetirVolume()" />
+                <fk-problemas-cozinha-chart [estado]="problemasGrafico()" [filtros]="filtrosProblemas()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosProblemas())" (filtrosChange)="atualizarFiltrosProblemas($event)" (tentarNovamente)="graficosService.repetirProblemas()" />
+                <fk-pedidos-canal-chart [estado]="canaisGrafico()" [filtros]="filtrosCanais()" [mesas]="mesasFiltroDashboard()" [filtrosAtivos]="temFiltros(filtrosCanais())" (filtrosChange)="atualizarFiltrosCanais($event)" (tentarNovamente)="graficosService.repetirCanais()" />
+              </div>
+            </section>
 
             <section class="card preview">
               <div class="card__titulo preview__titulo">

@@ -12,6 +12,7 @@ import { Icon } from '../../shared/components/icon/icon';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { WaiterLoadItem } from '../../shared/components/waiter-load-item/waiter-load-item';
 import { OcupacaoChart } from './components/ocupacao-chart/ocupacao-chart';
+import { DashboardChartFilter } from './components/dashboard-chart-filter/dashboard-chart-filter';
 import { PedidosCanalChart } from './components/pedidos-canal-chart/pedidos-canal-chart';
 import { ProblemasCozinhaChart } from './components/problemas-cozinha-chart/problemas-cozinha-chart';
 import { StatusPedidosChart } from './components/status-pedidos-chart/status-pedidos-chart';
@@ -21,7 +22,7 @@ import { DashboardGraficosService } from './services/dashboard-graficos.service'
 
 @Component({
   selector: 'app-gestor-dashboard',
-  imports: [CurrencyPipe, DatePipe, FormsModule, RouterLink, Sidebar, Topbar, Icon, WaiterLoadItem, OcupacaoChart, StatusPedidosChart, VolumePedidosChart, ProblemasCozinhaChart, PedidosCanalChart],
+  imports: [CurrencyPipe, DatePipe, FormsModule, RouterLink, Sidebar, Topbar, Icon, WaiterLoadItem, OcupacaoChart, StatusPedidosChart, DashboardChartFilter, VolumePedidosChart, ProblemasCozinhaChart, PedidosCanalChart],
   templateUrl: './gestor-dashboard.html',
   styleUrl: './gestor-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +56,7 @@ export class GestorDashboard {
   protected readonly dataInicialHistorico = signal('');
   protected readonly dataFinalHistorico = signal('');
   protected readonly paginaHistorico = signal(1);
+  protected readonly filtrosGraficos = signal<FiltrosDashboard>({ ...FILTROS_DASHBOARD_INICIAIS });
   protected readonly filtrosVolume = signal<FiltrosDashboard>({ ...FILTROS_DASHBOARD_INICIAIS });
   protected readonly filtrosProblemas = signal<FiltrosDashboard>({ ...FILTROS_DASHBOARD_INICIAIS });
   protected readonly filtrosCanais = signal<FiltrosDashboard>({ ...FILTROS_DASHBOARD_INICIAIS });
@@ -247,6 +249,14 @@ export class GestorDashboard {
   protected atualizarPeriodoRanking(periodo: PeriodoRankingProdutos): void {
     this.periodoRanking.set(periodo);
     this.graficosService.atualizarPeriodoRanking(periodo);
+  }
+
+  protected atualizarFiltrosGraficos(filtros: FiltrosDashboard): void {
+    this.filtrosGraficos.set(filtros);
+    this.filtrosVolume.set({ ...filtros });
+    this.filtrosProblemas.set({ ...filtros });
+    this.filtrosCanais.set({ ...filtros });
+    this.graficosService.atualizarFiltrosGraficos(filtros);
   }
 
   protected atualizarFiltrosVolume(filtros: FiltrosDashboard): void {
