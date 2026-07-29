@@ -25,6 +25,7 @@ import { MesaAtendimentoAtualResponse, PedidoMesaStatusResponse, PedidoStatus, R
 import { CartService } from '../../core/services/cart.service';
 import { CustomerContextService } from '../../core/services/customer-context.service';
 import { OrderService } from '../../core/services/order.service';
+import { RealtimeService } from '../../core/services/realtime';
 import { MesaHeaderComponent } from '../../shared/components/mesa-header/mesa-header';
 
 type MesaOrdersState =
@@ -47,6 +48,7 @@ export class CustomerOrders {
   private readonly customerContextService = inject(CustomerContextService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly orderService = inject(OrderService);
+  private readonly realtimeService = inject(RealtimeService);
   private readonly router = inject(Router);
   private readonly refreshTrigger = new Subject<void>();
   private readonly terminalStatuses = new Set<PedidoStatus>([
@@ -92,6 +94,7 @@ export class CustomerOrders {
         CustomerOrders.AUTO_REFRESH_INTERVAL_MS,
       ),
       this.refreshTrigger,
+      this.realtimeService.eventos(),
     )
       .pipe(
         exhaustMap(() => this.fetchMesaOrders().pipe(

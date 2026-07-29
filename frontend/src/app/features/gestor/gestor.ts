@@ -1,6 +1,6 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -8,6 +8,7 @@ import { NivelCarga, resolverCriticidadeMesa } from '../../core/constants/urgenc
 import { AcaoMesaPainel, MesaPainel, PedidoDetalheGestor } from '../../core/models/painel.models';
 import { AuthService } from '../../core/services/auth';
 import { FiltroEstadoPainel, OrdenacaoPainel, PainelService } from '../../core/services/painel';
+import { RealtimeService } from '../../core/services/realtime';
 import { numeroMesaBusca } from '../../core/utils/operational-search';
 import { Topbar } from '../../shared/components/header/header';
 import { Icon } from '../../shared/components/icon/icon';
@@ -63,6 +64,7 @@ interface ConfirmacaoAcaoEstado {
 export class Gestor {
   private readonly authService = inject(AuthService);
   private readonly painelService = inject(PainelService);
+  private readonly realtimeService = inject(RealtimeService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -123,6 +125,10 @@ export class Gestor {
   protected readonly temProximaPagina = this.painelService.temProximaPagina;
 
   constructor() {
+    this.realtimeService.eventos()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => void this.painelService.recarregarPainel());
+
     const filtroRota = this.route.snapshot.queryParamMap.get('filtro');
     if (filtroEstadoValido(filtroRota)) {
       this.filtroEstado.set(filtroRota);

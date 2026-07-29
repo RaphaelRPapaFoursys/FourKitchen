@@ -18,6 +18,9 @@ public interface PedidoClient {
     @PostMapping("/api/pedidos")
     PedidoResponse criarPedido(@RequestBody CriarPedidoRequest request);
 
+    @GetMapping("/api/pedidos/{id}")
+    PedidoResponse buscarPedido(@PathVariable Integer id);
+
     @GetMapping("/api/pedidos/cozinha/fila")
     List<PedidoCozinhaResponse> listarFilaCozinha();
 

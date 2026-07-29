@@ -21,6 +21,7 @@ import { GarcomChamadaService } from '../../core/services/garcom-chamada';
 import { GarcomMesaService } from '../../core/services/garcom-mesa';
 import { GarcomTotemProblemaService } from '../../core/services/garcom-totem-problema';
 import { MenuService } from '../../core/services/menu.service';
+import { RealtimeService } from '../../core/services/realtime';
 import {
   normalizarBuscaOperacional,
   mesaCorrespondeBuscaParcial,
@@ -56,6 +57,7 @@ export class Garcom {
   private readonly garcomTotemProblemaService = inject(GarcomTotemProblemaService);
   private readonly garcomChamadaService = inject(GarcomChamadaService);
   private readonly menuService = inject(MenuService);
+  private readonly realtimeService = inject(RealtimeService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -202,6 +204,9 @@ export class Garcom {
       () => this.carregarDashboard(true),
       INTERVALO_ATUALIZACAO_MS,
     );
+    this.realtimeService.eventos()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.carregarDashboard(true, true));
     this.destroyRef.onDestroy(() => {
       if (this.intervaloAtualizacao !== null) {
         clearInterval(this.intervaloAtualizacao);

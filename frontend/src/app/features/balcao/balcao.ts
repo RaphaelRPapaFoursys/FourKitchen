@@ -1,9 +1,11 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { PedidoBalcaoResponse, StatusRetirada } from '../../core/models/retirada.models';
 import { RetiradaService } from '../../core/services/retirada.service';
+import { RealtimeService } from '../../core/services/realtime';
 import { Icon } from '../../shared/components/icon/icon';
 import { UserMenu } from '../../shared/components/user-menu/user-menu';
 
@@ -15,6 +17,7 @@ import { UserMenu } from '../../shared/components/user-menu/user-menu';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Balcao implements OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   private static readonly INTERVALO_ATUALIZACAO_MS = 5_000;
   private readonly intervalo: ReturnType<typeof setInterval>;
   private carregamentoEmAndamento = false;
@@ -33,9 +36,15 @@ export class Balcao implements OnDestroy {
     pedido.status === 'AGUARDANDO_DECISAO' || pedido.status === 'PROBLEMA_COZINHA',
   ));
 
-  constructor(private readonly retiradaService: RetiradaService) {
+  constructor(
+    private readonly retiradaService: RetiradaService,
+    private readonly realtimeService: RealtimeService,
+  ) {
     this.carregarFila();
     this.intervalo = setInterval(() => this.carregarFila(true), Balcao.INTERVALO_ATUALIZACAO_MS);
+    this.realtimeService.eventos()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.carregarFila(true));
   }
 
   ngOnDestroy(): void {

@@ -17,6 +17,7 @@ import br.com.fourkitchen.bff_restaurante.dto.response.PedidoStatusCozinhaRespon
 import br.com.fourkitchen.bff_restaurante.enums.StatusProdutoPedido;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventPublisher;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,8 @@ public class CozinhaService {
     private final NotificacaoService notificacaoService;
 
     private final DecisaoProblemaService decisaoProblemaService;
+
+    private final RealtimeEventPublisher realtimeEventPublisher;
 
     public List<PedidoFilaCozinhaResponse> listarFila(String authorization) {
         List<PedidoCozinhaResponse> pedidos = listarPedidosDaFila();
@@ -90,6 +93,7 @@ public class CozinhaService {
     public PedidoStatusCozinhaResponse iniciarPreparo(Integer id) {
         PedidoResponse pedido = alterarStatus(id, EventoPedido.PEDIDO_EM_PREPARO);
         registrarEvento(EventoPedido.PEDIDO_EM_PREPARO);
+        realtimeEventPublisher.pedidoAtualizado(pedido);
 
         return mapearStatus(pedido);
     }
@@ -97,6 +101,7 @@ public class CozinhaService {
     public PedidoStatusCozinhaResponse finalizarPreparo(Integer id) {
         PedidoResponse pedido = alterarStatus(id, EventoPedido.PEDIDO_PRONTO);
         registrarEvento(EventoPedido.PEDIDO_PRONTO);
+        realtimeEventPublisher.pedidoPronto(pedido);
 
         return mapearStatus(pedido);
     }
@@ -210,6 +215,7 @@ public class CozinhaService {
 
     public SinalizarProblemaResponse sinalizarProblema(SinalizarProblemaRequest request) {
         try {
+            PedidoResponse pedido = pedidoClient.buscarPedido(request.idPedido());
             SinalizarProblemaResponse response = pedidoClient.sinalizarProblema(request);
 
             if (request.statusProdutoPedido().equals(StatusProdutoPedido.FALTA_PRODUTO)){
@@ -221,6 +227,7 @@ public class CozinhaService {
             }
 
 
+            realtimeEventPublisher.problemaCozinha(pedido, response);
             return response;
         } catch (FeignException e) {
             if (e.status() == 404) {

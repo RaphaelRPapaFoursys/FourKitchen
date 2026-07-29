@@ -9,6 +9,7 @@ import br.com.fourkitchen.bff_restaurante.dto.request.CriarNotificacaoRequest;
 import br.com.fourkitchen.bff_restaurante.dto.response.NotificacaoResponse;
 import br.com.fourkitchen.bff_restaurante.exception.BaseException;
 import br.com.fourkitchen.bff_restaurante.exception.ErrorEnum;
+import br.com.fourkitchen.bff_restaurante.realtime.RealtimeEventPublisher;
 import br.com.fourkitchen.bff_restaurante.security.UsuarioAutenticado;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -25,18 +26,23 @@ public class MesaChamadaGarcomService {
 
     private final NotificacaoService notificacaoService;
 
+    private final RealtimeEventPublisher realtimeEventPublisher;
+
     public NotificacaoResponse chamarGarcom(ChamarGarcomRequest request, Authentication authentication) {
         UsuarioAutenticado usuario = obterUsuarioMesa(authentication);
         SessaoMesaResponse sessao = validarSessaoMesa(usuario.idMesa(), request.codigoSessao());
         validarGarcomResponsavel(sessao);
 
-        return notificacaoService.criarNotificacao(new CriarNotificacaoRequest(
+        NotificacaoResponse notificacao = notificacaoService.criarNotificacao(new CriarNotificacaoRequest(
                 TipoNotificacao.CHAMADA_GARCOM,
                 DestinoNotificacao.GARCOM,
                 sessao.idMesa(),
                 sessao.idAtendimento(),
                 sessao.idGarcom()
         ));
+        realtimeEventPublisher.chamadaGarcom(notificacao);
+
+        return notificacao;
     }
 
     private UsuarioAutenticado obterUsuarioMesa(Authentication authentication) {

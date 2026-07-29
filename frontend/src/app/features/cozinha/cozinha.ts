@@ -3,13 +3,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   OnDestroy,
   computed,
   effect,
+  inject,
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
   ItemFilaCozinhaResponse,
@@ -17,6 +20,7 @@ import {
   SinalizarProblemaRequest,
 } from '../../core/models/cozinha.models';
 import { CozinhaService } from '../../core/services/cozinha';
+import { RealtimeService } from '../../core/services/realtime';
 import {
   correspondeBuscaFilaCozinha,
   normalizarBuscaOperacional,
@@ -46,6 +50,7 @@ interface OpcaoProblema {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Cozinha implements OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly intervaloAtualizacao: ReturnType<typeof setInterval>;
   private readonly modalProblema = viewChild<ElementRef<HTMLElement>>('modalProblema');
   private filaEmCarregamento = false;
@@ -89,9 +94,15 @@ export class Cozinha implements OnDestroy {
     }
   });
 
-  constructor(private readonly cozinhaService: CozinhaService) {
+  constructor(
+    private readonly cozinhaService: CozinhaService,
+    private readonly realtimeService: RealtimeService,
+  ) {
     this.carregarFila();
     this.intervaloAtualizacao = setInterval(() => this.carregarFila(true), 10_000);
+    this.realtimeService.eventos()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.carregarFila(true));
   }
 
   ngOnDestroy(): void {
